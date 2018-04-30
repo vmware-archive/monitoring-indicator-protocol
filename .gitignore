@@ -1,0 +1,16 @@
+# generated files
+bin/
+gen/
+proto/out
+
+# Intellij project files
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# golang
+*.prof
+*.mprof
+*.coverprofile
+*.test
