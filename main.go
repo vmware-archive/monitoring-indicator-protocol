@@ -37,12 +37,6 @@ func loggregatorClient() (*loggregator.IngressClient, func()) {
 		loggregator.WithAddr("localhost:3458"),
 	)
 
-	client.CloseSend()
-
-	if err != nil {
-		log.Fatal("Could not create client", err)
-	}
-
 	return client, func() { client.CloseSend() }
 }
 
