@@ -20,7 +20,7 @@ func Start(client loggregatorClient, frequency time.Duration) (blockingCompleter
 			select {
 			case <-ticker.C:
 				log.Println("Incrementing heartbeat counter to metron")
-				client.EmitCounter("some-counter")
+				client.EmitCounter("Eventproducerintervalcount")
 			case <-stop:
 				return
 			}

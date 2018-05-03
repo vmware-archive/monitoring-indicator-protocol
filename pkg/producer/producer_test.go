@@ -20,6 +20,7 @@ var _ = Describe("Producer", func() {
 		stop()
 
 		Expect(client.GetCount()).To(BeNumerically(">=", 2))
+		Expect(client.GetCounterName()).To(Equal("Eventproducerintervalcount"))
 	})
 
 	It("stops sending logs when the cleanup function is called", func() {
@@ -35,14 +36,16 @@ var _ = Describe("Producer", func() {
 })
 
 type fakeLoggregatorClient struct {
-	count int
-	mu    sync.Mutex
+	counterName string
+	count       int
+	mu          sync.Mutex
 }
 
 func (o *fakeLoggregatorClient) EmitCounter(name string, opts ...loggregator.EmitCounterOption) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
+	o.counterName = name
 	o.count++
 }
 
@@ -51,4 +54,11 @@ func (o *fakeLoggregatorClient) GetCount() int {
 	defer o.mu.Unlock()
 
 	return o.count
+}
+
+func (o *fakeLoggregatorClient) GetCounterName() string {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	return o.counterName
 }

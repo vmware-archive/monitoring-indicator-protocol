@@ -18,6 +18,7 @@ func main() {
 
 	waitForShutdownSignal()
 
+	log.Println("Event Producer shutting down")
 	finish()
 	closeClient()
 }
@@ -35,6 +36,7 @@ func loggregatorClient() (*loggregator.IngressClient, func()) {
 	client, err := loggregator.NewIngressClient(
 		tlsConfig,
 		loggregator.WithAddr("localhost:3458"),
+		loggregator.WithTag("origin", "event_producer"),
 	)
 
 	return client, func() { client.CloseSend() }
