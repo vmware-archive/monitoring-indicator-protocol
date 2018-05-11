@@ -66,11 +66,20 @@ func convertToResultTuple(result *logcache_v1.PromQL_QueryResult) []resultTuple 
 	case *logcache_v1.PromQL_QueryResult_Vector:
 		for _, sample := range r.Vector.GetSamples() {
 			out = append(out, resultTuple{
-				tags:  sample.GetMetric(),
+				tags:  convertMetricTagNames(sample.GetMetric()),
 				point: sample.GetPoint(),
 			})
 		}
 	}
 
 	return out
+}
+
+func convertMetricTagNames(tags map[string]string) map[string]string {
+	convertedTags := make(map[string]string, len(tags))
+	for tag, val := range tags {
+		convertedTags["event_"+tag] = val
+	}
+
+	return convertedTags
 }

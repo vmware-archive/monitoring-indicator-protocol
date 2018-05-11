@@ -32,15 +32,57 @@ var _ = Describe("Evaluator", func() {
 					},
 				},
 			},
-		}, []kpi.Threshold{{
-			Level:    "Critical",
-			Operator: kpi.LessThan,
-			Value:    1000,
-		}})
+		}, []kpi.Threshold{
+			{
+				Level:    "Critical",
+				Operator: kpi.EqualTo,
+				Value:    1001,
+			}, {
+				Level:    "Warning",
+				Operator: kpi.LessThan,
+				Value:    1000,
+			},
+		})
 
 		Expect(events).To(ConsistOf(kpi.Event{
-			Tags:           map[string]string{"ip": "10.0.0.1"},
+			Tags:           map[string]string{"event_ip": "10.0.0.1"},
 			Value:          999,
+			ThresholdLevel: "Warning",
+			ThresholdValue: 1000,
+		}, kpi.Event{
+			Tags:           map[string]string{"event_ip": "10.0.0.2"},
+			Value:          1001,
+			ThresholdLevel: "Critical",
+			ThresholdValue: 1001,
+		}))
+	})
+
+	It("prefixes tags with 'event_'", func() {
+		events := evaluator.GetSatisfiedEvents(&logcache_v1.PromQL_QueryResult{
+			Result: &logcache_v1.PromQL_QueryResult_Vector{
+				Vector: &logcache_v1.PromQL_Vector{
+					Samples: []*logcache_v1.PromQL_Sample{
+						{
+							Metric: map[string]string{"tag": "test1", "tag2": "test_tag"},
+							Point: &logcache_v1.PromQL_Point{
+								Time:  12345000,
+								Value: 1000,
+							},
+						},
+					},
+				},
+			},
+		}, []kpi.Threshold{
+			{
+				Level:    "Critical",
+				Operator: kpi.EqualTo,
+				Value:    1000,
+			},
+		})
+
+		Expect(events).To(ConsistOf(kpi.Event{
+			Tags:           map[string]string{"event_tag": "test1", "event_tag2": "test_tag"},
+			Value:          1000,
 			ThresholdLevel: "Critical",
 			ThresholdValue: 1000,
 		}))
