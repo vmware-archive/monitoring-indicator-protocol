@@ -9,7 +9,8 @@ import (
 
 var _ = Describe("Unmarshal", func() {
 	It("returns an empty list when no kpis are passed", func() {
-		kpis, err := kpi.ReadKPIsFromYaml([]byte(`---`))
+		kpis, err := kpi.ReadKPIsFromYaml([]byte(`---
+performance_indicators: []`))
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(kpis).To(HaveLen(0))
@@ -17,6 +18,7 @@ var _ = Describe("Unmarshal", func() {
 
 	It("returns a converted kpi", func() {
 		kpis, err := kpi.ReadKPIsFromYaml([]byte(`---
+performance_indicators:
 - name: test-kpi
   description: desc
   promql: prom
@@ -82,6 +84,7 @@ var _ = Describe("Unmarshal", func() {
 
 	It("returns an error if a threshold has no value", func() {
 		_, err := kpi.ReadKPIsFromYaml([]byte(`---
+performance_indicators:
 - name: test-kpi
   description: desc
   promql: prom
@@ -93,6 +96,7 @@ var _ = Describe("Unmarshal", func() {
 
 	It("returns an error if a threshold has a bad float value", func() {
 		_, err := kpi.ReadKPIsFromYaml([]byte(`---
+performance_indicators:
 - name: test-kpi
   description: desc
   promql: prom

@@ -16,6 +16,10 @@ type KPI struct {
 	Description string
 	PromQL      string
 	Thresholds  []Threshold
+
+	Metrics     []string
+	Response    string
+	Measurement string
 }
 
 type Threshold struct {

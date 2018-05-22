@@ -7,11 +7,18 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type yamlIndicatorsDoc struct {
+	PerformanceIndicators []YamlKPI `yaml:"performance_indicators"`
+}
+
 type YamlKPI struct {
 	Name        string          `yaml:"name"`
 	Description string          `yaml:"description"`
 	Promql      string          `yaml:"promql"`
 	Thresholds  []YamlThreshold `yaml:"thresholds"`
+	Metrics     []string        `yaml:"metrics"`
+	Response    string          `yaml:"response"`
+	Measurement string          `yaml:"measurement"`
 }
 
 type YamlThreshold struct {
@@ -25,15 +32,15 @@ type YamlThreshold struct {
 }
 
 func ReadKPIsFromYaml(kpisYAML []byte) ([]KPI, error) {
-	yamlTypedKPIs := make([]YamlKPI, 0)
+	var yamlTypedKPIDoc yamlIndicatorsDoc
 
-	err := yaml.Unmarshal(kpisYAML, &yamlTypedKPIs)
+	err := yaml.Unmarshal(kpisYAML, &yamlTypedKPIDoc)
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal KPIs: %s", err)
 	}
 
 	var kpis []KPI
-	for _, yamlKPI := range yamlTypedKPIs {
+	for _, yamlKPI := range yamlTypedKPIDoc.PerformanceIndicators {
 		var thresholds []Threshold
 		for _, yamlThreshold := range yamlKPI.Thresholds {
 			threshold, err := kpiThresholdFromYaml(yamlThreshold)
@@ -49,6 +56,9 @@ func ReadKPIsFromYaml(kpisYAML []byte) ([]KPI, error) {
 			Description: yamlKPI.Description,
 			PromQL:      yamlKPI.Promql,
 			Thresholds:  thresholds,
+			Metrics:     yamlKPI.Metrics,
+			Response:    yamlKPI.Response,
+			Measurement: yamlKPI.Measurement,
 		})
 	}
 
@@ -80,7 +90,7 @@ func kpiThresholdFromYaml(threshold YamlThreshold) (Threshold, error) {
 		operator = GreaterThan
 		value, err = strconv.ParseFloat(threshold.GT, 64)
 	default:
-		return Threshold{}, fmt.Errorf("could not find threshold value: one of [lt, lte, eq, neq, gte, gt] must be provided as a float",)
+		return Threshold{}, fmt.Errorf("could not find threshold value: one of [lt, lte, eq, neq, gte, gt] must be provided as a float")
 	}
 
 	if err != nil {
