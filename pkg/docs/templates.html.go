@@ -1,10 +1,36 @@
 package docs
 
-const htmlIndicatorTemplate = `<h3 id="{{.TitleID}}"><a id="{{.AnchorID}}"></a>{{.Name}}</h3>
+const htmlDocumentTemplate  = `
+<h1 class="title-container">{{.Title}}</h1>
+{{.Description}}
+
+{{range .Sections}}
+<div>
+	<h2 id="{{.TitleID}}">{{.Title}}</h2>
+	{{.Description}}
+
+	{{range .Indicators}}
+	<div>
+		{{.}}
+	</div>
+	{{end}}
+
+
+	{{range .Metrics}}
+	<div>
+		{{.}}
+	</div>
+	{{end}}
+		
+</div>
+{{end}}
+`
+
+const htmlIndicatorTemplate = `<h3 id="{{.TitleID}}">{{.Title}}</h3>
 <table>
     <tr><th colspan="2" style="text-align: center;"><br/> {{range .Metrics}}{{.}}<br/>{{end}}<br/><br/></th></tr>
     <tr>
-        <th width="25%%">Description</th>
+        <th width="25%">Description</th>
         <td>
             {{.Description}}
         </td>
@@ -31,7 +57,7 @@ const htmlIndicatorTemplate = `<h3 id="{{.TitleID}}"><a id="{{.AnchorID}}"></a>{
     </tr>
 </table>`
 
-const htmlMetricTemplate = `<h3 id="{{.TitleID}}"><a id="{{.AnchorID}}"></a>{{.Title}}</h3>
+const htmlMetricTemplate = `<h3 id="{{.TitleID}}">{{.Title}}</h3>
 <table>
    <tbody><tr><th colspan="2" style="text-align: center;"><br> {{.Name}}<br><br></th></tr>
    <tr>

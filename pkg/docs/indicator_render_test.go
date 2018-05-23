@@ -8,11 +8,12 @@ import (
 	"github.com/cloudfoundry-incubator/event-producer/pkg/docs"
 )
 
-func TestRenderHTML(t *testing.T) {
+func TestRenderIndicatorHTML(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	indicator := indicator.Indicator{
-		Name:        "Test Indicator",
+		Name:        "test_indicator",
+		Title:       "Test Indicator",
 		Description: "*test description* of kpi",
 		Response:    "*test response* of kpi",
 		PromQL:      `avg_over_time(test_latency{source_id="test"}[100m])`,
@@ -36,7 +37,7 @@ func TestRenderHTML(t *testing.T) {
 	html, err := docs.IndicatorToHTML(indicator)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	g.Expect(html).To(ContainSubstring(`<h3 id="test-indicator"><a id="TestIndicator"></a>Test Indicator</h3>`))
+	g.Expect(html).To(ContainSubstring(`<h3 id="test-indicator">Test Indicator</h3>`))
 	g.Expect(html).To(ContainSubstring(`<tr><th colspan="2" style="text-align: center;"><br/> test.latency<br/><br/><br/></th></tr>`))
 	g.Expect(html).To(ContainSubstring("<p><em>test description</em> of kpi</p>"))
 	g.Expect(html).To(ContainSubstring(`<td>avg_over_time(test_latency{source_id="test"}[100m])</td>`))
@@ -44,4 +45,5 @@ func TestRenderHTML(t *testing.T) {
 	g.Expect(html).To(ContainSubstring("<p>Average over 100 minutes</p>"))
 	g.Expect(html).To(ContainSubstring("<em>Red critical</em>: &gt; 1000<br/>"))
 	g.Expect(html).To(ContainSubstring("<em>Yellow warning</em>: Dynamic<br/>"))
+	g.Expect(html).ToNot(ContainSubstring("%%"))
 }

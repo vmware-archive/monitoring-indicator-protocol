@@ -8,12 +8,14 @@ import (
 )
 
 type yamlDocument struct {
-	Metrics               []Metric        `yaml:"metrics"`
-	PerformanceIndicators []yamlIndicator `yaml:"performance_indicators"`
+	Metrics    []Metric        `yaml:"metrics"`
+	Indicators []yamlIndicator `yaml:"indicators"`
+	Documentation              `yaml:"documentation"`
 }
 
 type yamlIndicator struct {
 	Name        string          `yaml:"name"`
+	Title       string          `yaml:"title"`
 	Description string          `yaml:"description"`
 	Promql      string          `yaml:"promql"`
 	Thresholds  []yamlThreshold `yaml:"thresholds"`
@@ -42,7 +44,7 @@ func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
 	}
 
 	var indicators []Indicator
-	for _, yamlKPI := range d.PerformanceIndicators {
+	for _, yamlKPI := range d.Indicators {
 		var thresholds []Threshold
 		for _, yamlThreshold := range yamlKPI.Thresholds {
 			threshold, err := thresholdFromYAML(yamlThreshold)
@@ -55,6 +57,7 @@ func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
 
 		indicators = append(indicators, Indicator{
 			Name:        yamlKPI.Name,
+			Title:       yamlKPI.Title,
 			Description: yamlKPI.Description,
 			PromQL:      yamlKPI.Promql,
 			Thresholds:  thresholds,
@@ -64,7 +67,11 @@ func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
 		})
 	}
 
-	return Document{Indicators: indicators, Metrics:d.Metrics}, nil
+	return Document{
+		Indicators:    indicators,
+		Metrics:       d.Metrics,
+		Documentation: d.Documentation,
+	}, nil
 }
 
 func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {

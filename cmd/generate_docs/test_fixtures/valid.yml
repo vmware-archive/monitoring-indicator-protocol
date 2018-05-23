@@ -4,8 +4,9 @@ metrics:
   title: Demo Latency
   description: A test metric for testing
 
-performance_indicators:
-- name: Test Performance Indicator
+indicators:
+- name: test_performance_indicator
+  title: Test Performance Indicator
   metrics:
   - demo.latency
   measurement: Average latency over last 5 minutes per instance
@@ -28,5 +29,17 @@ performance_indicators:
   response: |
     Panic! Run around in circles flailing your arms.
 
-service_indicators: []
-scaling_indicators: []
+documentation:
+  title: Monitoring Test Product
+  description: Test description
+  sections:
+
+  - title: Key Performance Indicators
+    description: This section includes indicators
+    indicators:
+    - test_performance_indicator
+
+  - title: Other Metrics Available
+    description: This section includes metrics
+    metrics:
+    - demo.latency

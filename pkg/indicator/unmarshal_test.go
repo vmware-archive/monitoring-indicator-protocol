@@ -7,11 +7,86 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func TestReturnsCompleteDocument(t *testing.T) {
+	g := NewGomegaWithT(t)
+	d, err := indicator.ReadIndicatorDocument([]byte(`---
+metrics:
+- name: demo.latency
+  title: Demo Latency
+  description: A test metric for testing
+
+indicators:
+- name: test_performance_indicator
+  title: Test Performance Indicator
+  metrics:
+  - demo.latency
+  measurement: Measurement Text
+  promql: prom
+  thresholds:
+  - level: warning
+    gte: 50
+    dynamic: true
+  description: This is a valid markdown description.
+  response: Panic!
+
+documentation:
+  title: Monitoring Test Product
+  description: Test description
+  sections:
+  - title: Test Section
+    description: This section includes indicators and metrics
+    indicators:
+    - test_performance_indicator
+    metrics:
+    - demo.latency
+`))
+	g.Expect(err).ToNot(HaveOccurred())
+
+	g.Expect(d).To(Equal(indicator.Document{
+		Metrics: []indicator.Metric{
+			{
+				Title:       "Demo Latency",
+				Name:        "demo.latency",
+				Description: "A test metric for testing",
+			},
+		},
+		Indicators: []indicator.Indicator{
+			{
+				Name:        "test_performance_indicator",
+				Title:       "Test Performance Indicator",
+				Description: "This is a valid markdown description.",
+				PromQL:      "prom",
+				Thresholds: []indicator.Threshold{
+					{
+						Level:    "warning",
+						Dynamic:  true,
+						Operator: indicator.GreaterThanOrEqualTo,
+						Value:    50,
+					},
+				},
+				Metrics:     []string{"demo.latency"},
+				Response:    "Panic!",
+				Measurement: "Measurement Text",
+			},
+		},
+		Documentation: indicator.Documentation{
+			Title:       "Monitoring Test Product",
+			Description: "Test description",
+			Sections: []indicator.Section{{
+				Title:       "Test Section",
+				Description: "This section includes indicators and metrics",
+				Indicators:  []string{"test_performance_indicator"},
+				Metrics:     []string{"demo.latency"},
+			}},
+		},
+	}))
+}
+
 func TestReturnsAnEmptyListWhenNoIndicatorsArePassed(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d, err := indicator.ReadIndicatorDocument([]byte(`---
-performance_indicators: []`))
+indicators: []`))
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(d.Indicators).To(HaveLen(0))
@@ -42,7 +117,7 @@ func TestReturnsAConvertedIndicator(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d, err := indicator.ReadIndicatorDocument([]byte(`---
-performance_indicators:
+indicators:
 - name: test-kpi
   description: desc
   promql: prom
@@ -116,7 +191,7 @@ func TestReturnsAnErrorIfAThresholdHasNoValue(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	_, err := indicator.ReadIndicatorDocument([]byte(`---
-performance_indicators:
+indicators:
 - name: test-kpi
   description: desc
   promql: prom
@@ -130,7 +205,7 @@ func TestReturnsAnErrorIfAThresholdHasABadFloatValue(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	_, err := indicator.ReadIndicatorDocument([]byte(`---
-performance_indicators:
+indicators:
 - name: test-kpi
   description: desc
   promql: prom

@@ -10,7 +10,7 @@ import (
 	"fmt"
 )
 
-var indicatorTmpl = template.Must(template.New("indicator").Parse(htmlIndicatorTemplate))
+var indicatorTmpl = template.Must(template.New("Indicator").Parse(htmlIndicatorTemplate))
 
 func IndicatorToHTML(i indicator.Indicator) (string, error) {
 	buffer := bytes.NewBuffer(nil)
@@ -24,39 +24,27 @@ func IndicatorToHTML(i indicator.Indicator) (string, error) {
 }
 
 type indicatorPresenter struct {
-	indicator indicator.Indicator
+	indicator.Indicator
 }
 
 func (p indicatorPresenter) TitleID() string {
-	return strings.Join(strings.Split(strings.ToLower(p.indicator.Name), " "), "-")
-}
-
-func (p indicatorPresenter) AnchorID() string {
-	return strings.Join(strings.Split(p.indicator.Name, " "), "")
-}
-
-func (p indicatorPresenter) Name() string {
-	return p.indicator.Name
-}
-
-func (p indicatorPresenter) Metrics() []string {
-	return p.indicator.Metrics
+	return strings.Join(strings.Split(strings.ToLower(p.Title), " "), "-")
 }
 
 func (p indicatorPresenter) Description() template.HTML {
-	return template.HTML(blackfriday.Run([]byte(p.indicator.Description)))
+	return template.HTML(blackfriday.Run([]byte(p.Indicator.Description)))
 }
 
 func (p indicatorPresenter) PromQL() template.HTML {
-	return template.HTML(p.indicator.PromQL)
+	return template.HTML(p.Indicator.PromQL)
 }
 
 func (p indicatorPresenter) Measurement() template.HTML {
-	return template.HTML(blackfriday.Run([]byte(p.indicator.Measurement)))
+	return template.HTML(blackfriday.Run([]byte(p.Indicator.Measurement)))
 }
 
 func (p indicatorPresenter) Response() template.HTML {
-	return template.HTML(blackfriday.Run([]byte(p.indicator.Response)))
+	return template.HTML(blackfriday.Run([]byte(p.Indicator.Response)))
 }
 
 type thresholdPresenter struct {
@@ -65,7 +53,7 @@ type thresholdPresenter struct {
 
 func (p indicatorPresenter) Thresholds() []thresholdPresenter {
 	var tp []thresholdPresenter
-	for _, t := range p.indicator.Thresholds {
+	for _, t := range p.Indicator.Thresholds {
 		tp = append(tp, thresholdPresenter{t})
 	}
 	return tp

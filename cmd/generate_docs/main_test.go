@@ -28,10 +28,35 @@ func TestGenerateDocsBinary(t *testing.T) {
 
 		g.Eventually(sess).Should(gexec.Exit(0))
 
-		output := buffer.String()
+		html := buffer.String()
 
-		g.Expect(output).To(ContainSubstring(`<td>avg_over_time(demo_latency{source_id="test"}[5m])</td>`))
-		g.Expect(output).To(ContainSubstring(`<h3 id="demo-latency"><a id="DemoLatency"></a>Demo Latency</h3>`))
+		t.Run("It displays document title and description", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			g.Expect(html).To(ContainSubstring(`<h1 class="title-container">Monitoring Test Product</h1>`))
+			g.Expect(html).To(ContainSubstring(`<p>Test description</p>`))
+		})
+
+		t.Run("It displays indicator sections", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			g.Expect(html).To(ContainSubstring(`<h2 id="key-performance-indicators">Key Performance Indicators</h2>`))
+			g.Expect(html).To(ContainSubstring(`<p>This section includes indicators</p>`))
+
+			g.Expect(html).To(ContainSubstring(`<h3 id="test-performance-indicator">Test Performance Indicator</h3>`))
+		})
+
+		t.Run("It displays metric sections", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			g.Expect(html).To(ContainSubstring(`<h2 id="other-metrics-available">Other Metrics Available</h2>`))
+			g.Expect(html).To(ContainSubstring(`<p>This section includes metrics</p>`))
+
+			g.Expect(html).To(ContainSubstring(`<h3 id="demo-latency">Demo Latency</h3>`))
+		})
+
+		t.Run("It does not have multiple % signs", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			g.Expect(html).ToNot(ContainSubstring("%%"))
+		})
 	})
 
 	gexec.CleanupBuildArtifacts()

@@ -9,7 +9,7 @@ import (
 	"gopkg.in/russross/blackfriday.v2"
 )
 
-var metricTmpl = template.Must(template.New("metric").Parse(htmlMetricTemplate))
+var metricTmpl = template.Must(template.New("Metric").Parse(htmlMetricTemplate))
 
 func MetricToHTML(m indicator.Metric) (string, error) {
 	buffer := bytes.NewBuffer(nil)
@@ -23,25 +23,13 @@ func MetricToHTML(m indicator.Metric) (string, error) {
 }
 
 type metricPresenter struct {
-	metric indicator.Metric
+	indicator.Metric
 }
 
 func (m metricPresenter) TitleID() string {
-	return strings.Join(strings.Split(strings.ToLower(m.metric.Title), " "), "-")
-}
-
-func (m metricPresenter) AnchorID() string {
-	return strings.Join(strings.Split(m.metric.Title, " "), "")
-}
-
-func (m metricPresenter) Title() string {
-	return m.metric.Title
-}
-
-func (m metricPresenter) Name() string {
-	return m.metric.Name
+	return strings.Join(strings.Split(strings.ToLower(m.Title), " "), "-")
 }
 
 func (m metricPresenter) Description() template.HTML {
-	return template.HTML(blackfriday.Run([]byte(m.metric.Description)))
+	return template.HTML(blackfriday.Run([]byte(m.Metric.Description)))
 }
