@@ -14,7 +14,7 @@ import (
 	"code.cloudfoundry.org/go-log-cache"
 	"code.cloudfoundry.org/go-loggregator"
 	"github.com/cloudfoundry-incubator/event-producer/pkg/evaluator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/kpi"
+	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
 	"github.com/cloudfoundry-incubator/event-producer/pkg/producer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -29,7 +29,7 @@ func main() {
 		log.Fatalf("could not read kpis: %s", err)
 	}
 
-	kpis, err := kpi.ReadKPIsFromYaml(kpiBytes)
+	d, err := indicator.ReadIndicatorDocument(kpiBytes)
 	if err != nil {
 		log.Fatalf("could not read kpis: %s", err)
 	}
@@ -39,7 +39,7 @@ func main() {
 		logCacheClient,
 		evaluator.GetSatisfiedEvents,
 		15*time.Second,
-		kpis,
+		d.Indicators,
 	)
 
 	waitForShutdownSignal()

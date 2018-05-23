@@ -9,8 +9,16 @@ import (
 	"code.cloudfoundry.org/go-log-cache"
 	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
 	"code.cloudfoundry.org/go-loggregator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/kpi"
+	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
 )
+
+type Event struct {
+	Tags map[string]string
+	Value float64
+	ThresholdLevel string
+	ThresholdValue float64
+}
+
 
 type loggregatorClient interface {
 	EmitCounter(name string, opts ...loggregator.EmitCounterOption)
@@ -21,9 +29,9 @@ type logCacheClient interface {
 	PromQL(ctx context.Context, query string, opts ...logcache.PromQLOption) (*logcache_v1.PromQL_QueryResult, error)
 }
 
-type eventGetter func(result *logcache_v1.PromQL_QueryResult, thresholds []kpi.Threshold) []kpi.Event
+type eventGetter func(result *logcache_v1.PromQL_QueryResult, thresholds []indicator.Threshold) []Event
 
-func Start(loggregatorClient loggregatorClient, logCacheClient logCacheClient, getSatisfiedEvents eventGetter, frequency time.Duration, kpis []kpi.KPI) (blockingCompleter func()) {
+func Start(loggregatorClient loggregatorClient, logCacheClient logCacheClient, getSatisfiedEvents eventGetter, frequency time.Duration, kpis []indicator.Indicator) (blockingCompleter func()) {
 	ticker := time.NewTicker(frequency)
 	stop := make(chan struct{})
 

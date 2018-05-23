@@ -9,7 +9,7 @@ import (
 	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
 	"code.cloudfoundry.org/go-loggregator"
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/kpi"
+	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
 	"github.com/cloudfoundry-incubator/event-producer/pkg/producer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -20,13 +20,13 @@ var _ = Describe("Producer", func() {
 		loggregatorClient := &fakeLoggregatorClient{}
 		logCacheClient := &fakeLogCacheClient{}
 
-		kpis := []kpi.KPI{{
+		kpis := []indicator.Indicator{{
 			Name:        "latency",
 			Description: "the latency metric",
 			PromQL:      `latency{source_id="gorouter"}`,
-			Thresholds: []kpi.Threshold{{
+			Thresholds: []indicator.Threshold{{
 				Level:    "critical",
-				Operator: kpi.GreaterThanOrEqualTo,
+				Operator: indicator.GreaterThanOrEqualTo,
 				Value:    1000,
 			}},
 		}}
@@ -46,10 +46,10 @@ var _ = Describe("Producer", func() {
 			},
 		}
 
-		eventGetter := func(result *logcache_v1.PromQL_QueryResult, thresholds []kpi.Threshold) []kpi.Event {
+		eventGetter := func(result *logcache_v1.PromQL_QueryResult, thresholds []indicator.Threshold) []producer.Event {
 			Expect(result).To(Equal(promQLResult))
 
-			return []kpi.Event{{
+			return []producer.Event{{
 				Tags:           map[string]string{"ip": "127.0.0.1"},
 				Value:          1001,
 				ThresholdLevel: "critical",
@@ -93,7 +93,7 @@ var _ = Describe("Producer", func() {
 
 	It("stops sending logs when the cleanup function is called", func() {
 		client := &fakeLoggregatorClient{}
-		stop := producer.Start(client, nil, nil, 100*time.Millisecond, make([]kpi.KPI, 0))
+		stop := producer.Start(client, nil, nil, 100*time.Millisecond, make([]indicator.Indicator, 0))
 
 		time.Sleep(300 * time.Millisecond)
 		stop()

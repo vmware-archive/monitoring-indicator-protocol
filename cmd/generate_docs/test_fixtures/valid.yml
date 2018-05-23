@@ -1,15 +1,14 @@
 ---
 metrics:
 - name: demo.latency
+  title: Demo Latency
   description: A test metric for testing
-  type: gauge
-  unit: milliseconds
 
 performance_indicators:
 - name: Test Performance Indicator
   metrics:
   - demo.latency
-  measurement: "Average latency over last 5 minutes per instance"
+  measurement: Average latency over last 5 minutes per instance
   promql: avg_over_time(demo_latency{source_id="test"}[5m])
   thresholds:
   - level: warning

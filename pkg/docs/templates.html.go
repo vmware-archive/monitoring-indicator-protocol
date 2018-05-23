@@ -1,8 +1,6 @@
 package docs
 
-import "html/template"
-
-const htmlTemplate = template.HTML(`<h3 id="{{.TitleID}}"><a id="{{.AnchorID}}"></a>{{.Name}}</h3>
+const htmlIndicatorTemplate = `<h3 id="{{.TitleID}}"><a id="{{.AnchorID}}"></a>{{.Name}}</h3>
 <table>
     <tr><th colspan="2" style="text-align: center;"><br/> {{range .Metrics}}{{.}}<br/>{{end}}<br/><br/></th></tr>
     <tr>
@@ -22,7 +20,7 @@ const htmlTemplate = template.HTML(`<h3 id="{{.TitleID}}"><a id="{{.AnchorID}}">
     <tr>
         <th>Recommended alert thresholds</th>
         <td>
-            {{range .Thresholds}} <em>{{.Level}}</em>: {{.Operator}} {{.Value}}<br/> {{end}}
+            {{range .Thresholds}} <em>{{.Level}}</em>: {{.OperatorAndValue}}<br/> {{end}}
         </td>
     </tr>
     <tr>
@@ -31,4 +29,13 @@ const htmlTemplate = template.HTML(`<h3 id="{{.TitleID}}"><a id="{{.AnchorID}}">
             {{.Response}}
         </td>
     </tr>
-</table>`)
+</table>`
+
+const htmlMetricTemplate = `<h3 id="{{.TitleID}}"><a id="{{.AnchorID}}"></a>{{.Title}}</h3>
+<table>
+   <tbody><tr><th colspan="2" style="text-align: center;"><br> {{.Name}}<br><br></th></tr>
+   <tr>
+      <th width="25%">Description</th>
+      <td>{{.Description}}</td>
+   </tr>
+</tbody></table>`

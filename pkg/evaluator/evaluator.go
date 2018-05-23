@@ -2,16 +2,17 @@ package evaluator
 
 import (
 	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/kpi"
+	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
+	"github.com/cloudfoundry-incubator/event-producer/pkg/producer"
 )
 
-func GetSatisfiedEvents(result *logcache_v1.PromQL_QueryResult, thresholds []kpi.Threshold) []kpi.Event {
-	events := make([]kpi.Event, 0)
+func GetSatisfiedEvents(result *logcache_v1.PromQL_QueryResult, thresholds []indicator.Threshold) []producer.Event {
+	events := make([]producer.Event, 0)
 
 	for _, threshold := range thresholds {
 		for _, tuple := range convertToResultTuple(result) {
 			if thresholdSatisfied(threshold, tuple.point) {
-				events = append(events, kpi.Event{
+				events = append(events, producer.Event{
 					Tags:           tuple.tags,
 					Value:          tuple.point.Value,
 					ThresholdLevel: threshold.Level,
@@ -24,29 +25,29 @@ func GetSatisfiedEvents(result *logcache_v1.PromQL_QueryResult, thresholds []kpi
 	return events
 }
 
-func thresholdSatisfied(threshold kpi.Threshold, point *logcache_v1.PromQL_Point) bool {
+func thresholdSatisfied(threshold indicator.Threshold, point *logcache_v1.PromQL_Point) bool {
 	switch threshold.Operator {
-	case kpi.LessThan:
+	case indicator.LessThan:
 		if point.Value < threshold.Value {
 			return true
 		}
-	case kpi.LessThanOrEqualTo:
+	case indicator.LessThanOrEqualTo:
 		if point.Value <= threshold.Value {
 			return true
 		}
-	case kpi.EqualTo:
+	case indicator.EqualTo:
 		if point.Value == threshold.Value {
 			return true
 		}
-	case kpi.NotEqualTo:
+	case indicator.NotEqualTo:
 		if point.Value != threshold.Value {
 			return true
 		}
-	case kpi.GreaterThanOrEqualTo:
+	case indicator.GreaterThanOrEqualTo:
 		if point.Value >= threshold.Value {
 			return true
 		}
-	case kpi.GreaterThan:
+	case indicator.GreaterThan:
 		if point.Value > threshold.Value {
 			return true
 		}

@@ -1,9 +1,9 @@
-package kpi
+package indicator
 
 type OperatorType int
 
 const (
-	LessThan OperatorType = iota
+	LessThan             OperatorType = iota
 	LessThanOrEqualTo
 	EqualTo
 	NotEqualTo
@@ -11,7 +11,12 @@ const (
 	GreaterThan
 )
 
-type KPI struct {
+type Document struct {
+	Metrics    []Metric
+	Indicators []Indicator
+}
+
+type Indicator struct {
 	Name        string
 	Description string
 	PromQL      string
@@ -24,15 +29,13 @@ type KPI struct {
 
 type Threshold struct {
 	Level    string
+	Dynamic  bool
 	Operator OperatorType
 	Value    float64
 }
 
-type Event struct {
-	Tags map[string]string
-	Value float64
-	ThresholdLevel string
-	ThresholdValue float64
+type Metric struct {
+	Title       string `yaml:"title"`
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
 }
-
-//map[string]interface{}
