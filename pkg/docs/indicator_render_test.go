@@ -31,6 +31,11 @@ func TestRenderIndicatorHTML(t *testing.T) {
 				Operator: indicator.GreaterThan,
 				Value:    1000,
 			},
+			{
+				Level:    "super_green",
+				Operator: indicator.LessThan,
+				Value:    10,
+			},
 		},
 	}
 
@@ -45,5 +50,6 @@ func TestRenderIndicatorHTML(t *testing.T) {
 	g.Expect(html).To(ContainSubstring("<p>Average over 100 minutes</p>"))
 	g.Expect(html).To(ContainSubstring("<em>Red critical</em>: &gt; 1000<br/>"))
 	g.Expect(html).To(ContainSubstring("<em>Yellow warning</em>: Dynamic<br/>"))
+	g.Expect(html).To(ContainSubstring("<em>super_green</em>: &lt; 10<br/>"))
 	g.Expect(html).ToNot(ContainSubstring("%%"))
 }

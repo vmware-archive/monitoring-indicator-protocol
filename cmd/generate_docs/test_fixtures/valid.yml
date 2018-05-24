@@ -21,11 +21,11 @@ indicators:
   description: |
     This is a valid markdown description.
 
-    *Use*: This indicates nothing. It is placeholder text.
+    **Use**: This indicates nothing. It is placeholder text.
 
-    *Origin*: Typing
-    *Type*: Gauge
-    *Frequency*: 60 s
+    **Origin**: Typing
+    **Type**: Gauge
+    **Frequency**: 60 s
   response: |
     Panic! Run around in circles flailing your arms.
 

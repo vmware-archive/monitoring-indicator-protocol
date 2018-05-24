@@ -66,7 +66,7 @@ func (t thresholdPresenter) Level() string {
 	case "critical":
 		return "Red critical"
 	default:
-		return ""
+		return t.threshold.Level
 	}
 }
 
