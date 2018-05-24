@@ -6,8 +6,8 @@ import (
 	"log"
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/docs"
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/cf-indicators/pkg/docs"
 )
 
 func main() {

@@ -2,8 +2,8 @@ package evaluator
 
 import (
 	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/producer"
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/cf-indicators/pkg/producer"
 )
 
 func GetSatisfiedEvents(result *logcache_v1.PromQL_QueryResult, thresholds []indicator.Threshold) []producer.Event {

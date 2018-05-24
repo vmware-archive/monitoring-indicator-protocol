@@ -1,7 +1,7 @@
 package indicator_test
 
 import (
-	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 
 	"testing"
 	. "github.com/onsi/gomega"

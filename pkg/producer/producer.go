@@ -9,7 +9,7 @@ import (
 	"code.cloudfoundry.org/go-log-cache"
 	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
 	"code.cloudfoundry.org/go-loggregator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 )
 
 type Event struct {

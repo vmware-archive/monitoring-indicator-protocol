@@ -1,6 +1,6 @@
 package docs
 
-import "github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
+import "code.cloudfoundry.org/cf-indicators/pkg/indicator"
 
 type Documentation struct {
 	Title string

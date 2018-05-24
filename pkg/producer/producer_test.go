@@ -9,8 +9,8 @@ import (
 	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
 	"code.cloudfoundry.org/go-loggregator"
 	"code.cloudfoundry.org/go-loggregator/rpc/loggregator_v2"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/producer"
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/cf-indicators/pkg/producer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

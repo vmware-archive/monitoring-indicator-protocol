@@ -2,9 +2,9 @@ package evaluator_test
 
 import (
 	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/evaluator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/producer"
+	"code.cloudfoundry.org/cf-indicators/pkg/evaluator"
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/cf-indicators/pkg/producer"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 )
 
 var documatationTmpl = template.Must(template.New("Metric").Parse(htmlDocumentTemplate))

@@ -13,9 +13,9 @@ import (
 
 	"code.cloudfoundry.org/go-log-cache"
 	"code.cloudfoundry.org/go-loggregator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/evaluator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/indicator"
-	"github.com/cloudfoundry-incubator/event-producer/pkg/producer"
+	"code.cloudfoundry.org/cf-indicators/pkg/evaluator"
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/cf-indicators/pkg/producer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
