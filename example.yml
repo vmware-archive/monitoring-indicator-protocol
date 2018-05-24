@@ -1,0 +1,44 @@
+---
+metrics:
+- name: demo.latency
+  title: Demo Latency
+  description: A test metric for testing
+
+indicators:
+- name: doc_performance_indicator
+  title: Doc Performance Indicator
+  metrics:
+  - demo.latency
+  measurement: Average latency over last 5 minutes per instance
+  promql: avg_over_time(demo_latency{source_id="doc"}[5m])
+  thresholds:
+  - level: warning
+    gte: 50
+    dynamic: true
+  - level: critical
+    gte: 100
+    dynamic: true
+  description: |
+    This is a valid markdown description.
+
+    **Use**: This indicates nothing. It is placeholder text.
+
+    **Origin**: Typing
+    **Type**: Gauge
+    **Frequency**: 60 s
+  response: |
+    Panic! Run around in circles flailing your arms.
+
+documentation:
+  title: Monitoring Document Product
+  description: Document description
+  sections:
+  - title: Indicators
+    description: This section includes indicators
+    indicators:
+    - doc_performance_indicator
+
+  - title: Other Metrics Available
+    description: This section includes metrics
+    metrics:
+    - demo.latency
