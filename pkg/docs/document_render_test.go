@@ -140,10 +140,12 @@ func TestRenderDocumentHTML(t *testing.T) {
 	html, err := docs.DocumentToHTML(document)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	t.Run("It displays document title and description", func(t *testing.T) {
+	t.Run("It displays document title, description, and links", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		g.Expect(html).To(ContainSubstring(`<h1 class="title-container">Test Document</h1>`))
 		g.Expect(html).To(ContainSubstring(`<p>This is a document for testing <code>code</code></p>`))
+		g.Expect(html).To(ContainSubstring(`<a href="#test-indicators-section">Test Indicators Section</a>`))
+		g.Expect(html).To(ContainSubstring(`<a href="#test-indicator">Test Indicator</a>`))
 	})
 
 	t.Run("It displays indicator sections", func(t *testing.T) {

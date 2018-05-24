@@ -2,6 +2,28 @@ package docs
 
 const htmlDocumentTemplate  = `
 <h1 class="title-container">{{.Title}}</h1>
+
+<div id="js-quick-links">
+    <div class="quick-links">
+        <ul>
+        {{range .Sections}}
+            <li>
+                <a href="#{{.TitleID}}">{{.Title}}</a>
+                <ul>
+                    {{range .Indicators}}
+                    <li><a href="#{{.TitleID}}">{{.Title}}</a></li>
+                    {{end}}
+
+                    {{range .Metrics}}
+                    <li><a href="#{{.TitleID}}">{{.Title}}</a></li>
+                    {{end}}
+                </ul>
+            </li>
+        {{end}}
+        </ul>
+    </div>
+</div>
+
 {{.Description}}
 
 {{range .Sections}}
@@ -9,14 +31,14 @@ const htmlDocumentTemplate  = `
 	<h2 id="{{.TitleID}}">{{.Title}}</h2>
 	{{.Description}}
 
-	{{range .Indicators}}
+	{{range .HTMLIndicators}}
 	<div>
 		{{.}}
 	</div>
 	{{end}}
 
 
-	{{range .Metrics}}
+	{{range .HTMLMetrics}}
 	<div>
 		{{.}}
 	</div>

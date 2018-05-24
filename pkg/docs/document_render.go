@@ -101,24 +101,28 @@ func (dp documentPresenter) Sections() []sectionPresenter {
 }
 
 type sectionPresenter struct {
-	section Section
-}
-
-func (sp sectionPresenter) Title() string {
-	return sp.section.Title
+	Section
 }
 
 func (sp sectionPresenter) TitleID() string {
-	return strings.Join(strings.Split(strings.ToLower(sp.section.Title), " "), "-")
+	return strings.Join(strings.Split(strings.ToLower(sp.Title), " "), "-")
 }
 
 func (sp sectionPresenter) Description() template.HTML {
-	return template.HTML(blackfriday.Run([]byte(sp.section.Description)))
+	return template.HTML(blackfriday.Run([]byte(sp.Section.Description)))
 }
 
-func (sp sectionPresenter) Indicators() []template.HTML {
+func (sp sectionPresenter) Indicators() []indicatorPresenter {
+	var indicatorPresenters []indicatorPresenter
+	for _, i := range sp.Section.Indicators {
+		indicatorPresenters = append(indicatorPresenters, indicatorPresenter{i})
+	}
+	return indicatorPresenters
+}
+
+func (sp sectionPresenter) HTMLIndicators() []template.HTML {
 	var renderedIndicators []template.HTML
-	for _, i := range sp.section.Indicators {
+	for _, i := range sp.Section.Indicators {
 		rendered, err := IndicatorToHTML(i)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Could not render Indicator: %s", err)
@@ -130,9 +134,17 @@ func (sp sectionPresenter) Indicators() []template.HTML {
 	return renderedIndicators
 }
 
-func (sp sectionPresenter) Metrics() []template.HTML {
+func (sp sectionPresenter) Metrics() []metricPresenter {
+	var metricsPresenters []metricPresenter
+	for _, m := range sp.Section.Metrics {
+		metricsPresenters = append(metricsPresenters, metricPresenter{m})
+	}
+	return metricsPresenters
+}
+
+func (sp sectionPresenter) HTMLMetrics() []template.HTML {
 	var renderedMetrics []template.HTML
-	for _, m := range sp.section.Metrics {
+	for _, m := range sp.Section.Metrics {
 		rendered, err := MetricToHTML(m)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Could not render Metric: %s", err)

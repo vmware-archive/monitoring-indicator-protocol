@@ -52,6 +52,12 @@ func TestGenerateDocsBinary(t *testing.T) {
 			g.Expect(html).To(ContainSubstring(`<h3 id="demo-latency">Demo Latency</h3>`))
 		})
 
+		t.Run("It has links to listed sections, indicators, and metrics", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			g.Expect(html).To(ContainSubstring(`<a href="#key-performance-indicators">Key Performance Indicators</a>`))
+			g.Expect(html).To(ContainSubstring(`<a href="#test-performance-indicator">Test Performance Indicator</a>`))
+		})
+
 		t.Run("It does not have multiple % signs", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
