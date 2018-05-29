@@ -11,7 +11,8 @@ func TestReturnsCompleteDocument(t *testing.T) {
 	g := NewGomegaWithT(t)
 	d, err := indicator.ReadIndicatorDocument([]byte(`---
 metrics:
-- name: demo.latency
+- name: latency
+  source_id: demo
   title: Demo Latency
   description: A test metric for testing
 
@@ -46,8 +47,9 @@ documentation:
 		Metrics: []indicator.Metric{
 			{
 				Title:       "Demo Latency",
-				Name:        "demo.latency",
 				Description: "A test metric for testing",
+				Name:        "latency",
+				SourceID:    "demo",
 			},
 		},
 		Indicators: []indicator.Indicator{
@@ -97,7 +99,8 @@ func TestReturnsAConvertedMetric(t *testing.T) {
 
 	metricYAML := `---
 metrics:
-- name: demo.latency
+- name: latency
+  source_id: demo
   title: Demo Latency
   description: A test metric for testing
   type: gauge
@@ -108,7 +111,8 @@ metrics:
 
 	g.Expect(indicatorDocument.Metrics).To(ContainElement(indicator.Metric{
 		Title:       "Demo Latency",
-		Name:        "demo.latency",
+		Name:        "latency",
+		SourceID:    "demo",
 		Description: "A test metric for testing",
 	}))
 }

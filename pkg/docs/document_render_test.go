@@ -15,7 +15,8 @@ func TestConvertIndicatorDocument(t *testing.T) {
 		Metrics: []indicator.Metric{
 			{
 				Title:       "Demo Latency",
-				Name:        "demo.latency",
+				Name:        "latency",
+				SourceID:    "demo",
 				Description: "A test metric for testing",
 			},
 		},
@@ -45,7 +46,7 @@ func TestConvertIndicatorDocument(t *testing.T) {
 				Title:       "Test Section",
 				Description: "This section includes indicators and metrics",
 				Indicators:  []string{"test_performance_indicator"},
-				Metrics:     []string{"demo.latency"},
+				Metrics:     []string{"latency"},
 			}},
 		},
 	}
@@ -79,7 +80,8 @@ func TestConvertIndicatorDocument(t *testing.T) {
 				Metrics: []indicator.Metric{
 					{
 						Title:       "Demo Latency",
-						Name:        "demo.latency",
+						Name:        "latency",
+						SourceID:    "demo",
 						Description: "A test metric for testing",
 					},
 				},

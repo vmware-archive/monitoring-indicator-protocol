@@ -38,6 +38,7 @@ type Threshold struct {
 
 type Metric struct {
 	Title       string `yaml:"title"`
+	SourceID    string `yaml:"source_id"`
 	Name        string `yaml:"name"`
 	Description string `yaml:"description"`
 }
