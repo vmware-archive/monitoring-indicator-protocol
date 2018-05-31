@@ -48,6 +48,7 @@ attributes:
 - **metrics** \[array, required\]
   - **title** \[string,required\]: The human-readable title of the metric
   - **name** \[string,required\]: The name of the metric emitted by the component.
+  - **source_id** \[string,required\]: The [source_id](https://github.com/cloudfoundry/loggregator-api/blob/master/v2/envelope.proto#L10) of the metric emitted by the component.
   - **description**  \[markdown,required\]: A formatted description of the metric.
 
 ### The indicators block
@@ -75,5 +76,5 @@ The `documentation` block defines the composition of HTML documentation generate
   - **sections** \[array,required\]
     - **title** \[string,required\]: The title of the section.
     - **description** \[markdown,optional\]: A formatted text block that appears under the title. 
-    - **indicators** \[array,optional\]: An array of indicator names from the `indicators` block defined above. 
-    - **metrics** \[array,optional\]: An array of metric names from the `metrics` block defined above. 
+    - **indicators** \[array,optional\]: An array of indicator references (name only) from the `indicators` block defined above. 
+    - **metrics** \[array,optional\]: An array of metric references (source_id.name) from the `metrics` block defined above. 
