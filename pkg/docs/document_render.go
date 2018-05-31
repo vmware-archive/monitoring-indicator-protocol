@@ -61,7 +61,7 @@ func lookupIndicator(indicatorName string, indicators []indicator.Indicator) (in
 
 func lookupMetric(metricName string, metrics []indicator.Metric) (indicator.Metric, error) {
 	for _, m := range metrics {
-		if m.Name == metricName {
+		if fmt.Sprintf("%s.%s", m.SourceID, m.Name) == metricName {
 			return m, nil
 		}
 	}

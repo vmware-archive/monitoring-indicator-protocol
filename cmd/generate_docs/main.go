@@ -21,6 +21,17 @@ func main() {
 		log.Fatalf("cannot parse file: %s", err)
 	}
 
+	validationErrors := indicator.Validate(indicatorDocument)
+	if len(validationErrors) > 0 {
+
+		log.Println("validation for indicator file failed")
+		for _, e := range validationErrors {
+			log.Printf("- %s \n", e.Error())
+		}
+
+		os.Exit(1)
+	}
+
 	documentation, err := docs.ConvertIndicatorDocument(indicatorDocument)
 	if err != nil {
 		log.Fatalf("cannot convert indicator document: %s", err)

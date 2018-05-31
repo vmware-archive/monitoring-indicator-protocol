@@ -46,7 +46,7 @@ func TestConvertIndicatorDocument(t *testing.T) {
 				Title:       "Test Section",
 				Description: "This section includes indicators and metrics",
 				Indicators:  []string{"test_performance_indicator"},
-				Metrics:     []string{"latency"},
+				Metrics:     []string{"demo.latency"},
 			}},
 		},
 	}
@@ -130,7 +130,8 @@ func TestRenderDocumentHTML(t *testing.T) {
 				Description: "This is a section of metric documentation for testing `yet more code`",
 				Metrics: []indicator.Metric{
 					{
-						Name:        "test.metric",
+						SourceID:    "test",
+						Name:        "metric",
 						Title:       "Test Metric",
 						Description: "*test description* of metric",
 					},

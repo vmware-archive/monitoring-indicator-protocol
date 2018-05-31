@@ -43,4 +43,4 @@ documentation:
   - title: Other Metrics Available
     description: This section includes metrics
     metrics:
-    - latency
+    - demo.latency

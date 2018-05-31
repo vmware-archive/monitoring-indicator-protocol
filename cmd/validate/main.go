@@ -138,5 +138,16 @@ func readMetrics(indicatorsFile string) ([]indicator.Metric, error) {
 		return nil, err
 	}
 
+	validationErrors := indicator.Validate(indicatorDocument)
+	if len(validationErrors) > 0 {
+
+		log.Println("validation for indicator file failed")
+		for _, e := range validationErrors {
+			log.Printf("- %s \n", e.Error())
+		}
+
+		os.Exit(1)
+	}
+
 	return indicatorDocument.Metrics, nil
 }

@@ -2,220 +2,141 @@ package indicator_test
 
 import (
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
-
 	"testing"
 	. "github.com/onsi/gomega"
+	"errors"
 )
 
-func TestReturnsCompleteDocument(t *testing.T) {
-	g := NewGomegaWithT(t)
-	d, err := indicator.ReadIndicatorDocument([]byte(`---
-metrics:
-- name: latency
-  source_id: demo
-  title: Demo Latency
-  description: A test metric for testing
+func TestValidDocument(t *testing.T) {
+	t.Run("validation returns no errors if the document is valid", func(t *testing.T) {
+		g := NewGomegaWithT(t)
 
-indicators:
-- name: test_performance_indicator
-  title: Test Performance Indicator
-  metrics:
-  - demo.latency
-  measurement: Measurement Text
-  promql: prom
-  thresholds:
-  - level: warning
-    gte: 50
-    dynamic: true
-  description: This is a valid markdown description.
-  response: Panic!
-
-documentation:
-  title: Monitoring Test Product
-  description: Test description
-  sections:
-  - title: Test Section
-    description: This section includes indicators and metrics
-    indicators:
-    - test_performance_indicator
-    metrics:
-    - demo.latency
-`))
-	g.Expect(err).ToNot(HaveOccurred())
-
-	g.Expect(d).To(Equal(indicator.Document{
-		Metrics: []indicator.Metric{
-			{
-				Title:       "Demo Latency",
-				Description: "A test metric for testing",
-				Name:        "latency",
-				SourceID:    "demo",
-			},
-		},
-		Indicators: []indicator.Indicator{
-			{
-				Name:        "test_performance_indicator",
-				Title:       "Test Performance Indicator",
-				Description: "This is a valid markdown description.",
-				PromQL:      "prom",
-				Thresholds: []indicator.Threshold{
-					{
-						Level:    "warning",
-						Dynamic:  true,
-						Operator: indicator.GreaterThanOrEqualTo,
-						Value:    50,
-					},
+		document := indicator.Document{
+			Metrics: []indicator.Metric{
+				{
+					Title:       "Demo Latency",
+					Description: "A test metric for testing",
+					Name:        "latency",
+					SourceID:    "demo",
 				},
-				Metrics:     []string{"demo.latency"},
-				Response:    "Panic!",
-				Measurement: "Measurement Text",
 			},
-		},
-		Documentation: indicator.Documentation{
-			Title:       "Monitoring Test Product",
-			Description: "Test description",
-			Sections: []indicator.Section{{
-				Title:       "Test Section",
-				Description: "This section includes indicators and metrics",
-				Indicators:  []string{"test_performance_indicator"},
-				Metrics:     []string{"demo.latency"},
-			}},
-		},
-	}))
+			Indicators: []indicator.Indicator{
+				{
+					Name:        "test_performance_indicator",
+					Title:       "Test Performance Indicator",
+					Description: "This is a valid markdown description.",
+					PromQL:      "prom",
+					Thresholds: []indicator.Threshold{
+						{
+							Level:    "warning",
+							Dynamic:  true,
+							Operator: indicator.GreaterThanOrEqualTo,
+							Value:    50,
+						},
+					},
+					Metrics:     []string{"demo.latency"},
+					Response:    "Panic!",
+					Measurement: "Measurement Text",
+				},
+			},
+			Documentation: indicator.Documentation{
+				Title:       "Monitoring Test Product",
+				Description: "Test description",
+				Sections: []indicator.Section{{
+					Title:       "Test Section",
+					Description: "This section includes indicators and metrics",
+					Indicators:  []string{"test_performance_indicator"},
+					Metrics:     []string{"demo.latency"},
+				}},
+			},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(BeEmpty())
+	})
 }
 
-func TestReturnsAnEmptyListWhenNoIndicatorsArePassed(t *testing.T) {
-	g := NewGomegaWithT(t)
+func TestMetricValidation(t *testing.T) {
 
-	d, err := indicator.ReadIndicatorDocument([]byte(`---
-indicators: []`))
-	g.Expect(err).ToNot(HaveOccurred())
+	t.Run("validation returns errors if any metric field is blank", func(t *testing.T) {
+		g := NewGomegaWithT(t)
 
-	g.Expect(d.Indicators).To(HaveLen(0))
+		document := indicator.Document{
+			Metrics: []indicator.Metric{
+				{
+					Title:       " ",
+					Description: " ",
+					Name:        " ",
+					SourceID:    " ",
+				},
+			},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("metrics[0] title is required"),
+			errors.New("metrics[0] description is required"),
+			errors.New("metrics[0] name is required"),
+			errors.New("metrics[0] source_id is required"),
+		))
+	})
 }
 
-func TestReturnsAConvertedMetric(t *testing.T) {
-	g := NewGomegaWithT(t)
+func TestIndicatorValidation(t *testing.T) {
 
-	metricYAML := `---
-metrics:
-- name: latency
-  source_id: demo
-  title: Demo Latency
-  description: A test metric for testing
-  type: gauge
-  unit: milliseconds`
+	t.Run("validation returns errors if any indicator field is blank", func(t *testing.T) {
+		g := NewGomegaWithT(t)
 
-	indicatorDocument, err := indicator.ReadIndicatorDocument([]byte(metricYAML))
-	g.Expect(err).ToNot(HaveOccurred())
+		document := indicator.Document{
+			Indicators: []indicator.Indicator{
+				{
+					Name:        " ",
+					Title:       " ",
+					Description: " ",
+					PromQL:      " ",
+					Response:    " ",
+					Measurement: " ",
+					Metrics:     []string{},
+				},
+			},
+		}
 
-	g.Expect(indicatorDocument.Metrics).To(ContainElement(indicator.Metric{
-		Title:       "Demo Latency",
-		Name:        "latency",
-		SourceID:    "demo",
-		Description: "A test metric for testing",
-	}))
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("indicators[0] name is required"),
+			errors.New("indicators[0] title is required"),
+			errors.New("indicators[0] description is required"),
+			errors.New("indicators[0] promql is required"),
+			errors.New("indicators[0] response is required"),
+			errors.New("indicators[0] measurement is required"),
+			errors.New("indicators[0] must reference at least 1 metric"),
+		))
+	})
 }
 
-func TestReturnsAConvertedIndicator(t *testing.T) {
-	g := NewGomegaWithT(t)
 
-	d, err := indicator.ReadIndicatorDocument([]byte(`---
-indicators:
-- name: test-kpi
-  description: desc
-  promql: prom
-  thresholds:
-  - lt: 0
-    level: warning
-  - lte: 1.2
-    level: warning
-  - eq: 0.2
-    level: warning
-  - neq: 123
-    level: warning
-    dynamic: false
-  - gte: 642
-    level: warning
-    dynamic: true
-  - gt: 1.222225
-    level: warning`))
+func TestDocumentationValidation(t *testing.T) {
 
-	g.Expect(err).ToNot(HaveOccurred())
+	t.Run("validation returns errors if metric or indicator is not found", func(t *testing.T) {
+		g := NewGomegaWithT(t)
 
-	g.Expect(d.Indicators).To(Equal([]indicator.Indicator{{
-		Name:        "test-kpi",
-		Description: "desc",
-		PromQL:      "prom",
-		Thresholds: []indicator.Threshold{
-			{
-				Level:    "warning",
-				Operator: indicator.LessThan,
-				Value:    0,
+		document := indicator.Document{
+			Documentation: indicator.Documentation{
+				Sections: []indicator.Section{{
+					Indicators:  []string{"test_performance_indicator"},
+					Metrics:     []string{"demo.latency"},
+				}},
 			},
-			{
-				Level:    "warning",
-				Operator: indicator.LessThanOrEqualTo,
-				Value:    1.2,
-			},
-			{
-				Level:    "warning",
-				Operator: indicator.EqualTo,
-				Value:    0.2,
-			},
-			{
-				Level:    "warning",
-				Dynamic:  false,
-				Operator: indicator.NotEqualTo,
-				Value:    123,
-			},
-			{
-				Level:    "warning",
-				Dynamic:  true,
-				Operator: indicator.GreaterThanOrEqualTo,
-				Value:    642,
-			},
-			{
-				Level:    "warning",
-				Operator: indicator.GreaterThan,
-				Value:    1.222225,
-			},
-		},
-	}}))
-}
+		}
 
-func TestReturnsAnErrorIfTheYAMLIsUnparsable(t *testing.T) {
-	g := NewGomegaWithT(t)
+		es := indicator.Validate(document)
 
-	_, err := indicator.ReadIndicatorDocument([]byte(`--`))
-	g.Expect(err).To(HaveOccurred())
-}
-
-func TestReturnsAnErrorIfAThresholdHasNoValue(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	_, err := indicator.ReadIndicatorDocument([]byte(`---
-indicators:
-- name: test-kpi
-  description: desc
-  promql: prom
-  thresholds:
-  - level: warning
-  `))
-	g.Expect(err).To(HaveOccurred())
-}
-
-func TestReturnsAnErrorIfAThresholdHasABadFloatValue(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	_, err := indicator.ReadIndicatorDocument([]byte(`---
-indicators:
-- name: test-kpi
-  description: desc
-  promql: prom
-  thresholds:
-  - gte: abs
-    level: warning
-  `))
-	g.Expect(err).To(HaveOccurred())
+		g.Expect(es).To(ConsistOf(
+			errors.New("documentation.sections[0].indicators[0] references non-existent indicator (test_performance_indicator)"),
+			errors.New("documentation.sections[0].metrics[0] references non-existent metric (demo.latency)"),
+		))
+	})
 }

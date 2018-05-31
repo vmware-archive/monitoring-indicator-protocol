@@ -1,6 +1,7 @@
 ---
 metrics:
-- name: demo.latency
+- name: latency
+  source_id: demo
   title: Demo Latency
   description: A test metric for testing
 
