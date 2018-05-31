@@ -26,18 +26,7 @@ It takes an indicator definition file and configuration for connecting to log-ca
 
 ```
 go install cmd/validate
-validate --indicators example.yml --logcache-config config.json
-```
-
-The contents of config.json must contain credentials to connect to log-cache:
-
-```
-{
-    "url": "http://log-cache.my-env.cf-app.com",
-    "client": "my-client",
-    "client_secret": "my-client-secret",
-    "deployment": "cf"
-}
+validate --indicators example.yml --deployment cf --log-cache-url http://log-cache.my-env.cf-app.com --log-cache-client my-uaa-client --log-cache-client-secret client-secret
 ```
 
 The UAA client must have the `doppler.firehose` scope. The `deployment` is bosh deployment name 
