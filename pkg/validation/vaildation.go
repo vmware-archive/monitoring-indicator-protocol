@@ -3,7 +3,6 @@ package validation
 import (
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 	"code.cloudfoundry.org/go-log-cache"
-	"net/url"
 	"net/http"
 	"strings"
 	"fmt"
@@ -27,13 +26,14 @@ func FormatQuery(m indicator.Metric, deployment string) string {
 }
 
 func VerifyMetric(m indicator.Metric, query string, logCacheURL string, logCache *logcache.Oauth2HTTPClient) (Result, error) {
-	data := url.Values{}
-	data.Set("query", query)
-
-	req, err := http.NewRequest(http.MethodPost, logCacheURL+"/v1/promql", strings.NewReader(data.Encode()))
+	req, err := http.NewRequest(http.MethodGet, logCacheURL+"/v1/promql", nil)
 	if err != nil {
 		return Result{}, err
 	}
+
+	q := req.URL.Query()
+	q.Add("query", query)
+	req.URL.RawQuery = q.Encode()
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
