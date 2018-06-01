@@ -64,13 +64,13 @@ func Validate(document Document) []error {
 
 		for idx, i := range s.Indicators {
 			if _, ok := FindIndicator(i, document.Indicators); !ok {
-				es = append(es, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator (%s)", sidx, idx, i))
+				es = append(es, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator.title (%s)", sidx, idx, i))
 			}
 		}
 
 		for idx, i := range s.Metrics {
 			if _, ok := FindMetric(i, document.Metrics); !ok {
-				es = append(es, fmt.Errorf("documentation.sections[%d].metrics[%d] references non-existent metric (%s)", sidx, idx, i))
+				es = append(es, fmt.Errorf("documentation.sections[%d].metrics[%d] references non-existent metric.title (%s)", sidx, idx, i))
 			}
 		}
 	}

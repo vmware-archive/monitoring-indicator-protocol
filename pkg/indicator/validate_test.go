@@ -139,8 +139,8 @@ func TestDocumentationValidation(t *testing.T) {
 		es := indicator.Validate(document)
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("documentation.sections[0].indicators[0] references non-existent indicator (Test Performance Indicator)"),
-			errors.New("documentation.sections[0].metrics[0] references non-existent metric (Demo Latency)"),
+			errors.New("documentation.sections[0].indicators[0] references non-existent indicator.title (Test Performance Indicator)"),
+			errors.New("documentation.sections[0].metrics[0] references non-existent metric.title (Demo Latency)"),
 		))
 	})
 }
