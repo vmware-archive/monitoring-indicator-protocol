@@ -2,6 +2,7 @@
 metrics:
 - name: latency
   source_id: demo
+  origin: demo
   title: Demo Latency
   description: A test metric for testing
 
@@ -9,7 +10,7 @@ indicators:
 - name: doc_performance_indicator
   title: Doc Performance Indicator
   metrics:
-  - demo.latency
+  - Demo Latency
   measurement: Average latency over last 5 minutes per instance
   promql: avg_over_time(demo_latency{source_id="doc"}[5m])
   thresholds:
@@ -42,4 +43,4 @@ documentation:
   - title: Other Metrics Available
     description: This section includes metrics
     metrics:
-    - demo.latency
+    - Demo Latency

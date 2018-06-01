@@ -1,3 +1,3 @@
 #! /bin/bash
 
-go test ./...
+GOCACHE=off go test ./... -v

@@ -1,10 +1,12 @@
 package indicator_test
 
 import (
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
-	"testing"
-	. "github.com/onsi/gomega"
 	"errors"
+	"testing"
+
+	. "github.com/onsi/gomega"
+
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 )
 
 func TestValidDocument(t *testing.T) {
@@ -18,6 +20,7 @@ func TestValidDocument(t *testing.T) {
 					Description: "A test metric for testing",
 					Name:        "latency",
 					SourceID:    "demo",
+					Origin:      "demo",
 				},
 			},
 			Indicators: []indicator.Indicator{
@@ -34,7 +37,7 @@ func TestValidDocument(t *testing.T) {
 							Value:    50,
 						},
 					},
-					Metrics:     []string{"demo.latency"},
+					Metrics:     []string{"Demo Latency"},
 					Response:    "Panic!",
 					Measurement: "Measurement Text",
 				},
@@ -45,8 +48,8 @@ func TestValidDocument(t *testing.T) {
 				Sections: []indicator.Section{{
 					Title:       "Test Section",
 					Description: "This section includes indicators and metrics",
-					Indicators:  []string{"test_performance_indicator"},
-					Metrics:     []string{"demo.latency"},
+					Indicators:  []string{"Test Performance Indicator"},
+					Metrics:     []string{"Demo Latency"},
 				}},
 			},
 		}
@@ -69,6 +72,7 @@ func TestMetricValidation(t *testing.T) {
 					Description: " ",
 					Name:        " ",
 					SourceID:    " ",
+					Origin:      " ",
 				},
 			},
 		}
@@ -80,6 +84,7 @@ func TestMetricValidation(t *testing.T) {
 			errors.New("metrics[0] description is required"),
 			errors.New("metrics[0] name is required"),
 			errors.New("metrics[0] source_id is required"),
+			errors.New("metrics[0] origin is required"),
 		))
 	})
 }
@@ -117,7 +122,6 @@ func TestIndicatorValidation(t *testing.T) {
 	})
 }
 
-
 func TestDocumentationValidation(t *testing.T) {
 
 	t.Run("validation returns errors if metric or indicator is not found", func(t *testing.T) {
@@ -126,8 +130,8 @@ func TestDocumentationValidation(t *testing.T) {
 		document := indicator.Document{
 			Documentation: indicator.Documentation{
 				Sections: []indicator.Section{{
-					Indicators:  []string{"test_performance_indicator"},
-					Metrics:     []string{"demo.latency"},
+					Indicators: []string{"Test Performance Indicator"},
+					Metrics:    []string{"Demo Latency"},
 				}},
 			},
 		}
@@ -135,8 +139,8 @@ func TestDocumentationValidation(t *testing.T) {
 		es := indicator.Validate(document)
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("documentation.sections[0].indicators[0] references non-existent indicator (test_performance_indicator)"),
-			errors.New("documentation.sections[0].metrics[0] references non-existent metric (demo.latency)"),
+			errors.New("documentation.sections[0].indicators[0] references non-existent indicator (Test Performance Indicator)"),
+			errors.New("documentation.sections[0].metrics[0] references non-existent metric (Demo Latency)"),
 		))
 	})
 }

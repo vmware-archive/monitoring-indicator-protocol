@@ -2,6 +2,7 @@
 metrics:
 - name: latency
   source_id: demo
+  origin: demo
   title: Demo Latency
   description: A test metric for testing
 
@@ -9,7 +10,7 @@ indicators:
 - name: test_performance_indicator
   title: Test Performance Indicator
   metrics:
-  - latency
+  - Demo Latency
   measurement: Average latency over last 5 minutes per instance
   promql: avg_over_time(demo_latency{source_id="test"}[5m])
   thresholds:
@@ -24,7 +25,6 @@ indicators:
 
     **Use**: This indicates nothing. It is placeholder text.
 
-    **Origin**: Typing
     **Type**: Gauge
     **Frequency**: 60 s
   response: |
@@ -38,9 +38,9 @@ documentation:
   - title: Key Performance Indicators
     description: This section includes indicators
     indicators:
-    - test_performance_indicator
+    - Test Performance Indicator
 
   - title: Other Metrics Available
     description: This section includes metrics
     metrics:
-    - demo.latency
+    - Demo Latency

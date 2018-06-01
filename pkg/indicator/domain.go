@@ -3,7 +3,7 @@ package indicator
 type OperatorType int
 
 const (
-	LessThan             OperatorType = iota
+	LessThan OperatorType = iota
 	LessThanOrEqualTo
 	EqualTo
 	NotEqualTo
@@ -38,6 +38,7 @@ type Threshold struct {
 
 type Metric struct {
 	Title       string `yaml:"title"`
+	Origin      string `yaml:"origin"`
 	SourceID    string `yaml:"source_id"`
 	Name        string `yaml:"name"`
 	Description string `yaml:"description"`
@@ -54,4 +55,24 @@ type Section struct {
 	Description string   `yaml:"description"`
 	Indicators  []string `yaml:"indicators"`
 	Metrics     []string `yaml:"metrics"`
+}
+
+func FindIndicator(title string, indicators []Indicator) (Indicator, bool) {
+	for _, i := range indicators {
+		if i.Title == title {
+			return i, true
+		}
+	}
+
+	return Indicator{}, false
+}
+
+func FindMetric(title string, metrics []Metric) (Metric, bool) {
+	for _, m := range metrics {
+		if m.Title == title {
+			return m, true
+		}
+	}
+
+	return Metric{}, false
 }

@@ -2,10 +2,11 @@ package docs_test
 
 import (
 	"testing"
+
 	. "github.com/onsi/gomega"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 	"code.cloudfoundry.org/cf-indicators/pkg/docs"
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 )
 
 func TestConvertIndicatorDocument(t *testing.T) {
@@ -34,7 +35,7 @@ func TestConvertIndicatorDocument(t *testing.T) {
 						Value:    50,
 					},
 				},
-				Metrics:     []string{"demo.latency"},
+				Metrics:     []string{"Demo Latency"},
 				Response:    "Panic!",
 				Measurement: "Measurement Text",
 			},
@@ -45,8 +46,8 @@ func TestConvertIndicatorDocument(t *testing.T) {
 			Sections: []indicator.Section{{
 				Title:       "Test Section",
 				Description: "This section includes indicators and metrics",
-				Indicators:  []string{"test_performance_indicator"},
-				Metrics:     []string{"demo.latency"},
+				Indicators:  []string{"Test Performance Indicator"},
+				Metrics:     []string{"Demo Latency"},
 			}},
 		},
 	}
@@ -72,7 +73,7 @@ func TestConvertIndicatorDocument(t *testing.T) {
 								Value:    50,
 							},
 						},
-						Metrics:     []string{"demo.latency"},
+						Metrics:     []string{"Demo Latency"},
 						Response:    "Panic!",
 						Measurement: "Measurement Text",
 					},
@@ -131,6 +132,7 @@ func TestRenderDocumentHTML(t *testing.T) {
 				Metrics: []indicator.Metric{
 					{
 						SourceID:    "test",
+						Origin:      "test",
 						Name:        "metric",
 						Title:       "Test Metric",
 						Description: "*test description* of metric",

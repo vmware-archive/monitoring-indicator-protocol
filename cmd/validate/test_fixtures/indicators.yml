@@ -2,10 +2,12 @@
 metrics:
 - name: latency
   source_id: demo_component
+  origin: demo_component
   title: Demo Latency
   description: A test metric for testing
 - name: saturation
   source_id: demo_component
+  origin: demo_component
   title: Demo Saturation
   description: A test metric for testing
 

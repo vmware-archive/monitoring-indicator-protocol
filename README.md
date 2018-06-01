@@ -10,28 +10,37 @@ The `generate_docs` command takes an indicator definition file as a
 command-line argument and converts it into HTML documentation:
 
 ```
-go install cmd/generate_docs
+go get ./...
+go install code.cloudfoundry.org/cf-indicators/cmd/generate_docs
 generate_docs example.yml
 ```
 
 If multiple pages are required a tool like `bosh interpolate` can be used to generate a suitable input file.
 
-### Indicator Validation (Not available)
+### Indicator Validation
 The `validate` command does 2 things:
 
 1. Verifies that your bosh deployment is emitting the correct metrics to loggregator based on the `metrics` block of your indicator yml. 
 1. Verifies that your indicator expressions (PromQL) return values and don't trigger any warning/critical thresholds. This is based on the `indicators` block. 
 
-It takes an indicator definition file and configuration for connecting to log-cache. Both a report and 0/1 exit status are produced 
+It takes an indicator definition file and configuration for connecting to log-cache. Both a report and 0/1 exit status are produced:
 
 ```
-go install cmd/validate
-validate --indicators example.yml --deployment cf --log-cache-url http://log-cache.my-env.cf-app.com --log-cache-client my-uaa-client --log-cache-client-secret client-secret
+go get ./...
+go install code.cloudfoundry.org/cf-indicators/cmd/validate
+validate --indicators example.yml \
+    --deployment cf \
+    --uaa-url https://login.my-env.cf-app.com \
+    --log-cache-url https://log-cache.my-env.cf-app.com \
+    --log-cache-client my-uaa-client \
+    --log-cache-client-secret client-secret
 ```
 
 The UAA client must have the `doppler.firehose` scope. The `deployment` is bosh deployment name 
 that exists on this director. All validation (bosh raw metrics and indicators) will include this
-deployment as a tag/label for reading metrics and executing promql.  
+deployment as a tag/label for reading metrics and executing promql.
+
+The `-k` flag disables SSL verification (insecure).
 
 ### Indicator Registry (Not available)
 The `registry` command is a web service that holds a list of current indicators for each deployment. Monitoring
@@ -48,7 +57,8 @@ attributes:
 - **metrics** \[array, required\]
   - **title** \[string,required\]: The human-readable title of the metric
   - **name** \[string,required\]: The name of the metric emitted by the component.
-  - **source_id** \[string,required\]: The [source_id](https://github.com/cloudfoundry/loggregator-api/blob/master/v2/envelope.proto#L10) of the metric emitted by the component.
+  - **source_id** \[string,required\]: The Loggregator V2 [source_id](https://github.com/cloudfoundry/loggregator-api/blob/master/v2/envelope.proto#L10) of the metric emitted by the component. Used to query metrics from [Log Cache](https://github.com/cloudfoundry/log-cache)
+  - **origin** \[string,required\]: The Loggregator V1 [origin](https://github.com/cloudfoundry/dropsonde-protocol/tree/master/events#envelopeproto) of the metric emitted by the component. Used to filter metrics from the [Firehose](https://docs.cloudfoundry.org/loggregator/architecture.html#firehose).
   - **description**  \[markdown,required\]: A formatted description of the metric.
 
 ### The indicators block
@@ -58,7 +68,7 @@ attributes:
   - **title** \[string,required\]: The human-readable title of the indicator.
   - **name** \[string,required\]: A unique name used for reference in the `documentation` block.
   - **description**  \[markdown,required\]: A formatted description of the indicator.
-  - **metrics** \[array,required\]: References metrics that are used in the measurement.
+  - **metrics** \[array,required\]: References metrics (title) that are used in the measurement.
   - **measurement** \[markdown,required\]: The human-readable explanation of how the indicator is measured.
   - **promql** \[string,optional\]: The Prometheus Query Language (PromQL) expression for producing the measurement value.
   - **thresholds** \[array,required\]: Specifies the conditions for states defined
@@ -77,4 +87,4 @@ The `documentation` block defines the composition of HTML documentation generate
     - **title** \[string,required\]: The title of the section.
     - **description** \[markdown,optional\]: A formatted text block that appears under the title. 
     - **indicators** \[array,optional\]: An array of indicator references (name only) from the `indicators` block defined above. 
-    - **metrics** \[array,optional\]: An array of metric references (source_id.name) from the `metrics` block defined above. 
+    - **metrics** \[array,optional\]: An array of metric references (title) from the `metrics` block defined above. 

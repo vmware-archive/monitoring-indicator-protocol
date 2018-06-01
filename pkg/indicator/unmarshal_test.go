@@ -4,6 +4,7 @@ import (
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 
 	"testing"
+
 	. "github.com/onsi/gomega"
 )
 
@@ -13,6 +14,7 @@ func TestReturnsCompleteDocument(t *testing.T) {
 metrics:
 - name: latency
   source_id: demo
+  origin: demo
   title: Demo Latency
   description: A test metric for testing
 
@@ -20,7 +22,7 @@ indicators:
 - name: test_performance_indicator
   title: Test Performance Indicator
   metrics:
-  - demo.latency
+  - Demo Latency
   measurement: Measurement Text
   promql: prom
   thresholds:
@@ -37,9 +39,9 @@ documentation:
   - title: Test Section
     description: This section includes indicators and metrics
     indicators:
-    - test_performance_indicator
+    - Test Performance Indicator
     metrics:
-    - demo.latency
+    - Demo Latency
 `))
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -50,6 +52,7 @@ documentation:
 				Description: "A test metric for testing",
 				Name:        "latency",
 				SourceID:    "demo",
+				Origin:      "demo",
 			},
 		},
 		Indicators: []indicator.Indicator{
@@ -66,7 +69,7 @@ documentation:
 						Value:    50,
 					},
 				},
-				Metrics:     []string{"demo.latency"},
+				Metrics:     []string{"Demo Latency"},
 				Response:    "Panic!",
 				Measurement: "Measurement Text",
 			},
@@ -77,8 +80,8 @@ documentation:
 			Sections: []indicator.Section{{
 				Title:       "Test Section",
 				Description: "This section includes indicators and metrics",
-				Indicators:  []string{"test_performance_indicator"},
-				Metrics:     []string{"demo.latency"},
+				Indicators:  []string{"Test Performance Indicator"},
+				Metrics:     []string{"Demo Latency"},
 			}},
 		},
 	}))
@@ -101,6 +104,7 @@ func TestReturnsAConvertedMetric(t *testing.T) {
 metrics:
 - name: latency
   source_id: demo
+  origin: demo
   title: Demo Latency
   description: A test metric for testing
   type: gauge
@@ -113,6 +117,7 @@ metrics:
 		Title:       "Demo Latency",
 		Name:        "latency",
 		SourceID:    "demo",
+		Origin:      "demo",
 		Description: "A test metric for testing",
 	}))
 }

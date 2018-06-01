@@ -2,6 +2,7 @@ package docs_test
 
 import (
 	"testing"
+
 	. "github.com/onsi/gomega"
 
 	"code.cloudfoundry.org/cf-indicators/pkg/docs"
@@ -12,9 +13,10 @@ func TestRenderMetricHTML(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	m := indicator.Metric{
-		Title:    "Demo Latency",
-		Name:     "latency",
-		SourceID: "demo",
+		Title:       "Demo Latency",
+		Name:        "latency",
+		SourceID:    "demo id",
+		Origin:      "demo origin",
 		Description: "test description *bold text*",
 	}
 
@@ -24,5 +26,7 @@ func TestRenderMetricHTML(t *testing.T) {
 	g.Expect(html).To(ContainSubstring(`<h3 id="demo-latency">Demo Latency</h3>`))
 	g.Expect(html).To(ContainSubstring(`<tbody><tr><th colspan="2" style="text-align: center;"><br> latency<br><br></th></tr>`))
 	g.Expect(html).To(ContainSubstring("<p>test description <em>bold text</em></p>"))
+	g.Expect(html).To(ContainSubstring(`<span><strong>Firehose Origin</strong>: demo origin</span>`))
+	g.Expect(html).To(ContainSubstring(`<span><strong>Log Cache Source ID</strong>: demo id</span>`))
 	g.Expect(html).ToNot(ContainSubstring("%%"))
 }

@@ -1,6 +1,6 @@
 package docs
 
-const htmlDocumentTemplate  = `
+const htmlDocumentTemplate = `
 <h1 class="title-container">{{.Title}}</h1>
 
 <div id="js-quick-links">
@@ -84,6 +84,10 @@ const htmlMetricTemplate = `<h3 id="{{.TitleID}}">{{.Title}}</h3>
    <tbody><tr><th colspan="2" style="text-align: center;"><br> {{.Name}}<br><br></th></tr>
    <tr>
       <th width="25%">Description</th>
-      <td>{{.Description}}</td>
+      <td>
+		{{.Description}}
+		<span><strong>Firehose Origin</strong>: {{.Origin}}</span>
+		<span><strong>Log Cache Source ID</strong>: {{.SourceID}}</span>
+      </td>
    </tr>
 </tbody></table>`

@@ -1,18 +1,19 @@
 package main
 
 import (
-	"flag"
-	"net/http"
-	"log"
-	"os"
 	"crypto/tls"
-	"time"
-	"io/ioutil"
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
-	"code.cloudfoundry.org/go-log-cache"
-	"strings"
+	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 	"code.cloudfoundry.org/cf-indicators/pkg/validation"
+	"code.cloudfoundry.org/go-log-cache"
 )
 
 func main() {
@@ -21,11 +22,11 @@ func main() {
 
 	flagSet := flag.NewFlagSet("validator", flag.ErrorHandling(0))
 	indicatorsFile := flagSet.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/cf-indicators)")
-	deployment := flagSet.String("deployment", "", "the source deployment of metrics emitted to loggregator")
 	logCacheURL := flagSet.String("log-cache-url", "", "the log-cache url (e.g. https://log-cache.system.cfapp.com")
+	deployment := flagSet.String("deployment", "", "the source deployment of metrics emitted to loggregator")
+	uaaURL := flagSet.String("uaa-url", "", "UAA server host (e.g. https://uaa.my-pcf.com)")
 	uaaClient := flagSet.String("log-cache-client", "", "the UAA client which has access to log-cache (doppler.firehose or logs.admin scope")
 	uaaClientSecret := flagSet.String("log-cache-client-secret", "", "the client secret")
-	uaaHost := flagSet.String("uaa-host", "", "UAA server host (e.g. https://uaa.my-pcf.com)")
 	insecure := flagSet.Bool("k", false, "skips ssl verification (insecure)")
 
 	flagSet.Parse(os.Args[1:])
@@ -35,7 +36,7 @@ func main() {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}
 
-	logCache := buildLogCacheClient(*uaaHost, *uaaClient, *uaaClientSecret, *insecure)
+	logCache := buildLogCacheClient(*uaaURL, *uaaClient, *uaaClientSecret, *insecure)
 
 	stdOut.Println("---------------------------------------------------------------------------------------------")
 	stdOut.Printf("Checking for existence of %d metrics in log-cache \n", len(metrics))

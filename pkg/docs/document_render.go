@@ -2,12 +2,13 @@ package docs
 
 import (
 	"bytes"
-	"html/template"
-	"gopkg.in/russross/blackfriday.v2"
 	"fmt"
+	"html/template"
 	"os"
 	"strings"
+
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"gopkg.in/russross/blackfriday.v2"
 )
 
 var documatationTmpl = template.Must(template.New("Metric").Parse(htmlDocumentTemplate))
@@ -17,19 +18,19 @@ func ConvertIndicatorDocument(d indicator.Document) (Documentation, error) {
 	for _, s := range d.Documentation.Sections {
 
 		var indicators []indicator.Indicator
-		for _, i := range s.Indicators {
-			found, err := lookupIndicator(i, d.Indicators)
-			if err != nil {
-				return Documentation{}, err
+		for _, indicatorTitle := range s.Indicators {
+			found, ok := indicator.FindIndicator(indicatorTitle, d.Indicators)
+			if !ok {
+				return Documentation{}, fmt.Errorf("indicator %s not found in indicators section of yaml document", indicatorTitle)
 			}
 			indicators = append(indicators, found)
 		}
 
 		var metrics []indicator.Metric
-		for _, m := range s.Metrics {
-			found, err := lookupMetric(m, d.Metrics)
-			if err != nil {
-				return Documentation{}, err
+		for _, metricTitle := range s.Metrics {
+			found, ok := indicator.FindMetric(metricTitle, d.Metrics)
+			if !ok {
+				return Documentation{}, fmt.Errorf("metric %s not found in metrics section of yaml document", metricTitle)
 			}
 			metrics = append(metrics, found)
 		}
@@ -47,26 +48,6 @@ func ConvertIndicatorDocument(d indicator.Document) (Documentation, error) {
 		Description: d.Documentation.Description,
 		Sections:    sections,
 	}, nil
-}
-
-func lookupIndicator(indicatorName string, indicators []indicator.Indicator) (indicator.Indicator, error) {
-	for _, i := range indicators {
-		if i.Name == indicatorName {
-			return i, nil
-		}
-	}
-
-	return indicator.Indicator{}, fmt.Errorf("indicator %s not found in indicators section of yaml document", indicatorName)
-}
-
-func lookupMetric(metricName string, metrics []indicator.Metric) (indicator.Metric, error) {
-	for _, m := range metrics {
-		if fmt.Sprintf("%s.%s", m.SourceID, m.Name) == metricName {
-			return m, nil
-		}
-	}
-
-	return indicator.Metric{}, fmt.Errorf("metric %s not found in metrics section of yaml document", metricName)
 }
 
 func DocumentToHTML(d Documentation) (string, error) {

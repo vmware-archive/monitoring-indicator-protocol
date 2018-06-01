@@ -25,6 +25,9 @@ func Validate(document Document) []error {
 			es = append(es, fmt.Errorf("metrics[%d] source_id is required", idx))
 		}
 
+		if strings.TrimSpace(m.Origin) == "" {
+			es = append(es, fmt.Errorf("metrics[%d] origin is required", idx))
+		}
 	}
 
 	for idx, i := range document.Indicators {
@@ -60,37 +63,17 @@ func Validate(document Document) []error {
 	for sidx, s := range document.Documentation.Sections {
 
 		for idx, i := range s.Indicators {
-			if !indicatorExists(document.Indicators, i) {
+			if _, ok := FindIndicator(i, document.Indicators); !ok {
 				es = append(es, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator (%s)", sidx, idx, i))
 			}
 		}
 
 		for idx, i := range s.Metrics {
-			if !metricExists(document.Metrics, i) {
+			if _, ok := FindMetric(i, document.Metrics); !ok {
 				es = append(es, fmt.Errorf("documentation.sections[%d].metrics[%d] references non-existent metric (%s)", sidx, idx, i))
 			}
 		}
 	}
 
 	return es
-}
-
-func metricExists(metrics []Metric, name string) bool {
-	for _, m := range metrics {
-		if fmt.Sprintf("%s.%s", m.SourceID, m.Name) == name {
-			return true
-		}
-	}
-
-	return false
-}
-
-func indicatorExists(indicators []Indicator, name string) bool {
-	for _, i := range indicators {
-		if i.Name == name {
-			return true
-		}
-	}
-
-	return false
 }
