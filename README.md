@@ -21,7 +21,7 @@ If multiple pages are required a tool like `bosh interpolate` can be used to gen
 The `validate` command does 2 things:
 
 1. Verifies that your bosh deployment is emitting the correct metrics to loggregator based on the `metrics` block of your indicator yml. 
-1. Verifies that your indicator expressions (PromQL) return values and don't trigger any warning/critical thresholds. This is based on the `indicators` block. 
+1. (WIP) Verifies that your indicator expressions (PromQL) return values and don't trigger any warning/critical thresholds. This is based on the `indicators` block. 
 
 It takes an indicator definition file and configuration for connecting to log-cache. Both a report and 0/1 exit status are produced:
 
@@ -68,7 +68,9 @@ attributes:
   - **title** \[string,required\]: The human-readable title of the indicator.
   - **name** \[string,required\]: A unique name used for reference in the `documentation` block.
   - **description**  \[markdown,required\]: A formatted description of the indicator.
-  - **metrics** \[array,required\]: References metrics (title) that are used in the measurement.
+  - **metrics** \[array,required\]: An array of metric references.
+    - **name** \[string,required\]: The `name` of the metric as defined in the `metrics` block.
+    - **source_id** \[string,required\]: The `source_id` of the metric as defined in the `metrics` block.
   - **measurement** \[markdown,required\]: The human-readable explanation of how the indicator is measured.
   - **promql** \[string,optional\]: The Prometheus Query Language (PromQL) expression for producing the measurement value.
   - **thresholds** \[array,required\]: Specifies the conditions for states defined
@@ -86,5 +88,8 @@ The `documentation` block defines the composition of HTML documentation generate
   - **sections** \[array,required\]
     - **title** \[string,required\]: The title of the section.
     - **description** \[markdown,optional\]: A formatted text block that appears under the title. 
-    - **indicators** \[array,optional\]: An array of indicator references (name only) from the `indicators` block defined above. 
-    - **metrics** \[array,optional\]: An array of metric references (title) from the `metrics` block defined above. 
+    - **indicators** \[array,optional\]: An array of indicator references.
+      - **name** \[string,required\]: The `name` of the indicator as defined in the `indicators` block.
+    - **metrics** \[array,optional\]: An array of metric references.
+      - **name** \[string,required\]: The `name` of the metric as defined in the `metrics` block.
+      - **source_id** \[string,required\]: The `source_id` of the metric as defined in the `metrics` block.
