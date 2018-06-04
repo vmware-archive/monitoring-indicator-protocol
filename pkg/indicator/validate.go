@@ -55,20 +55,20 @@ func Validate(document Document) []error {
 			es = append(es, fmt.Errorf("indicators[%d] measurement is required", idx))
 		}
 
-		if len(i.Metrics) == 0 {
+		if len(i.MetricRefs) == 0 {
 			es = append(es, fmt.Errorf("indicators[%d] must reference at least 1 metric", idx))
 		}
 	}
 
 	for sidx, s := range document.Documentation.Sections {
 
-		for idx, i := range s.Indicators {
+		for idx, i := range s.IndicatorRefs {
 			if _, ok := FindIndicator(i, document.Indicators); !ok {
 				es = append(es, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator.title (%s)", sidx, idx, i))
 			}
 		}
 
-		for idx, i := range s.Metrics {
+		for idx, i := range s.MetricRefs {
 			if _, ok := FindMetric(i, document.Metrics); !ok {
 				es = append(es, fmt.Errorf("documentation.sections[%d].metrics[%d] references non-existent metric.title (%s)", sidx, idx, i))
 			}

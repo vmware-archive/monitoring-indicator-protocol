@@ -24,7 +24,7 @@ type Indicator struct {
 	PromQL      string
 	Thresholds  []Threshold
 
-	Metrics     []string
+	MetricRefs  []MetricRef
 	Response    string
 	Measurement string
 }
@@ -51,15 +51,19 @@ type Documentation struct {
 }
 
 type Section struct {
-	Title       string   `yaml:"title"`
-	Description string   `yaml:"description"`
-	Indicators  []string `yaml:"indicators"`
-	Metrics     []string `yaml:"metrics"`
+	Title         string         `yaml:"title"`
+	Description   string         `yaml:"description"`
+	IndicatorRefs []IndicatorRef `yaml:"indicators"`
+	MetricRefs    []MetricRef    `yaml:"metrics"`
 }
 
-func FindIndicator(title string, indicators []Indicator) (Indicator, bool) {
+type IndicatorRef struct {
+	Name string `yaml:"name"`
+}
+
+func FindIndicator(reference IndicatorRef, indicators []Indicator) (Indicator, bool) {
 	for _, i := range indicators {
-		if i.Title == title {
+		if i.Name == reference.Name {
 			return i, true
 		}
 	}
@@ -67,9 +71,14 @@ func FindIndicator(title string, indicators []Indicator) (Indicator, bool) {
 	return Indicator{}, false
 }
 
-func FindMetric(title string, metrics []Metric) (Metric, bool) {
+type MetricRef struct {
+	Name     string `yaml:"name"`
+	SourceID string `yaml:"source_id"`
+}
+
+func FindMetric(reference MetricRef, metrics []Metric) (Metric, bool) {
 	for _, m := range metrics {
-		if m.Title == title {
+		if m.Name == reference.Name && m.SourceID == reference.SourceID {
 			return m, true
 		}
 	}

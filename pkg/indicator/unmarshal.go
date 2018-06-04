@@ -8,9 +8,9 @@ import (
 )
 
 type yamlDocument struct {
-	Metrics    []Metric        `yaml:"metrics"`
-	Indicators []yamlIndicator `yaml:"indicators"`
-	Documentation              `yaml:"documentation"`
+	Metrics       []Metric        `yaml:"metrics"`
+	Indicators    []yamlIndicator `yaml:"indicators"`
+	Documentation `yaml:"documentation"`
 }
 
 type yamlIndicator struct {
@@ -19,7 +19,7 @@ type yamlIndicator struct {
 	Description string          `yaml:"description"`
 	Promql      string          `yaml:"promql"`
 	Thresholds  []yamlThreshold `yaml:"thresholds"`
-	Metrics     []string        `yaml:"metrics"`
+	MetricRefs  []MetricRef     `yaml:"metrics"`
 	Response    string          `yaml:"response"`
 	Measurement string          `yaml:"measurement"`
 }
@@ -61,7 +61,7 @@ func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
 			Description: yamlKPI.Description,
 			PromQL:      yamlKPI.Promql,
 			Thresholds:  thresholds,
-			Metrics:     yamlKPI.Metrics,
+			MetricRefs:  yamlKPI.MetricRefs,
 			Response:    yamlKPI.Response,
 			Measurement: yamlKPI.Measurement,
 		})

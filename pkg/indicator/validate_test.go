@@ -37,7 +37,10 @@ func TestValidDocument(t *testing.T) {
 							Value:    50,
 						},
 					},
-					Metrics:     []string{"Demo Latency"},
+					MetricRefs: []indicator.MetricRef{{
+						Name:     "latency",
+						SourceID: "demo",
+					}},
 					Response:    "Panic!",
 					Measurement: "Measurement Text",
 				},
@@ -48,8 +51,13 @@ func TestValidDocument(t *testing.T) {
 				Sections: []indicator.Section{{
 					Title:       "Test Section",
 					Description: "This section includes indicators and metrics",
-					Indicators:  []string{"Test Performance Indicator"},
-					Metrics:     []string{"Demo Latency"},
+					IndicatorRefs: []indicator.IndicatorRef{{
+						Name: "test_performance_indicator",
+					}},
+					MetricRefs: []indicator.MetricRef{{
+						Name:     "latency",
+						SourceID: "demo",
+					}},
 				}},
 			},
 		}
@@ -103,7 +111,7 @@ func TestIndicatorValidation(t *testing.T) {
 					PromQL:      " ",
 					Response:    " ",
 					Measurement: " ",
-					Metrics:     []string{},
+					MetricRefs:  []indicator.MetricRef{},
 				},
 			},
 		}
@@ -130,8 +138,13 @@ func TestDocumentationValidation(t *testing.T) {
 		document := indicator.Document{
 			Documentation: indicator.Documentation{
 				Sections: []indicator.Section{{
-					Indicators: []string{"Test Performance Indicator"},
-					Metrics:    []string{"Demo Latency"},
+					IndicatorRefs: []indicator.IndicatorRef{{
+						Name: "test_performance_indicator",
+					}},
+					MetricRefs: []indicator.MetricRef{{
+						Name:     "latency",
+						SourceID: "demo",
+					}},
 				}},
 			},
 		}
@@ -139,8 +152,8 @@ func TestDocumentationValidation(t *testing.T) {
 		es := indicator.Validate(document)
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("documentation.sections[0].indicators[0] references non-existent indicator.title (Test Performance Indicator)"),
-			errors.New("documentation.sections[0].metrics[0] references non-existent metric.title (Demo Latency)"),
+			MatchError(ContainSubstring("references non-existent indicator")),
+			MatchError(ContainSubstring("references non-existent metric")),
 		))
 	})
 }

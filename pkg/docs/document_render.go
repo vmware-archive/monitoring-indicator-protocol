@@ -18,19 +18,19 @@ func ConvertIndicatorDocument(d indicator.Document) (Documentation, error) {
 	for _, s := range d.Documentation.Sections {
 
 		var indicators []indicator.Indicator
-		for _, indicatorTitle := range s.Indicators {
-			found, ok := indicator.FindIndicator(indicatorTitle, d.Indicators)
+		for _, ref := range s.IndicatorRefs {
+			found, ok := indicator.FindIndicator(ref, d.Indicators)
 			if !ok {
-				return Documentation{}, fmt.Errorf("indicator %s not found in indicators section of yaml document", indicatorTitle)
+				return Documentation{}, fmt.Errorf("indicator %s not found in indicators section of yaml document", ref)
 			}
 			indicators = append(indicators, found)
 		}
 
 		var metrics []indicator.Metric
-		for _, metricTitle := range s.Metrics {
-			found, ok := indicator.FindMetric(metricTitle, d.Metrics)
+		for _, ref := range s.MetricRefs {
+			found, ok := indicator.FindMetric(ref, d.Metrics)
 			if !ok {
-				return Documentation{}, fmt.Errorf("metric %s not found in metrics section of yaml document", metricTitle)
+				return Documentation{}, fmt.Errorf("metric %s not found in metrics section of yaml document", ref)
 			}
 			metrics = append(metrics, found)
 		}

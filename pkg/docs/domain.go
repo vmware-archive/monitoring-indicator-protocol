@@ -3,14 +3,14 @@ package docs
 import "code.cloudfoundry.org/cf-indicators/pkg/indicator"
 
 type Documentation struct {
-	Title string
+	Title       string
 	Description string
-	Sections []Section
+	Sections    []Section
 }
 
 type Section struct {
-	Title string
+	Title       string
 	Description string
-	Metrics []indicator.Metric
-	Indicators []indicator.Indicator
+	Metrics     []indicator.Metric
+	Indicators  []indicator.Indicator
 }

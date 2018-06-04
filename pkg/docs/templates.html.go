@@ -50,7 +50,7 @@ const htmlDocumentTemplate = `
 
 const htmlIndicatorTemplate = `<h3 id="{{.TitleID}}">{{.Title}}</h3>
 <table>
-    <tr><th colspan="2" style="text-align: center;"><br/> {{range .Metrics}}{{.}}<br/>{{end}}<br/><br/></th></tr>
+    <tr><th colspan="2" style="text-align: center;"><br/> {{range .MetricRefs}}{{.Name}}<br/>{{end}}<br/></th></tr>
     <tr>
         <th width="25%">Description</th>
         <td>

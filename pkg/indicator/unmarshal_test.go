@@ -22,7 +22,8 @@ indicators:
 - name: test_performance_indicator
   title: Test Performance Indicator
   metrics:
-  - Demo Latency
+  - name: latency
+    source_id: demo
   measurement: Measurement Text
   promql: prom
   thresholds:
@@ -39,9 +40,10 @@ documentation:
   - title: Test Section
     description: This section includes indicators and metrics
     indicators:
-    - Test Performance Indicator
+    - name: test_performance_indicator
     metrics:
-    - Demo Latency
+    - name: latency
+      source_id: demo
 `))
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -69,7 +71,10 @@ documentation:
 						Value:    50,
 					},
 				},
-				Metrics:     []string{"Demo Latency"},
+				MetricRefs: []indicator.MetricRef{{
+					Name:     "latency",
+					SourceID: "demo",
+				}},
 				Response:    "Panic!",
 				Measurement: "Measurement Text",
 			},
@@ -80,8 +85,13 @@ documentation:
 			Sections: []indicator.Section{{
 				Title:       "Test Section",
 				Description: "This section includes indicators and metrics",
-				Indicators:  []string{"Test Performance Indicator"},
-				Metrics:     []string{"Demo Latency"},
+				IndicatorRefs: []indicator.IndicatorRef{{
+					Name: "test_performance_indicator",
+				}},
+				MetricRefs: []indicator.MetricRef{{
+					Name:     "latency",
+					SourceID: "demo",
+				}},
 			}},
 		},
 	}))
@@ -106,9 +116,7 @@ metrics:
   source_id: demo
   origin: demo
   title: Demo Latency
-  description: A test metric for testing
-  type: gauge
-  unit: milliseconds`
+  description: A test metric for testing`
 
 	indicatorDocument, err := indicator.ReadIndicatorDocument([]byte(metricYAML))
 	g.Expect(err).ToNot(HaveOccurred())

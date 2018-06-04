@@ -35,7 +35,10 @@ func TestConvertIndicatorDocument(t *testing.T) {
 						Value:    50,
 					},
 				},
-				Metrics:     []string{"Demo Latency"},
+				MetricRefs: []indicator.MetricRef{{
+					Name:     "latency",
+					SourceID: "demo",
+				}},
 				Response:    "Panic!",
 				Measurement: "Measurement Text",
 			},
@@ -46,8 +49,13 @@ func TestConvertIndicatorDocument(t *testing.T) {
 			Sections: []indicator.Section{{
 				Title:       "Test Section",
 				Description: "This section includes indicators and metrics",
-				Indicators:  []string{"Test Performance Indicator"},
-				Metrics:     []string{"Demo Latency"},
+				IndicatorRefs: []indicator.IndicatorRef{{
+					Name: "test_performance_indicator",
+				}},
+				MetricRefs: []indicator.MetricRef{{
+					Name:     "latency",
+					SourceID: "demo",
+				}},
 			}},
 		},
 	}
@@ -73,7 +81,10 @@ func TestConvertIndicatorDocument(t *testing.T) {
 								Value:    50,
 							},
 						},
-						Metrics:     []string{"Demo Latency"},
+						MetricRefs: []indicator.MetricRef{{
+							Name:     "latency",
+							SourceID: "demo",
+						}},
 						Response:    "Panic!",
 						Measurement: "Measurement Text",
 					},
@@ -108,7 +119,10 @@ func TestRenderDocumentHTML(t *testing.T) {
 						Description: "*test description* of kpi",
 						Response:    "*test response* of kpi",
 						PromQL:      `avg_over_time(test_latency{source_id="test"}[100m])`,
-						Metrics:     []string{"test.latency"},
+						MetricRefs: []indicator.MetricRef{{
+							Name:     "latency",
+							SourceID: "demo",
+						}},
 						Measurement: "Average over 100 minutes",
 						Thresholds: []indicator.Threshold{
 							{

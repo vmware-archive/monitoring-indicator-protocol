@@ -10,7 +10,8 @@ indicators:
 - name: doc_performance_indicator
   title: Doc Performance Indicator
   metrics:
-  - Demo Latency
+  - name: latency
+    source_id: demo
   measurement: Average latency over last 5 minutes per instance
   promql: avg_over_time(demo_latency{source_id="doc"}[5m])
   thresholds:
@@ -25,7 +26,6 @@ indicators:
 
     **Use**: This indicates nothing. It is placeholder text.
 
-    **Origin**: Typing
     **Type**: Gauge
     **Frequency**: 60 s
   response: |
@@ -38,9 +38,10 @@ documentation:
   - title: Indicators
     description: This section includes indicators
     indicators:
-    - doc_performance_indicator
+    - name: doc_performance_indicator
 
   - title: Other Metrics Available
     description: This section includes metrics
     metrics:
-    - Demo Latency
+    - name: latency
+      source_id: demo
