@@ -29,7 +29,7 @@ owner: {{.Owner}}
 {{end}}
 `
 
-const htmlIndicatorTemplate = `### {{.Title}}
+const htmlIndicatorTemplate = `### <a id="{{.TitleID}}"></a>{{.Title}}
 <table>
     <tr><th colspan="2" style="text-align: center;"><br/> {{range .MetricRefs}}{{.Name}}<br/>{{end}}<br/></th></tr>
     <tr>
