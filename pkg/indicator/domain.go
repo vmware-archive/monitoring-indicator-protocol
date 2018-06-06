@@ -48,6 +48,7 @@ type Documentation struct {
 	Title       string    `yaml:"title"`
 	Description string    `yaml:"description"`
 	Sections    []Section `yaml:"sections"`
+	Owner       string    `yaml:"owner"`
 }
 
 type Section struct {

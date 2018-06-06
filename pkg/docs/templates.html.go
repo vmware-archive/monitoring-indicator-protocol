@@ -1,54 +1,35 @@
 package docs
 
 const htmlDocumentTemplate = `
-<h1 class="title-container">{{.Title}}</h1>
-
-<div id="js-quick-links">
-    <div class="quick-links">
-        <ul>
-        {{range .Sections}}
-            <li>
-                <a href="#{{.TitleID}}">{{.Title}}</a>
-                <ul>
-                    {{range .Indicators}}
-                    <li><a href="#{{.TitleID}}">{{.Title}}</a></li>
-                    {{end}}
-
-                    {{range .Metrics}}
-                    <li><a href="#{{.TitleID}}">{{.Title}}</a></li>
-                    {{end}}
-                </ul>
-            </li>
-        {{end}}
-        </ul>
-    </div>
-</div>
+---
+title: {{.Title}}
+owner: {{.Owner}}
+---
 
 {{.Description}}
 
 {{range .Sections}}
+## <a id="{{.TitleID}}"></a>{{.Title}}</h2>
+{{.Description}}
+
+{{range .HTMLIndicators}}
 <div>
-	<h2 id="{{.TitleID}}">{{.Title}}</h2>
-	{{.Description}}
-
-	{{range .HTMLIndicators}}
-	<div>
-		{{.}}
-	</div>
-	{{end}}
+	{{.}}
+</div>
+{{end}}
 
 
-	{{range .HTMLMetrics}}
-	<div>
-		{{.}}
-	</div>
-	{{end}}
+{{range .HTMLMetrics}}
+<div>
+	{{.}}
+</div>
+{{end}}
 		
 </div>
 {{end}}
 `
 
-const htmlIndicatorTemplate = `<h3 id="{{.TitleID}}">{{.Title}}</h3>
+const htmlIndicatorTemplate = `### {{.Title}}
 <table>
     <tr><th colspan="2" style="text-align: center;"><br/> {{range .MetricRefs}}{{.Name}}<br/>{{end}}<br/></th></tr>
     <tr>
@@ -79,7 +60,7 @@ const htmlIndicatorTemplate = `<h3 id="{{.TitleID}}">{{.Title}}</h3>
     </tr>
 </table>`
 
-const htmlMetricTemplate = `<h3 id="{{.TitleID}}">{{.Title}}</h3>
+const htmlMetricTemplate = `### <a id="{{.TitleID}}"></a>{{.Title}}
 <table>
    <tbody><tr><th colspan="2" style="text-align: center;"><br> {{.Name}}<br><br></th></tr>
    <tr>

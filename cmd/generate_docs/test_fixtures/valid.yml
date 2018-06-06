@@ -33,6 +33,7 @@ indicators:
 
 documentation:
   title: Monitoring Test Product
+  owner: Test Owner Team
   description: Test description
   sections:
 

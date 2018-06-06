@@ -6,6 +6,7 @@ type Documentation struct {
 	Title       string
 	Description string
 	Sections    []Section
+	Owner       string
 }
 
 type Section struct {

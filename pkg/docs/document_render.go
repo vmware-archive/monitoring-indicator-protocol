@@ -45,6 +45,7 @@ func ConvertIndicatorDocument(d indicator.Document) (Documentation, error) {
 
 	return Documentation{
 		Title:       d.Documentation.Title,
+		Owner:       d.Documentation.Owner,
 		Description: d.Documentation.Description,
 		Sections:    sections,
 	}, nil
@@ -62,20 +63,16 @@ func DocumentToHTML(d Documentation) (string, error) {
 }
 
 type documentPresenter struct {
-	documentation Documentation
-}
-
-func (dp documentPresenter) Title() string {
-	return dp.documentation.Title
+	Documentation
 }
 
 func (dp documentPresenter) Description() template.HTML {
-	return template.HTML(blackfriday.Run([]byte(dp.documentation.Description)))
+	return template.HTML(blackfriday.Run([]byte(dp.Documentation.Description)))
 }
 
 func (dp documentPresenter) Sections() []sectionPresenter {
 	var s []sectionPresenter
-	for _, section := range dp.documentation.Sections {
+	for _, section := range dp.Documentation.Sections {
 		s = append(s, sectionPresenter{section})
 	}
 	return s

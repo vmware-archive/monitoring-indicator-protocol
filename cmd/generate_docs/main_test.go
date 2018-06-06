@@ -2,12 +2,13 @@ package main_test
 
 import (
 	"testing"
+
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
-	"os/exec"
 	"bytes"
 	"os"
+	"os/exec"
 )
 
 func TestGenerateDocsBinary(t *testing.T) {
@@ -32,30 +33,24 @@ func TestGenerateDocsBinary(t *testing.T) {
 
 		t.Run("It displays document title and description", func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			g.Expect(html).To(ContainSubstring(`<h1 class="title-container">Monitoring Test Product</h1>`))
-			g.Expect(html).To(ContainSubstring(`<p>Test description</p>`))
+			g.Expect(html).To(ContainSubstring(`title: Monitoring Test Product`))
+			g.Expect(html).To(ContainSubstring(`Test description`))
 		})
 
 		t.Run("It displays indicator sections", func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			g.Expect(html).To(ContainSubstring(`<h2 id="key-performance-indicators">Key Performance Indicators</h2>`))
-			g.Expect(html).To(ContainSubstring(`<p>This section includes indicators</p>`))
+			g.Expect(html).To(ContainSubstring(`## <a id="key-performance-indicators"></a>Key Performance Indicators`))
+			g.Expect(html).To(ContainSubstring(`This section includes indicators`))
 
-			g.Expect(html).To(ContainSubstring(`<h3 id="test-performance-indicator">Test Performance Indicator</h3>`))
+			g.Expect(html).To(ContainSubstring(`### <a id="test-performance-indicator"></a>Test Performance Indicator`))
 		})
 
 		t.Run("It displays metric sections", func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			g.Expect(html).To(ContainSubstring(`<h2 id="other-metrics-available">Other Metrics Available</h2>`))
-			g.Expect(html).To(ContainSubstring(`<p>This section includes metrics</p>`))
+			g.Expect(html).To(ContainSubstring(`## <a id="other-metrics-available"></a>Other Metrics Available`))
+			g.Expect(html).To(ContainSubstring(`This section includes metrics`))
 
-			g.Expect(html).To(ContainSubstring(`<h3 id="demo-latency">Demo Latency</h3>`))
-		})
-
-		t.Run("It has links to listed sections, indicators, and metrics", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			g.Expect(html).To(ContainSubstring(`<a href="#key-performance-indicators">Key Performance Indicators</a>`))
-			g.Expect(html).To(ContainSubstring(`<a href="#test-performance-indicator">Test Performance Indicator</a>`))
+			g.Expect(html).To(ContainSubstring(`### <a id="demo-latency"></a>Demo Latency`))
 		})
 
 		t.Run("It does not have multiple % signs", func(t *testing.T) {

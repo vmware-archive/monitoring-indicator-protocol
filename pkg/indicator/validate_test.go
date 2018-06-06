@@ -47,6 +47,7 @@ func TestValidDocument(t *testing.T) {
 			},
 			Documentation: indicator.Documentation{
 				Title:       "Monitoring Test Product",
+				Owner:       "Test Owner Team",
 				Description: "Test description",
 				Sections: []indicator.Section{{
 					Title:       "Test Section",

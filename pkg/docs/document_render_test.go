@@ -45,6 +45,7 @@ func TestConvertIndicatorDocument(t *testing.T) {
 		},
 		Documentation: indicator.Documentation{
 			Title:       "Monitoring Test Product",
+			Owner:       "Test Owner Team",
 			Description: "Test description",
 			Sections: []indicator.Section{{
 				Title:       "Test Section",
@@ -62,6 +63,7 @@ func TestConvertIndicatorDocument(t *testing.T) {
 
 	g.Expect(docs.ConvertIndicatorDocument(in)).To(Equal(docs.Documentation{
 		Title:       "Monitoring Test Product",
+		Owner:       "Test Owner Team",
 		Description: "Test description",
 		Sections: []docs.Section{
 			{
@@ -107,6 +109,7 @@ func TestRenderDocumentHTML(t *testing.T) {
 
 	document := docs.Documentation{
 		Title:       "Test Document",
+		Owner:       "Test Owner",
 		Description: "This is a document for testing `code`",
 		Sections: []docs.Section{
 			{
@@ -159,27 +162,25 @@ func TestRenderDocumentHTML(t *testing.T) {
 	html, err := docs.DocumentToHTML(document)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	t.Run("It displays document title, description, and links", func(t *testing.T) {
+	t.Run("It displays document title and description", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		g.Expect(html).To(ContainSubstring(`<h1 class="title-container">Test Document</h1>`))
+		g.Expect(html).To(ContainSubstring(`title: Test Document`))
 		g.Expect(html).To(ContainSubstring(`<p>This is a document for testing <code>code</code></p>`))
-		g.Expect(html).To(ContainSubstring(`<a href="#test-indicators-section">Test Indicators Section</a>`))
-		g.Expect(html).To(ContainSubstring(`<a href="#test-indicator">Test Indicator</a>`))
 	})
 
 	t.Run("It displays indicator sections", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		g.Expect(html).To(ContainSubstring(`<h2 id="test-indicators-section">Test Indicators Section</h2>`))
+		g.Expect(html).To(ContainSubstring(`## <a id="test-indicators-section"></a>Test Indicators Section`))
 		g.Expect(html).To(ContainSubstring(`<p>This is a section of indicator documentation for testing <code>other code</code></p>`))
 
-		g.Expect(html).To(ContainSubstring(`<h3 id="test-indicator">Test Indicator</h3>`))
+		g.Expect(html).To(ContainSubstring(`### <a id="test-indicator"></a>Test Indicator`))
 	})
 
 	t.Run("It displays metric sections", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		g.Expect(html).To(ContainSubstring(`<h2 id="test-metrics-section">Test Metrics Section</h2>`))
+		g.Expect(html).To(ContainSubstring(`## <a id="test-metrics-section"></a>Test Metrics Section`))
 		g.Expect(html).To(ContainSubstring(`<p>This is a section of metric documentation for testing <code>yet more code</code></p>`))
 
-		g.Expect(html).To(ContainSubstring(`<h3 id="test-metric">Test Metric</h3>`))
+		g.Expect(html).To(ContainSubstring(`### <a id="test-metric"></a>Test Metric`))
 	})
 }
