@@ -40,7 +40,7 @@ const htmlIndicatorTemplate = `### <a id="{{.TitleID}}"></a>{{.Title}}
     </tr>
     <tr>
         <th>PromQL</th>
-        <td>{{.PromQL}}</td>
+        <td><code>{{.PromQL}}</code></td>
     </tr>
     <tr>
         <th>Recommended measurement</th>

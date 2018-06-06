@@ -46,7 +46,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
 	g.Expect(html).To(ContainSubstring(`### <a id="test-indicator"></a>Test Indicator`))
 	g.Expect(html).To(ContainSubstring(`<tr><th colspan="2" style="text-align: center;"><br/> latency<br/><br/></th></tr>`))
 	g.Expect(html).To(ContainSubstring("<p><em>test description</em> of kpi</p>"))
-	g.Expect(html).To(ContainSubstring(`<td>avg_over_time(test_latency{source_id="test"}[100m])</td>`))
+	g.Expect(html).To(ContainSubstring(`<td><code>avg_over_time(test_latency{source_id="test"}[100m])</code></td>`))
 	g.Expect(html).To(ContainSubstring("<p><em>test response</em> of kpi</p>"))
 	g.Expect(html).To(ContainSubstring("<p>Average over 100 minutes</p>"))
 	g.Expect(html).To(ContainSubstring("<em>Red critical</em>: &gt; 1000<br/>"))
