@@ -9,12 +9,13 @@ import (
 	"bytes"
 	"os"
 	"os/exec"
+	"code.cloudfoundry.org/cf-indicators/pkg/vgo_test"
 )
 
 func TestGenerateDocsBinary(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := gexec.Build("./main.go")
+	binPath, err := vgo_test.Build("./main.go")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("accepts indicator yml file as a command line argument and returns formatted HTML", func(t *testing.T) {
@@ -59,6 +60,4 @@ func TestGenerateDocsBinary(t *testing.T) {
 			g.Expect(html).ToNot(ContainSubstring("%%"))
 		})
 	})
-
-	gexec.CleanupBuildArtifacts()
 }

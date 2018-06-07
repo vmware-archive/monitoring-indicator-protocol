@@ -13,12 +13,13 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"time"
 	"fmt"
+	"code.cloudfoundry.org/cf-indicators/pkg/vgo_test"
 )
 
 func TestValidateIndicators(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := gexec.Build("./main.go")
+	binPath, err := vgo_test.Build("./main.go")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("returns 0 when all metrics are found over 1m", func(t *testing.T) {
