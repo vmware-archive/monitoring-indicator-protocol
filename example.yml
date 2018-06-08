@@ -32,6 +32,7 @@ indicators:
     Panic! Run around in circles flailing your arms.
 
 documentation:
+  owner: Example Team
   title: Monitoring Document Product
   description: Document description
   sections:
