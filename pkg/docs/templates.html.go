@@ -1,7 +1,6 @@
 package docs
 
-const htmlDocumentTemplate = `
----
+const htmlDocumentTemplate = `---
 title: {{.Title}}
 owner: {{.Owner}}
 ---
@@ -13,19 +12,14 @@ owner: {{.Owner}}
 {{.Description}}
 
 {{range .HTMLIndicators}}
-<div>
-	{{.}}
-</div>
+{{.}}
 {{end}}
 
 
 {{range .HTMLMetrics}}
-<div>
-	{{.}}
-</div>
+{{.}}
 {{end}}
 		
-</div>
 {{end}}
 `
 
