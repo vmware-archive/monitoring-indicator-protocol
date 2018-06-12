@@ -9,151 +9,61 @@ import (
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 )
 
-func TestConvertIndicatorDocument(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	in := indicator.Document{
-		Metrics: []indicator.Metric{
-			{
-				Title:       "Demo Latency",
-				Name:        "latency",
-				SourceID:    "demo",
-				Description: "A test metric for testing",
-			},
-		},
-		Indicators: []indicator.Indicator{
-			{
-				Name:        "test_performance_indicator",
-				Title:       "Test Performance Indicator",
-				Description: "This is a valid markdown description.",
-				PromQL:      "prom",
-				Thresholds: []indicator.Threshold{
-					{
-						Level:    "warning",
-						Dynamic:  true,
-						Operator: indicator.GreaterThanOrEqualTo,
-						Value:    50,
-					},
-				},
-				MetricRefs: []indicator.MetricRef{{
-					Name:     "latency",
-					SourceID: "demo",
-				}},
-				Response:    "Panic!",
-				Measurement: "Measurement Text",
-			},
-		},
-		Documentation: indicator.Documentation{
-			Title:       "Monitoring Test Product",
-			Owner:       "Test Owner Team",
-			Description: "Test description",
-			Sections: []indicator.Section{{
-				Title:       "Test Section",
-				Description: "This section includes indicators and metrics",
-				IndicatorRefs: []indicator.IndicatorRef{{
-					Name: "test_performance_indicator",
-				}},
-				MetricRefs: []indicator.MetricRef{{
-					Name:     "latency",
-					SourceID: "demo",
-				}},
-			}},
-		},
-	}
-
-	g.Expect(docs.ConvertIndicatorDocument(in)).To(Equal(docs.Documentation{
-		Title:       "Monitoring Test Product",
-		Owner:       "Test Owner Team",
-		Description: "Test description",
-		Sections: []docs.Section{
-			{
-				Title:       "Test Section",
-				Description: "This section includes indicators and metrics",
-				Indicators: []indicator.Indicator{
-					{
-						Name:        "test_performance_indicator",
-						Title:       "Test Performance Indicator",
-						Description: "This is a valid markdown description.",
-						PromQL:      "prom",
-						Thresholds: []indicator.Threshold{
-							{
-								Level:    "warning",
-								Dynamic:  true,
-								Operator: indicator.GreaterThanOrEqualTo,
-								Value:    50,
-							},
-						},
-						MetricRefs: []indicator.MetricRef{{
-							Name:     "latency",
-							SourceID: "demo",
-						}},
-						Response:    "Panic!",
-						Measurement: "Measurement Text",
-					},
-				},
-				Metrics: []indicator.Metric{
-					{
-						Title:       "Demo Latency",
-						Name:        "latency",
-						SourceID:    "demo",
-						Description: "A test metric for testing",
-					},
-				},
-			},
-		},
-	}))
-}
-
 func TestRenderDocumentHTML(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	document := docs.Documentation{
-		Title:       "Test Document",
-		Owner:       "Test Owner",
-		Description: "This is a document for testing `code`",
-		Sections: []docs.Section{
-			{
-				Title:       "Test Indicators Section",
-				Description: "This is a section of indicator documentation for testing `other code`",
-				Indicators: []indicator.Indicator{
-					{
-						Name:        "test_indicator",
-						Title:       "Test Indicator",
-						Description: "*test description* of kpi",
-						Response:    "*test response* of kpi",
-						PromQL:      `avg_over_time(test_latency{source_id="test"}[100m])`,
-						MetricRefs: []indicator.MetricRef{{
-							Name:     "latency",
-							SourceID: "demo",
-						}},
-						Measurement: "Average over 100 minutes",
-						Thresholds: []indicator.Threshold{
-							{
-								Level:    "warning",
-								Operator: indicator.GreaterThan,
-								Value:    500,
-								Dynamic:  true,
-							},
-							{
-								Level:    "critical",
-								Operator: indicator.GreaterThan,
-								Value:    1000,
+	document := indicator.Document{
+		Documentation: indicator.Documentation{
+			Title:       "Test Document",
+			Owner:       "Test Owner",
+			Description: "This is a document for testing `code`",
+			Sections: []indicator.Section{
+				{
+					Title:       "Test Indicators Section",
+					Description: "This is a section of indicator documentation for testing `other code`",
+					Indicators: []indicator.Indicator{
+						{
+							Name:        "test_indicator",
+							Title:       "Test Indicator",
+							Description: "*test description* of kpi",
+							Response:    "*test response* of kpi",
+							PromQL:      `avg_over_time(test_latency{source_id="demo_source"}[100m])`,
+							Metrics: []indicator.Metric{{
+								SourceID:    "demo_source",
+								Origin:      "demo_origin",
+								Title:       "Demo Latency",
+								Name:        "latency",
+								Type:        "gauge",
+								Description: "*test description* of metric",
+							}},
+							Measurement: "Average over 100 minutes",
+							Thresholds: []indicator.Threshold{
+								{
+									Level:    "warning",
+									Operator: indicator.GreaterThan,
+									Value:    500,
+									Dynamic:  true,
+								},
+								{
+									Level:    "critical",
+									Operator: indicator.GreaterThan,
+									Value:    1000,
+								},
 							},
 						},
 					},
 				},
-			},
-			{
-				Title:       "Test Metrics Section",
-				Description: "This is a section of metric documentation for testing `yet more code`",
-				Metrics: []indicator.Metric{
-					{
+				{
+					Title:       "Test Metrics Section",
+					Description: "This is a section of metric documentation for testing `yet more code`",
+					Metrics: []indicator.Metric{{
 						SourceID:    "test",
 						Origin:      "test",
-						Name:        "metric",
 						Title:       "Test Metric",
+						Name:        "metric",
+						Type:        "gauge",
 						Description: "*test description* of metric",
-					},
+					}},
 				},
 			},
 		},

@@ -13,47 +13,9 @@ import (
 
 var documatationTmpl = template.Must(template.New("Metric").Parse(htmlDocumentTemplate))
 
-func ConvertIndicatorDocument(d indicator.Document) (Documentation, error) {
-	var sections []Section
-	for _, s := range d.Documentation.Sections {
-
-		var indicators []indicator.Indicator
-		for _, ref := range s.IndicatorRefs {
-			found, ok := indicator.FindIndicator(ref, d.Indicators)
-			if !ok {
-				return Documentation{}, fmt.Errorf("indicator %s not found in indicators section of yaml document", ref)
-			}
-			indicators = append(indicators, found)
-		}
-
-		var metrics []indicator.Metric
-		for _, ref := range s.MetricRefs {
-			found, ok := indicator.FindMetric(ref, d.Metrics)
-			if !ok {
-				return Documentation{}, fmt.Errorf("metric %s not found in metrics section of yaml document", ref)
-			}
-			metrics = append(metrics, found)
-		}
-
-		sections = append(sections, Section{
-			Title:       s.Title,
-			Description: s.Description,
-			Indicators:  indicators,
-			Metrics:     metrics,
-		})
-	}
-
-	return Documentation{
-		Title:       d.Documentation.Title,
-		Owner:       d.Documentation.Owner,
-		Description: d.Documentation.Description,
-		Sections:    sections,
-	}, nil
-}
-
-func DocumentToHTML(d Documentation) (string, error) {
+func DocumentToHTML(d indicator.Document) (string, error) {
 	buffer := bytes.NewBuffer(nil)
-	err := documatationTmpl.Execute(buffer, documentPresenter{d})
+	err := documatationTmpl.Execute(buffer, documentPresenter{d.Documentation})
 
 	if err != nil {
 		return "", err
@@ -63,7 +25,7 @@ func DocumentToHTML(d Documentation) (string, error) {
 }
 
 type documentPresenter struct {
-	Documentation
+	indicator.Documentation
 }
 
 func (dp documentPresenter) Description() template.HTML {
@@ -79,7 +41,7 @@ func (dp documentPresenter) Sections() []sectionPresenter {
 }
 
 type sectionPresenter struct {
-	Section
+	indicator.Section
 }
 
 func (sp sectionPresenter) TitleID() string {

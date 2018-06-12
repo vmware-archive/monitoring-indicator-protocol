@@ -3,7 +3,7 @@ package indicator
 type OperatorType int
 
 const (
-	LessThan OperatorType = iota
+	LessThan             OperatorType = iota
 	LessThanOrEqualTo
 	EqualTo
 	NotEqualTo
@@ -24,7 +24,7 @@ type Indicator struct {
 	PromQL      string
 	Thresholds  []Threshold
 
-	MetricRefs  []MetricRef
+	Metrics     []Metric
 	Response    string
 	Measurement string
 }
@@ -41,48 +41,20 @@ type Metric struct {
 	Origin      string `yaml:"origin"`
 	SourceID    string `yaml:"source_id"`
 	Name        string `yaml:"name"`
+	Type        string `yaml:"type"`
 	Description string `yaml:"description"`
 }
 
 type Documentation struct {
-	Title       string    `yaml:"title"`
-	Description string    `yaml:"description"`
-	Sections    []Section `yaml:"sections"`
-	Owner       string    `yaml:"owner"`
+	Title       string
+	Description string
+	Sections    []Section
+	Owner       string
 }
 
 type Section struct {
-	Title         string         `yaml:"title"`
-	Description   string         `yaml:"description"`
-	IndicatorRefs []IndicatorRef `yaml:"indicators"`
-	MetricRefs    []MetricRef    `yaml:"metrics"`
-}
-
-type IndicatorRef struct {
-	Name string `yaml:"name"`
-}
-
-func FindIndicator(reference IndicatorRef, indicators []Indicator) (Indicator, bool) {
-	for _, i := range indicators {
-		if i.Name == reference.Name {
-			return i, true
-		}
-	}
-
-	return Indicator{}, false
-}
-
-type MetricRef struct {
-	Name     string `yaml:"name"`
-	SourceID string `yaml:"source_id"`
-}
-
-func FindMetric(reference MetricRef, metrics []Metric) (Metric, bool) {
-	for _, m := range metrics {
-		if m.Name == reference.Name && m.SourceID == reference.SourceID {
-			return m, true
-		}
-	}
-
-	return Metric{}, false
+	Title       string
+	Description string
+	Indicators  []Indicator
+	Metrics     []Metric
 }

@@ -21,6 +21,7 @@ func TestValidDocument(t *testing.T) {
 					Name:        "latency",
 					SourceID:    "demo",
 					Origin:      "demo",
+					Type:        "gauge",
 				},
 			},
 			Indicators: []indicator.Indicator{
@@ -37,10 +38,16 @@ func TestValidDocument(t *testing.T) {
 							Value:    50,
 						},
 					},
-					MetricRefs: []indicator.MetricRef{{
-						Name:     "latency",
-						SourceID: "demo",
-					}},
+					Metrics: []indicator.Metric{
+						{
+							Title:       "Demo Latency",
+							Description: "A test metric for testing",
+							Name:        "latency",
+							SourceID:    "demo",
+							Origin:      "demo",
+							Type:        "gauge",
+						},
+					},
 					Response:    "Panic!",
 					Measurement: "Measurement Text",
 				},
@@ -52,13 +59,6 @@ func TestValidDocument(t *testing.T) {
 				Sections: []indicator.Section{{
 					Title:       "Test Section",
 					Description: "This section includes indicators and metrics",
-					IndicatorRefs: []indicator.IndicatorRef{{
-						Name: "test_performance_indicator",
-					}},
-					MetricRefs: []indicator.MetricRef{{
-						Name:     "latency",
-						SourceID: "demo",
-					}},
 				}},
 			},
 		}
@@ -82,6 +82,7 @@ func TestMetricValidation(t *testing.T) {
 					Name:        " ",
 					SourceID:    " ",
 					Origin:      " ",
+					Type:        " ",
 				},
 			},
 		}
@@ -94,6 +95,7 @@ func TestMetricValidation(t *testing.T) {
 			errors.New("metrics[0] name is required"),
 			errors.New("metrics[0] source_id is required"),
 			errors.New("metrics[0] origin is required"),
+			errors.New("metrics[0] type is required"),
 		))
 	})
 }
@@ -112,7 +114,7 @@ func TestIndicatorValidation(t *testing.T) {
 					PromQL:      " ",
 					Response:    " ",
 					Measurement: " ",
-					MetricRefs:  []indicator.MetricRef{},
+					Metrics:  []indicator.Metric{},
 				},
 			},
 		}
@@ -127,34 +129,6 @@ func TestIndicatorValidation(t *testing.T) {
 			errors.New("indicators[0] response is required"),
 			errors.New("indicators[0] measurement is required"),
 			errors.New("indicators[0] must reference at least 1 metric"),
-		))
-	})
-}
-
-func TestDocumentationValidation(t *testing.T) {
-
-	t.Run("validation returns errors if metric or indicator is not found", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		document := indicator.Document{
-			Documentation: indicator.Documentation{
-				Sections: []indicator.Section{{
-					IndicatorRefs: []indicator.IndicatorRef{{
-						Name: "test_performance_indicator",
-					}},
-					MetricRefs: []indicator.MetricRef{{
-						Name:     "latency",
-						SourceID: "demo",
-					}},
-				}},
-			},
-		}
-
-		es := indicator.Validate(document)
-
-		g.Expect(es).To(ConsistOf(
-			MatchError(ContainSubstring("references non-existent indicator")),
-			MatchError(ContainSubstring("references non-existent metric")),
 		))
 	})
 }

@@ -32,12 +32,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	documentation, err := docs.ConvertIndicatorDocument(indicatorDocument)
-	if err != nil {
-		log.Fatalf("cannot convert indicator document: %s", err)
-	}
-
-	html, err := docs.DocumentToHTML(documentation)
+	html, err := docs.DocumentToHTML(indicatorDocument)
 	if err != nil {
 		log.Fatalf("cannot render document: %s", err)
 	}

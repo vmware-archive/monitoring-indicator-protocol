@@ -7,10 +7,111 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
+	var d yamlDocument
+
+	err := yaml.Unmarshal(yamlBytes, &d)
+	if err != nil {
+		return Document{}, fmt.Errorf("could not unmarshal KPIs: %s", err)
+	}
+
+	var indicators []Indicator
+	for idx, yamlKPI := range d.Indicators {
+		var thresholds []Threshold
+		for _, yamlThreshold := range yamlKPI.Thresholds {
+			threshold, err := thresholdFromYAML(yamlThreshold)
+			if err != nil {
+				return Document{}, fmt.Errorf("could not convert yaml indicators to indicators: %s", err)
+			}
+
+			thresholds = append(thresholds, threshold)
+		}
+
+		var metrics []Metric
+		for mIdx, m := range yamlKPI.MetricRefs {
+			metric, ok := findMetric(m, d.Metrics)
+			if !ok {
+				return Document{}, fmt.Errorf("indicators[%d].metrics[%d] references non-existent metric", idx, mIdx)
+			}
+
+			metrics = append(metrics, metric)
+		}
+
+		indicators = append(indicators, Indicator{
+			Name:        yamlKPI.Name,
+			Title:       yamlKPI.Title,
+			Description: yamlKPI.Description,
+			PromQL:      yamlKPI.Promql,
+			Thresholds:  thresholds,
+			Metrics:     metrics,
+			Response:    yamlKPI.Response,
+			Measurement: yamlKPI.Measurement,
+		})
+	}
+
+	var sections []Section
+	for idx, s := range d.YAMLDoc.Sections {
+
+		var sectionMetrics []Metric
+		for mIdx, m := range s.MetricRefs {
+			metric, ok := findMetric(m, d.Metrics)
+			if !ok {
+				return Document{}, fmt.Errorf("documentation.sections[%d].metrics[%d] references non-existent metric", idx, mIdx)
+			}
+
+			sectionMetrics = append(sectionMetrics, metric)
+		}
+
+		var sectionIndicators []Indicator
+		for iIdx, i := range s.IndicatorRefs {
+			indic, ok := findIndicator(i, indicators)
+			if !ok {
+				return Document{}, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator", idx, iIdx)
+			}
+
+			sectionIndicators = append(sectionIndicators, indic)
+		}
+
+		sections = append(sections, Section{
+			Title:       s.Title,
+			Description: s.Description,
+			Indicators:  sectionIndicators,
+			Metrics:     sectionMetrics,
+		})
+	}
+
+	documentation := Documentation{
+		Title:       d.YAMLDoc.Title,
+		Description: d.YAMLDoc.Description,
+		Sections:    sections,
+		Owner:       d.YAMLDoc.Owner,
+	}
+
+	return Document{
+		Indicators:    indicators,
+		Metrics:       d.Metrics,
+		Documentation: documentation,
+	}, nil
+}
+
 type yamlDocument struct {
-	Metrics       []Metric        `yaml:"metrics"`
-	Indicators    []yamlIndicator `yaml:"indicators"`
-	Documentation `yaml:"documentation"`
+	Metrics    []Metric          `yaml:"metrics"`
+	Indicators []yamlIndicator   `yaml:"indicators"`
+	YAMLDoc    yamlDocumentation `yaml:"documentation"`
+}
+
+type yamlDocumentation struct {
+	Title       string        `yaml:"title"`
+	Description string        `yaml:"description"`
+	Sections    []yamlSection `yaml:"sections"`
+	Owner       string        `yaml:"owner"`
+}
+
+type yamlSection struct {
+	Title         string         `yaml:"title"`
+	Description   string         `yaml:"description"`
+	IndicatorRefs []indicatorRef `yaml:"indicators"`
+	MetricRefs    []metricRef    `yaml:"metrics"`
 }
 
 type yamlIndicator struct {
@@ -19,7 +120,7 @@ type yamlIndicator struct {
 	Description string          `yaml:"description"`
 	Promql      string          `yaml:"promql"`
 	Thresholds  []yamlThreshold `yaml:"thresholds"`
-	MetricRefs  []MetricRef     `yaml:"metrics"`
+	MetricRefs  []metricRef     `yaml:"metrics"`
 	Response    string          `yaml:"response"`
 	Measurement string          `yaml:"measurement"`
 }
@@ -35,43 +136,33 @@ type yamlThreshold struct {
 	GT      string `yaml:"gt"`
 }
 
-func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
-	var d yamlDocument
+type indicatorRef struct {
+	Name string `yaml:"name"`
+}
 
-	err := yaml.Unmarshal(yamlBytes, &d)
-	if err != nil {
-		return Document{}, fmt.Errorf("could not unmarshal KPIs: %s", err)
-	}
-
-	var indicators []Indicator
-	for _, yamlKPI := range d.Indicators {
-		var thresholds []Threshold
-		for _, yamlThreshold := range yamlKPI.Thresholds {
-			threshold, err := thresholdFromYAML(yamlThreshold)
-			if err != nil {
-				return Document{}, fmt.Errorf("could not convert yaml indicators to indicators: %s", err)
-			}
-
-			thresholds = append(thresholds, threshold)
+func findIndicator(reference indicatorRef, indicators []Indicator) (Indicator, bool) {
+	for _, i := range indicators {
+		if i.Name == reference.Name {
+			return i, true
 		}
-
-		indicators = append(indicators, Indicator{
-			Name:        yamlKPI.Name,
-			Title:       yamlKPI.Title,
-			Description: yamlKPI.Description,
-			PromQL:      yamlKPI.Promql,
-			Thresholds:  thresholds,
-			MetricRefs:  yamlKPI.MetricRefs,
-			Response:    yamlKPI.Response,
-			Measurement: yamlKPI.Measurement,
-		})
 	}
 
-	return Document{
-		Indicators:    indicators,
-		Metrics:       d.Metrics,
-		Documentation: d.Documentation,
-	}, nil
+	return Indicator{}, false
+}
+
+type metricRef struct {
+	Name     string `yaml:"name"`
+	SourceID string `yaml:"source_id"`
+}
+
+func findMetric(reference metricRef, metrics []Metric) (Metric, bool) {
+	for _, m := range metrics {
+		if m.Name == reference.Name && m.SourceID == reference.SourceID {
+			return m, true
+		}
+	}
+
+	return Metric{}, false
 }
 
 func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {

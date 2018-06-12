@@ -5,6 +5,7 @@ metrics:
   origin: demo
   title: Demo Latency
   description: A test metric for testing
+  type: gauge
 
 indicators:
 - name: test_performance_indicator

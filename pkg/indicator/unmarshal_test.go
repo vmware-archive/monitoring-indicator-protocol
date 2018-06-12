@@ -16,6 +16,7 @@ metrics:
   source_id: demo
   origin: demo
   title: Demo Latency
+  type: metricType
   description: A test metric for testing
 
 indicators:
@@ -55,6 +56,7 @@ documentation:
 				Name:        "latency",
 				SourceID:    "demo",
 				Origin:      "demo",
+				Type:        "metricType",
 			},
 		},
 		Indicators: []indicator.Indicator{
@@ -71,9 +73,13 @@ documentation:
 						Value:    50,
 					},
 				},
-				MetricRefs: []indicator.MetricRef{{
-					Name:     "latency",
-					SourceID: "demo",
+				Metrics: []indicator.Metric{{
+					Title:       "Demo Latency",
+					Description: "A test metric for testing",
+					Name:        "latency",
+					SourceID:    "demo",
+					Origin:      "demo",
+					Type:        "metricType",
 				}},
 				Response:    "Panic!",
 				Measurement: "Measurement Text",
@@ -85,12 +91,37 @@ documentation:
 			Sections: []indicator.Section{{
 				Title:       "Test Section",
 				Description: "This section includes indicators and metrics",
-				IndicatorRefs: []indicator.IndicatorRef{{
-					Name: "test_performance_indicator",
+				Indicators: []indicator.Indicator{{
+					Name:        "test_performance_indicator",
+					Title:       "Test Performance Indicator",
+					Description: "This is a valid markdown description.",
+					PromQL:      "prom",
+					Thresholds: []indicator.Threshold{
+						{
+							Level:    "warning",
+							Dynamic:  true,
+							Operator: indicator.GreaterThanOrEqualTo,
+							Value:    50,
+						},
+					},
+					Metrics: []indicator.Metric{{
+						Title:       "Demo Latency",
+						Description: "A test metric for testing",
+						Name:        "latency",
+						SourceID:    "demo",
+						Origin:      "demo",
+						Type:        "metricType",
+					}},
+					Response:    "Panic!",
+					Measurement: "Measurement Text",
 				}},
-				MetricRefs: []indicator.MetricRef{{
-					Name:     "latency",
-					SourceID: "demo",
+				Metrics: []indicator.Metric{{
+					Title:       "Demo Latency",
+					Description: "A test metric for testing",
+					Name:        "latency",
+					SourceID:    "demo",
+					Origin:      "demo",
+					Type:        "metricType",
 				}},
 			}},
 		},
@@ -231,4 +262,59 @@ indicators:
     level: warning
   `))
 	g.Expect(err).To(HaveOccurred())
+}
+
+func TestReturnsErrors(t *testing.T) {
+	t.Run("if indicator references non-existent metric", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		_, err := indicator.ReadIndicatorDocument([]byte(`---
+indicators:
+- name: test-kpi
+  description: desc
+  promql: prom
+  thresholds: []
+  metrics:
+  - name: not_found
+    source_id: not_found_source
+  `))
+		g.Expect(err).To(MatchError(ContainSubstring("indicators[0].metrics[0] references non-existent metric")))
+	})
+
+	t.Run("if section references non-existent metric", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		_, err := indicator.ReadIndicatorDocument([]byte(`---
+indicators: []
+metrics: []
+documentation:
+  title: docs
+  description: desc
+  sections:
+  - title: metric section
+    description: metric desc
+    metrics:
+    - name: not_found
+      source_id: not_found_source
+  `))
+		g.Expect(err).To(MatchError(ContainSubstring("documentation.sections[0].metrics[0] references non-existent metric")))
+	})
+
+	t.Run("if section references non-existent indicator", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		_, err := indicator.ReadIndicatorDocument([]byte(`---
+indicators: []
+metrics: []
+documentation:
+  title: docs
+  description: desc
+  sections:
+  - title: metric section
+    description: metric desc
+    indicators:
+    - name: not_found
+  `))
+		g.Expect(err).To(MatchError(ContainSubstring("documentation.sections[0].indicators[0] references non-existent indicator")))
+	})
 }

@@ -18,7 +18,14 @@ func TestRenderIndicatorHTML(t *testing.T) {
 		Description: "*test description* of kpi",
 		Response:    "*test response* of kpi",
 		PromQL:      `avg_over_time(test_latency{source_id="test"}[100m])`,
-		MetricRefs:  []indicator.MetricRef{{Name: "latency", SourceID: "demo"}},
+		Metrics:  []indicator.Metric{{
+			Title:       "Demo Latency Metric",
+			Origin:      "origin1",
+			SourceID:    "demo",
+			Name:        "latency",
+			Type:        "metric_type",
+			Description: "This is a metric",
+		}},
 		Measurement: "Average over 100 minutes",
 		Thresholds: []indicator.Threshold{
 			{
@@ -44,9 +51,18 @@ func TestRenderIndicatorHTML(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(html).To(ContainSubstring(`### <a id="test-indicator"></a>Test Indicator`))
-	g.Expect(html).To(ContainSubstring(`<tr><th colspan="2" style="text-align: center;"><br/> latency<br/><br/></th></tr>`))
 	g.Expect(html).To(ContainSubstring("<p><em>test description</em> of kpi</p>"))
-	g.Expect(html).To(ContainSubstring(`<td><code>avg_over_time(test_latency{source_id="test"}[100m])</code></td>`))
+	g.Expect(html).To(ContainSubstring(`<code>avg_over_time(test_latency{source_id="test"}[100m])</code>`))
+
+	t.Run("should contain metrics table", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		g.Expect(html).To(ContainSubstring(`<strong>latency</strong>`))
+		g.Expect(html).To(ContainSubstring(`This is a metric`))
+		g.Expect(html).To(ContainSubstring(`<strong>firehose origin</strong>: origin1`))
+		g.Expect(html).To(ContainSubstring(`<strong>log-cache source_id</strong>: demo`))
+		g.Expect(html).To(ContainSubstring(`<strong>type</strong>: metric_type`))
+	})
+
 	g.Expect(html).To(ContainSubstring("<p><em>test response</em> of kpi</p>"))
 	g.Expect(html).To(ContainSubstring("<p>Average over 100 minutes</p>"))
 	g.Expect(html).To(ContainSubstring("<em>Red critical</em>: &gt; 1000<br/>"))

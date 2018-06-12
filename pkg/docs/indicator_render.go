@@ -47,6 +47,16 @@ func (p indicatorPresenter) Response() template.HTML {
 	return template.HTML(blackfriday.Run([]byte(p.Indicator.Response)))
 }
 
+func (p indicatorPresenter) MetricPresenters() []metricPresenter {
+	metricPresenters := make([]metricPresenter, 0)
+
+	for _, metric := range p.Metrics {
+		metricPresenters = append(metricPresenters, metricPresenter{metric})
+	}
+
+	return metricPresenters
+}
+
 type thresholdPresenter struct {
 	threshold indicator.Threshold
 }
