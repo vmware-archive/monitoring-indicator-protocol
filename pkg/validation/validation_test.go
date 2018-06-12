@@ -7,23 +7,36 @@ import (
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 )
 
-
 // TODO: extracted from main, needs unit tests
 func TestVerifyMetric(t *testing.T) {
 
 }
 
-// TODO: extracted from main, needs unit tests
 func TestFormatQuery(t *testing.T) {
 
-	t.Run("dots are converted to underscores", func(t *testing.T) {
-		g := NewGomegaWithT(t)
+	var characterConversions = []struct {
+		input       indicator.Metric
+		expectation string
+	}{
+		{
+			input:       indicator.Metric{SourceID: "router", Name: "uaa.latency"},
+			expectation: `uaa_latency{source_id="router",deployment="cf"}[1m]`,
+		},
+		{
+			input:       indicator.Metric{SourceID: "router", Name: `uaa/latency\a`},
+			expectation: `uaa_latency_a{source_id="router",deployment="cf"}[1m]`,
+		},
+		{
+			input:       indicator.Metric{SourceID: "router", Name: "uaa-latency"},
+			expectation: `uaa_latency{source_id="router",deployment="cf"}[1m]`,
+		},
+	}
 
-		metric := indicator.Metric{
-			SourceID:    "router",
-			Name:        "uaa.latency",
-		}
+	for _, cc := range characterConversions {
+		t.Run(cc.input.Name, func(t *testing.T) {
+			g := NewGomegaWithT(t)
 
-		g.Expect(validation.FormatQuery(metric, "cf")).To(Equal(`uaa_latency{source_id="router",deployment="cf"}[1m]`))
-	})
+			g.Expect(validation.FormatQuery(cc.input, "cf")).To(Equal(cc.expectation))
+		})
+	}
 }

@@ -4,10 +4,10 @@ import (
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 	"code.cloudfoundry.org/go-log-cache"
 	"net/http"
-	"strings"
 	"fmt"
 	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
 	"github.com/golang/protobuf/jsonpb"
+	"strings"
 )
 
 type Result struct {
@@ -21,7 +21,11 @@ type ResultSeries struct {
 }
 
 func FormatQuery(m indicator.Metric, deployment string) string {
-	name := strings.Replace(m.Name, ".", "_", -1)
+	name := m.Name
+	name = strings.Replace(name, `.`, "_", -1)
+	name = strings.Replace(name, `-`, "_", -1)
+	name = strings.Replace(name, `\`, "_", -1)
+	name = strings.Replace(name, `/`, "_", -1)
 	return fmt.Sprintf(`%s{source_id="%s",deployment="%s"}[1m]`, name, m.SourceID, deployment)
 }
 
