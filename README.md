@@ -81,7 +81,7 @@ attributes:
   - **response** \[markdown,required\]: A formatted field describing the recommended operator response to a threshold being met. This should describe in detail potential causes, diagnoses, and resolutions.
   
 ### The documentation block
-The `documentation` block defines the composition of HTML documentation generated using the `cmd/generate_docs` package. See the [Healthwatch KPIs](https://docs.pivotal.io/pivotalcf/1-12/monitoring/kpi.html) for an example.
+The `documentation` block defines the composition of HTML documentation generated using the `cmd/generate_docs` package. See the [Healthwatch KPIs](http://docs.pivotal.io/pcf-healthwatch/monitoring.html) for an example.
 - **documentation** \[hash, required\]
   - **title** \[string,required\]: The top level page header. 
   - **description**  \[markdown,optional\]: A formatted text block that appears under the table of contents. 
