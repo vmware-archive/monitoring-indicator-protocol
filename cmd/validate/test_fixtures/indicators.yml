@@ -6,12 +6,14 @@ metrics:
   title: Demo Latency
   description: A test metric for testing
   type: gauge
+  frequency: 60s
 - name: saturation
   source_id: demo_component
   origin: demo_component
   title: Demo Saturation
   description: A test metric for testing
   type: counter
+  frequency: 60s
 
 indicators: []
 
