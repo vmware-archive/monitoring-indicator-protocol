@@ -82,6 +82,7 @@ const htmlMetricTemplate = `### <a id="{{.TitleID}}"></a>{{.Title}}
 		{{.Description}}
 		<span><strong>Firehose Origin</strong>: {{.Origin}}</span>
 		<span><strong>Log Cache Source ID</strong>: {{.SourceID}}</span>
+		<span><strong>Type</strong>: {{.Type}}</span>
 		<span><strong>Frequency</strong>: {{.Frequency}}</span>
       </td>
    </tr>

@@ -30,6 +30,7 @@ func TestRenderMetricHTML(t *testing.T) {
 	g.Expect(html).To(ContainSubstring("<p>test description <em>bold text</em></p>"))
 	g.Expect(html).To(ContainSubstring(`<span><strong>Firehose Origin</strong>: demo origin</span>`))
 	g.Expect(html).To(ContainSubstring(`<span><strong>Log Cache Source ID</strong>: demo id</span>`))
+	g.Expect(html).To(ContainSubstring(`<span><strong>Type</strong>: gauge</span>`))
 	g.Expect(html).To(ContainSubstring(`<span><strong>Frequency</strong>: 35s</span>`))
 	g.Expect(html).ToNot(ContainSubstring("%%"))
 }
