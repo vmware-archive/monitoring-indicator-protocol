@@ -32,6 +32,10 @@ func Validate(document Document) []error {
 		if strings.TrimSpace(m.Type) == "" {
 			es = append(es, fmt.Errorf("metrics[%d] type is required", idx))
 		}
+
+		if strings.TrimSpace(m.Frequency) == "" {
+			es = append(es, fmt.Errorf("metrics[%d] frequency is required", idx))
+		}
 	}
 
 	for idx, i := range document.Indicators {

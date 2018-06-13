@@ -41,6 +41,7 @@ const htmlIndicatorTemplate = `### <a id="{{.TitleID}}"></a>{{.Title}}
 							<span style="display: inline-block"><strong>firehose origin</strong>: {{.Origin}}</span>
                             <span style="display: inline-block"><strong>log-cache source_id</strong>: {{.SourceID}}</span>
                             <span style="display: inline-block"><strong>type</strong>: {{.Type}}</span>
+                            <span style="display: inline-block"><strong>frequency</strong>: {{.Frequency}}</span>
                         </span>
                     </td>
                 </tr>
@@ -81,6 +82,7 @@ const htmlMetricTemplate = `### <a id="{{.TitleID}}"></a>{{.Title}}
 		{{.Description}}
 		<span><strong>Firehose Origin</strong>: {{.Origin}}</span>
 		<span><strong>Log Cache Source ID</strong>: {{.SourceID}}</span>
+		<span><strong>Frequency</strong>: {{.Frequency}}</span>
       </td>
    </tr>
 </tbody></table>`

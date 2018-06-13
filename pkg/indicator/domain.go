@@ -43,6 +43,7 @@ type Metric struct {
 	Name        string `yaml:"name"`
 	Type        string `yaml:"type"`
 	Description string `yaml:"description"`
+	Frequency   string `yaml:"frequency"`
 }
 
 type Documentation struct {

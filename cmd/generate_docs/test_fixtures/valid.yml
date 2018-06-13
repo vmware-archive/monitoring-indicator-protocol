@@ -4,8 +4,9 @@ metrics:
   source_id: demo
   origin: demo
   title: Demo Latency
-  description: A test metric for testing
   type: gauge
+  frequency: 30s
+  description: A test metric for testing
 
 indicators:
 - name: test_performance_indicator

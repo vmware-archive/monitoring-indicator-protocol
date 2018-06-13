@@ -60,6 +60,7 @@ attributes:
   - **source_id** \[string,required\]: The Loggregator V2 [source_id](https://github.com/cloudfoundry/loggregator-api/blob/master/v2/envelope.proto#L10) of the metric emitted by the component. Used to query metrics from [Log Cache](https://github.com/cloudfoundry/log-cache)
   - **origin** \[string,required\]: The Loggregator V1 [origin](https://github.com/cloudfoundry/dropsonde-protocol/tree/master/events#envelopeproto) of the metric emitted by the component. Used to filter metrics from the [Firehose](https://docs.cloudfoundry.org/loggregator/architecture.html#firehose).
   - **type** \[string,required\]: Usually counter, gauge, or timer.
+  - **frequency** \[string,required\]: How often the component emits the metric (e.g. 30s, 5m, event-based)
   - **description**  \[markdown,required\]: A formatted description of the metric.
 
 ### The indicators block

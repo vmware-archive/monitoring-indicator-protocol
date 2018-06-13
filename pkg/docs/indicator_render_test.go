@@ -25,6 +25,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
 			Name:        "latency",
 			Type:        "metric_type",
 			Description: "This is a metric",
+			Frequency:   "metric_freq",
 		}},
 		Measurement: "Average over 100 minutes",
 		Thresholds: []indicator.Threshold{
@@ -61,6 +62,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
 		g.Expect(html).To(ContainSubstring(`<strong>firehose origin</strong>: origin1`))
 		g.Expect(html).To(ContainSubstring(`<strong>log-cache source_id</strong>: demo`))
 		g.Expect(html).To(ContainSubstring(`<strong>type</strong>: metric_type`))
+		g.Expect(html).To(ContainSubstring(`<strong>frequency</strong>: metric_freq`))
 	})
 
 	g.Expect(html).To(ContainSubstring("<p><em>test response</em> of kpi</p>"))

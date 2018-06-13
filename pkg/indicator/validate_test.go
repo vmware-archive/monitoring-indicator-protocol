@@ -14,44 +14,40 @@ func TestValidDocument(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			Metrics: []indicator.Metric{
-				{
-					Title:       "Demo Latency",
-					Description: "A test metric for testing",
-					Name:        "latency",
-					SourceID:    "demo",
-					Origin:      "demo",
-					Type:        "gauge",
-				},
-			},
-			Indicators: []indicator.Indicator{
-				{
-					Name:        "test_performance_indicator",
-					Title:       "Test Performance Indicator",
-					Description: "This is a valid markdown description.",
-					PromQL:      "prom",
-					Thresholds: []indicator.Threshold{
-						{
-							Level:    "warning",
-							Dynamic:  true,
-							Operator: indicator.GreaterThanOrEqualTo,
-							Value:    50,
-						},
+			Metrics: []indicator.Metric{{
+				Title:       "Demo Latency",
+				Origin:      "demo",
+				SourceID:    "demo",
+				Name:        "latency",
+				Type:        "gauge",
+				Description: "A test metric for testing",
+				Frequency:   "metric_freq",
+			}},
+			Indicators: []indicator.Indicator{{
+				Name:        "test_performance_indicator",
+				Title:       "Test Performance Indicator",
+				Description: "This is a valid markdown description.",
+				PromQL:      "prom",
+				Thresholds: []indicator.Threshold{
+					{
+						Level:    "warning",
+						Dynamic:  true,
+						Operator: indicator.GreaterThanOrEqualTo,
+						Value:    50,
 					},
-					Metrics: []indicator.Metric{
-						{
-							Title:       "Demo Latency",
-							Description: "A test metric for testing",
-							Name:        "latency",
-							SourceID:    "demo",
-							Origin:      "demo",
-							Type:        "gauge",
-						},
-					},
-					Response:    "Panic!",
-					Measurement: "Measurement Text",
 				},
-			},
+				Metrics: []indicator.Metric{{
+					"Demo Latency",
+					"demo",
+					"demo",
+					"latency",
+					"gauge",
+					"A test metric for testing",
+					"metric_freq",
+				}},
+				Response:    "Panic!",
+				Measurement: "Measurement Text",
+			}},
 			Documentation: indicator.Documentation{
 				Title:       "Monitoring Test Product",
 				Owner:       "Test Owner Team",
@@ -78,11 +74,12 @@ func TestMetricValidation(t *testing.T) {
 			Metrics: []indicator.Metric{
 				{
 					Title:       " ",
-					Description: " ",
-					Name:        " ",
-					SourceID:    " ",
 					Origin:      " ",
+					SourceID:    " ",
+					Name:        " ",
 					Type:        " ",
+					Description: " ",
+					Frequency:   " ",
 				},
 			},
 		}
@@ -96,6 +93,7 @@ func TestMetricValidation(t *testing.T) {
 			errors.New("metrics[0] source_id is required"),
 			errors.New("metrics[0] origin is required"),
 			errors.New("metrics[0] type is required"),
+			errors.New("metrics[0] frequency is required"),
 		))
 	})
 }
@@ -114,7 +112,7 @@ func TestIndicatorValidation(t *testing.T) {
 					PromQL:      " ",
 					Response:    " ",
 					Measurement: " ",
-					Metrics:  []indicator.Metric{},
+					Metrics:     []indicator.Metric{},
 				},
 			},
 		}

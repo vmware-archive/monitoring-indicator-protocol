@@ -17,6 +17,7 @@ metrics:
   origin: demo
   title: Demo Latency
   type: metricType
+  frequency: 60s
   description: A test metric for testing
 
 indicators:
@@ -52,11 +53,12 @@ documentation:
 		Metrics: []indicator.Metric{
 			{
 				Title:       "Demo Latency",
-				Description: "A test metric for testing",
-				Name:        "latency",
-				SourceID:    "demo",
 				Origin:      "demo",
+				SourceID:    "demo",
+				Name:        "latency",
 				Type:        "metricType",
+				Description: "A test metric for testing",
+				Frequency:   "60s",
 			},
 		},
 		Indicators: []indicator.Indicator{
@@ -75,11 +77,12 @@ documentation:
 				},
 				Metrics: []indicator.Metric{{
 					Title:       "Demo Latency",
-					Description: "A test metric for testing",
-					Name:        "latency",
-					SourceID:    "demo",
 					Origin:      "demo",
+					SourceID:    "demo",
+					Name:        "latency",
 					Type:        "metricType",
+					Description: "A test metric for testing",
+					Frequency:   "60s",
 				}},
 				Response:    "Panic!",
 				Measurement: "Measurement Text",
@@ -106,22 +109,24 @@ documentation:
 					},
 					Metrics: []indicator.Metric{{
 						Title:       "Demo Latency",
-						Description: "A test metric for testing",
-						Name:        "latency",
-						SourceID:    "demo",
 						Origin:      "demo",
+						SourceID:    "demo",
+						Name:        "latency",
 						Type:        "metricType",
+						Description: "A test metric for testing",
+						Frequency:   "60s",
 					}},
 					Response:    "Panic!",
 					Measurement: "Measurement Text",
 				}},
 				Metrics: []indicator.Metric{{
 					Title:       "Demo Latency",
-					Description: "A test metric for testing",
-					Name:        "latency",
-					SourceID:    "demo",
 					Origin:      "demo",
+					SourceID:    "demo",
+					Name:        "latency",
 					Type:        "metricType",
+					Description: "A test metric for testing",
+					Frequency:   "60s",
 				}},
 			}},
 		},
