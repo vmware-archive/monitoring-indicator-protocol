@@ -52,7 +52,7 @@ func main() {
 		stdOut.Printf("Querying log-cache for metric with name \"%s\" and source_id \"%s\"", m.Name, m.SourceID)
 		stdOut.Printf("  query: %s", query)
 
-		result, err := validation.VerifyMetric(m, query, *logCacheURL, logCache)
+		result, err := validation.VerifyMetric(m, query, *logCacheURL+"/v1/promql", logCache)
 		if err != nil {
 			stdErr.Println("  " + err.Error())
 			failedMetrics = append(failedMetrics, m)

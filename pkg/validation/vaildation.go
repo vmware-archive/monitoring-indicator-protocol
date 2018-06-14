@@ -2,7 +2,6 @@ package validation
 
 import (
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
-	"code.cloudfoundry.org/go-log-cache"
 	"net/http"
 	"fmt"
 	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
@@ -29,8 +28,12 @@ func FormatQuery(m indicator.Metric, deployment string) string {
 	return fmt.Sprintf(`%s{source_id="%s",deployment="%s"}[1m]`, name, m.SourceID, deployment)
 }
 
-func VerifyMetric(m indicator.Metric, query string, logCacheURL string, logCache *logcache.Oauth2HTTPClient) (Result, error) {
-	req, err := http.NewRequest(http.MethodGet, logCacheURL+"/v1/promql", nil)
+type promQLClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+func VerifyMetric(m indicator.Metric, query string, promQLEndpoint string, client promQLClient) (Result, error) {
+	req, err := http.NewRequest(http.MethodGet, promQLEndpoint, nil)
 	if err != nil {
 		return Result{}, err
 	}
@@ -41,7 +44,7 @@ func VerifyMetric(m indicator.Metric, query string, logCacheURL string, logCache
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := logCache.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return Result{}, fmt.Errorf("failed to query log-cache [metric: %s] [query: %s] [error: %s]", m.Name, query, err)
 	}
