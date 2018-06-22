@@ -11,6 +11,25 @@ const (
 	GreaterThan
 )
 
+func (e OperatorType) String() string {
+	switch e {
+	case LessThan:
+		return "lt"
+	case LessThanOrEqualTo:
+		return "lte"
+	case EqualTo:
+		return "eq"
+	case NotEqualTo:
+		return "neq"
+	case GreaterThanOrEqualTo:
+		return "gte"
+	case GreaterThan:
+		return "gt"
+	default:
+		return ""
+	}
+}
+
 type Document struct {
 	Metrics       []Metric
 	Indicators    []Indicator
@@ -23,7 +42,6 @@ type Indicator struct {
 	Description string
 	PromQL      string
 	Thresholds  []Threshold
-
 	Metrics     []Metric
 	Response    string
 	Measurement string

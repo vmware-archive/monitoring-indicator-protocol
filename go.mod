@@ -5,6 +5,7 @@ require (
 	code.cloudfoundry.org/go-log-cache v0.0.0-20180524122406-98cf35cfc1eb
 	code.cloudfoundry.org/go-loggregator v0.0.0-20180417164101-87c180b3121a
 	github.com/golang/protobuf v1.1.0
+	github.com/gorilla/mux v1.6.2
 	github.com/grpc-ecosystem/grpc-gateway v1.4.1
 	github.com/onsi/ginkgo v1.5.0
 	github.com/onsi/gomega v1.4.0

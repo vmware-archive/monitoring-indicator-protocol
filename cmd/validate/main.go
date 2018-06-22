@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -31,7 +30,7 @@ func main() {
 
 	flagSet.Parse(os.Args[1:])
 
-	metrics, err := readMetrics(*indicatorsFile)
+	document, err := indicator.ReadFile(*indicatorsFile)
 	if err != nil {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}
@@ -39,12 +38,12 @@ func main() {
 	logCache := buildLogCacheClient(*uaaURL, *uaaClient, *uaaClientSecret, *insecure)
 
 	stdOut.Println("---------------------------------------------------------------------------------------------")
-	stdOut.Printf("Checking for existence of %d metrics in log-cache \n", len(metrics))
+	stdOut.Printf("Checking for existence of %d metrics in log-cache \n", len(document.Metrics))
 	stdOut.Println("---------------------------------------------------------------------------------------------")
 
 	failedMetrics := make([]indicator.Metric, 0)
 
-	for _, m := range metrics {
+	for _, m := range document.Metrics {
 		stdOut.Println()
 
 		query := validation.FormatQuery(m, *deployment)
@@ -126,29 +125,4 @@ func buildLogCacheClient(uaaHost string, uaaClient string, uaaClientSecret strin
 			Timeout: 10 * time.Second,
 		}),
 	)
-}
-
-func readMetrics(indicatorsFile string) ([]indicator.Metric, error) {
-	fileBytes, err := ioutil.ReadFile(indicatorsFile)
-	if err != nil {
-		return nil, err
-	}
-
-	indicatorDocument, err := indicator.ReadIndicatorDocument(fileBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	validationErrors := indicator.Validate(indicatorDocument)
-	if len(validationErrors) > 0 {
-
-		log.Println("validation for indicator file failed")
-		for _, e := range validationErrors {
-			log.Printf("- %s \n", e.Error())
-		}
-
-		os.Exit(1)
-	}
-
-	return indicatorDocument.Metrics, nil
 }
