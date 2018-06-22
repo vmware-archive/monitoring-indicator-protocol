@@ -3,15 +3,12 @@ package registry
 import (
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 	"sync"
+	"reflect"
 )
 
 type Document struct {
-	Labels     map[string]string     `json:"labels"`
-	Indicators []indicator.Indicator `json:"indicators"`
-}
-
-type Indicator struct {
-	indicator.Indicator
+	Labels     map[string]string
+	Indicators []indicator.Indicator
 }
 
 func NewDocumentStore() *DocumentStore {
@@ -25,11 +22,17 @@ type DocumentStore struct {
 	documents []Document
 }
 
-func (d *DocumentStore) Insert(labels map[string]string, indicators []indicator.Indicator) {
+func (d *DocumentStore) Upsert(labels map[string]string, indicators []indicator.Indicator) {
 	d.Lock()
 	defer d.Unlock()
 
-	d.documents = append(d.documents, Document{Indicators: indicators, Labels: labels})
+	pos := d.getPosition(labels)
+
+	if pos == -1 {
+		d.documents = append(d.documents, Document{Indicators: indicators, Labels: labels})
+	} else {
+		d.documents[pos] = Document{Indicators: indicators, Labels: labels}
+	}
 }
 
 func (d *DocumentStore) All() []Document {
@@ -37,4 +40,13 @@ func (d *DocumentStore) All() []Document {
 	defer d.RUnlock()
 
 	return d.documents
+}
+
+func (d *DocumentStore) getPosition(labels map[string]string) int {
+	for idx, doc := range d.documents {
+		if reflect.DeepEqual(doc.Labels, labels) {
+			return idx
+		}
+	}
+	return -1
 }

@@ -12,7 +12,7 @@ func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
 
 	err := yaml.Unmarshal(yamlBytes, &d)
 	if err != nil {
-		return Document{}, fmt.Errorf("could not unmarshal KPIs: %s", err)
+		return Document{}, fmt.Errorf("could not unmarshal indicators: %s", err)
 	}
 
 	var indicators []Indicator
