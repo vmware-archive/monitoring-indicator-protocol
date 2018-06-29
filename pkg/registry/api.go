@@ -11,6 +11,7 @@ import (
 
 func NewRegisterHandler(d *DocumentStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		labelValues := r.URL.Query()
 		labels := make(map[string]string)
 		for k, v := range labelValues {
@@ -142,6 +143,7 @@ func marshal(docs []Document) ([]byte, error) {
 
 func NewIndicatorDocumentsHandler(d *DocumentStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		bytes, _ := marshal(d.All())
 		fmt.Fprintf(w, string(bytes))

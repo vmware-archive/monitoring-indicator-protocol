@@ -47,6 +47,7 @@ indicators:
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
+		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
 		g.Expect(resp.Code).To(Equal(http.StatusOK))
 		g.Expect(docStore.All()).To(HaveLen(1))
 		g.Expect(docStore.All()[0].Labels).To(Equal(map[string]string{
@@ -155,6 +156,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		handle := registry.NewIndicatorDocumentsHandler(docStore)
 		handle(resp, req)
 
+		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
 		g.Expect(resp.Code).To(Equal(http.StatusOK))
 
 		responseBody, err := ioutil.ReadAll(resp.Body)
