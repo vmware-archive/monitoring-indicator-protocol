@@ -16,9 +16,8 @@ func main() {
 	documentStore := registry.NewDocumentStore()
 
 	r := mux.NewRouter()
-	// TODO set methods
-	r.HandleFunc("/v1/register", registry.NewRegisterHandler(documentStore))
-	r.HandleFunc("/v1/indicator-documents", registry.NewIndicatorDocumentsHandler(documentStore))
+	r.HandleFunc("/v1/register", registry.NewRegisterHandler(documentStore)).Methods(http.MethodPost)
+	r.HandleFunc("/v1/indicator-documents", registry.NewIndicatorDocumentsHandler(documentStore)).Methods(http.MethodGet)
 
 	http.ListenAndServe(fmt.Sprintf(":%d", *port), r)
 }
