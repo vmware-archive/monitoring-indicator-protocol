@@ -1,3 +1,5 @@
+#### **WARNING**: This repository is a work in progress and is not supported.
+
 # CF Indicators
 
 Tooling for CF component teams to define and expose performance, scaling, and service level indicators.
