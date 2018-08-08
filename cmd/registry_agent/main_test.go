@@ -15,7 +15,7 @@ import (
 func TestIndicatorRegistryAgent(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := vgo_test.Build("./main.go")
+	binPath, err := vgo_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("it sends an indicator document to the registry on an interval", func(t *testing.T) {

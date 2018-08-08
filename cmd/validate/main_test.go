@@ -19,7 +19,7 @@ import (
 func TestValidateIndicators(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := vgo_test.Build("./main.go")
+	binPath, err := vgo_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("returns 0 when all metrics are found over 1m", func(t *testing.T) {

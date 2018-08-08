@@ -15,7 +15,7 @@ import (
 func TestGenerateDocsBinary(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := vgo_test.Build("./main.go")
+	binPath, err := vgo_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("accepts indicator yml file as a command line argument and returns formatted HTML", func(t *testing.T) {

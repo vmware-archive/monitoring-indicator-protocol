@@ -1,3 +1,4 @@
 #! /bin/bash
 
-GOCACHE=off vgo test ./... -v
+go clean -cache
+vgo test ./... -v
