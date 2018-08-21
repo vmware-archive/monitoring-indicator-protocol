@@ -44,9 +44,26 @@ deployment as a tag/label for reading metrics and executing promql.
 
 The `-k` flag disables SSL verification (insecure).
 
-### Indicator Registry (Not available)
+### Indicator Registry
 The `registry` command is a web service that holds a list of current indicators for each deployment. Monitoring
 tools can use this information to draw graphs and trigger alerts on the indicator expressions and thresholds. 
+
+It takes one argument, `--port`, which is required.
+
+It exposes two HTTP endpoints:
+1. `POST /v1/register` It also takes an list of key/value pairs as URL-encoded query parameters. If these key/value pairs match an existing document, the posted document will overwrite the stored document.
+1. `GET /v1/indicator-documents` This returns the list of all currently registered indicator documents as a json array.
+
+```
+vgo install code.cloudfoundry.org/cf-indicators/cmd/registry
+registry --port 8080
+
+# POST an indicator document to the registry
+curl "localhost:8080/v1/register?deployment=test-123&project=test-abc" -d "$(cat ./example.yml)"
+
+# GET the array of all registered indicator documents
+curl "localhost:8080/v1/indicator-documents"
+```
 
 ## The Indicator Format
 All of the packages in this repository consume a YAML formatted file. This file
