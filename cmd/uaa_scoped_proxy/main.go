@@ -26,7 +26,7 @@ func main() {
 	listenAddr := flagSet.String("listen-addr", ":8081", "The public port to listen on")
 	uaaURL := flagSet.String("uaa-url", "", "UAA server host (e.g. https://uaa.my-pcf.com)")
 	uaaCAPath := flagSet.String("uaa-ca-path", "", "File path to root CA cert for UAA")
-	uaaClientID := flagSet.String("log-cache-client", "", "the UAA client which has access to log-cache (doppler.firehose or logs.admin scope")
+	uaaClientID := flagSet.String("log-cache-client", "", "the UAA client which has access to log-cache (doppler.firehose or logs.admin scope)")
 	uaaClientSecret := flagSet.String("log-cache-client-secret", "", "the client secret")
 	insecure := flagSet.Bool("k", false, "skips ssl verification (insecure)")
 
