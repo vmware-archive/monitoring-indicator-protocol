@@ -1,0 +1,126 @@
+---
+resources:
+- name: cf-indicators
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/cf-indicators.git
+    branch: master
+    private_key: {{event-producer-github-key}}
+- name: env-state
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:pivotal-cf/denver-locks.git
+    private_key: {{event-producer-github-key}}
+
+jobs:
+- name: build-and-test
+  plan:
+  - aggregate:
+    - get: cf-indicators
+      trigger: true
+  - task: build-and-test
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfmetrics/indicators-build-and-test
+          tag: latest
+      inputs:
+      - name: cf-indicators
+        path: go/src/code.cloudfoundry.org/cf-indicators
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            #!/usr/bin/env bash
+
+            set -exu
+
+            pushd go/src/code.cloudfoundry.org/cf-indicators
+              vgo test ./...
+            popd
+
+- name: push-to-acceptance
+  plan:
+  - aggregate:
+    - get: env-state
+    - get: cf-indicators
+      trigger: true
+      passed: [build-and-test]
+  - task: cf-push
+    config:
+      params:
+        DOMAIN: sunstorm.cf-denver.com
+        BBL_STATE_DIR: acceptance-bosh/claimed/sunstorm
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfmetrics/indicators-build-and-test
+          tag: latest
+      inputs:
+      - name: env-state
+      - name: cf-indicators
+        path: go/src/code.cloudfoundry.org/cf-indicators
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            #!/usr/bin/env bash
+
+            set -exu
+
+            set +x
+            pushd "env-state/${BBL_STATE_DIR}"
+              eval "$(bbl print-env)"
+            popd
+
+            cf api api.$DOMAIN --skip-ssl-validation
+            cf auth admin $(credhub get -n /bosh-sunstorm/cf/cf_admin_password -j | jq -r .value)
+            set -x
+
+            cf target -o system
+            cf create-space indicators || true
+            cf target -s indicators
+
+            pushd go/src/code.cloudfoundry.org/cf-indicators
+              mkdir cf-indicator-registry
+              vgo build -o cf-indicator-registry/registry code.cloudfoundry.org/cf-indicators/cmd/registry
+
+              cf push -p cf-indicator-registry -b binary_buildpack --no-manifest indicator-registry -c './registry --port $PORT'
+            popd
+
+
+- name: generate-test-docs
+  plan:
+  - aggregate:
+    - get: cf-indicators
+      trigger: true
+  - task: generate-docs
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfmetrics/indicators-build-and-test
+          tag: latest
+      inputs:
+      - name: cf-indicators
+        path: go/src/code.cloudfoundry.org/cf-indicators
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            #!/usr/bin/env bash
+
+            set -exu
+
+            pushd go/src/code.cloudfoundry.org/cf-indicators
+              vgo install code.cloudfoundry.org/cf-indicators/cmd/generate_docs
+              generate_docs example.yml
+            popd
