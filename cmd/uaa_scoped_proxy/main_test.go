@@ -88,7 +88,7 @@ func TestUaaScopedProxy(t *testing.T) {
 
 		cmd := exec.Command(binPath,
 			"-backend-url", "http://"+backendServer.Addr(),
-			"-listen-addr", ":8080",
+			"-listen-addr", ":8081",
 			"-uaa-url", "http://"+uaaServer.Addr(),
 			"-uaa-ca-path", "./test_fixtures/ca.crt",
 			"-log-cache-client", "my-uaa-client",
@@ -99,9 +99,9 @@ func TestUaaScopedProxy(t *testing.T) {
 
 		g.Expect(err).ToNot(HaveOccurred())
 		defer session.Kill()
-		waitForHTTPServer("localhost:8080", 3 * time.Second)
+		waitForHTTPServer("localhost:8081", 3 * time.Second)
 
-		url, err := url.Parse("http://localhost:8080")
+		url, err := url.Parse("http://localhost:8081")
 		g.Expect(err).ToNot(HaveOccurred())
 		req := &http.Request{
 			Method:           http.MethodGet,
