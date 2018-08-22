@@ -92,6 +92,62 @@ func TestIndicatorRegistry(t *testing.T) {
             ]  
 		`))
 	})
+
+	t.Run("it exposes a metrics endpoint", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		cmd := exec.Command(binPath, "--port", "10568")
+
+		session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
+
+		g.Expect(err).ToNot(HaveOccurred())
+		defer session.Kill()
+		waitForHTTPServer("localhost:10568", 3 * time.Second)
+
+		resp, err := http.Get("http://localhost:10568/metrics")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+	})
+
+	t.Run("it records metrics for all endpoints", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		cmd := exec.Command(binPath, "--port", "10569")
+
+		session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
+
+		g.Expect(err).ToNot(HaveOccurred())
+		defer session.Kill()
+		waitForHTTPServer("localhost:10569", 3 * time.Second)
+
+		file, err := os.Open("../../example.yml")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		resp, err := http.Post("http://localhost:10569/v1/register?deployment=redis-abc&service=redis", "text/plain", file)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+		resp, err = http.Get("http://localhost:10569/v1/indicator-documents")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+		resp, err = http.Get("http://localhost:10569/v2/fake-endpoint")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+
+		resp, err = http.Get("http://localhost:10569/metrics")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+		defer resp.Body.Close()
+		respBytes, err := ioutil.ReadAll(resp.Body)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		respString := string(respBytes)
+		g.Expect(respString).To(ContainSubstring(`registry_http_requests{route="/v1/indicator-documents",status="200"} 1`))
+		g.Expect(respString).To(ContainSubstring(`registry_http_requests{route="/v1/register",status="200"} 1`))
+		g.Expect(respString).To(ContainSubstring(`registry_http_requests{route="invalid path",status="404"} 1`))
+	})
 }
 
 func waitForHTTPServer(host string, timeout time.Duration) error {
