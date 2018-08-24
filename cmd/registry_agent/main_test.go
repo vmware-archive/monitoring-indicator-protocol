@@ -32,9 +32,10 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 		println(registryServer.URL())
 
 		cmd := exec.Command(binPath,
-			"--indicators-path", "./test_fixtures/",
+			"--indicators-path", "./test_fixtures/indicators.yml",
 			"--registry", registryServer.URL(),
 			"--deployment", "abc-123",
+			"--product", "abc-789",
 			"--interval", "50ms")
 
 		session, err := gexec.Start(cmd, os.Stdout, os.Stderr)

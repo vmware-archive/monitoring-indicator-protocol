@@ -1,46 +1,44 @@
 package registry
 
 import (
-	"time"
-	"io/ioutil"
-	"log"
-	"fmt"
 	"bytes"
+	"fmt"
+	"log"
+	"time"
+
+	"io/ioutil"
 	"net/http"
 )
 
 type Agent struct {
-	IndicatorsPath string
+	IndicatorsDocument string
 	RegistryURI    string
 	DeploymentName string
+	ProductName    string
 	IntervalTime   time.Duration
 }
 
+
 func (a Agent) Start() {
-	files, err := ioutil.ReadDir(a.IndicatorsPath)
+	file, err := ioutil.ReadFile(a.IndicatorsDocument)
 	if err != nil {
-		log.Fatalf("could not read filepath: %s\n", err)
+		log.Fatalf("could not read file: %s\n", err)
 	}
+
 
 	interval := time.NewTicker(a.IntervalTime)
 	for {
 		select {
 		case <-interval.C:
-			for _, fileInfo := range files {
-				registry := fmt.Sprintf(a.RegistryURI+"/v1/register?deployment=%s&product=%s", a.DeploymentName, fileInfo.Name())
+				registry := fmt.Sprintf(a.RegistryURI+"/v1/register?deployment=%s&product=%s", a.DeploymentName, a.ProductName)
 
-				fileData, err := ioutil.ReadFile(a.IndicatorsPath + fileInfo.Name())
-				if err != nil {
-					log.Fatalf("could not read indicators file: %s\n", err)
-				}
-				body := bytes.NewBuffer(fileData)
+				body := bytes.NewBuffer(file)
 
 				_, err = http.Post(registry, "text/plain", body)
 				if err != nil {
 					// TODO: emit failure metric
 					log.Fatalf("could not make http request: %s\n", err)
 				}
-			}
 		default:
 		}
 	}

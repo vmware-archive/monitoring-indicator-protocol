@@ -1,13 +1,14 @@
 package registry_test
 
 import (
-	"testing"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
+	"io/ioutil"
+	"testing"
 
+	"code.cloudfoundry.org/cf-indicators/pkg/registry"
 	"net/http"
 	"time"
-	"code.cloudfoundry.org/cf-indicators/pkg/registry"
 )
 
 func TestRegistryAgent(t *testing.T) {
@@ -17,19 +18,36 @@ func TestRegistryAgent(t *testing.T) {
 		registryServer := ghttp.NewServer()
 		defer registryServer.Close()
 
+		receivedDocument := make(chan []byte, 1)
+
 		registryServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			content, err := ioutil.ReadAll(r.Body)
+			g.Expect(err).ToNot(HaveOccurred())
+			receivedDocument <- content
+
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 		})
 
 		agent := registry.Agent{
-			IndicatorsPath: "./test_fixtures/",
-			RegistryURI:    registryServer.URL(),
-			DeploymentName: "abc-123",
-			IntervalTime:   50 * time.Millisecond}
+			IndicatorsDocument: "./test_fixtures/indicators.yml",
+			RegistryURI:        registryServer.URL(),
+			DeploymentName:     "abc-123",
+			ProductName:        "product-name",
+			IntervalTime:       50 * time.Millisecond}
 
 		go agent.Start()
 
 		g.Eventually(registryServer.ReceivedRequests).Should(HaveLen(2))
+
+		request := registryServer.ReceivedRequests()[0]
+		queryParams := request.URL.Query()
+		g.Expect(queryParams.Get("product")).To(Equal("product-name"))
+		g.Expect(queryParams.Get("deployment")).To(Equal("abc-123"))
+
+		fileContents, err := ioutil.ReadFile("./test_fixtures/indicators.yml")
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(receivedDocument).To(Receive(Equal(fileContents)))
 	})
 }
