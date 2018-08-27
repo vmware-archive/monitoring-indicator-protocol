@@ -2,7 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"log"
+	"net"
+	"net/http"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"code.cloudfoundry.org/cf-indicators/pkg/registry"
 )
@@ -23,5 +29,21 @@ func main() {
 		IntervalTime:       *intervalTime,
 	}
 
+	startMetricsEndpoint()
+
 	agent.Start()
+}
+
+func startMetricsEndpoint() {
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", 0))
+	if err != nil {
+		log.Printf("unable to start monitor endpoint: %s", err)
+	}
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+	log.Printf("starting monitor endpoint on http://%s/metrics\n", lis.Addr().String())
+	go func() {
+		err = http.Serve(lis, mux)
+		log.Printf("error starting the monitor server: %s", http.Serve(lis, mux))
+	}()
 }
