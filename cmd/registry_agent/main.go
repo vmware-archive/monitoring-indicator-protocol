@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -21,8 +22,13 @@ func main() {
 	intervalTime := flag.Duration("interval", 5*time.Minute, "The send interval")
 	flag.Parse()
 
+	document, err := ioutil.ReadFile(*indicatorsPath)
+	if err != nil {
+		log.Fatalf("could not read indicator document: %s/n", err)
+	}
+
 	agent := registry.Agent{
-		IndicatorsDocument: *indicatorsPath,
+		IndicatorsDocument: document,
 		RegistryURI:        *registryURI,
 		DeploymentName:     *deploymentName,
 		ProductName:        *productName,

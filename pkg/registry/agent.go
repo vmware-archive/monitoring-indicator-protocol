@@ -7,14 +7,13 @@ import (
 	"strconv"
 	"time"
 
-	"io/ioutil"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Agent struct {
-	IndicatorsDocument string
+	IndicatorsDocument []byte
 	RegistryURI        string
 	DeploymentName     string
 	ProductName        string
@@ -32,18 +31,13 @@ func init() {
 }
 
 func (a Agent) Start() {
-	file, err := ioutil.ReadFile(a.IndicatorsDocument)
-	if err != nil {
-		log.Fatalf("could not read file: %s\n", err)
-	}
-
 	interval := time.NewTicker(a.IntervalTime)
 	for {
 		select {
 		case <-interval.C:
 			registry := fmt.Sprintf(a.RegistryURI+"/v1/register?deployment=%s&product=%s", a.DeploymentName, a.ProductName)
 
-			body := bytes.NewBuffer(file)
+			body := bytes.NewBuffer(a.IndicatorsDocument)
 
 			resp, err := http.Post(registry, "text/plain", body)
 			if err != nil {

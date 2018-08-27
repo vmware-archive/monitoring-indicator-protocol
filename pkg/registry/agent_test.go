@@ -30,8 +30,10 @@ func TestRegistryAgent(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		})
 
+		document, err := ioutil.ReadFile("./test_fixtures/indicators.yml")
+
 		agent := registry.Agent{
-			IndicatorsDocument: "./test_fixtures/indicators.yml",
+			IndicatorsDocument: document,
 			RegistryURI:        registryServer.URL(),
 			DeploymentName:     "abc-123",
 			ProductName:        "product-name",
