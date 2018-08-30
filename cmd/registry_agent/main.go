@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -15,28 +16,35 @@ import (
 )
 
 func main() {
-	indicatorsPath := flag.String("indicators-path", "./", "Path to a directory containing indicator files")
 	registryURI := flag.String("registry", "", "URI of a registry instance")
 	deploymentName := flag.String("deployment", "", "The name of the deployment")
-	productName := flag.String("product", "", "The name of the product")
 	intervalTime := flag.Duration("interval", 5*time.Minute, "The send interval")
+	documentsGlob := flag.String("documents-glob", "/var/vcap/jobs/*/indicators.yml", "Glob path of indicator files")
 	flag.Parse()
 
-	document, err := ioutil.ReadFile(*indicatorsPath)
+	documentPaths, err := filepath.Glob(*documentsGlob)
 	if err != nil {
-		log.Fatalf("could not read indicator document: %s/n", err)
+		log.Fatalf("could not read glob indicator documents: %s/n", err)
 	}
 
-	agent := registry.Agent{
-		IndicatorsDocument: document,
-		RegistryURI:        *registryURI,
-		DeploymentName:     *deploymentName,
-		ProductName:        *productName,
-		IntervalTime:       *intervalTime,
+	documents := make([][]byte, 0)
+	for _, path := range documentPaths {
+		document, err := ioutil.ReadFile(path)
+		if err != nil {
+			log.Printf("could not read indicator document: %s/n", err)
+		}
+
+		documents = append(documents, document)
 	}
 
 	startMetricsEndpoint()
 
+	agent := registry.Agent{
+		IndicatorsDocuments: documents,
+		RegistryURI:         *registryURI,
+		DeploymentName:      *deploymentName,
+		IntervalTime:        *intervalTime,
+	}
 	agent.Start()
 }
 

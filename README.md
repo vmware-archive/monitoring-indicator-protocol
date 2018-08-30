@@ -70,6 +70,9 @@ All of the packages in this repository consume a YAML formatted file. This file
 should define lists of `indicators` and `metrics`, and it can also define a 
 `documentation` section.
 
+### Top level attributes
+- **product** \[string,optional\]: The name of the product used to name dashboards, determine icons, etc. (e.g. rabbitmq, redis, mysql)
+
 ### The metrics block
 The `metric` block defines a list of metrics with the following
 attributes:

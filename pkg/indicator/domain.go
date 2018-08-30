@@ -3,7 +3,7 @@ package indicator
 type OperatorType int
 
 const (
-	LessThan             OperatorType = iota
+	LessThan OperatorType = iota
 	LessThanOrEqualTo
 	EqualTo
 	NotEqualTo
@@ -31,6 +31,7 @@ func (e OperatorType) String() string {
 }
 
 type Document struct {
+	Product       string
 	Metrics       []Metric
 	Indicators    []Indicator
 	Documentation Documentation

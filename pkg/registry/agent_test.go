@@ -33,11 +33,10 @@ func TestRegistryAgent(t *testing.T) {
 		document, err := ioutil.ReadFile("./test_fixtures/indicators.yml")
 
 		agent := registry.Agent{
-			IndicatorsDocument: document,
-			RegistryURI:        registryServer.URL(),
-			DeploymentName:     "abc-123",
-			ProductName:        "product-name",
-			IntervalTime:       50 * time.Millisecond}
+			IndicatorsDocuments: [][]byte{document},
+			RegistryURI:         registryServer.URL(),
+			DeploymentName:      "abc-123",
+			IntervalTime:        50 * time.Millisecond}
 
 		go agent.Start()
 
@@ -45,7 +44,6 @@ func TestRegistryAgent(t *testing.T) {
 
 		request := registryServer.ReceivedRequests()[0]
 		queryParams := request.URL.Query()
-		g.Expect(queryParams.Get("product")).To(Equal("product-name"))
 		g.Expect(queryParams.Get("deployment")).To(Equal("abc-123"))
 
 		fileContents, err := ioutil.ReadFile("./test_fixtures/indicators.yml")

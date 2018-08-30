@@ -11,6 +11,7 @@ import (
 func TestReturnsCompleteDocument(t *testing.T) {
 	g := NewGomegaWithT(t)
 	d, err := indicator.ReadIndicatorDocument([]byte(`---
+product: well-performing-component
 metrics:
 - name: latency
   source_id: demo
@@ -50,6 +51,7 @@ documentation:
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(d).To(Equal(indicator.Document{
+		Product: "well-performing-component",
 		Metrics: []indicator.Metric{
 			{
 				Title:       "Demo Latency",

@@ -13,11 +13,10 @@ import (
 )
 
 type Agent struct {
-	IndicatorsDocument []byte
-	RegistryURI        string
-	DeploymentName     string
-	ProductName        string
-	IntervalTime       time.Duration
+	IndicatorsDocuments [][]byte
+	RegistryURI         string
+	DeploymentName      string
+	IntervalTime        time.Duration
 }
 
 var registrationCount = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -31,22 +30,31 @@ func init() {
 }
 
 func (a Agent) Start() {
-	a.registerIndicatorDocument()
+	a.registerIndicatorDocuments()
 
 	interval := time.NewTicker(a.IntervalTime)
 	for {
 		select {
 		case <-interval.C:
-			a.registerIndicatorDocument()
+			for _, d := range a.IndicatorsDocuments {
+				a.registerIndicatorDocument(d)
+			}
 		default:
 		}
 	}
 }
 
-func (a Agent) registerIndicatorDocument() {
-	registry := fmt.Sprintf(a.RegistryURI+"/v1/register?deployment=%s&product=%s", a.DeploymentName, a.ProductName)
+func (a Agent) registerIndicatorDocuments() {
+	for _, d := range a.IndicatorsDocuments {
+		a.registerIndicatorDocument(d)
+	}
+}
 
-	body := bytes.NewBuffer(a.IndicatorsDocument)
+func (a Agent) registerIndicatorDocument(indicatorsDocument []byte) {
+
+	registry := fmt.Sprintf(a.RegistryURI+"/v1/register?deployment=%s", a.DeploymentName)
+
+	body := bytes.NewBuffer(indicatorsDocument)
 
 	resp, err := http.Post(registry, "text/plain", body)
 	if err != nil {
