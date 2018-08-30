@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/vgo_test"
+	"code.cloudfoundry.org/cf-indicators/pkg/go_test"
 	"github.com/onsi/gomega/ghttp"
 	"net/http"
 	"os"
@@ -17,7 +17,7 @@ import (
 func TestIndicatorRegistryAgent(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := vgo_test.Build("./")
+	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("it sends indicator documents to the registry on an interval", func(t *testing.T) {
@@ -55,7 +55,7 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		defer session.Kill()
 
-		g.Expect((<- receivedDocuments).Product).To(Equal("job-a-product"))
-		g.Expect((<- receivedDocuments).Product).To(Equal("job-b-product"))
+		g.Expect((<-receivedDocuments).Product).To(Equal("job-a-product"))
+		g.Expect((<-receivedDocuments).Product).To(Equal("job-b-product"))
 	})
 }

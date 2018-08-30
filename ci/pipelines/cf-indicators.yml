@@ -46,7 +46,7 @@ jobs:
             set -exu
 
             pushd go/src/code.cloudfoundry.org/cf-indicators
-              vgo test ./...
+              go test ./... -v
             popd
 
 - name: push-to-acceptance
@@ -95,7 +95,7 @@ jobs:
 
             pushd go/src/code.cloudfoundry.org/cf-indicators
               mkdir cf-indicator-registry
-              vgo build -o cf-indicator-registry/registry code.cloudfoundry.org/cf-indicators/cmd/registry
+              go build -o cf-indicator-registry/registry code.cloudfoundry.org/cf-indicators/cmd/registry
 
               cf push -p cf-indicator-registry -b binary_buildpack --no-manifest indicator-registry -c './registry --port $PORT'
             popd
@@ -191,6 +191,6 @@ jobs:
             set -exu
 
             pushd go/src/code.cloudfoundry.org/cf-indicators
-              vgo install code.cloudfoundry.org/cf-indicators/cmd/generate_docs
+              go install code.cloudfoundry.org/cf-indicators/cmd/generate_docs
               generate_docs example.yml
             popd

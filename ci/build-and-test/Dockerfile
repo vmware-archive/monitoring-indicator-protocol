@@ -1,11 +1,7 @@
-FROM golang:1.10.3
+FROM golang:1.11
 
 ENV GOPATH=$PWD/go
 ENV PATH=$PATH:$GOPATH/bin
-
-RUN apt-get update
-RUN apt-get -y install clang jq
-RUN go get -u golang.org/x/vgo
 
 RUN wget -O cf.tgz "https://packages.cloudfoundry.org/stable?release=linux64-binary&version=6.38.0&source=github-rel"
 RUN tar xzf cf.tgz cf
