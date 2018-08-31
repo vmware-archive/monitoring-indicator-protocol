@@ -1,5 +1,11 @@
 ---
 resources:
+- name: indicator-protocol-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/indicator-protocol-release.git
+    branch: master
+    private_key: {{event-producer-github-key}}
 - name: cf-indicators
   type: git
   source:
@@ -94,6 +100,70 @@ jobs:
               cf push -p cf-indicator-registry -b binary_buildpack --no-manifest indicator-registry -c './registry --port $PORT'
             popd
 
+- name: bump-release-submodule
+  plan:
+  - aggregate:
+    - get: cf-indicators
+      passed: [build-and-test]
+      trigger: true
+    - get: indicator-protocol-release
+  - task: bump-submodule
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: eventalertsdocker/pcf-event-alerts-unit
+      inputs:
+      - name: cf-indicators
+      - name: indicator-protocol-release
+      outputs:
+      - name: indicator-protocol-release-updated
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+
+          set -exu
+
+          pushd cf-indicators
+            REPO_PATH=$PWD
+            SOURCE_SHA=`git rev-parse HEAD`
+            COMMIT_MSG=`git rev-list --format=%B --max-count=1 $SOURCE_SHA`
+          popd
+
+          # Bumping submodule
+          pushd indicator-protocol-release/src/code.cloudfoundry.org/cf-indicators
+            git remote add local $REPO_PATH
+            git fetch local
+            git checkout $SOURCE_SHA
+          popd
+
+          pushd indicator-protocol-release
+            export GOPATH=$PWD
+            export PATH=$PATH:$GOPATH/bin
+
+            git add src/code.cloudfoundry.org/cf-indicators
+
+            if [[ -z $(git status -s) ]]; then
+              echo "No changes to cf-indicators submodule"
+              rsync -a . ../indicator-protocol-release-updated
+              exit 0
+            fi
+
+            git commit -m "Updated cf-indicators submodule version to:\
+
+            `echo "$COMMIT_MSG" | awk '{ print "\t"$0 }'`"
+          popd
+
+          rsync -a indicator-protocol-release/ indicator-protocol-release-updated
+    on_success:
+      put: indicator-protocol-release
+      params:
+        repository: indicator-protocol-release-updated
+        rebase: true
 
 - name: generate-test-docs
   plan:

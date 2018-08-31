@@ -4,6 +4,7 @@ set -ef
 if [[ $# -ne 1 ]];
 then
     echo "Incorrect usage: $0 pipeline-name"
+    exit 1
 fi
 
 set -eu
