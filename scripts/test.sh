@@ -1,7 +1,7 @@
 #! /bin/bash
 
 go clean -cache
-vgo test ./... -v
+go test ./... -v
 
 exit_status=$?
 

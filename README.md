@@ -55,7 +55,7 @@ It exposes two HTTP endpoints:
 1. `GET /v1/indicator-documents` This returns the list of all currently registered indicator documents as a json array.
 
 ```
-vgo install code.cloudfoundry.org/cf-indicators/cmd/registry
+go install code.cloudfoundry.org/cf-indicators/cmd/registry
 registry --port 8080
 
 # POST an indicator document to the registry

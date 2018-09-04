@@ -13,13 +13,13 @@ import (
 	"fmt"
 	"net"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/vgo_test"
+	"code.cloudfoundry.org/cf-indicators/pkg/go_test"
 )
 
 func TestIndicatorRegistry(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := vgo_test.Build("./")
+	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("it saves and exposes indicators with labels", func(t *testing.T) {

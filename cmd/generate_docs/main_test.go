@@ -9,13 +9,13 @@ import (
 	"bytes"
 	"os"
 	"os/exec"
-	"code.cloudfoundry.org/cf-indicators/pkg/vgo_test"
+	"code.cloudfoundry.org/cf-indicators/pkg/go_test"
 )
 
 func TestGenerateDocsBinary(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := vgo_test.Build("./")
+	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("accepts indicator yml file as a command line argument and returns formatted HTML", func(t *testing.T) {

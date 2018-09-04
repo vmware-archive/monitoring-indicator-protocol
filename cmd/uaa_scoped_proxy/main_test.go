@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"os"
 	"net/http"
-	"code.cloudfoundry.org/cf-indicators/pkg/vgo_test"
+	"code.cloudfoundry.org/cf-indicators/pkg/go_test"
 	"io/ioutil"
 	"github.com/onsi/gomega/ghttp"
 	"net/url"
@@ -19,7 +19,7 @@ import (
 func TestUaaScopedProxy(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := vgo_test.Build("./")
+	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("passes authorized requests to the backend server", func(t *testing.T) {
