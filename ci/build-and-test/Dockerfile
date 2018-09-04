@@ -1,7 +1,6 @@
 FROM golang:1.11
 
-ENV GOPATH=$PWD/go
-ENV PATH=$PATH:$GOPATH/bin
+ENV PATH=$PATH:$PWD/go/bin
 
 RUN wget -O cf.tgz "https://packages.cloudfoundry.org/stable?release=linux64-binary&version=6.38.0&source=github-rel"
 RUN tar xzf cf.tgz cf
