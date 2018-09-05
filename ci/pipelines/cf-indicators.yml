@@ -49,57 +49,6 @@ jobs:
               go test ./... -v
             popd
 
-- name: push-to-acceptance
-  plan:
-  - aggregate:
-    - get: env-state
-    - get: cf-indicators
-      trigger: true
-      passed: [build-and-test]
-  - task: cf-push
-    config:
-      params:
-        DOMAIN: sunstorm.cf-denver.com
-        BBL_STATE_DIR: acceptance-bosh/claimed/sunstorm
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfmetrics/indicators-build-and-test
-          tag: go-1.11
-      inputs:
-      - name: env-state
-      - name: cf-indicators
-        path: go/src/code.cloudfoundry.org/cf-indicators
-      run:
-        path: bash
-        args:
-          - -c
-          - |
-            #!/usr/bin/env bash
-
-            set -exu
-
-            set +x
-            pushd "env-state/${BBL_STATE_DIR}"
-              eval "$(bbl print-env)"
-            popd
-
-            cf api api.$DOMAIN --skip-ssl-validation
-            cf auth admin $(credhub get -n /bosh-sunstorm/cf/cf_admin_password -j | jq -r .value)
-            set -x
-
-            cf target -o system
-            cf create-space indicators || true
-            cf target -s indicators
-
-            pushd go/src/code.cloudfoundry.org/cf-indicators
-              mkdir cf-indicator-registry
-              go build -o cf-indicator-registry/registry code.cloudfoundry.org/cf-indicators/cmd/registry
-
-              cf push -p cf-indicator-registry -b binary_buildpack --no-manifest indicator-registry -c './registry --port $PORT'
-            popd
-
 - name: bump-release-submodule
   plan:
   - aggregate:
@@ -164,6 +113,71 @@ jobs:
       params:
         repository: indicator-protocol-release-updated
         rebase: true
+
+- name: deploy-indicator-registry
+  plan:
+  - aggregate:
+    - get: env-state
+    - get: indicator-protocol-release
+      passed: [bump-release-submodule]
+      trigger: true
+  - task: bump-submodule
+    config:
+      params:
+        BBL_STATE_DIR: acceptance-bosh/claimed/sunstorm
+        S3_ACCESS_KEY: {{aws-access-key-id}}
+        S3_SECRET_KEY: {{aws-secret-access-key}}
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfmetrics/indicators-build-and-test
+          tag: go-1.11
+      inputs:
+      - name: indicator-protocol-release
+      - name: env-state
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/bin/bash
+          set -ex
+
+          set +x
+          pushd "env-state/${BBL_STATE_DIR}"
+            eval "$(bbl print-env)"
+          popd
+          set -x
+
+          pushd indicator-protocol-release
+
+            cat << EOF > config/private.yml
+          ---
+          blobstore:
+            options:
+              access_key_id: ${S3_ACCESS_KEY}
+              secret_access_key: ${S3_SECRET_KEY}
+          EOF
+
+            bosh create-release
+            bosh -n upload-release --fix --rebase
+
+            cat << EOF > version_ops.yml
+          - type: replace
+            path: /releases/name=indicator-protocol/version
+            value: $(bosh releases | grep indicator-protocol -m1 | cut -f2)
+          EOF
+
+            bosh update-runtime-config -n \
+              --name indicator-registration-agent \
+              -o version_ops.yml \
+              manifests/agent_runtime_config.yml
+          popd
+
+
+          bosh -n -d indicator-registry deploy \
+            indicator-protocol-release/manifests/manifest.yml
 
 - name: generate-test-docs
   plan:

@@ -13,7 +13,10 @@ RUN wget -O credhub.tgz "https://github.com/cloudfoundry-incubator/credhub-cli/r
 RUN tar xzf credhub.tgz ./credhub
 RUN chmod +x credhub
 
+RUN wget -O bosh "https://github.com/cloudfoundry/bosh-cli/releases/download/v5.2.2/bosh-cli-5.2.2-linux-amd64"
+RUN chmod +x bosh
 
 RUN cp cf /bin/cf
 RUN cp bbl /bin/bbl
 RUN cp credhub /bin/credhub
+RUN cp bosh /bin/bosh

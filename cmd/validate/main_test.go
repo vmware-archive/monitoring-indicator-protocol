@@ -1,19 +1,21 @@
 package main_test
 
 import (
-	"testing"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/onsi/gomega/ghttp"
+	"testing"
 
-	"os/exec"
-	"os"
-	"net/http"
-	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
-	"github.com/golang/protobuf/jsonpb"
-	"time"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+	"os/exec"
+	"time"
+
 	"code.cloudfoundry.org/cf-indicators/pkg/go_test"
+
+	"github.com/prometheus/common/model"
 )
 
 func TestValidateIndicators(t *testing.T) {
@@ -22,7 +24,7 @@ func TestValidateIndicators(t *testing.T) {
 	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
-	t.Run("returns 0 when all metrics are found over 1m", func(t *testing.T) {
+	t.Run("returns 0 when all metrics are found over 10m", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		logCacheServer := ghttp.NewServer()
@@ -33,7 +35,7 @@ func TestValidateIndicators(t *testing.T) {
 				req.ParseForm()
 
 				q := req.Form.Get("query")
-				if q != `latency{source_id="demo_component",deployment="cf"}[1m]` {
+				if q != `latency{source_id="demo_component",deployment="cf"}[10m]` {
 					w.WriteHeader(422)
 					return
 				}
@@ -45,7 +47,7 @@ func TestValidateIndicators(t *testing.T) {
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
-				if q != `saturation{source_id="demo_component",deployment="cf"}[1m]` {
+				if q != `saturation{source_id="demo_component",deployment="cf"}[10m]` {
 					w.WriteHeader(422)
 					return
 				}
@@ -81,7 +83,7 @@ func TestValidateIndicators(t *testing.T) {
 		g.Eventually(session).Should(gexec.Exit(0))
 	})
 
-	t.Run("returns 1 when not all metrics are found over 1m", func(t *testing.T) {
+	t.Run("returns 1 when not all metrics are found over 10m", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		logCacheServer := ghttp.NewServer()
@@ -92,7 +94,7 @@ func TestValidateIndicators(t *testing.T) {
 				req.ParseForm()
 
 				q := req.Form.Get("query")
-				if q != `latency{source_id="demo_component",deployment="cf"}[1m]` {
+				if q != `latency{source_id="demo_component",deployment="cf"}[10m]` {
 					w.WriteHeader(422)
 					return
 				}
@@ -104,7 +106,7 @@ func TestValidateIndicators(t *testing.T) {
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
-				if q != `saturation{source_id="demo_component",deployment="cf"}[1m]` {
+				if q != `saturation{source_id="demo_component",deployment="cf"}[10m]` {
 					w.WriteHeader(422)
 					return
 				}
@@ -142,40 +144,47 @@ func TestValidateIndicators(t *testing.T) {
 }
 
 func logCachePromQLResponse(numSeries, numPoints int) []byte {
-	var series *logcache_v1.PromQL_Series
-	var seriesList []*logcache_v1.PromQL_Series
+	var series *model.SampleStream
+	var seriesList model.Matrix
 	for i := 0; i < numSeries; i++ {
-		series = &logcache_v1.PromQL_Series{
-			Metric: map[string]string{
-				"vm": fmt.Sprintf("vm-%d", i),
+		series = &model.SampleStream{
+			Metric: model.Metric{
+				"vm": model.LabelValue(fmt.Sprintf("vm-%d", i)),
 			},
+			Values: make([]model.SamplePair, numPoints),
 		}
 
-		series.Points = make([]*logcache_v1.PromQL_Point, numPoints)
 		for j := 0; j < numPoints; j++ {
-			series.Points[j] = &logcache_v1.PromQL_Point{
-				Value: float64(j * i),
-				Time:  time.Now().UnixNano(),
+			series.Values[j] = model.SamplePair{
+				Value:     model.SampleValue(float64(j * i)),
+				Timestamp: model.Time(time.Now().Unix()),
 			}
 		}
 
 		seriesList = append(seriesList, series)
 	}
 
-	promQLResult := &logcache_v1.PromQL_QueryResult{
-		Result: &logcache_v1.PromQL_QueryResult_Matrix{
-			Matrix: &logcache_v1.PromQL_Matrix{
-				Series: seriesList,
-			},
+	result, err := json.Marshal(response{
+		"success",
+		data{
+			ResultType: "matrix",
+			Result:     seriesList,
 		},
-	}
+	})
 
-	marshaller := jsonpb.Marshaler{}
-
-	result, err := marshaller.MarshalToString(promQLResult)
 	if err != nil {
 		panic(err)
 	}
 
-	return []byte(result)
+	return result
+}
+
+type response struct {
+	Status string `json:"status"`
+	Data   data   `json:"data"`
+}
+
+type data struct {
+	ResultType string      `json:"resultType"`
+	Result     interface{} `json:"result"`
 }

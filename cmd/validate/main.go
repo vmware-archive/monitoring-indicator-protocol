@@ -1,18 +1,22 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
-	"time"
 
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 	"code.cloudfoundry.org/cf-indicators/pkg/validation"
-	"code.cloudfoundry.org/go-log-cache"
+
+	"github.com/prometheus/client_golang/api"
+	"github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 func main() {
@@ -35,7 +39,10 @@ func main() {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}
 
-	logCache := buildLogCacheClient(*uaaURL, *uaaClient, *uaaClientSecret, *insecure)
+	prometheusClient, err := buildPrometheusClient(*logCacheURL, *uaaURL, *uaaClient, *uaaClientSecret, *insecure)
+	if err != nil {
+		log.Fatalf("could not create prometheus client: %s\n", err)
+	}
 
 	stdOut.Println("---------------------------------------------------------------------------------------------")
 	stdOut.Printf("Checking for existence of %d metrics in log-cache \n", len(document.Metrics))
@@ -51,7 +58,7 @@ func main() {
 		stdOut.Printf("Querying log-cache for metric with name \"%s\" and source_id \"%s\"", m.Name, m.SourceID)
 		stdOut.Printf("  query: %s", query)
 
-		result, err := validation.VerifyMetric(m, query, *logCacheURL+"/v1/promql", logCache)
+		result, err := validation.VerifyMetric(m, query, prometheusClient)
 		if err != nil {
 			stdErr.Println("  " + err.Error())
 			failedMetrics = append(failedMetrics, m)
@@ -59,7 +66,7 @@ func main() {
 		}
 
 		for _, s := range result.Series {
-			stdOut.Printf("  [%s] -> [%s] \n", formatSeriesID(s.Labels), formatSeriesPoints(s.Points))
+			stdOut.Printf("  [%s] -> [%s] \n", s.Labels, s.Points)
 		}
 
 		if result.MaxNumberOfPoints == 0 {
@@ -89,40 +96,110 @@ func main() {
 	separator(stdOut)
 }
 
-func formatSeriesPoints(values []float64) string {
-	stringValues := make([]string, 0)
-
-	for _, v := range values {
-		stringValues = append(stringValues, fmt.Sprintf("%+v", v))
-	}
-
-	return strings.Join(stringValues, " ")
-}
-
-func formatSeriesID(labels map[string]string) string {
-	labelParts := make([]string, 0)
-
-	for k, v := range labels {
-		labelParts = append(labelParts, k+":"+v)
-	}
-
-	return strings.Join(labelParts, " ")
-}
-
 func separator(stdOut *log.Logger) {
 	stdOut.Println()
 	stdOut.Println()
 }
 
-func buildLogCacheClient(uaaHost string, uaaClient string, uaaClientSecret string, insecure bool) *logcache.Oauth2HTTPClient {
-	return logcache.NewOauth2HTTPClient(uaaHost, uaaClient, uaaClientSecret,
-		logcache.WithOauth2HTTPClient(&http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: insecure,
-				},
+func buildPrometheusClient(logCacheURL string, uaaHost string, uaaClientID string, uaaClientSecret string, insecure bool) (v1.API, error) {
+
+	client, err := api.NewClient(api.Config{
+		Address: logCacheURL,
+		RoundTripper: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: insecure,
 			},
-			Timeout: 10 * time.Second,
-		}),
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	c := &uaaClient{
+		Client:          client,
+		uaaHost:         uaaHost,
+		uaaClientID:     uaaClientID,
+		uaaClientSecret: uaaClientSecret,
+		insecure:        insecure,
+	}
+
+	return v1.NewAPI(c), err
+}
+
+type uaaClient struct {
+	api.Client
+	uaaHost         string
+	uaaClientID     string
+	uaaClientSecret string
+	insecure        bool
+	token           string
+}
+
+func (c *uaaClient) Do(ctx context.Context, req *http.Request) (*http.Response, []byte, error) {
+	token, err := c.getClientToken()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.Header.Set("Authorization", token)
+
+	return c.Client.Do(ctx, req)
+}
+
+func (c *uaaClient) getClientToken() (string, error) {
+	if c.token != "" {
+		return c.token, nil
+	}
+
+	v := make(url.Values)
+	v.Set("client_id", c.uaaClientID)
+	v.Set("grant_type", "client_credentials")
+
+	req, err := http.NewRequest(
+		"POST",
+		c.uaaHost,
+		strings.NewReader(v.Encode()),
 	)
+	if err != nil {
+		return "", err
+	}
+	req.URL.Path = "/oauth/token"
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	req.URL.User = url.UserPassword(c.uaaClientID, c.uaaClientSecret)
+
+	return c.doTokenRequest(req)
+}
+
+func (c *uaaClient) doTokenRequest(req *http.Request) (string, error) {
+	client := http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: c.insecure,
+		},
+	}}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code from Oauth2 server %d", resp.StatusCode)
+	}
+
+	token := struct {
+		TokenType   string `json:"token_type"`
+		AccessToken string `json:"access_token"`
+	}{}
+
+	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
+		return "", fmt.Errorf("failed to unmarshal response from Oauth2 server: %s", err)
+	}
+
+	c.token = fmt.Sprintf("%s %s", token.TokenType, token.AccessToken)
+	return c.token, nil
 }

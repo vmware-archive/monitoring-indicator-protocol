@@ -39,7 +39,6 @@ func (a Agent) Start() {
 			for _, d := range a.IndicatorsDocuments {
 				a.registerIndicatorDocument(d)
 			}
-		default:
 		}
 	}
 }

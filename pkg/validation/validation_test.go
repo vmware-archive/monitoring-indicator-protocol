@@ -1,20 +1,17 @@
 package validation_test
 
 import (
-	"testing"
 	. "github.com/onsi/gomega"
+	"testing"
 
-	"net/http"
+	"context"
 	"fmt"
 	"time"
-	"github.com/golang/protobuf/jsonpb"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/validation"
+	"github.com/prometheus/common/model"
+
 	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
-
-	"code.cloudfoundry.org/go-log-cache/rpc/logcache_v1"
-	"bytes"
-	"io/ioutil"
+	"code.cloudfoundry.org/cf-indicators/pkg/validation"
 )
 
 func TestVerifyMetric(t *testing.T) {
@@ -22,14 +19,11 @@ func TestVerifyMetric(t *testing.T) {
 	t.Run("returns a result", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		client := mockQueryClient{func(req *http.Request) (*http.Response, error) {
-			body := ioutil.NopCloser(bytes.NewBuffer(logCachePromQLResponse(3, 4)))
-			return &http.Response{
-				StatusCode:       200,
-				Header:           http.Header(map[string][]string{"Content-Type": {"application/json"}}),
-				Body:             body,
-			}, nil
-		}}
+		client := mockQueryClient{
+			TestQuerier: func(ctx context.Context, query string, ts time.Time) (model.Value, error) {
+				return logCachePromQLResponse(3, 4), nil
+			},
+		}
 
 		m := indicator.Metric{
 			Title:       "Demo Component",
@@ -40,7 +34,7 @@ func TestVerifyMetric(t *testing.T) {
 			Description: "A test metric",
 		}
 
-		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, "http://server/v1/promql", client)
+		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[10m]`, client)
 
 		g.Expect(err).ToNot(HaveOccurred())
 	})
@@ -48,9 +42,11 @@ func TestVerifyMetric(t *testing.T) {
 	t.Run("returns an error when the request fails", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		client := mockQueryClient{func(req *http.Request) (*http.Response, error) {
-			return &http.Response{}, fmt.Errorf("oh no! can't get a port!")
-		}}
+		client := mockQueryClient{
+			TestQuerier: func(ctx context.Context, query string, ts time.Time) (model.Value, error) {
+				return nil, fmt.Errorf("oh no! can't get a port!")
+			},
+		}
 
 		m := indicator.Metric{
 			Title:       "Demo Component",
@@ -61,56 +57,7 @@ func TestVerifyMetric(t *testing.T) {
 			Description: "A test metric",
 		}
 
-		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, "http://server/v1/promql", client)
-
-		g.Expect(err).To(HaveOccurred())
-	})
-
-	t.Run("returns an error when the request is not 2xx", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		client := mockQueryClient{func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode:       401,
-			}, nil
-		}}
-
-		m := indicator.Metric{
-			Title:       "Demo Component",
-			Origin:      "demo",
-			SourceID:    "demo_component",
-			Name:        "latency",
-			Type:        "gauge",
-			Description: "A test metric",
-		}
-
-		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, "http://server/v1/promql", client)
-
-		g.Expect(err).To(HaveOccurred())
-	})
-
-	t.Run("returns an error when the response can not be unmarshalled", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		client := mockQueryClient{func(req *http.Request) (*http.Response, error) {
-			body := ioutil.NopCloser(bytes.NewBuffer([]byte("will not unmarshal")))
-			return &http.Response{
-				StatusCode:       200,
-				Header:           http.Header(map[string][]string{"Content-Type": {"application/json"}}),
-				Body:             body,
-			}, nil
-		}}
-
-		m := indicator.Metric{
-			Title:       "Demo Component",
-			Origin:      "demo",
-			SourceID:    "demo_component",
-			Name:        "latency",
-			Type:        "gauge",
-			Description: "A test metric",
-		}
-
-		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, "http://server/v1/promql", client)
+		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[10m]`, client)
 
 		g.Expect(err).To(HaveOccurred())
 	})
@@ -124,15 +71,15 @@ func TestFormatQuery(t *testing.T) {
 	}{
 		{
 			input:       indicator.Metric{SourceID: "router", Name: "uaa.latency"},
-			expectation: `uaa_latency{source_id="router",deployment="cf"}[1m]`,
+			expectation: `uaa_latency{source_id="router",deployment="cf"}[10m]`,
 		},
 		{
 			input:       indicator.Metric{SourceID: "router", Name: `uaa/latency\a`},
-			expectation: `uaa_latency_a{source_id="router",deployment="cf"}[1m]`,
+			expectation: `uaa_latency_a{source_id="router",deployment="cf"}[10m]`,
 		},
 		{
 			input:       indicator.Metric{SourceID: "router", Name: "uaa-latency"},
-			expectation: `uaa_latency{source_id="router",deployment="cf"}[1m]`,
+			expectation: `uaa_latency{source_id="router",deployment="cf"}[10m]`,
 		},
 	}
 
@@ -145,49 +92,35 @@ func TestFormatQuery(t *testing.T) {
 	}
 }
 
-func logCachePromQLResponse(numSeries, numPoints int) []byte {
-	var series *logcache_v1.PromQL_Series
-	var seriesList []*logcache_v1.PromQL_Series
+func logCachePromQLResponse(numSeries, numPoints int) model.Value {
+	var series *model.SampleStream
+	var seriesList model.Matrix
 	for i := 0; i < numSeries; i++ {
-		series = &logcache_v1.PromQL_Series{
-			Metric: map[string]string{
-				"vm": fmt.Sprintf("vm-%d", i),
+		series = &model.SampleStream{
+			Metric: model.Metric{
+				"vm": model.LabelValue(fmt.Sprintf("vm-%d", i)),
 			},
+			Values: nil,
 		}
 
-		series.Points = make([]*logcache_v1.PromQL_Point, numPoints)
+		series.Values = make([]model.SamplePair, numPoints)
 		for j := 0; j < numPoints; j++ {
-			series.Points[j] = &logcache_v1.PromQL_Point{
-				Value: float64(j * i),
-				Time:  time.Now().UnixNano(),
+			series.Values[j] = model.SamplePair{
+				Value:     model.SampleValue(float64(j * i)),
+				Timestamp: model.Time(time.Now().Unix()),
 			}
 		}
 
 		seriesList = append(seriesList, series)
 	}
 
-	promQLResult := &logcache_v1.PromQL_QueryResult{
-		Result: &logcache_v1.PromQL_QueryResult_Matrix{
-			Matrix: &logcache_v1.PromQL_Matrix{
-				Series: seriesList,
-			},
-		},
-	}
-
-	marshaller := jsonpb.Marshaler{}
-
-	result, err := marshaller.MarshalToString(promQLResult)
-	if err != nil {
-		panic(err)
-	}
-
-	return []byte(result)
+	return seriesList
 }
 
 type mockQueryClient struct {
-	TestDoer func(req *http.Request) (*http.Response, error)
+	TestQuerier func(ctx context.Context, query string, ts time.Time) (model.Value, error)
 }
 
-func (m mockQueryClient) Do(req *http.Request) (*http.Response, error) {
-	return m.TestDoer(req)
+func (m mockQueryClient) Query(ctx context.Context, query string, ts time.Time) (model.Value, error) {
+	return m.TestQuerier(ctx, query, ts)
 }
