@@ -35,7 +35,6 @@ jobs:
           tag: go-1.11
       inputs:
       - name: cf-indicators
-        path: go/src/code.cloudfoundry.org/cf-indicators
       run:
         path: bash
         args:
@@ -45,7 +44,7 @@ jobs:
 
             set -exu
 
-            pushd go/src/code.cloudfoundry.org/cf-indicators
+            pushd cf-indicators
               scripts/test.sh
             popd
 
@@ -188,7 +187,6 @@ jobs:
           tag: go-1.11
       inputs:
       - name: cf-indicators
-        path: go/src/code.cloudfoundry.org/cf-indicators
       run:
         path: bash
         args:
@@ -200,6 +198,6 @@ jobs:
 
             export GO111MODULE=on
 
-            pushd go/src/code.cloudfoundry.org/cf-indicators
+            pushd cf-indicators
               go run -mod=vendor cmd/generate_docs/main.go example.yml
             popd

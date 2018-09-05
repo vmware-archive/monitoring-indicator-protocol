@@ -1,6 +1,6 @@
 # github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
 github.com/beorn7/perks/quantile
-# github.com/gogo/protobuf v1.1.1
+# github.com/gogo/protobuf v1.1.2-0.20180830160456-5669497fd644
 github.com/gogo/protobuf/proto
 # github.com/golang/protobuf v1.1.0
 github.com/golang/protobuf/proto
