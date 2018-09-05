@@ -1,7 +1,9 @@
 #! /bin/bash
 
+GO111MODULE=on
+
 go clean -cache
-go test ./... -v
+go test -mod=vendor ./... -v
 
 exit_status=$?
 

@@ -46,7 +46,7 @@ jobs:
             set -exu
 
             pushd go/src/code.cloudfoundry.org/cf-indicators
-              go test ./... -v
+              scripts/test.sh
             popd
 
 - name: bump-release-submodule
@@ -163,15 +163,9 @@ jobs:
             bosh create-release
             bosh -n upload-release --fix --rebase
 
-            cat << EOF > version_ops.yml
-          - type: replace
-            path: /releases/name=indicator-protocol/version
-            value: $(bosh releases | grep indicator-protocol -m1 | cut -f2)
-          EOF
-
             bosh update-runtime-config -n \
               --name indicator-registration-agent \
-              -o version_ops.yml \
+              --var=indicator-protocol-version=$(bosh releases | grep indicator-protocol -m1 | cut -f2) \
               manifests/agent_runtime_config.yml
           popd
 
@@ -204,7 +198,8 @@ jobs:
 
             set -exu
 
+            export GO111MODULE=on
+
             pushd go/src/code.cloudfoundry.org/cf-indicators
-              go install code.cloudfoundry.org/cf-indicators/cmd/generate_docs
-              generate_docs example.yml
+              go run -mod=vendor cmd/generate_docs/main.go example.yml
             popd
