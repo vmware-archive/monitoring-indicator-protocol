@@ -12,16 +12,6 @@ import (
 func NewRegisterHandler(d *DocumentStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		labelValues := r.URL.Query()
-		labels := make(map[string]string)
-		for k, v := range labelValues {
-			labels[k] = v[0]
-
-			if len(v) > 1 {
-				writeErrors(w, http.StatusBadRequest, fmt.Errorf("label %s has too many values", k))
-				return
-			}
-		}
 
 		defer r.Body.Close()
 		documentBytes, err := ioutil.ReadAll(r.Body)
@@ -36,13 +26,28 @@ func NewRegisterHandler(d *DocumentStore) http.HandlerFunc {
 			return
 		}
 
+		labelValues := r.URL.Query()
+		for k, v := range labelValues {
+			doc.Labels[k] = v[0]
+
+			if len(v) > 1 {
+				writeErrors(w, http.StatusBadRequest, fmt.Errorf("label %s has too many values", k))
+				return
+			}
+		}
+
+		if doc.Labels["deployment"] == "" {
+			writeErrors(w, http.StatusBadRequest, fmt.Errorf("deployment query parameter is required"))
+			return
+		}
+
 		errs := indicator.Validate(doc)
 		if len(errs) > 0 {
 			writeErrors(w, http.StatusUnprocessableEntity, errs...)
 			return
 		}
 
-		d.Upsert(labels, doc.Indicators)
+		d.Upsert(doc.Labels, doc.Indicators)
 
 		w.WriteHeader(http.StatusOK)
 	}

@@ -88,7 +88,7 @@ func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
 	}
 
 	return Document{
-		Product:       d.Product,
+		Labels:        d.Labels,
 		Indicators:    indicators,
 		Metrics:       d.Metrics,
 		Documentation: documentation,
@@ -96,7 +96,7 @@ func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
 }
 
 type yamlDocument struct {
-	Product    string            `yaml:"product"`
+	Labels     map[string]string `yaml:"labels"`
 	Metrics    []Metric          `yaml:"metrics"`
 	Indicators []yamlIndicator   `yaml:"indicators"`
 	YAMLDoc    yamlDocumentation `yaml:"documentation"`

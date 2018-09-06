@@ -14,6 +14,7 @@ func TestValidDocument(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
+			Labels: map[string]string{"product":"valid"},
 			Metrics: []indicator.Metric{{
 				Title:       "Demo Latency",
 				Origin:      "demo",
@@ -65,12 +66,29 @@ func TestValidDocument(t *testing.T) {
 	})
 }
 
+func TestProductLabel(t *testing.T) {
+	t.Run("validation returns errors if any metric field is blank", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			Labels: map[string]string{},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("document labels.product is required"),
+		))
+	})
+}
+
 func TestMetricValidation(t *testing.T) {
 
 	t.Run("validation returns errors if any metric field is blank", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
+			Labels: map[string]string{"product":"valid"},
 			Metrics: []indicator.Metric{
 				{
 					Title:       " ",
@@ -104,6 +122,7 @@ func TestIndicatorValidation(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
+			Labels: map[string]string{"product":"valid"},
 			Indicators: []indicator.Indicator{
 				{
 					Name:        " ",

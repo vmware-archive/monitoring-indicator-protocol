@@ -70,8 +70,18 @@ All of the packages in this repository consume a YAML formatted file. This file
 should define lists of `indicators` and `metrics`, and it can also define a 
 `documentation` section.
 
-### Top level attributes
-- **product** \[string,optional\]: The name of the product used to name dashboards, determine icons, etc. (e.g. rabbitmq, redis, mysql)
+- **apiVersion** \[string, required\]: The indicator protocol version used in this document. 'v1/system-component' is the only currently supported version.
+
+### The labels map
+This is a key-value map of meta information.
+
+Required keys:
+- **product**: The name of the product used to name dashboards, determine icons, etc. (e.g. rabbitmq, redis, mysql)
+
+Common keys:
+- **version**: Used by monitoring tools so Operators know which version they are dealing with.
+- **service_broker_guid**: A guid that identifies a service broker. Only service broker deployments should send this key.
+- **parent_service_broker_guid**: A guid that identifies the service broker which created this service instance. Only service instances should send this key. Allows monitoring tools to nest broker/instance dashboards
 
 ### The metrics block
 The `metric` block defines a list of metrics with the following

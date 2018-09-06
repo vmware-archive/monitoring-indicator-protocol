@@ -31,7 +31,7 @@ func (e OperatorType) String() string {
 }
 
 type Document struct {
-	Product       string
+	Labels        map[string]string
 	Metrics       []Metric
 	Indicators    []Indicator
 	Documentation Documentation

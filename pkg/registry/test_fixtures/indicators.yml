@@ -1,4 +1,7 @@
 ---
+labels:
+  product: product-name
+
 metrics:
 - name: latency
   source_id: demo_component

@@ -1,5 +1,6 @@
 ---
-product: job-a-product
+labels:
+  product: job-a-product
 
 metrics:
 - name: saturation

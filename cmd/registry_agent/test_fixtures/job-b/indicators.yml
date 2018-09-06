@@ -1,5 +1,6 @@
 ---
-product: job-b-product
+labels:
+  product: job-b-product
 
 metrics:
 - name: latency

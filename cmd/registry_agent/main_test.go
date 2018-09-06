@@ -55,7 +55,7 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		defer session.Kill()
 
-		g.Expect((<-receivedDocuments).Product).To(Equal("job-a-product"))
-		g.Expect((<-receivedDocuments).Product).To(Equal("job-b-product"))
+		g.Expect((<-receivedDocuments).Labels["product"]).To(Equal("job-a-product"))
+		g.Expect((<-receivedDocuments).Labels["product"]).To(Equal("job-b-product"))
 	})
 }

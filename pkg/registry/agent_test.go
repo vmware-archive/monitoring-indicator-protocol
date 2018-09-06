@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
 	"code.cloudfoundry.org/cf-indicators/pkg/registry"
 	"net/http"
 	"time"
@@ -18,19 +19,24 @@ func TestRegistryAgent(t *testing.T) {
 		registryServer := ghttp.NewServer()
 		defer registryServer.Close()
 
-		receivedDocument := make(chan []byte, 1)
+		receivedDocument := make(chan indicator.Document, 1)
 
 		registryServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			content, err := ioutil.ReadAll(r.Body)
 			g.Expect(err).ToNot(HaveOccurred())
-			receivedDocument <- content
+
+			document, err := indicator.ReadIndicatorDocument(content)
+			g.Expect(err).To(Not(HaveOccurred()))
+
+			receivedDocument <- document
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 		})
 
 		document, err := ioutil.ReadFile("./test_fixtures/indicators.yml")
+		g.Expect(err).To(Not(HaveOccurred()))
 
 		agent := registry.Agent{
 			IndicatorsDocuments: [][]byte{document},
@@ -46,8 +52,6 @@ func TestRegistryAgent(t *testing.T) {
 		queryParams := request.URL.Query()
 		g.Expect(queryParams.Get("deployment")).To(Equal("abc-123"))
 
-		fileContents, err := ioutil.ReadFile("./test_fixtures/indicators.yml")
-		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(receivedDocument).To(Receive(Equal(fileContents)))
+		g.Expect((<-receivedDocument).Labels["product"]).To(Equal("product-name"))
 	})
 }

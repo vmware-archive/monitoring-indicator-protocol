@@ -16,6 +16,9 @@ func TestRegisterHandler(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		body := bytes.NewBuffer([]byte(`---
+labels:
+  product: redis-tile
+
 metrics:
 - name: latency
   source_id: demo
@@ -40,7 +43,7 @@ indicators:
   description: This is a valid markdown description.
   response: Panic!`))
 
-		req := httptest.NewRequest("POST", "/register?deployment=redis-abc&product=redis-tile", body)
+		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)
 		resp := httptest.NewRecorder()
 
 		docStore := registry.NewDocumentStore()
@@ -57,13 +60,15 @@ indicators:
 		g.Expect(docStore.All()[0].Indicators[0].Name).To(Equal("test_performance_indicator"))
 	})
 
-	t.Run("it returns 400 if a label has multiple values", func(t *testing.T) {
+	t.Run("it returns 400 if deployment is missing", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		body := bytes.NewBuffer([]byte(`---
+labels:
+  product: abc-123
 metrics: []`))
 
-		req := httptest.NewRequest("POST", "/register?test-label=redis-abc&test-label=other-value", body)
+		req := httptest.NewRequest("POST", "/register", body)
 		resp := httptest.NewRecorder()
 
 		docStore := registry.NewDocumentStore()
@@ -77,13 +82,16 @@ metrics: []`))
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["label test-label has too many values"] }`))
+		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["deployment query parameter is required"] }`))
 	})
 
 	t.Run("it returns 422 if there are validation errors", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		body := bytes.NewBuffer([]byte(`---
+labels:
+  product: my-component
+
 metrics:
 - name: latency
   source_id: demo

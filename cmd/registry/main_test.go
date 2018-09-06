@@ -51,6 +51,7 @@ func TestIndicatorRegistry(t *testing.T) {
               {
                 "labels": {
                   "deployment": "redis-abc",
+                  "product": "my-component",
                   "service": "redis"
                 },
                 "indicators": [

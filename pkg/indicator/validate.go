@@ -8,6 +8,10 @@ import (
 func Validate(document Document) []error {
 	es := make([]error, 0)
 
+	if _, ok := document.Labels["product"]; !ok {
+		es = append(es, fmt.Errorf("document labels.product is required"))
+	}
+
 	for idx, m := range document.Metrics {
 		if strings.TrimSpace(m.Title) == "" {
 			es = append(es, fmt.Errorf("metrics[%d] title is required", idx))
