@@ -3,7 +3,7 @@ module code.cloudfoundry.org/cf-indicators
 require (
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
 	github.com/gogo/protobuf v1.1.2-0.20180830160456-5669497fd644 // indirect
-	github.com/golang/protobuf v1.1.0 // indirect
+	github.com/golang/protobuf v1.2.0 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
