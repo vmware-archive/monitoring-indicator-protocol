@@ -26,6 +26,10 @@ func NewRegisterHandler(d *DocumentStore) http.HandlerFunc {
 			return
 		}
 
+		if doc.Labels == nil {
+			doc.Labels = make(map[string]string)
+		}
+
 		labelValues := r.URL.Query()
 		for k, v := range labelValues {
 			doc.Labels[k] = v[0]

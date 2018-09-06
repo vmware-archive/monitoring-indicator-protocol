@@ -89,9 +89,6 @@ metrics: []`))
 		g := NewGomegaWithT(t)
 
 		body := bytes.NewBuffer([]byte(`---
-labels:
-  product: my-component
-
 metrics:
 - name: latency
   source_id: demo
@@ -101,7 +98,7 @@ metrics:
   frequency: 60s
   description: " "`))
 
-		req := httptest.NewRequest("POST", "/register?deployment=redis-abc&product=redis-tile", body)
+		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)
 		resp := httptest.NewRecorder()
 
 		docStore := registry.NewDocumentStore()
@@ -115,7 +112,7 @@ metrics:
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["metrics[0] description is required"] }`))
+		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["document labels.product is required", "metrics[0] description is required"]}`))
 	})
 
 	t.Run("it returns 400 if the yml is invalid", func(t *testing.T) {
