@@ -35,14 +35,12 @@ func TestRegistryAgent(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		document, err := ioutil.ReadFile("./test_fixtures/indicators.yml")
-		g.Expect(err).To(Not(HaveOccurred()))
-
 		agent := registry.Agent{
-			IndicatorsDocuments: [][]byte{document},
-			RegistryURI:         registryServer.URL(),
-			DeploymentName:      "abc-123",
-			IntervalTime:        50 * time.Millisecond}
+			DocumentFinder: registry.DocumentFinder{Glob: "./test_fixtures/job-a/indicators.yml"},
+			RegistryURI:    registryServer.URL(),
+			DeploymentName: "abc-123",
+			IntervalTime:   50 * time.Millisecond,
+		}
 
 		go agent.Start()
 
@@ -52,6 +50,33 @@ func TestRegistryAgent(t *testing.T) {
 		queryParams := request.URL.Query()
 		g.Expect(queryParams.Get("deployment")).To(Equal("abc-123"))
 
-		g.Expect((<-receivedDocument).Labels["product"]).To(Equal("product-name"))
+		g.Expect((<-receivedDocument).Labels["product"]).To(Equal("job-a-product"))
 	})
+}
+
+func TestDocumentFinder(t *testing.T) {
+	df := &registry.DocumentFinder{
+		Glob: "./test_fixtures/job-a/indicators.yml",
+	}
+
+	t.Run("it returns documents matching the glob", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		documents, err := df.FindAll()
+
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(documents).To(HaveLen(1))
+	})
+
+	t.Run("it updates documents matching the glob when the glob list changes", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		df.Glob = "./test_fixtures/*/indicators.yml"
+
+		documents, err := df.FindAll()
+
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(documents).To(HaveLen(2))
+	})
+
 }

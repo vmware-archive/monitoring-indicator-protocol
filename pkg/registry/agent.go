@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -14,11 +15,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+type document []byte
+
 type Agent struct {
-	IndicatorsDocuments [][]byte
-	RegistryURI         string
-	DeploymentName      string
-	IntervalTime        time.Duration
+	RegistryURI    string
+	DeploymentName string
+	IntervalTime   time.Duration
+	DocumentFinder DocumentFinder
 }
 
 var registrationCount = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -38,21 +41,27 @@ func (a Agent) Start() {
 	for {
 		select {
 		case <-interval.C:
-			for _, d := range a.IndicatorsDocuments {
-				a.registerIndicatorDocument(d)
-			}
+			a.registerIndicatorDocuments()
 		}
 	}
 }
 
 func (a Agent) registerIndicatorDocuments() {
-	for _, d := range a.IndicatorsDocuments {
+	documents, err := a.DocumentFinder.FindAll()
+
+	if err != nil {
+		registrationCount.WithLabelValues("err").Inc()
+		log.Printf("could not find documents: %s\n", err)
+
+		return
+	}
+
+	for _, d := range documents {
 		a.registerIndicatorDocument(d)
 	}
 }
 
-func (a Agent) registerIndicatorDocument(indicatorsDocument []byte) {
-
+func (a Agent) registerIndicatorDocument(indicatorsDocument document) {
 	registry := fmt.Sprintf(a.RegistryURI+"/v1/register?deployment=%s", a.DeploymentName)
 
 	body := bytes.NewBuffer(indicatorsDocument)
@@ -72,4 +81,27 @@ func (a Agent) registerIndicatorDocument(indicatorsDocument []byte) {
 func closeBodyAndReuseConnection(resp *http.Response) {
 	io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
+}
+
+type DocumentFinder struct {
+	Glob string
+}
+
+func (df DocumentFinder) FindAll() ([]document, error) {
+	documentPaths, err := filepath.Glob(df.Glob)
+	if err != nil {
+		return nil, fmt.Errorf("could not read glob indicator documents: %s/n", err)
+	}
+
+	documents := make([]document, 0)
+	for _, path := range documentPaths {
+		document, err := ioutil.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("could not read indicator document: %s/n", err)
+		}
+
+		documents = append(documents, document)
+	}
+
+	return documents, nil
 }

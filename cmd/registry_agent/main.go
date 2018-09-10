@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
-	"path/filepath"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -22,28 +20,13 @@ func main() {
 	documentsGlob := flag.String("documents-glob", "/var/vcap/jobs/*/indicators.yml", "Glob path of indicator files")
 	flag.Parse()
 
-	documentPaths, err := filepath.Glob(*documentsGlob)
-	if err != nil {
-		log.Fatalf("could not read glob indicator documents: %s/n", err)
-	}
-
-	documents := make([][]byte, 0)
-	for _, path := range documentPaths {
-		document, err := ioutil.ReadFile(path)
-		if err != nil {
-			log.Printf("could not read indicator document: %s/n", err)
-		}
-
-		documents = append(documents, document)
-	}
-
 	startMetricsEndpoint()
 
 	agent := registry.Agent{
-		IndicatorsDocuments: documents,
-		RegistryURI:         *registryURI,
-		DeploymentName:      *deploymentName,
-		IntervalTime:        *intervalTime,
+		DocumentFinder:  registry.DocumentFinder{Glob: *documentsGlob},
+		RegistryURI:    *registryURI,
+		DeploymentName: *deploymentName,
+		IntervalTime:   *intervalTime,
 	}
 	agent.Start()
 }
@@ -58,6 +41,6 @@ func startMetricsEndpoint() {
 	log.Printf("starting monitor endpoint on http://%s/metrics\n", lis.Addr().String())
 	go func() {
 		err = http.Serve(lis, mux)
-		log.Printf("error starting the monitor server: %s", http.Serve(lis, mux))
+		log.Printf("error starting the monitor server: %s", err)
 	}()
 }
