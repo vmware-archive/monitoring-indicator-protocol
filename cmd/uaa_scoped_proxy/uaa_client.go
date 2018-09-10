@@ -71,10 +71,7 @@ func (c *UAAClient) Read(token string) (Oauth2Client, error) {
 		return Oauth2Client{}, err
 	}
 
-	defer func() {
-		io.Copy(ioutil.Discard, resp.Body)
-		resp.Body.Close()
-	}()
+	defer closeBodyAndReuseConnection(resp)
 
 	uaaR, err := c.parseResponse(resp.Body)
 	if err != nil {
@@ -89,6 +86,11 @@ func (c *UAAClient) Read(token string) (Oauth2Client, error) {
 
 func trimBearer(authToken string) string {
 	return strings.TrimSpace(strings.TrimPrefix(authToken, "bearer"))
+}
+
+func closeBodyAndReuseConnection(resp *http.Response) {
+	io.Copy(ioutil.Discard, resp.Body)
+	resp.Body.Close()
 }
 
 type uaaResponse struct {

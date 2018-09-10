@@ -3,6 +3,8 @@ package registry
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"strconv"
 	"time"
@@ -56,10 +58,18 @@ func (a Agent) registerIndicatorDocument(indicatorsDocument []byte) {
 	body := bytes.NewBuffer(indicatorsDocument)
 
 	resp, err := http.Post(registry, "text/plain", body)
+
 	if err != nil {
 		registrationCount.WithLabelValues("err").Inc()
 		log.Printf("could not make http request: %s\n", err)
 	} else {
+		closeBodyAndReuseConnection(resp)
+
 		registrationCount.WithLabelValues(strconv.Itoa(resp.StatusCode)).Inc()
 	}
+}
+
+func closeBodyAndReuseConnection(resp *http.Response) {
+	io.Copy(ioutil.Discard, resp.Body)
+	resp.Body.Close()
 }
