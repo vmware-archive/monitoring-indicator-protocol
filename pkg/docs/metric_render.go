@@ -1,7 +1,7 @@
 package docs
 
 import (
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 
 	"bytes"
 	"html/template"

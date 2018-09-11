@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"fmt"
 	"io/ioutil"
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
 

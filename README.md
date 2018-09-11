@@ -13,7 +13,7 @@ command-line argument and converts it into HTML documentation:
 
 ```
 go get ./...
-go install code.cloudfoundry.org/cf-indicators/cmd/generate_docs
+go install code.cloudfoundry.org/indicators/cmd/generate_docs
 generate_docs example.yml
 ```
 
@@ -29,7 +29,7 @@ It takes an indicator definition file and configuration for connecting to log-ca
 
 ```
 go get ./...
-go install code.cloudfoundry.org/cf-indicators/cmd/validate
+go install code.cloudfoundry.org/indicators/cmd/validate
 validate --indicators example.yml \
     --deployment cf \
     --uaa-url https://login.my-env.cf-app.com \
@@ -55,7 +55,7 @@ It exposes two HTTP endpoints:
 1. `GET /v1/indicator-documents` This returns the list of all currently registered indicator documents as a json array.
 
 ```
-go install code.cloudfoundry.org/cf-indicators/cmd/registry
+go install code.cloudfoundry.org/indicators/cmd/registry
 registry --port 8080
 
 # POST an indicator document to the registry

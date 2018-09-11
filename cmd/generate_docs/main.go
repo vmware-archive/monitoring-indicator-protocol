@@ -5,8 +5,8 @@ import (
 	"log"
 	"fmt"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
-	"code.cloudfoundry.org/cf-indicators/pkg/docs"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/docs"
 )
 
 func main() {

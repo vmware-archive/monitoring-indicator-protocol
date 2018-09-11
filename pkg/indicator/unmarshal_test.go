@@ -1,7 +1,7 @@
 package indicator_test
 
 import (
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 
 	"testing"
 

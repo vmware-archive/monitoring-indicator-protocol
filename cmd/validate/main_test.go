@@ -13,7 +13,7 @@ import (
 	"os/exec"
 	"time"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/go_test"
+	"code.cloudfoundry.org/indicators/pkg/go_test"
 
 	"github.com/prometheus/common/model"
 )

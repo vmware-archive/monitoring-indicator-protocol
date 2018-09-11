@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 	"sync"
 	"reflect"
 )

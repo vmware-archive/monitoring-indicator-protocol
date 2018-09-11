@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
-	"code.cloudfoundry.org/cf-indicators/pkg/registry"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/registry"
 	"net/http"
 	"time"
 )

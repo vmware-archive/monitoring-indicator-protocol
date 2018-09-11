@@ -5,8 +5,8 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/docs"
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/docs"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
 func TestRenderIndicatorHTML(t *testing.T) {

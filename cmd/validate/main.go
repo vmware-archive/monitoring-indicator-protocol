@@ -12,8 +12,8 @@ import (
 	"os"
 	"strings"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
-	"code.cloudfoundry.org/cf-indicators/pkg/validation"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/validation"
 
 	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
@@ -24,7 +24,7 @@ func main() {
 	stdErr := log.New(os.Stderr, "", 0)
 
 	flagSet := flag.NewFlagSet("validator", flag.ErrorHandling(0))
-	indicatorsFile := flagSet.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/cf-indicators)")
+	indicatorsFile := flagSet.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/indicators)")
 	logCacheURL := flagSet.String("log-cache-url", "", "the log-cache url (e.g. https://log-cache.system.cfapp.com")
 	deployment := flagSet.String("deployment", "", "the source deployment of metrics emitted to loggregator")
 	uaaURL := flagSet.String("uaa-url", "", "UAA server host (e.g. https://uaa.my-pcf.com)")

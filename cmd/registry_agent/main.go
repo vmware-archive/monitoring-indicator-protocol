@@ -10,7 +10,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/registry"
+	"code.cloudfoundry.org/indicators/pkg/registry"
 )
 
 func main() {

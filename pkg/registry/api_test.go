@@ -3,12 +3,12 @@ package registry_test
 import (
 	"testing"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/cf-indicators/pkg/registry"
+	"code.cloudfoundry.org/indicators/pkg/registry"
 	"net/http/httptest"
 	"bytes"
 	"net/http"
 	"io/ioutil"
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
 func TestRegisterHandler(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/registry"
+	"code.cloudfoundry.org/indicators/pkg/registry"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

@@ -4,8 +4,8 @@ import (
 	"testing"
 	. "github.com/onsi/gomega"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/registry"
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/registry"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
 func TestInsertDocument(t *testing.T) {

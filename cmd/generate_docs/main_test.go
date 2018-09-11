@@ -9,7 +9,7 @@ import (
 	"bytes"
 	"os"
 	"os/exec"
-	"code.cloudfoundry.org/cf-indicators/pkg/go_test"
+	"code.cloudfoundry.org/indicators/pkg/go_test"
 )
 
 func TestGenerateDocsBinary(t *testing.T) {

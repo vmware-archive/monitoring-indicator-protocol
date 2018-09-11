@@ -1,4 +1,4 @@
-module code.cloudfoundry.org/cf-indicators
+module code.cloudfoundry.org/indicators
 
 require (
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect

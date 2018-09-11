@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 	"gopkg.in/russross/blackfriday.v2"
 )
 

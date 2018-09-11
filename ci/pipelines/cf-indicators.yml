@@ -6,10 +6,10 @@ resources:
     uri: git@github.com:cloudfoundry-incubator/indicator-protocol-release.git
     branch: master
     private_key: {{event-producer-github-key}}
-- name: cf-indicators
+- name: indicators
   type: git
   source:
-    uri: git@github.com:cloudfoundry-incubator/cf-indicators.git
+    uri: git@github.com:cloudfoundry-incubator/indicators.git
     branch: master
     private_key: {{event-producer-github-key}}
 - name: env-state
@@ -23,7 +23,7 @@ jobs:
 - name: build-and-test
   plan:
   - aggregate:
-    - get: cf-indicators
+    - get: indicators
       trigger: true
   - task: build-and-test
     config:
@@ -34,7 +34,7 @@ jobs:
           repository: pcfmetrics/indicators-build-and-test
           tag: go-1.11
       inputs:
-      - name: cf-indicators
+      - name: indicators
       run:
         path: bash
         args:
@@ -44,14 +44,14 @@ jobs:
 
             set -exu
 
-            pushd cf-indicators
+            pushd indicators
               scripts/test.sh
             popd
 
 - name: bump-release-submodule
   plan:
   - aggregate:
-    - get: cf-indicators
+    - get: indicators
       passed: [build-and-test]
       trigger: true
     - get: indicator-protocol-release
@@ -63,7 +63,7 @@ jobs:
         source:
           repository: eventalertsdocker/pcf-event-alerts-unit
       inputs:
-      - name: cf-indicators
+      - name: indicators
       - name: indicator-protocol-release
       outputs:
       - name: indicator-protocol-release-updated
@@ -76,14 +76,14 @@ jobs:
 
           set -exu
 
-          pushd cf-indicators
+          pushd indicators
             REPO_PATH=$PWD
             SOURCE_SHA=`git rev-parse HEAD`
             COMMIT_MSG=`git rev-list --format=%B --max-count=1 $SOURCE_SHA`
           popd
 
           # Bumping submodule
-          pushd indicator-protocol-release/src/code.cloudfoundry.org/cf-indicators
+          pushd indicator-protocol-release/src/code.cloudfoundry.org/indicators
             git remote add local $REPO_PATH
             git fetch local
             git checkout $SOURCE_SHA
@@ -93,15 +93,15 @@ jobs:
             export GOPATH=$PWD
             export PATH=$PATH:$GOPATH/bin
 
-            git add src/code.cloudfoundry.org/cf-indicators
+            git add src/code.cloudfoundry.org/indicators
 
             if [[ -z $(git status -s) ]]; then
-              echo "No changes to cf-indicators submodule"
+              echo "No changes to indicators submodule"
               rsync -a . ../indicator-protocol-release-updated
               exit 0
             fi
 
-            git commit -m "Updated cf-indicators submodule version to:\
+            git commit -m "Updated indicators submodule version to:\
 
             `echo "$COMMIT_MSG" | awk '{ print "\t"$0 }'`"
           popd
@@ -175,7 +175,7 @@ jobs:
 - name: generate-test-docs
   plan:
   - aggregate:
-    - get: cf-indicators
+    - get: indicators
       trigger: true
   - task: generate-docs
     config:
@@ -186,7 +186,7 @@ jobs:
           repository: pcfmetrics/indicators-build-and-test
           tag: go-1.11
       inputs:
-      - name: cf-indicators
+      - name: indicators
       run:
         path: bash
         args:
@@ -198,6 +198,6 @@ jobs:
 
             export GO111MODULE=on
 
-            pushd cf-indicators
+            pushd indicators
               go run -mod=vendor cmd/generate_docs/main.go example.yml
             popd

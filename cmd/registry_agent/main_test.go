@@ -1,13 +1,13 @@
 package main_test
 
 import (
-	"code.cloudfoundry.org/cf-indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"io/ioutil"
 	"testing"
 
-	"code.cloudfoundry.org/cf-indicators/pkg/go_test"
+	"code.cloudfoundry.org/indicators/pkg/go_test"
 	"github.com/onsi/gomega/ghttp"
 	"net/http"
 	"os"

@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"os"
 	"net/http"
-	"code.cloudfoundry.org/cf-indicators/pkg/go_test"
+	"code.cloudfoundry.org/indicators/pkg/go_test"
 	"io/ioutil"
 	"github.com/onsi/gomega/ghttp"
 	"net/url"
