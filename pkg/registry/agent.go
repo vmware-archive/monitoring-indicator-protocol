@@ -72,10 +72,25 @@ func (a Agent) registerIndicatorDocument(indicatorsDocument document) {
 		registrationCount.WithLabelValues("err").Inc()
 		log.Printf("could not make http request: %s\n", err)
 	} else {
-		closeBodyAndReuseConnection(resp)
-
 		registrationCount.WithLabelValues(strconv.Itoa(resp.StatusCode)).Inc()
+		if resp.StatusCode != http.StatusOK {
+			logErrorResponse(resp)
+			return
+		}
+
+		closeBodyAndReuseConnection(resp)
 	}
+}
+
+func logErrorResponse(resp *http.Response) {
+	body, err := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		log.Printf("could not read response body on status %s: %s\n", resp.Status, err)
+		return
+	}
+
+	log.Printf("received error response from registry: %s\n", string(body))
 }
 
 func closeBodyAndReuseConnection(resp *http.Response) {
