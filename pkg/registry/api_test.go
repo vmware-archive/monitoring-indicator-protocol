@@ -1,14 +1,17 @@
 package registry_test
 
 import (
-	"testing"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/indicators/pkg/registry"
 	"net/http/httptest"
+	"testing"
+
 	"bytes"
-	"net/http"
 	"io/ioutil"
+	"net/http"
+	"time"
+
 	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/registry"
 )
 
 func TestRegisterHandler(t *testing.T) {
@@ -46,7 +49,7 @@ indicators:
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore()
+		docStore := registry.NewDocumentStore(1 * time.Minute)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -55,7 +58,7 @@ indicators:
 		g.Expect(docStore.All()).To(HaveLen(1))
 		g.Expect(docStore.All()[0].Labels).To(Equal(map[string]string{
 			"deployment": "redis-abc",
-			"product": "redis-tile",
+			"product":    "redis-tile",
 		}))
 		g.Expect(docStore.All()[0].Indicators[0].Name).To(Equal("test_performance_indicator"))
 	})
@@ -71,7 +74,7 @@ metrics: []`))
 		req := httptest.NewRequest("POST", "/register", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore()
+		docStore := registry.NewDocumentStore(1 * time.Minute)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -101,7 +104,7 @@ metrics:
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore()
+		docStore := registry.NewDocumentStore(1 * time.Minute)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -131,7 +134,7 @@ metrics: aasdfasdf
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc&product=redis-tile", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore()
+		docStore := registry.NewDocumentStore(1 * time.Minute)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -148,14 +151,14 @@ metrics: aasdfasdf
 
 func TestIndicatorDocumentsHandler(t *testing.T) {
 	t.Run("it returns 200", func(t *testing.T) {
-		g:= NewGomegaWithT(t)
+		g := NewGomegaWithT(t)
 
 		req := httptest.NewRequest("POST", "/indicator-documents", nil)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore()
-		docStore.Upsert(map[string]string{"test-label":"test-value"}, []indicator.Indicator{{
-			Name:        "test indicator",
+		docStore := registry.NewDocumentStore(1 * time.Minute)
+		docStore.Upsert(map[string]string{"test-label": "test-value"}, []indicator.Indicator{{
+			Name: "test indicator",
 		}})
 
 		handle := registry.NewIndicatorDocumentsHandler(docStore)

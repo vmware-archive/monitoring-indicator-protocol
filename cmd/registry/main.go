@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"fmt"
 	"strconv"
+	"time"
 
 	"code.cloudfoundry.org/indicators/pkg/registry"
 	"github.com/gorilla/mux"
@@ -27,7 +28,7 @@ func main() {
 	port := flag.Int("port", -1, "Port to expose registration endpoints")
 	flag.Parse()
 
-	documentStore := registry.NewDocumentStore()
+	documentStore := registry.NewDocumentStore(120 * time.Minute)
 
 	r := mux.NewRouter()
 

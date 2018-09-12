@@ -2,12 +2,12 @@ package registry
 
 import (
 	"encoding/json"
-	"net/http"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+
 	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
-
 
 func NewRegisterHandler(d *DocumentStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
