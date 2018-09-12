@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"net/http"
 	"fmt"
+	"log"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"log"
 )
 
 var httpRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -26,9 +26,10 @@ func init() {
 
 func main() {
 	port := flag.Int("port", -1, "Port to expose registration endpoints")
+	expiration := flag.Duration("indicator-expiration", 120*time.Minute, "Document expiration duration")
 	flag.Parse()
 
-	documentStore := registry.NewDocumentStore(120 * time.Minute)
+	documentStore := registry.NewDocumentStore(*expiration)
 
 	r := mux.NewRouter()
 
