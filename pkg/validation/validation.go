@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	
+
 	"github.com/prometheus/common/model"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
@@ -27,7 +27,7 @@ func FormatQuery(m indicator.Metric, deployment string) string {
 	name = strings.Replace(name, `-`, "_", -1)
 	name = strings.Replace(name, `\`, "_", -1)
 	name = strings.Replace(name, `/`, "_", -1)
-	return fmt.Sprintf(`%s{source_id="%s",deployment="%s"}[10m]`, name, m.SourceID, deployment)
+	return fmt.Sprintf(`%s{source_id="%s",deployment="%s"}[1m]`, name, m.SourceID, deployment)
 }
 
 type promQLClient interface {
