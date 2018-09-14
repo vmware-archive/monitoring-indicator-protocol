@@ -30,6 +30,7 @@ func main() {
 	uaaURL := flagSet.String("uaa-url", "", "UAA server host (e.g. https://uaa.my-pcf.com)")
 	uaaClient := flagSet.String("log-cache-client", "", "the UAA client which has access to log-cache (doppler.firehose or logs.admin scope")
 	uaaClientSecret := flagSet.String("log-cache-client-secret", "", "the client secret")
+	lookback := flagSet.String("lookback", "1m", "the promQL query time period")
 	insecure := flagSet.Bool("k", false, "skips ssl verification (insecure)")
 
 	flagSet.Parse(os.Args[1:])
@@ -53,7 +54,7 @@ func main() {
 	for _, m := range document.Metrics {
 		stdOut.Println()
 
-		query := validation.FormatQuery(m, *deployment)
+		query := validation.FormatQuery(m, *deployment, *lookback)
 
 		stdOut.Printf("Querying log-cache for metric with name \"%s\" and source_id \"%s\"", m.Name, m.SourceID)
 		stdOut.Printf("  query: %s", query)

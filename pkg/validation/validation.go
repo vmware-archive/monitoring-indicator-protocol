@@ -21,13 +21,13 @@ type ResultSeries struct {
 	Points []string
 }
 
-func FormatQuery(m indicator.Metric, deployment string) string {
+func FormatQuery(m indicator.Metric, deployment, lookback string) string {
 	name := m.Name
 	name = strings.Replace(name, `.`, "_", -1)
 	name = strings.Replace(name, `-`, "_", -1)
 	name = strings.Replace(name, `\`, "_", -1)
 	name = strings.Replace(name, `/`, "_", -1)
-	return fmt.Sprintf(`%s{source_id="%s",deployment="%s"}[1m]`, name, m.SourceID, deployment)
+	return fmt.Sprintf(`%s{source_id="%s",deployment="%s"}[%s]`, name, m.SourceID, deployment, lookback)
 }
 
 type promQLClient interface {
