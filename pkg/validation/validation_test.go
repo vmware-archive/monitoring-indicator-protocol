@@ -34,7 +34,7 @@ func TestVerifyMetric(t *testing.T) {
 			Description: "A test metric",
 		}
 
-		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[10m]`, client)
+		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, client)
 
 		g.Expect(err).ToNot(HaveOccurred())
 	})
@@ -57,7 +57,7 @@ func TestVerifyMetric(t *testing.T) {
 			Description: "A test metric",
 		}
 
-		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[10m]`, client)
+		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, client)
 
 		g.Expect(err).To(HaveOccurred())
 	})
@@ -71,15 +71,15 @@ func TestFormatQuery(t *testing.T) {
 	}{
 		{
 			input:       indicator.Metric{SourceID: "router", Name: "uaa.latency"},
-			expectation: `uaa_latency{source_id="router",deployment="cf"}[10m]`,
+			expectation: `uaa_latency{source_id="router",deployment="cf"}[1m]`,
 		},
 		{
 			input:       indicator.Metric{SourceID: "router", Name: `uaa/latency\a`},
-			expectation: `uaa_latency_a{source_id="router",deployment="cf"}[10m]`,
+			expectation: `uaa_latency_a{source_id="router",deployment="cf"}[1m]`,
 		},
 		{
 			input:       indicator.Metric{SourceID: "router", Name: "uaa-latency"},
-			expectation: `uaa_latency{source_id="router",deployment="cf"}[10m]`,
+			expectation: `uaa_latency{source_id="router",deployment="cf"}[1m]`,
 		},
 	}
 

@@ -24,7 +24,7 @@ func TestValidateIndicators(t *testing.T) {
 	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
-	t.Run("returns 0 when all metrics are found over 10m", func(t *testing.T) {
+	t.Run("returns 0 when all metrics are found over 1m", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		logCacheServer := ghttp.NewServer()
@@ -35,7 +35,7 @@ func TestValidateIndicators(t *testing.T) {
 				req.ParseForm()
 
 				q := req.Form.Get("query")
-				if q != `latency{source_id="demo_component",deployment="cf"}[10m]` {
+				if q != `latency{source_id="demo_component",deployment="cf"}[1m]` {
 					w.WriteHeader(422)
 					return
 				}
@@ -47,7 +47,7 @@ func TestValidateIndicators(t *testing.T) {
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
-				if q != `saturation{source_id="demo_component",deployment="cf"}[10m]` {
+				if q != `saturation{source_id="demo_component",deployment="cf"}[1m]` {
 					w.WriteHeader(422)
 					return
 				}
@@ -83,7 +83,7 @@ func TestValidateIndicators(t *testing.T) {
 		g.Eventually(session).Should(gexec.Exit(0))
 	})
 
-	t.Run("returns 1 when not all metrics are found over 10m", func(t *testing.T) {
+	t.Run("returns 1 when not all metrics are found over 1m", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		logCacheServer := ghttp.NewServer()
@@ -94,7 +94,7 @@ func TestValidateIndicators(t *testing.T) {
 				req.ParseForm()
 
 				q := req.Form.Get("query")
-				if q != `latency{source_id="demo_component",deployment="cf"}[10m]` {
+				if q != `latency{source_id="demo_component",deployment="cf"}[1m]` {
 					w.WriteHeader(422)
 					return
 				}
@@ -106,7 +106,7 @@ func TestValidateIndicators(t *testing.T) {
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
-				if q != `saturation{source_id="demo_component",deployment="cf"}[10m]` {
+				if q != `saturation{source_id="demo_component",deployment="cf"}[1m]` {
 					w.WriteHeader(422)
 					return
 				}
