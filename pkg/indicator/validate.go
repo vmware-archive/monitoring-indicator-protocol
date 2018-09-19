@@ -8,6 +8,14 @@ import (
 func Validate(document Document) []error {
 	es := make([]error, 0)
 
+	if document.APIVersion == "" {
+		es = append(es, fmt.Errorf("apiVersion is required"))
+	}
+
+	if document.APIVersion != "v0" {
+		es = append(es, fmt.Errorf("only apiVersion v0 is supported"))
+	}
+
 	if _, ok := document.Labels["product"]; !ok {
 		es = append(es, fmt.Errorf("document labels.product is required"))
 	}

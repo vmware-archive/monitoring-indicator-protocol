@@ -14,7 +14,8 @@ func TestValidDocument(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			Labels: map[string]string{"product":"valid"},
+			APIVersion: "v0",
+			Labels:     map[string]string{"product": "valid"},
 			Metrics: []indicator.Metric{{
 				Title:       "Demo Latency",
 				Origin:      "demo",
@@ -67,11 +68,12 @@ func TestValidDocument(t *testing.T) {
 }
 
 func TestProductLabel(t *testing.T) {
-	t.Run("validation returns errors if any metric field is blank", func(t *testing.T) {
+	t.Run("validation returns errors if product label is blank", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			Labels: map[string]string{},
+			APIVersion: "v0",
+			Labels:     map[string]string{},
 		}
 
 		es := indicator.Validate(document)
@@ -82,13 +84,46 @@ func TestProductLabel(t *testing.T) {
 	})
 }
 
+func TestAPIVersion(t *testing.T) {
+	t.Run("validation returns errors if APIVersion is absent", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			Labels: map[string]string{"product": "valid"},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("apiVersion is required"),
+			errors.New("only apiVersion v0 is supported"),
+		))
+	})
+
+	t.Run("validation returns errors if APIVersion is not v0", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			APIVersion: "fake-version",
+			Labels:     map[string]string{"product": "valid"},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("only apiVersion v0 is supported"),
+		))
+	})
+}
+
 func TestMetricValidation(t *testing.T) {
 
 	t.Run("validation returns errors if any metric field is blank", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			Labels: map[string]string{"product":"valid"},
+			APIVersion: "v0",
+			Labels:     map[string]string{"product": "valid"},
 			Metrics: []indicator.Metric{
 				{
 					Title:       " ",
@@ -122,7 +157,8 @@ func TestIndicatorValidation(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			Labels: map[string]string{"product":"valid"},
+			APIVersion: "v0",
+			Labels:     map[string]string{"product": "valid"},
 			Indicators: []indicator.Indicator{
 				{
 					Name:        " ",

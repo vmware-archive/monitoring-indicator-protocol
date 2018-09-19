@@ -1,4 +1,6 @@
 ---
+apiVersion: v0
+
 labels:
   product: my-product
 

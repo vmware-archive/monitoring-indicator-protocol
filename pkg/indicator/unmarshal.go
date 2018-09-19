@@ -88,6 +88,7 @@ func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
 	}
 
 	return Document{
+		APIVersion:    d.APIVersion,
 		Labels:        d.Labels,
 		Indicators:    indicators,
 		Metrics:       d.Metrics,
@@ -96,6 +97,7 @@ func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
 }
 
 type yamlDocument struct {
+	APIVersion string            `yaml:"apiVersion"`
 	Labels     map[string]string `yaml:"labels"`
 	Metrics    []Metric          `yaml:"metrics"`
 	Indicators []yamlIndicator   `yaml:"indicators"`

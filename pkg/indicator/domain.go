@@ -31,6 +31,7 @@ func (e OperatorType) String() string {
 }
 
 type Document struct {
+	APIVersion    string
 	Labels        map[string]string
 	Metrics       []Metric
 	Indicators    []Indicator

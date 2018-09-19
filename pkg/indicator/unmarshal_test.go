@@ -11,6 +11,7 @@ import (
 func TestReturnsCompleteDocument(t *testing.T) {
 	g := NewGomegaWithT(t)
 	d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
 labels:
   product: well-performing-component
 metrics:
@@ -52,6 +53,7 @@ documentation:
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(d).To(Equal(indicator.Document{
+		APIVersion: "v0",
 		Labels: map[string]string{"product":"well-performing-component"},
 		Metrics: []indicator.Metric{
 			{

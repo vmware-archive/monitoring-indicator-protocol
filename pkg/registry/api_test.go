@@ -19,6 +19,8 @@ func TestRegisterHandler(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		body := bytes.NewBuffer([]byte(`---
+apiVersion: v0
+
 labels:
   product: redis-tile
 
@@ -67,6 +69,8 @@ indicators:
 		g := NewGomegaWithT(t)
 
 		body := bytes.NewBuffer([]byte(`---
+apiVersion: v0
+
 labels:
   product: abc-123
 metrics: []`))
@@ -92,6 +96,7 @@ metrics: []`))
 		g := NewGomegaWithT(t)
 
 		body := bytes.NewBuffer([]byte(`---
+apiVersion: v0
 metrics:
 - name: latency
   source_id: demo
