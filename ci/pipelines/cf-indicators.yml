@@ -120,7 +120,7 @@ jobs:
     - get: indicator-protocol-release
       passed: [bump-release-submodule]
       trigger: true
-  - task: bump-submodule
+  - task: deploy
     config:
       params:
         BBL_STATE_DIR: acceptance-bosh/claimed/sunstorm
