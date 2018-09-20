@@ -199,5 +199,5 @@ jobs:
             export GO111MODULE=on
 
             pushd indicators
-              go run -mod=vendor cmd/generate_docs/main.go example.yml
+              go run -mod=vendor cmd/docs/main.go example.yml
             popd
