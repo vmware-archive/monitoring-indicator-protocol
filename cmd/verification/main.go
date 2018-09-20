@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"code.cloudfoundry.org/indicators/pkg/validation"
+	"code.cloudfoundry.org/indicators/pkg/verification"
 
 	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
@@ -54,12 +54,12 @@ func main() {
 	for _, m := range document.Metrics {
 		stdOut.Println()
 
-		query := validation.FormatQuery(m, *deployment, *lookback)
+		query := verification.FormatQuery(m, *deployment, *lookback)
 
 		stdOut.Printf("Querying log-cache for metric with name \"%s\" and source_id \"%s\"", m.Name, m.SourceID)
 		stdOut.Printf("  query: %s", query)
 
-		result, err := validation.VerifyMetric(m, query, prometheusClient)
+		result, err := verification.VerifyMetric(m, query, prometheusClient)
 		if err != nil {
 			stdErr.Println("  " + err.Error())
 			failedMetrics = append(failedMetrics, m)

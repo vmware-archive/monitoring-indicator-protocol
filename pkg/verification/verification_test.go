@@ -1,4 +1,4 @@
-package validation_test
+package verification_test
 
 import (
 	. "github.com/onsi/gomega"
@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/common/model"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"code.cloudfoundry.org/indicators/pkg/validation"
+	"code.cloudfoundry.org/indicators/pkg/verification"
 )
 
 func TestVerifyMetric(t *testing.T) {
@@ -34,7 +34,7 @@ func TestVerifyMetric(t *testing.T) {
 			Description: "A test metric",
 		}
 
-		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, client)
+		_, err := verification.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, client)
 
 		g.Expect(err).ToNot(HaveOccurred())
 	})
@@ -57,7 +57,7 @@ func TestVerifyMetric(t *testing.T) {
 			Description: "A test metric",
 		}
 
-		_, err := validation.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, client)
+		_, err := verification.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, client)
 
 		g.Expect(err).To(HaveOccurred())
 	})
@@ -95,7 +95,7 @@ func TestFormatQuery(t *testing.T) {
 		t.Run(cc.metric.Name, func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
-			g.Expect(validation.FormatQuery(cc.metric, cc.deployment, cc.interval)).To(Equal(cc.expectation))
+			g.Expect(verification.FormatQuery(cc.metric, cc.deployment, cc.interval)).To(Equal(cc.expectation))
 		})
 	}
 }
