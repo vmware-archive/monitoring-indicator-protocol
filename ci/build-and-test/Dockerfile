@@ -16,7 +16,11 @@ RUN chmod +x credhub
 RUN wget -O bosh "https://github.com/cloudfoundry/bosh-cli/releases/download/v5.2.2/bosh-cli-5.2.2-linux-amd64"
 RUN chmod +x bosh
 
+RUN wget -O jq "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64"
+RUN chmod +x jq
+
 RUN cp cf /bin/cf
 RUN cp bbl /bin/bbl
 RUN cp credhub /bin/credhub
 RUN cp bosh /bin/bosh
+RUN cp jq /bin/jq

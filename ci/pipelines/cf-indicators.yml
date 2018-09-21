@@ -18,6 +18,32 @@ resources:
     branch: master
     uri: git@github.com:pivotal-cf/denver-locks.git
     private_key: {{event-producer-github-key}}
+- name: release-version
+  type: semver
+  source:
+    initial_version: 0.0.1
+    driver: s3
+    bucket: indicator-protocol-release-version
+    region_name: us-east-2
+    key: version
+    access_key_id: {{aws-access-key-id}}
+    secret_access_key: {{aws-secret-access-key}}
+- name: github-release-drafts
+  type: github-release
+  source:
+    user: cloudfoundry-incubator
+    repository: indicators
+    access_token: {{event-producer-github-token}}
+    drafts: true
+- name: indicator-protocol-final-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/indicator-protocol-release.git
+    branch: master
+    private_key: {{event-producer-github-key}}
+    ignore_paths:
+    - .final_builds
+    - releases
 
 jobs:
 - name: build-and-test
@@ -48,6 +74,104 @@ jobs:
               scripts/test.sh
             popd
 
+- name: indicator-docs
+  plan:
+  - aggregate:
+    - get: indicators
+      passed: [build-and-test]
+      trigger: true
+  - task: generate-docs
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfmetrics/indicators-build-and-test
+          tag: go-1.11
+      inputs:
+      - name: indicators
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+
+          set -exu
+
+          export GO111MODULE=on
+
+          pushd indicators/
+            go run -mod=vendor cmd/docs/main.go example.yml
+          popd
+
+- name: indicator-verification
+  plan:
+  - aggregate:
+    - get: indicators
+      passed: [build-and-test]
+      trigger: true
+    - get: env-state
+  - task: verify-metric
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfmetrics/indicators-build-and-test
+          tag: go-1.11
+      inputs:
+      - name: indicators
+      - name: env-state
+      params:
+        ENVIRONMENT: sunstorm
+        BBL_STATE_DIR: acceptance-bosh/claimed/sunstorm
+        DEPLOYMENT_NAME: cf
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+
+          set -exu
+
+          set +x
+          pushd "env-state/${BBL_STATE_DIR}"
+            eval "$(bbl print-env)"
+          popd
+          set -x
+
+          export GO111MODULE=on
+
+          pushd indicators/
+
+            cat << EOF > indicators.yml
+          ---
+          apiVersion: v0
+          labels:
+            product: uaa-test
+          indicators: []
+          metrics:
+          - name: requests.global.status_2xx.count
+            source_id: uaa
+            origin: uaa
+            title: http 200 total count
+            type: counter
+            frequency: 30s
+            description: A metric that shows how many requests were successful
+          EOF
+
+            go run -mod=vendor cmd/verification/main.go -indicators=indicators.yml \
+                                                        -deployment=${DEPLOYMENT_NAME} \
+                                                        -uaa-url=https://login.${ENVIRONMENT}.cf-denver.com \
+                                                        -log-cache-client=firehose_exporter \
+                                                        -log-cache-client-secret=$(credhub g -n /bosh-${ENVIRONMENT}/cf/uaa_clients_firehose_exporter_secret -j | jq -r .value) \
+                                                        -log-cache-url=https://log-cache.${ENVIRONMENT}.cf-denver.com \
+                                                        -lookback=4m -k
+
+          popd
+
 - name: bump-release-submodule
   plan:
   - aggregate:
@@ -61,7 +185,8 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: eventalertsdocker/pcf-event-alerts-unit
+          repository: pcfmetrics/indicators-build-and-test
+          tag: go-1.11
       inputs:
       - name: indicators
       - name: indicator-protocol-release
@@ -101,6 +226,8 @@ jobs:
               exit 0
             fi
 
+            git config --global user.email "cf-event-producer@pivotal.io"
+            git config --global user.name "event-producer-cibot"
             git commit -m "Updated indicators submodule version to:\
 
             `echo "$COMMIT_MSG" | awk '{ print "\t"$0 }'`"
@@ -118,7 +245,6 @@ jobs:
   - aggregate:
     - get: env-state
     - get: indicator-protocol-release
-      passed: [bump-release-submodule]
       trigger: true
   - task: deploy
     config:
@@ -172,12 +298,76 @@ jobs:
           bosh -n -d indicator-registry deploy \
             indicator-protocol-release/manifests/manifest.yml
 
-- name: generate-test-docs
+- name: publish-release
   plan:
   - aggregate:
+    - get: indicator-protocol-release
+      passed: [deploy-indicator-registry]
     - get: indicators
-      trigger: true
-  - task: generate-docs
+      passed: [indicator-verification,indicator-docs]
+      trigger: false
+    - get: release-version
+  - task: create-final-release
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfmetrics/indicators-build-and-test
+          tag: go-1.11
+      inputs:
+      - name: release-version
+      - name: indicator-protocol-release
+      outputs:
+      - name: final-release
+      - name: github-release
+      params:
+        RELEASE: indicator-protocol-release
+        RELEASE_NAME: indicator-protocol
+        S3_BUCKET: cf-indicators-bosh-blubs
+        S3_ACCESS_KEY: {{aws-access-key-id}}
+        S3_SECRET_KEY: {{aws-secret-access-key}}
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+          set -ex
+
+          BUILD_NUMBER=$(cat release-version/number)
+          tag_name="v$BUILD_NUMBER"
+
+          # write out github release files
+          echo "${RELEASE_NAME} ${tag_name}" > github-release/name
+          echo $tag_name > github-release/tag
+          echo "TBD" > github-release/body
+
+          pushd $RELEASE
+            cat << EOF > config/private.yml
+          ---
+          blobstore:
+            provider: s3
+            options:
+              bucket_name: ${S3_BUCKET}
+              access_key_id: ${S3_ACCESS_KEY}
+              secret_access_key: ${S3_SECRET_KEY}
+          EOF
+
+            bosh -n create-release --sha2 --final \
+              --tarball ../github-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz \
+              --version "$BUILD_NUMBER"
+            git add .
+
+            git config --global user.email "cf-event-producer@pivotal.io"
+            git config --global user.name "event-producer-cibot"
+            git commit -m "Create final release\
+
+            [ci skip]"
+          popd
+
+          cp -r "${RELEASE}/." "final-release/"
+  - task: publish-github-release
     config:
       platform: linux
       image_resource:
@@ -187,17 +377,51 @@ jobs:
           tag: go-1.11
       inputs:
       - name: indicators
+      - name: release-version
+      - name: github-release
+      outputs:
+      - name: github-release
+        path: github-release-output
       run:
         path: bash
         args:
-          - -c
-          - |
-            #!/usr/bin/env bash
+        - -c
+        - |
+          #!/usr/bin/env bash
+          set -ex
 
-            set -exu
+          cp github-release/* github-release-output/
 
-            export GO111MODULE=on
+          BUILD_NUMBER=$(cat release-version/number)
 
-            pushd indicators
-              go run -mod=vendor cmd/docs/main.go example.yml
-            popd
+          pushd indicators
+            echo "Building darwin cli-plugin binary"
+            GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-docs-macosx64-${BUILD_NUMBER} cmd/docs/main.go
+            GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-verification-macosx64-${BUILD_NUMBER} cmd/verification/main.go
+
+            echo "Building amd64 linux cli-plugin binary"
+            GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-docs-linux64-${BUILD_NUMBER} cmd/docs/main.go
+            GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-verification-linux64-${BUILD_NUMBER} cmd/verification/main.go
+          popd
+  - put: indicators
+    params:
+      repository: indicators
+      rebase: true
+      tag: release-version/version
+      tag_prefix: v
+  - put: github-release-drafts
+    params:
+      name: github-release/name
+      tag: github-release/tag
+      body: github-release/body
+      globs:
+      - github-release/indicator-*
+  - put: release-version
+    params:
+      file: release-version/version
+  - put: indicator-protocol-final-release
+    params:
+      repository: final-release
+      rebase: true
+      tag: release-version/version
+      tag_prefix: v
