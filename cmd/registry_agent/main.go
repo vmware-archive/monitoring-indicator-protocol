@@ -1,6 +1,7 @@
 package main
 
 import (
+	"code.cloudfoundry.org/indicators/pkg/mtls"
 	"flag"
 	"fmt"
 	"log"
@@ -18,15 +19,25 @@ func main() {
 	deploymentName := flag.String("deployment", "", "The name of the deployment")
 	intervalTime := flag.Duration("interval", 5*time.Minute, "The send interval")
 	documentsGlob := flag.String("documents-glob", "/var/vcap/jobs/*/indicators.yml", "Glob path of indicator files")
+
+	clientPEM := flag.String("tls-pem-path", "", "Server TLS public cert pem path")
+	clientKey := flag.String("tls-key-path", "", "Server TLS private key path")
+	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs.")
 	flag.Parse()
 
 	startMetricsEndpoint()
 
+	client, err := mtls.NewClient(*clientPEM, *clientKey, *rootCACert)
+	if err != nil {
+		log.Fatalf("failed to create mtls http client, %s", err)
+	}
+
 	agent := registry.Agent{
-		DocumentFinder:  registry.DocumentFinder{Glob: *documentsGlob},
+		DocumentFinder: registry.DocumentFinder{Glob: *documentsGlob},
 		RegistryURI:    *registryURI,
 		DeploymentName: *deploymentName,
 		IntervalTime:   *intervalTime,
+		Client:         client,
 	}
 	agent.Start()
 }

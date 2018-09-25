@@ -40,6 +40,7 @@ func TestRegistryAgent(t *testing.T) {
 			RegistryURI:    registryServer.URL(),
 			DeploymentName: "abc-123",
 			IntervalTime:   50 * time.Millisecond,
+			Client:         &http.Client{},
 		}
 
 		go agent.Start()

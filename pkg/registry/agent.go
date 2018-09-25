@@ -22,6 +22,7 @@ type Agent struct {
 	DeploymentName string
 	IntervalTime   time.Duration
 	DocumentFinder DocumentFinder
+	Client         *http.Client
 }
 
 var registrationCount = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -66,7 +67,7 @@ func (a Agent) registerIndicatorDocument(indicatorsDocument document) {
 
 	body := bytes.NewBuffer(indicatorsDocument)
 
-	resp, err := http.Post(registry, "text/plain", body)
+	resp, err := a.Client.Post(registry, "text/plain", body)
 
 	if err != nil {
 		registrationCount.WithLabelValues("err").Inc()

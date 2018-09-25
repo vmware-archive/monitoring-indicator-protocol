@@ -1,11 +1,9 @@
 package main
 
 import (
-	"crypto/tls"
-	"crypto/x509"
+	"code.cloudfoundry.org/indicators/pkg/mtls"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -31,38 +29,22 @@ func main() {
 	port := flag.Int("port", -1, "Port to expose registration endpoints")
 	serverPEM := flag.String("tls-pem-path", "", "Server TLS public cert pem path")
 	serverKey := flag.String("tls-key-path", "", "Server TLS private key path")
-	rootCACert := flag.String("tls-root-ca-pem", "",  "Root CA Pem for self-signed certs.")
+	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs.")
 	expiration := flag.Duration("indicator-expiration", 120*time.Minute, "Document expiration duration")
 	flag.Parse()
 
 	address := fmt.Sprintf(":%d", *port)
 
-	server, err := newServer(address, *rootCACert, newRouter(*expiration))
+	start, stop, err := mtls.NewServer(address, *serverPEM, *serverKey, *rootCACert, newRouter(*expiration))
+	defer stop()
 	if err != nil {
 		log.Fatalf("failed to create server: %s\n", err)
 	}
 
-	server.ListenAndServeTLS(*serverPEM, *serverKey)
-}
-
-func newServer(address, rootCACert string, router *mux.Router) (*http.Server, error) {
-	caCert, err := ioutil.ReadFile(rootCACert)
+	err = start()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read root CA certificate: %s\n", err)
+		log.Fatalf("failed to create server: %s\n", err)
 	}
-
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
-	server := &http.Server{
-		Addr:    address,
-		Handler: router,
-		TLSConfig: &tls.Config{
-			ClientCAs:                caCertPool,
-			ClientAuth:               tls.RequireAndVerifyClientCert,
-			PreferServerCipherSuites: true,
-		},
-	}
-	return server, nil
 }
 
 func newRouter(indicatorExpiration time.Duration) *mux.Router {
