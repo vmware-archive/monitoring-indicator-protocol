@@ -1,8 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -26,20 +29,51 @@ func init() {
 
 func main() {
 	port := flag.Int("port", -1, "Port to expose registration endpoints")
+	serverPEM := flag.String("tls-pem-path", "", "Server TLS public cert pem path")
+	serverKey := flag.String("tls-key-path", "", "Server TLS private key path")
+	rootCACert := flag.String("tls-root-ca-pem", "",  "Root CA Pem for self-signed certs.")
 	expiration := flag.Duration("indicator-expiration", 120*time.Minute, "Document expiration duration")
 	flag.Parse()
 
-	documentStore := registry.NewDocumentStore(*expiration)
+	address := fmt.Sprintf(":%d", *port)
+
+	server, err := newServer(address, *rootCACert, newRouter(*expiration))
+	if err != nil {
+		log.Fatalf("failed to create server: %s\n", err)
+	}
+
+	server.ListenAndServeTLS(*serverPEM, *serverKey)
+}
+
+func newServer(address, rootCACert string, router *mux.Router) (*http.Server, error) {
+	caCert, err := ioutil.ReadFile(rootCACert)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read root CA certificate: %s\n", err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+	server := &http.Server{
+		Addr:    address,
+		Handler: router,
+		TLSConfig: &tls.Config{
+			ClientCAs:                caCertPool,
+			ClientAuth:               tls.RequireAndVerifyClientCert,
+			PreferServerCipherSuites: true,
+		},
+	}
+	return server, nil
+}
+
+func newRouter(indicatorExpiration time.Duration) *mux.Router {
+	documentStore := registry.NewDocumentStore(indicatorExpiration)
 
 	r := mux.NewRouter()
-
-	r.Handle("/metrics", MetricTrack(httpRequests, promhttp.Handler()))
+	r.Handle("/metrics", instrumentEndpoint(httpRequests, promhttp.Handler()))
 	r.NotFoundHandler = notFound(httpRequests)
-
-	r.HandleFunc("/v1/register", MetricTrack(httpRequests, registry.NewRegisterHandler(documentStore))).Methods(http.MethodPost)
-	r.HandleFunc("/v1/indicator-documents", MetricTrack(httpRequests, registry.NewIndicatorDocumentsHandler(documentStore))).Methods(http.MethodGet)
-
-	http.ListenAndServe(fmt.Sprintf(":%d", *port), r)
+	r.HandleFunc("/v1/register", instrumentEndpoint(httpRequests, registry.NewRegisterHandler(documentStore))).Methods(http.MethodPost)
+	r.HandleFunc("/v1/indicator-documents", instrumentEndpoint(httpRequests, registry.NewIndicatorDocumentsHandler(documentStore))).Methods(http.MethodGet)
+	return r
 }
 
 func notFound(counter *prometheus.CounterVec) http.HandlerFunc {
@@ -62,7 +96,7 @@ func (sr *statusRecorder) WriteHeader(statusCode int) {
 	sr.ResponseWriter.WriteHeader(statusCode)
 }
 
-func MetricTrack(counter *prometheus.CounterVec, h http.Handler) http.HandlerFunc {
+func instrumentEndpoint(counter *prometheus.CounterVec, h http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		rec := statusRecorder{ResponseWriter: w, status: 200}
 
