@@ -58,7 +58,6 @@ jobs:
         type: docker-image
         source:
           repository: pcfmetrics/indicators-build-and-test
-          tag: go-1.11
       inputs:
       - name: indicators
       run:
@@ -87,7 +86,6 @@ jobs:
         type: docker-image
         source:
           repository: pcfmetrics/indicators-build-and-test
-          tag: go-1.11
       inputs:
       - name: indicators
       run:
@@ -119,7 +117,6 @@ jobs:
         type: docker-image
         source:
           repository: pcfmetrics/indicators-build-and-test
-          tag: go-1.11
       inputs:
       - name: indicators
       - name: env-state
@@ -186,7 +183,6 @@ jobs:
         type: docker-image
         source:
           repository: pcfmetrics/indicators-build-and-test
-          tag: go-1.11
       inputs:
       - name: indicators
       - name: indicator-protocol-release
@@ -257,7 +253,6 @@ jobs:
         type: docker-image
         source:
           repository: pcfmetrics/indicators-build-and-test
-          tag: go-1.11
       inputs:
       - name: indicator-protocol-release
       - name: env-state
@@ -314,7 +309,6 @@ jobs:
         type: docker-image
         source:
           repository: pcfmetrics/indicators-build-and-test
-          tag: go-1.11
       inputs:
       - name: release-version
       - name: indicator-protocol-release
@@ -374,7 +368,6 @@ jobs:
         type: docker-image
         source:
           repository: pcfmetrics/indicators-build-and-test
-          tag: go-1.11
       inputs:
       - name: indicators
       - name: release-version

@@ -1,18 +1,18 @@
 package main_test
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"code.cloudfoundry.org/indicators/pkg/mtls"
 	"github.com/gorilla/mux"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"io/ioutil"
-	"testing"
-
-	"code.cloudfoundry.org/indicators/pkg/go_test"
 	"net/http"
 	"os"
 	"os/exec"
+	"testing"
+
+	"code.cloudfoundry.org/indicators/pkg/go_test"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/mtls"
 )
 
 var (

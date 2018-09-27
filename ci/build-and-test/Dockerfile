@@ -2,6 +2,8 @@ FROM golang:1.11
 
 ENV PATH=$PATH:$PWD/go/bin
 
+RUN apt-get update && apt-get install -y --no-install-recommends rsync
+
 RUN wget -O cf.tgz "https://packages.cloudfoundry.org/stable?release=linux64-binary&version=6.38.0&source=github-rel"
 RUN tar xzf cf.tgz cf
 RUN chmod +x cf

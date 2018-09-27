@@ -1,8 +1,8 @@
 package main_test
 
 import (
-	"crypto/tls"
-	"crypto/x509"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 	"testing"
 
 	"fmt"
@@ -13,10 +13,8 @@ import (
 	"os/exec"
 	"time"
 
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
-
 	"code.cloudfoundry.org/indicators/pkg/go_test"
+	"code.cloudfoundry.org/indicators/pkg/mtls"
 )
 
 var (
@@ -31,7 +29,7 @@ var (
 func TestIndicatorRegistry(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	client, err := authenticatedClient()
+	client, err := mtls.NewClient(clientCert, clientKey, rootCACert)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("it saves and exposes indicators with labels", func(t *testing.T) {
@@ -175,36 +173,6 @@ func withServer(port string, g *GomegaWithT, testFun func(string)) {
 	serverHost := "localhost:" + port
 	waitForHTTPServer(serverHost, 3*time.Second)
 	testFun("https://" + serverHost)
-}
-
-func authenticatedClient() (*http.Client, error) {
-	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
-	if err != nil {
-		return nil, err
-	}
-
-	// Load CA cert
-	caCert, err := ioutil.ReadFile(rootCACert)
-	if err != nil {
-		return nil, err
-	}
-
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
-
-	// Setup HTTPS client
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		RootCAs:      caCertPool,
-	}
-	tlsConfig.BuildNameToCertificate()
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-	}
-
-	return client, nil
 }
 
 func waitForHTTPServer(host string, timeout time.Duration) error {
