@@ -5,9 +5,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"testing"
 
-	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -171,22 +169,6 @@ func withServer(port string, g *GomegaWithT, testFun func(string)) {
 	g.Expect(err).ToNot(HaveOccurred())
 	defer session.Kill()
 	serverHost := "localhost:" + port
-	waitForHTTPServer(serverHost, 3*time.Second)
+	go_test.WaitForHTTPServer(serverHost, 3*time.Second)
 	testFun("https://" + serverHost)
-}
-
-func waitForHTTPServer(host string, timeout time.Duration) error {
-	timer := time.NewTimer(timeout)
-
-	for {
-		select {
-		case <-timer.C:
-			return fmt.Errorf("http server [%s] did not start", host)
-		default:
-			_, err := net.DialTimeout("tcp", host, 50*time.Millisecond)
-			if err == nil {
-				return nil
-			}
-		}
-	}
 }
