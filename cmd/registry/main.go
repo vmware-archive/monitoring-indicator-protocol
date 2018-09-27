@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	port := flag.Int("port", -1, "Port to expose registration endpoints")
+	port := flag.Int("port", 443, "Port to expose registration endpoints")
 	serverPEM := flag.String("tls-pem-path", "", "Server TLS public cert pem path")
 	serverKey := flag.String("tls-key-path", "", "Server TLS private key path")
 	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs.")
