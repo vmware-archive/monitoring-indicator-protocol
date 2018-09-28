@@ -2,6 +2,7 @@ package registry_test
 
 import (
 	. "github.com/onsi/gomega"
+	"io/ioutil"
 	"testing"
 	"time"
 
@@ -17,8 +18,10 @@ func TestAPIClient_IndicatorDocuments(t *testing.T) {
 	t.Run("it fetches the payload on the /v1/indicator-documents endpoint", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
+		json, e := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_response.json")
+		g.Expect(e).ToNot(HaveOccurred())
 		http.HandleFunc("/v1/indicator-documents", func(writer http.ResponseWriter, request *http.Request) {
-			writer.Write([]byte("payload"))
+			writer.Write(json)
 		})
 
 		server := http.Server{
@@ -30,7 +33,10 @@ func TestAPIClient_IndicatorDocuments(t *testing.T) {
 
 		go_test.WaitForHTTPServer("localhost:8080", time.Second)
 
-		g.Expect(c.IndicatorDocuments()).To(Equal(registry.IndicatorDocuments("payload")))
+		documents, e := c.IndicatorDocuments()
+		g.Expect(e).ToNot(HaveOccurred())
+
+		g.Expect(documents[0].Labels["product"]).To(Equal("my-component"))
 	})
 
 	t.Run("it returns an error if the the client get fails", func(t *testing.T) {

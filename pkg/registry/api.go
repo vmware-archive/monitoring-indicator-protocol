@@ -9,7 +9,7 @@ import (
 	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
-func NewRegisterHandler(d *DocumentStore) http.HandlerFunc {
+func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -51,7 +51,7 @@ func NewRegisterHandler(d *DocumentStore) http.HandlerFunc {
 			return
 		}
 
-		d.Upsert(doc.Labels, doc.Indicators)
+		store.Upsert(doc.Labels, doc.Indicators)
 
 		w.WriteHeader(http.StatusOK)
 	}
@@ -72,89 +72,19 @@ type errorResponse struct {
 }
 
 func marshal(docs []Document) ([]byte, error) {
-	type metric struct {
-		Title       string `json:"title"`
-		Origin      string `json:"origin"`
-		SourceID    string `json:"source_id"`
-		Name        string `json:"name"`
-		Type        string `json:"type"`
-		Description string `json:"description"`
-		Frequency   string `json:"frequency"`
-	}
-	type threshold struct {
-		Level    string  `json:"level"`
-		Dynamic  bool    `json:"dynamic"`
-		Operator string  `json:"operator"`
-		Value    float64 `json:"value"`
-	}
-	type indicator struct {
-		Name        string      `json:"name"`
-		Title       string      `json:"title"`
-		Description string      `json:"description"`
-		PromQL      string      `json:"promql"`
-		Thresholds  []threshold `json:"thresholds"`
-		Metrics     []metric    `json:"metrics"`
-		Response    string      `json:"response"`
-		Measurement string      `json:"measurement"`
-	}
-	type document struct {
-		Labels     map[string]string `json:"labels"`
-		Indicators []indicator       `json:"indicators"`
-	}
-
-	data := make([]document, 0)
+	data := make([]APIV0Document, 0)
 	for _, doc := range docs {
-		indicators := make([]indicator, 0)
-		for _, i := range doc.Indicators {
-			thresholds := make([]threshold, 0)
-			for _, t := range i.Thresholds {
-				thresholds = append(thresholds, threshold{
-					Level:    t.Level,
-					Dynamic:  t.Dynamic,
-					Operator: t.Operator.String(),
-					Value:    t.Value,
-				})
-			}
-
-			metrics := make([]metric, 0)
-			for _, m := range i.Metrics {
-				metrics = append(metrics, metric{
-					Title:       m.Title,
-					Origin:      m.Origin,
-					SourceID:    m.SourceID,
-					Name:        m.Name,
-					Type:        m.Type,
-					Description: m.Description,
-					Frequency:   m.Frequency,
-				})
-			}
-
-			indicators = append(indicators, indicator{
-				Name:        i.Name,
-				Title:       i.Title,
-				Description: i.Description,
-				PromQL:      i.PromQL,
-				Thresholds:  thresholds,
-				Metrics:     metrics,
-				Response:    i.Response,
-				Measurement: i.Measurement,
-			})
-		}
-
-		data = append(data, document{
-			Labels:     doc.Labels,
-			Indicators: indicators,
-		})
+		data = append(data, doc.ToAPIV0())
 	}
 
 	return json.Marshal(data)
 }
 
-func NewIndicatorDocumentsHandler(d *DocumentStore) http.HandlerFunc {
+func NewIndicatorDocumentsHandler(store *DocumentStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		bytes, _ := marshal(d.All())
+		bytes, _ := marshal(store.All())
 		fmt.Fprintf(w, string(bytes))
 	}
 }

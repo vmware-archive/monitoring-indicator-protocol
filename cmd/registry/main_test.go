@@ -46,53 +46,12 @@ func TestIndicatorRegistry(t *testing.T) {
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			bytes, err := ioutil.ReadAll(resp.Body)
+
+			json, e := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_response.json")
+			g.Expect(len(json)).To(BeNumerically(">", 200))
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(bytes).To(MatchJSON(`
-				  [
-			        {
-			          "labels": {
-			            "deployment": "redis-abc",
-			            "product": "my-component",
-			            "service": "redis"
-			          },
-			          "indicators": [
-			            {
-			              "name": "doc_performance_indicator",
-			              "title": "Doc Performance Indicator",
-			              "metrics": [
-			                {
-			                  "name": "latency",
-			                  "source_id": "demo",
-			                  "origin": "demo",
-			                  "title": "Demo Latency",
-			                  "type": "gauge",
-			                  "frequency": "1m",
-			                  "description": "A test metric for testing"
-			                }
-			              ],
-			              "measurement": "Average latency over last 5 minutes per instance",
-			              "promql": "avg_over_time(demo_latency{source_id=\"doc\"}[5m])",
-			              "thresholds": [
-			                {
-			                "level": "warning",
-			                "dynamic": true,
-			                "operator": "gte",
-			                "value": 50
-			              },
-			              {
-			                "level": "critical",
-			                "dynamic": true,
-			                "operator": "gte",
-			                "value": 100
-			              }
-			              ],
-			              "description": "This is a valid markdown description.\n\n**Use**: This indicates nothing. It is placeholder text.\n\n**Type**: Gauge\n**Frequency**: 60 s\n",
-			              "response": "Panic! Run around in circles flailing your arms.\n"
-			            }
-			          ]
-			        }
-		          ]  
-				`))
+			g.Expect(e).ToNot(HaveOccurred())
+			g.Expect(bytes).To(MatchJSON(json))
 		})
 	})
 

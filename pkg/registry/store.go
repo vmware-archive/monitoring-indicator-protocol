@@ -8,12 +8,6 @@ import (
 	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
-type Document struct {
-	Labels                map[string]string
-	Indicators            []indicator.Indicator
-	registrationTimestamp time.Time
-}
-
 func NewDocumentStore(timeout time.Duration) *DocumentStore {
 	return &DocumentStore{
 		documents: make([]Document, 0),
