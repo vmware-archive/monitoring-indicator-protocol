@@ -19,7 +19,7 @@ func NewAPIClient(serverURL string, client *http.Client) *APIClient {
 	}
 }
 
-func (c *APIClient) IndicatorResponse() ([]byte, error) {
+func (c *APIClient) indicatorResponse() ([]byte, error) {
 	resp, err := c.client.Get(c.serverURL + "/v1/indicator-documents")
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func (c *APIClient) IndicatorResponse() ([]byte, error) {
 }
 
 func (c *APIClient) IndicatorDocuments() ([]APIV0Document, error) {
-	payload, e := c.IndicatorResponse()
+	payload, e := c.indicatorResponse()
 	if e != nil {
 		return nil, fmt.Errorf("failed to get indicator documents: %s\n", e)
 	}
