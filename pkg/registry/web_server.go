@@ -1,27 +1,27 @@
 package registry
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"strconv"
-	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"code.cloudfoundry.org/indicators/pkg/mtls"
 )
 
 type WebServerConfig struct {
-	Address string
-	ServerPEM string
-	ServerKey string
+	Address    string
+	ServerPEM  string
+	ServerKey  string
 	RootCACert string
-	Expiration time.Duration
+	*DocumentStore
 }
 
 func NewWebServer(c WebServerConfig) (func() error, func() error, error) {
-	return mtls.NewServer(c.Address, c.ServerPEM, c.ServerKey, c.RootCACert, newRouter(c.Expiration))
+	return mtls.NewServer(c.Address, c.ServerPEM, c.ServerKey, c.RootCACert, newRouter(c.DocumentStore))
 }
 
 var httpRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -34,9 +34,7 @@ func init() {
 	prometheus.MustRegister(httpRequests)
 }
 
-func newRouter(indicatorExpiration time.Duration) *mux.Router {
-	documentStore := NewDocumentStore(indicatorExpiration)
-
+func newRouter(documentStore *DocumentStore) *mux.Router {
 	r := mux.NewRouter()
 	r.Handle("/metrics", instrumentEndpoint(httpRequests, promhttp.Handler()))
 	r.NotFoundHandler = notFound(httpRequests)

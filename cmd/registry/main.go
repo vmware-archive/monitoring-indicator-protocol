@@ -1,11 +1,12 @@
 package main
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/registry"
 	"flag"
 	"fmt"
 	"log"
 	"time"
+
+	"code.cloudfoundry.org/indicators/pkg/registry"
 )
 
 func main() {
@@ -19,11 +20,11 @@ func main() {
 	address := fmt.Sprintf(":%d", *port)
 
 	config := registry.WebServerConfig{
-		Address:    address,
-		ServerPEM:  *serverPEM,
-		ServerKey:  *serverKey,
-		RootCACert: *rootCACert,
-		Expiration: *expiration,
+		Address:       address,
+		ServerPEM:     *serverPEM,
+		ServerKey:     *serverKey,
+		RootCACert:    *rootCACert,
+		DocumentStore: registry.NewDocumentStore(*expiration),
 	}
 
 	start, stop, err := registry.NewWebServer(config)
