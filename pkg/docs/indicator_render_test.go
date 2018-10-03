@@ -55,7 +55,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
   g.Expect(html).To(ContainSubstring("<em>Yellow warning</em>: &gt; 500<br/>"))
   g.Expect(html).To(ContainSubstring("<em>super_green</em>: &lt; 10<br/>"))
   g.Expect(html).To(ContainSubstring("dynamic!"))
-  g.Expect(html).To(ContainSubstring("Recommended Rhesponse"))
+  g.Expect(html).To(ContainSubstring("Recommended Response"))
 
   g.Expect(html).ToNot(ContainSubstring("%%"))
 }
