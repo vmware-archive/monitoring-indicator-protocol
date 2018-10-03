@@ -13,6 +13,7 @@ func ReadFile(indicatorsFile string, overrideMetadata ...map[string]string) (Doc
     return Document{}, err
   }
 
+  // TODO: we are unmarshalling twice here. the first time is just to get the metadata
   indicatorDocument, err := ReadIndicatorDocument(fileBytes)
   if err != nil {
     return Document{}, err

@@ -146,17 +146,13 @@ jobs:
             cat << EOF > indicators.yml
           ---
           apiVersion: v0
-          labels:
-            product: uaa-test
-          indicators: []
-          metrics:
-          - name: requests.global.status_2xx.count
-            source_id: uaa
-            origin: uaa
-            title: http 200 total count
-            type: counter
-            frequency: 30s
-            description: A metric that shows how many requests were successful
+          product: uaa-test
+          version: 0
+          metadata:
+            deployment: <%= spec.deployment %>
+          indicators:
+          - name: uaa_request_rate
+            promql: rate(requests_global_status_2xx_count{source_id="uaa",deployment="\$deployment"}[10m])
           EOF
 
             go run -mod=vendor cmd/verification/main.go -indicators=indicators.yml \
@@ -165,7 +161,7 @@ jobs:
                                                         -log-cache-client=firehose_exporter \
                                                         -log-cache-client-secret=$(credhub g -n /bosh-${ENVIRONMENT}/cf/uaa_clients_firehose_exporter_secret -j | jq -r .value) \
                                                         -log-cache-url=https://log-cache.${ENVIRONMENT}.cf-denver.com \
-                                                        -lookback=4m -k
+                                                        -k
 
           popd
 
