@@ -2,6 +2,7 @@ package docs
 
 import (
   "code.cloudfoundry.org/indicators/pkg/indicator"
+  "strings"
 
   "bytes"
   "fmt"
@@ -52,7 +53,8 @@ func (p indicatorPresenter) OtherDocumentationFields() map[string]template.HTML 
 
   for k, v := range p.Documentation {
     if isUnusedDocumentationField(k) {
-      fields[k] = template.HTML(blackfriday.Run([]byte(v)))
+      title := strings.Title(strings.Replace(k, "_", " ", -1))
+      fields[title] = template.HTML(blackfriday.Run([]byte(v)))
     }
   }
 

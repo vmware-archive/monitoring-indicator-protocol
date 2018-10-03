@@ -17,7 +17,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
     Documentation: map[string]string{
       "title":       "Test Indicator",
       "description": "*test description* of kpi",
-      "response":    "*test response* of kpi",
+      "recommended_response":    "*test response* of kpi",
       "measurement": "Average over 100 minutes",
       "threshold_note": "dynamic!",
     },
@@ -55,5 +55,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
   g.Expect(html).To(ContainSubstring("<em>Yellow warning</em>: &gt; 500<br/>"))
   g.Expect(html).To(ContainSubstring("<em>super_green</em>: &lt; 10<br/>"))
   g.Expect(html).To(ContainSubstring("dynamic!"))
+  g.Expect(html).To(ContainSubstring("Recommended Rhesponse"))
+
   g.Expect(html).ToNot(ContainSubstring("%%"))
 }

@@ -35,10 +35,9 @@ const htmlIndicatorTemplate = `### <a id="{{.Name}}"></a>{{.Title}}
         <th>Thresholds</th>
         <td>
             {{range .Thresholds}} <em>{{.Level}}</em>: {{.OperatorAndValue}}<br/> {{end}}
-			{{if ne .ThresholdNote ""}}
-				<br />
-				{{.ThresholdNote}}
-			{{end}}
+			      {{if ne .ThresholdNote ""}}
+			      	{{.ThresholdNote}}
+			      {{end}}
         </td>
     </tr>
 	{{range $key, $value :=.OtherDocumentationFields}}

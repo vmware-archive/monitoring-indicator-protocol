@@ -44,6 +44,20 @@ resources:
     ignore_paths:
     - .final_builds
     - releases
+- name: pcf-kpis
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pcf-kpis.git
+    branch: master
+    private_key: {{event-producer-github-key}}
+- name: cf-indicators-docs
+  type: s3
+  source:
+    region_name: us-east-2
+    bucket: cf-indicators-doc-tests
+    access_key_id: {{aws-access-key-id}}
+    secret_access_key: {{aws-secret-access-key}}
+    versioned_file: healthwatch.html
 
 jobs:
 - name: build-and-test
@@ -102,6 +116,50 @@ jobs:
           pushd indicators/
             go run -mod=vendor cmd/docs/main.go example.yml
           popd
+
+- name: upload-test-docs-to-s3
+  plan:
+  - aggregate:
+    - get: indicators
+      passed: [indicator-docs]
+    - get: pcf-kpis
+  - task: generate-and-upload-docs
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfmetrics/indicators-build-and-test
+      inputs:
+      - name: indicators
+      - name: pcf-kpis
+      outputs:
+      - name: docs_out
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+
+          set -exu
+
+          export WORKSPACE=$PWD
+
+          pushd indicators/
+            go run -mod=vendor cmd/docs/main.go example.yml > ${WORKSPACE}/healthwatch_part.html
+          popd
+
+          sed '/SUBSTITUTE_HERE/{
+              s/SUBSTITUTE_HERE//g
+              r healthwatch_part.html
+          }' ${WORKSPACE}/pcf-kpis/template.html > docs_out/healthwatch.html
+
+  - put: cf-indicators-docs
+    params:
+      file: docs_out/healthwatch.html
+      acl: public-read
+      content_type: text/html
 
 - name: indicator-verification
   plan:
