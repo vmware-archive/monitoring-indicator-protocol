@@ -19,7 +19,6 @@ type document []byte
 
 type Agent struct {
 	RegistryURI    string
-	DeploymentName string
 	IntervalTime   time.Duration
 	DocumentFinder DocumentFinder
 	Client         *http.Client
@@ -63,7 +62,7 @@ func (a Agent) registerIndicatorDocuments() {
 }
 
 func (a Agent) registerIndicatorDocument(indicatorsDocument document) {
-	registry := fmt.Sprintf(a.RegistryURI+"/v1/register?deployment=%s", a.DeploymentName)
+	registry := fmt.Sprintf(a.RegistryURI+"/v1/register")
 
 	body := bytes.NewBuffer(indicatorsDocument)
 

@@ -1,25 +1,16 @@
 ---
 apiVersion: v0
+product: my-product
+version: 0.1.1
 
-labels:
-  product: my-product
+metadata:
+  deployment: <%= spec.deployment %>
+  source_id: demo_component
 
-metrics:
+indicators:
 - name: latency
-  source_id: demo_component
-  origin: demo_component
-  title: Demo Latency
-  description: A test metric for testing
-  type: gauge
-  frequency: 60s
+  promql: avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])
 - name: saturation
-  source_id: demo_component
-  origin: demo_component
-  title: Demo Saturation
-  description: A test metric for testing
-  type: counter
-  frequency: 60s
-
-indicators: []
+  promql: saturation{source_id="$source_id",deployment="$deployment"}
 
 documentation: {}

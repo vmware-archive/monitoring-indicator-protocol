@@ -43,15 +43,7 @@ func TestGenerateDocsBinary(t *testing.T) {
 			g.Expect(html).To(ContainSubstring(`## <a id="key-performance-indicators"></a>Key Performance Indicators`))
 			g.Expect(html).To(ContainSubstring(`This section includes indicators`))
 
-			g.Expect(html).To(ContainSubstring(`### <a id="test-performance-indicator"></a>Test Performance Indicator`))
-		})
-
-		t.Run("It displays metric sections", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			g.Expect(html).To(ContainSubstring(`## <a id="other-metrics-available"></a>Other Metrics Available`))
-			g.Expect(html).To(ContainSubstring(`This section includes metrics`))
-
-			g.Expect(html).To(ContainSubstring(`### <a id="demo-latency"></a>Demo Latency`))
+			g.Expect(html).To(ContainSubstring(`### <a id="test_performance_indicator"></a>Test Performance Indicator`))
 		})
 
 		t.Run("It does not have multiple % signs", func(t *testing.T) {

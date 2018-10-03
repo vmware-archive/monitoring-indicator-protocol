@@ -35,6 +35,7 @@ func TestAPIClient_IndicatorDocuments(t *testing.T) {
 
 		documents, e := c.IndicatorDocuments()
 		g.Expect(e).ToNot(HaveOccurred())
-		g.Expect(documents[0].Labels["product"]).To(Equal("my-component"))
+		g.Expect(documents[0].Product).To(Equal("my-component"))
+		g.Expect(documents[0].Version).To(Equal("1.2.3"))
 	})
 }

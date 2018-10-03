@@ -21,59 +21,18 @@ func TestRegisterHandler(t *testing.T) {
 		body := bytes.NewBuffer([]byte(`---
 apiVersion: v0
 
-labels:
-  product: redis-tile
+product: redis-tile
+version: 0.11
 
-metrics:
-- name: latency
-  source_id: demo
-  origin: demo
-  title: Demo Latency
-  type: metricType
-  frequency: 60s
-  description: A test metric for testing
+metadata:
+  deployment: redis-abc-123
 
 indicators:
 - name: test_performance_indicator
-  title: Test Performance Indicator
-  metrics:
-  - name: latency
-    source_id: demo
-  measurement: Measurement Text
   promql: prom
   thresholds:
   - level: warning
-    gte: 50
-    dynamic: true
-  description: This is a valid markdown description.
-  response: Panic!`))
-
-		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)
-		resp := httptest.NewRecorder()
-
-		docStore := registry.NewDocumentStore(1 * time.Minute)
-		handle := registry.NewRegisterHandler(docStore)
-		handle(resp, req)
-
-		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
-		g.Expect(resp.Code).To(Equal(http.StatusOK))
-		g.Expect(docStore.All()).To(HaveLen(1))
-		g.Expect(docStore.All()[0].Labels).To(Equal(map[string]string{
-			"deployment": "redis-abc",
-			"product":    "redis-tile",
-		}))
-		g.Expect(docStore.All()[0].Indicators[0].Name).To(Equal("test_performance_indicator"))
-	})
-
-	t.Run("it returns 400 if deployment is missing", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		body := bytes.NewBuffer([]byte(`---
-apiVersion: v0
-
-labels:
-  product: abc-123
-metrics: []`))
+    gte: 50`))
 
 		req := httptest.NewRequest("POST", "/register", body)
 		resp := httptest.NewRecorder()
@@ -82,14 +41,27 @@ metrics: []`))
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
-		g.Expect(docStore.All()).To(HaveLen(0))
-
-		g.Expect(resp.Code).To(Equal(http.StatusBadRequest))
-
-		responseBody, err := ioutil.ReadAll(resp.Body)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["deployment query parameter is required"] }`))
+		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
+		g.Expect(resp.Code).To(Equal(http.StatusOK))
+		g.Expect(docStore.All()).To(ConsistOf(indicator.Document{
+			APIVersion: "v0",
+			Product: "redis-tile",
+			Version: "0.11",
+			Metadata: map[string]string{
+				"deployment": "redis-abc-123",
+			},
+			Indicators: []indicator.Indicator{{
+				Name:   "test_performance_indicator",
+				PromQL: "prom",
+				Thresholds: []indicator.Threshold{
+					{
+						Level:    "warning",
+						Operator: indicator.GreaterThanOrEqualTo,
+						Value:    50,
+					},
+				},
+			}},
+		}))
 	})
 
 	t.Run("it returns 422 if there are validation errors", func(t *testing.T) {
@@ -97,14 +69,8 @@ metrics: []`))
 
 		body := bytes.NewBuffer([]byte(`---
 apiVersion: v0
-metrics:
-- name: latency
-  source_id: demo
-  origin: demo
-  title: Demo Latency
-  type: metricType
-  frequency: 60s
-  description: " "`))
+indicators:
+- promql: " "`))
 
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)
 		resp := httptest.NewRecorder()
@@ -120,21 +86,14 @@ metrics:
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["document labels.product is required", "metrics[0] description is required"]}`))
+		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["product is required", "version is required",  "indicators[0] name is required", "indicators[0] promql is required"]}`))
 	})
 
 	t.Run("it returns 400 if the yml is invalid", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		body := bytes.NewBuffer([]byte(`---
-metrics: aasdfasdf
-- name: latency
-  source_id: demo
-  origin: demo
-  title: Demo Latency
-  type: metricType
-  frequency: 60s
-  description: `))
+indicators: aasdfasdf`))
 
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc&product=redis-tile", body)
 		resp := httptest.NewRecorder()
@@ -150,7 +109,7 @@ metrics: aasdfasdf
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["could not unmarshal indicators: yaml: line 2: did not find expected key"] }`))
+		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["could not unmarshal indicators: yaml: unmarshal errors:\n  line 2: cannot unmarshal !!str ` + "`aasdfasdf`" + ` into []indicator.yamlIndicator"] }`))
 	})
 }
 
@@ -162,9 +121,16 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		resp := httptest.NewRecorder()
 
 		docStore := registry.NewDocumentStore(1 * time.Minute)
-		docStore.Upsert(map[string]string{"test-label": "test-value"}, []indicator.Indicator{{
-			Name: "test indicator",
-		}})
+		docStore.Upsert(indicator.Document{
+			Product: "my-product-a",
+			Version: "1",
+			Metadata: map[string]string{
+				"deployment": "abc-123",
+			},
+			Indicators: []indicator.Indicator{{
+				Name: "test_errors",
+			}},
+		})
 
 		handle := registry.NewIndicatorDocumentsHandler(docStore)
 		handle(resp, req)
@@ -177,23 +143,29 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 
 		g.Expect(responseBody).To(MatchJSON(`
 			[
-				{
-					"labels": {
-						"test-label": "test-value"
-					},
-					"indicators": [
-						{
-    			            "name": "test indicator",
-    			            "title": "",
-    			            "description": "",
-    			            "promql": "",
-    			            "thresholds": [],
-    			            "metrics": [],
-    			            "response": "",
-    			            "measurement": ""
-						}
-					]
-				}
+ 				{
+                    "apiVersion": "",
+                    "product": "my-product-a",
+                    "version": "1",
+                    "metadata": {
+                      "deployment": "abc-123"
+                    },
+                    "indicators": [
+                      {
+                        "name": "test_errors",
+                        "promql": "",
+                        "thresholds": [],
+                        "documentation": null,
+                        "slo": 0
+                      }
+                    ],
+                    "documentation": {
+                      "title": "",
+                      "description": "",
+                      "sections": null,
+                      "owner": ""
+                    }
+                  }
 			]`))
 	})
 }

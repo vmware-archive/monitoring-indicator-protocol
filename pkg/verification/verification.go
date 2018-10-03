@@ -3,7 +3,6 @@ package verification
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/prometheus/common/model"
@@ -21,24 +20,15 @@ type ResultSeries struct {
 	Points []string
 }
 
-func FormatQuery(m indicator.Metric, deployment, lookback string) string {
-	name := m.Name
-	name = strings.Replace(name, `.`, "_", -1)
-	name = strings.Replace(name, `-`, "_", -1)
-	name = strings.Replace(name, `\`, "_", -1)
-	name = strings.Replace(name, `/`, "_", -1)
-	return fmt.Sprintf(`%s{source_id="%s",deployment="%s"}[%s]`, name, m.SourceID, deployment, lookback)
-}
-
 type promQLClient interface {
 	Query(ctx context.Context, query string, ts time.Time) (model.Value, error)
 }
 
-func VerifyMetric(m indicator.Metric, query string, client promQLClient) (Result, error) {
-	value, err := client.Query(context.Background(), query, time.Time{})
+func VerifyIndicator(i indicator.Indicator, client promQLClient) (Result, error) {
+	value, err := client.Query(context.Background(), i.PromQL, time.Time{})
 
 	if err != nil {
-		return Result{}, fmt.Errorf("query failed [metric: %s] [query: %s] [status: %s]", m.Name, query, err)
+		return Result{}, fmt.Errorf("query failed [indicator: %s] [promql: %s] [status: %s]", i.Name, i.PromQL, err)
 	}
 
 	if value.Type() != model.ValMatrix {

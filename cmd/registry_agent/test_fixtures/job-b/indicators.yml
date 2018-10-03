@@ -1,17 +1,11 @@
 ---
 apiVersion: v0
 
-labels:
-  product: job-b-product
+product: job-b-product
+version: 1
 
-metrics:
-- name: latency
-  source_id: demo_component
-  origin: demo_component
-  title: Demo Latency
-  description: A test metric for testing
-  type: gauge
-  frequency: 60s
+metadata:
+  deployment: def-456
 
 indicators: []
 

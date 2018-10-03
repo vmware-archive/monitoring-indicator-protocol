@@ -32,38 +32,25 @@ func (e OperatorType) String() string {
 
 type Document struct {
 	APIVersion    string
-	Labels        map[string]string
-	Metrics       []Metric
+	Product       string
+	Version       string
+	Metadata      map[string]string
 	Indicators    []Indicator
 	Documentation Documentation
 }
 
 type Indicator struct {
-	Name        string
-	Title       string
-	Description string
-	PromQL      string
-	Thresholds  []Threshold
-	Metrics     []Metric
-	Response    string
-	Measurement string
+	Name          string
+	PromQL        string
+	Thresholds    []Threshold
+	SLO           float64
+	Documentation map[string]string
 }
 
 type Threshold struct {
 	Level    string
-	Dynamic  bool
 	Operator OperatorType
 	Value    float64
-}
-
-type Metric struct {
-	Title       string `yaml:"title"`
-	Origin      string `yaml:"origin"`
-	SourceID    string `yaml:"source_id"`
-	Name        string `yaml:"name"`
-	Type        string `yaml:"type"`
-	Description string `yaml:"description"`
-	Frequency   string `yaml:"frequency"`
 }
 
 type Documentation struct {
@@ -77,5 +64,4 @@ type Section struct {
 	Title       string
 	Description string
 	Indicators  []Indicator
-	Metrics     []Metric
 }

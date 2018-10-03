@@ -26,16 +26,15 @@ func main() {
 	flagSet := flag.NewFlagSet("validator", flag.ErrorHandling(0))
 	indicatorsFile := flagSet.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/indicators)")
 	logCacheURL := flagSet.String("log-cache-url", "", "the log-cache url (e.g. https://log-cache.system.cfapp.com")
-	deployment := flagSet.String("deployment", "", "the source deployment of metrics emitted to loggregator")
+	deployment := flagSet.String("deployment", "", "the source deployment of metrics emitted to loggregator. replaces any $deployment metadata")
 	uaaURL := flagSet.String("uaa-url", "", "UAA server host (e.g. https://uaa.my-pcf.com)")
 	uaaClient := flagSet.String("log-cache-client", "", "the UAA client which has access to log-cache (doppler.firehose or logs.admin scope")
 	uaaClientSecret := flagSet.String("log-cache-client-secret", "", "the client secret")
-	lookback := flagSet.String("lookback", "1m", "the promQL query time period")
 	insecure := flagSet.Bool("k", false, "skips ssl verification (insecure)")
 
 	flagSet.Parse(os.Args[1:])
 
-	document, err := indicator.ReadFile(*indicatorsFile)
+	document, err := indicator.ReadFile(*indicatorsFile, map[string]string{ "deployment": *deployment})
 	if err != nil {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}
@@ -46,23 +45,21 @@ func main() {
 	}
 
 	stdOut.Println("---------------------------------------------------------------------------------------------")
-	stdOut.Printf("Checking for existence of %d metrics in log-cache \n", len(document.Metrics))
+	stdOut.Printf("Querying current value for %d indicators in log-cache \n", len(document.Indicators))
 	stdOut.Println("---------------------------------------------------------------------------------------------")
 
-	failedMetrics := make([]indicator.Metric, 0)
+	failedIndicators := make([]indicator.Indicator, 0)
 
-	for _, m := range document.Metrics {
+	for _, ind := range document.Indicators {
 		stdOut.Println()
 
-		query := verification.FormatQuery(m, *deployment, *lookback)
+		stdOut.Printf("Querying log-cache for indicator with name \"%s\"", ind.Name)
+		stdOut.Printf("  query: %s", ind.PromQL)
 
-		stdOut.Printf("Querying log-cache for metric with name \"%s\" and source_id \"%s\"", m.Name, m.SourceID)
-		stdOut.Printf("  query: %s", query)
-
-		result, err := verification.VerifyMetric(m, query, prometheusClient)
+		result, err := verification.VerifyIndicator(ind, prometheusClient)
 		if err != nil {
 			stdErr.Println("  " + err.Error())
-			failedMetrics = append(failedMetrics, m)
+			failedIndicators = append(failedIndicators, ind)
 			continue
 		}
 
@@ -72,17 +69,17 @@ func main() {
 
 		if result.MaxNumberOfPoints == 0 {
 			stdErr.Println("  no data points found")
-			failedMetrics = append(failedMetrics, m)
+			failedIndicators = append(failedIndicators, ind)
 		}
 	}
 
-	if len(failedMetrics) > 0 {
+	if len(failedIndicators) > 0 {
 		separator(stdOut)
 		stdErr.Println("---------------------------------------------------------------------------------------------")
 		stdErr.Println("VALIDATION FAILURE")
-		stdErr.Printf("  Could not find %d metrics in log-cache \n", len(failedMetrics))
+		stdErr.Printf("  Could not find %d indicators in log-cache \n", len(failedIndicators))
 		stdErr.Println("  Both operators and platform observability tools such as PCF Healthwatch rely on the")
-		stdErr.Println("  existence of these metrics. Perhaps the name of the metric changed, or refactored code")
+		stdErr.Println("  existence of this data. Perhaps a metric name changed, or refactored code")
 		stdErr.Println("  is failing to emit.")
 		stdErr.Println("---------------------------------------------------------------------------------------------")
 		separator(stdOut)
@@ -92,7 +89,7 @@ func main() {
 
 	separator(stdOut)
 	stdOut.Println("---------------------------------------------------------------------------------------------")
-	stdOut.Println("  All metrics found")
+	stdOut.Println("  All indicator data found")
 	stdOut.Println("---------------------------------------------------------------------------------------------")
 	separator(stdOut)
 }

@@ -24,7 +24,7 @@ func TestValidateIndicators(t *testing.T) {
 	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
-	t.Run("returns 0 when all metrics are found over lookback interval", func(t *testing.T) {
+	t.Run("returns 0 when all indicators return data", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		logCacheServer := ghttp.NewServer()
@@ -35,7 +35,7 @@ func TestValidateIndicators(t *testing.T) {
 				req.ParseForm()
 
 				q := req.Form.Get("query")
-				if q != `latency{source_id="demo_component",deployment="cf"}[1m]` {
+				if q != `avg_over_time(demo_latency{source_id="demo_component",deployment="my-demo-deployment"}[5m])` {
 					w.WriteHeader(422)
 					return
 				}
@@ -47,7 +47,8 @@ func TestValidateIndicators(t *testing.T) {
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
-				if q != `saturation{source_id="demo_component",deployment="cf"}[1m]` {
+
+				if q != `saturation{source_id="demo_component",deployment="my-demo-deployment"}` {
 					w.WriteHeader(422)
 					return
 				}
@@ -67,12 +68,11 @@ func TestValidateIndicators(t *testing.T) {
 		cmd := exec.Command(
 			binPath,
 			"--indicators", "./test_fixtures/indicators.yml",
-			"--deployment", "cf",
+			"--deployment", "my-demo-deployment",
 			"--log-cache-url", "http://"+logCacheServer.Addr(),
 			"--uaa-url", "http://"+uaaServer.Addr(),
 			"--log-cache-client", "my-uaa-client",
 			"--log-cache-client-secret", "client-secret",
-			"--lookback", "1m",
 			"-k",
 		)
 
@@ -84,7 +84,7 @@ func TestValidateIndicators(t *testing.T) {
 		g.Eventually(session).Should(gexec.Exit(0))
 	})
 
-	t.Run("returns 1 when not all metrics are found over lookback interval", func(t *testing.T) {
+	t.Run("returns 1 when not all indicators return data", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		logCacheServer := ghttp.NewServer()
@@ -94,7 +94,7 @@ func TestValidateIndicators(t *testing.T) {
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
-				g.Expect(q).To(Equal(`latency{source_id="demo_component",deployment="cf"}[10m]`))
+				g.Expect(q).To(Equal(`avg_over_time(demo_latency{source_id="demo_component",deployment="cf"}[5m])`))
 
 				body := logCachePromQLResponse(3, 4)
 				w.Write(body)
@@ -103,7 +103,7 @@ func TestValidateIndicators(t *testing.T) {
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
-				g.Expect(q).To(Equal(`saturation{source_id="demo_component",deployment="cf"}[10m]`))
+				g.Expect(q).To(Equal(`saturation{source_id="demo_component",deployment="cf"}`))
 
 				body := logCachePromQLResponse(0, 0)
 				w.Write(body)
@@ -125,7 +125,6 @@ func TestValidateIndicators(t *testing.T) {
 			"--uaa-url", "http://"+uaaServer.Addr(),
 			"--log-cache-client", "my-uaa-client",
 			"--log-cache-client-secret", "client-secret",
-			"--lookback", "10m",
 			"-k",
 		)
 

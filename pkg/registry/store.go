@@ -10,46 +10,57 @@ import (
 
 func NewDocumentStore(timeout time.Duration) *DocumentStore {
 	return &DocumentStore{
-		documents: make([]Document, 0),
+		documents: make([]registeredDocument, 0),
 		timeout:   timeout,
 	}
 }
 
+type registeredDocument struct {
+	indicatorDocument indicator.Document
+	registeredAt      time.Time
+}
+
 type DocumentStore struct {
 	sync.RWMutex
-	documents []Document
+	documents []registeredDocument
 	timeout   time.Duration
 }
 
-func (d *DocumentStore) Upsert(labels map[string]string, indicators []indicator.Indicator) {
+func (d *DocumentStore) Upsert(doc indicator.Document) {
 	d.Lock()
 	defer d.Unlock()
 
-	pos := d.getPosition(labels)
+	pos := d.getPosition(doc)
 
 	if pos == -1 {
-		d.documents = append(d.documents, Document{Indicators: indicators, Labels: labels, registrationTimestamp: time.Now()})
+		d.documents = append(d.documents, registeredDocument{indicatorDocument: doc, registeredAt: time.Now()})
 	} else {
-		d.documents[pos] = Document{Indicators: indicators, Labels: labels, registrationTimestamp: time.Now()}
+		d.documents[pos] = registeredDocument{indicatorDocument: doc, registeredAt: time.Now()}
 	}
 }
 
-func (d *DocumentStore) All() []Document {
+func (d *DocumentStore) All() []indicator.Document {
 	d.expireDocuments()
 
 	d.RLock()
 	defer d.RUnlock()
 
-	return d.documents
+	documents := make([]indicator.Document, 0)
+
+	for _, doc := range d.documents {
+		documents = append(documents, doc.indicatorDocument)
+	}
+
+	return documents
 }
 
 func (d *DocumentStore) expireDocuments() {
 	d.Lock()
 	defer d.Unlock()
 
-	var unexpiredDocuments []Document
+	var unexpiredDocuments []registeredDocument
 	for _, doc := range d.documents {
-		if !doc.registrationTimestamp.Add(d.timeout).Before(time.Now()) {
+		if !doc.registeredAt.Add(d.timeout).Before(time.Now()) {
 			unexpiredDocuments = append(unexpiredDocuments, doc)
 		}
 	}
@@ -57,11 +68,12 @@ func (d *DocumentStore) expireDocuments() {
 	d.documents = unexpiredDocuments
 }
 
-func (d *DocumentStore) getPosition(labels map[string]string) int {
+func (d *DocumentStore) getPosition(indicatorDocument indicator.Document) int {
 	for idx, doc := range d.documents {
-		if reflect.DeepEqual(doc.Labels, labels) {
+		if reflect.DeepEqual(doc.indicatorDocument.Metadata, indicatorDocument.Metadata) && doc.indicatorDocument.Product == indicatorDocument.Product {
 			return idx
 		}
 	}
+
 	return -1
 }

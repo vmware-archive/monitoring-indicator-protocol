@@ -73,25 +73,3 @@ func (sp sectionPresenter) HTMLIndicators() []template.HTML {
 	}
 	return renderedIndicators
 }
-
-func (sp sectionPresenter) Metrics() []metricPresenter {
-	var metricsPresenters []metricPresenter
-	for _, m := range sp.Section.Metrics {
-		metricsPresenters = append(metricsPresenters, metricPresenter{m})
-	}
-	return metricsPresenters
-}
-
-func (sp sectionPresenter) HTMLMetrics() []template.HTML {
-	var renderedMetrics []template.HTML
-	for _, m := range sp.Section.Metrics {
-		rendered, err := MetricToHTML(m)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Could not render Metric: %s", err)
-			continue
-		}
-
-		renderedMetrics = append(renderedMetrics, template.HTML(rendered))
-	}
-	return renderedMetrics
-}

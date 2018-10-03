@@ -30,27 +30,29 @@ func TestIndicatorRegistry(t *testing.T) {
 	client, err := mtls.NewClient(clientCert, clientKey, rootCACert)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	t.Run("it saves and exposes indicators with labels", func(t *testing.T) {
+	t.Run("it saves and exposes indicator documents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		withServer("10567", g, func(serverUrl string) {
 			file, err := os.Open("../../example.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err := client.Post(serverUrl+"/v1/register?deployment=redis-abc&service=redis", "text/plain", file)
+			resp, err := client.Post(serverUrl+"/v1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			g.Expect(resp.StatusCode, resp.Body).To(Equal(http.StatusOK))
 
 			resp, err = client.Get(serverUrl + "/v1/indicator-documents")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			bytes, err := ioutil.ReadAll(resp.Body)
-
-			json, e := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_response.json")
-			g.Expect(len(json)).To(BeNumerically(">", 200))
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(e).ToNot(HaveOccurred())
+
+			json, err := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_response.json")
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Expect(len(json)).To(BeNumerically(">", 200))
 			g.Expect(bytes).To(MatchJSON(json))
 		})
 	})

@@ -38,7 +38,6 @@ func TestRegistryAgent(t *testing.T) {
 		agent := registry.Agent{
 			DocumentFinder: registry.DocumentFinder{Glob: "./test_fixtures/job-a/indicators.yml"},
 			RegistryURI:    registryServer.URL(),
-			DeploymentName: "abc-123",
 			IntervalTime:   50 * time.Millisecond,
 			Client:         &http.Client{},
 		}
@@ -47,11 +46,9 @@ func TestRegistryAgent(t *testing.T) {
 
 		g.Eventually(registryServer.ReceivedRequests).Should(HaveLen(2))
 
-		request := registryServer.ReceivedRequests()[0]
-		queryParams := request.URL.Query()
-		g.Expect(queryParams.Get("deployment")).To(Equal("abc-123"))
-
-		g.Expect((<-receivedDocument).Labels["product"]).To(Equal("job-a-product"))
+		document := <-receivedDocument
+		g.Expect(document.Metadata["deployment"]).To(Equal("abc-123"))
+		g.Expect(document.Product).To(Equal("job-a-product"))
 	})
 }
 

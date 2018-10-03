@@ -16,7 +16,6 @@ import (
 
 func main() {
 	registryURI := flag.String("registry", "", "URI of a registry instance")
-	deploymentName := flag.String("deployment", "", "The name of the deployment")
 	intervalTime := flag.Duration("interval", 5*time.Minute, "The send interval")
 	documentsGlob := flag.String("documents-glob", "/var/vcap/jobs/*/indicators.yml", "Glob path of indicator files")
 
@@ -35,7 +34,6 @@ func main() {
 	agent := registry.Agent{
 		DocumentFinder: registry.DocumentFinder{Glob: *documentsGlob},
 		RegistryURI:    *registryURI,
-		DeploymentName: *deploymentName,
 		IntervalTime:   *intervalTime,
 		Client:         client,
 	}

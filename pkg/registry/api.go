@@ -26,23 +26,8 @@ func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 			return
 		}
 
-		if doc.Labels == nil {
-			doc.Labels = make(map[string]string)
-		}
-
-		labelValues := r.URL.Query()
-		for k, v := range labelValues {
-			doc.Labels[k] = v[0]
-
-			if len(v) > 1 {
-				writeErrors(w, http.StatusBadRequest, fmt.Errorf("label %s has too many values", k))
-				return
-			}
-		}
-
-		if doc.Labels["deployment"] == "" {
-			writeErrors(w, http.StatusBadRequest, fmt.Errorf("deployment query parameter is required"))
-			return
+		if doc.Metadata == nil {
+			doc.Metadata = make(map[string]string)
 		}
 
 		errs := indicator.Validate(doc)
@@ -51,7 +36,7 @@ func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 			return
 		}
 
-		store.Upsert(doc.Labels, doc.Indicators)
+		store.Upsert(doc)
 
 		w.WriteHeader(http.StatusOK)
 	}
@@ -71,10 +56,10 @@ type errorResponse struct {
 	Errors []string `json:"errors"`
 }
 
-func marshal(docs []Document) ([]byte, error) {
+func marshal(docs []indicator.Document) ([]byte, error) {
 	data := make([]APIV0Document, 0)
 	for _, doc := range docs {
-		data = append(data, doc.ToAPIV0())
+		data = append(data, ToAPIV0Document(doc))
 	}
 
 	return json.Marshal(data)

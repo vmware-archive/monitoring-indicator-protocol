@@ -1,26 +1,16 @@
 ---
 apiVersion: v0
 
-labels:
-  product: my-component
+product: my-component
+version: 0.1
 
-metrics:
-- name: latency
-  source_id: demo
-  origin: demo
-  title: Demo Latency
-  type: gauge
-  frequency: 30s
-  description: A test metric for testing
+metadata:
+  deployment: abc-123
 
 indicators:
 - name: test_performance_indicator
-  title: Test Performance Indicator
-  metrics:
-  - name: latency
-    source_id: demo
-  measurement: Average latency over last 5 minutes per instance
-  promql: avg_over_time(demo_latency{source_id="test"}[5m])
+
+  promql: avg_over_time(demo_latency{source_id="test",deployment="$deployment"}[5m])
   thresholds:
   - level: warning
     gte: 50
@@ -28,29 +18,25 @@ indicators:
   - level: critical
     gte: 100
     dynamic: true
-  description: |
-    This is a valid markdown description.
+  documentation:
+    title: Test Performance Indicator
+    measurement: Average latency over last 5 minutes per instance
+    description: |
+      This is a valid markdown description.
 
-    **Use**: This indicates nothing. It is placeholder text.
+      **Use**: This indicates nothing. It is placeholder text.
 
-    **Type**: Gauge
-    **Frequency**: 60 s
-  response: |
-    Panic! Run around in circles flailing your arms.
+      **Type**: Gauge
+      **Frequency**: 60 s
+    response: |
+      Panic! Run around in circles flailing your arms.
 
 documentation:
   title: Monitoring Test Product
   owner: Test Owner Team
   description: Test description
   sections:
-
   - title: Key Performance Indicators
     description: This section includes indicators
     indicators:
-    - name: test_performance_indicator
-
-  - title: Other Metrics Available
-    description: This section includes metrics
-    metrics:
-    - name: latency
-      source_id: demo
+    - test_performance_indicator

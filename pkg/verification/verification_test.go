@@ -25,16 +25,12 @@ func TestVerifyMetric(t *testing.T) {
 			},
 		}
 
-		m := indicator.Metric{
-			Title:       "Demo Component",
-			Origin:      "demo",
-			SourceID:    "demo_component",
-			Name:        "latency",
-			Type:        "gauge",
-			Description: "A test metric",
+		m := indicator.Indicator{
+			Name:          "latency",
+			PromQL:        `latency{source_id="demo_component",deployment="cf"}[1m]`,
 		}
 
-		_, err := verification.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, client)
+		_, err := verification.VerifyIndicator(m, client)
 
 		g.Expect(err).ToNot(HaveOccurred())
 	})
@@ -48,56 +44,15 @@ func TestVerifyMetric(t *testing.T) {
 			},
 		}
 
-		m := indicator.Metric{
-			Title:       "Demo Component",
-			Origin:      "demo",
-			SourceID:    "demo_component",
-			Name:        "latency",
-			Type:        "gauge",
-			Description: "A test metric",
+		m := indicator.Indicator{
+			Name:          "latency",
+			PromQL:        `latency{source_id="demo_component",deployment="cf"}[1m]`,
 		}
 
-		_, err := verification.VerifyMetric(m, `latency{source_id="demo_component",deployment="cf"}[1m]`, client)
+		_, err := verification.VerifyIndicator(m, client)
 
 		g.Expect(err).To(HaveOccurred())
 	})
-}
-
-func TestFormatQuery(t *testing.T) {
-
-	var characterConversions = []struct {
-		metric      indicator.Metric
-		interval    string
-		deployment string
-		expectation string
-	}{
-		{
-			metric:      indicator.Metric{SourceID: "router", Name: "uaa.latency"},
-			interval:    "1m",
-			deployment:  "deployment-1",
-			expectation: `uaa_latency{source_id="router",deployment="deployment-1"}[1m]`,
-		},
-		{
-			metric:      indicator.Metric{SourceID: "router", Name: `uaa/latency\a`},
-			interval:    "7m",
-			deployment:  "deployment-2",
-			expectation: `uaa_latency_a{source_id="router",deployment="deployment-2"}[7m]`,
-		},
-		{
-			metric:      indicator.Metric{SourceID: "router", Name: "uaa-latency"},
-			interval:    "4m",
-			deployment:  "deployment-3",
-			expectation: `uaa_latency{source_id="router",deployment="deployment-3"}[4m]`,
-		},
-	}
-
-	for _, cc := range characterConversions {
-		t.Run(cc.metric.Name, func(t *testing.T) {
-			g := NewGomegaWithT(t)
-
-			g.Expect(verification.FormatQuery(cc.metric, cc.deployment, cc.interval)).To(Equal(cc.expectation))
-		})
-	}
 }
 
 func logCachePromQLResponse(numSeries, numPoints int) model.Value {

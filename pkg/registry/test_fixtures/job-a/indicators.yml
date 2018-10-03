@@ -1,10 +1,11 @@
 ---
 apiVersion: v0
 
-labels:
-  product: job-a-product
+product: job-a-product
+version: 1.0
 
-metrics: []
+metadata:
+  deployment: abc-123
 
 indicators: []
 

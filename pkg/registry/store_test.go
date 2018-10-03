@@ -10,65 +10,70 @@ import (
 )
 
 func TestInsertDocument(t *testing.T) {
-	d := registry.NewDocumentStore(10 * time.Millisecond)
+
+	productAVersion1Document := indicator.Document{
+		Product: "my-product-a",
+		Version: "1",
+		Metadata: map[string]string{
+			"deployment": "abc-123",
+		},
+		Indicators: []indicator.Indicator{{
+			Name: "test_errors",
+		}},
+	}
+
+	productAVersion2Document := indicator.Document{
+		Product: "my-product-a",
+		Version: "2",
+		Metadata: map[string]string{
+			"deployment": "abc-123",
+		},
+		Indicators: []indicator.Indicator{{
+			Name: "test_error_ratio",
+		}},
+	}
+
+	productBDocument := indicator.Document{
+		Product: "my-product-b",
+		Version: "1",
+		Metadata: map[string]string{
+			"deployment": "def-456",
+		},
+		Indicators: []indicator.Indicator{{
+			Name: "test_latency",
+		}},
+	}
 
 	t.Run("it saves documents sent to it", func(t *testing.T) {
 		g := NewGomegaWithT(t)
+		store := registry.NewDocumentStore(10 * time.Millisecond)
 
-		d.Upsert(
-			map[string]string{"test_label": "test_value"},
-			[]indicator.Indicator{{
-				Name:  "test_name",
-				Title: "test_title",
-			}},
-		)
+		store.Upsert(productAVersion1Document)
 
-		docs := d.All()
-		g.Expect(docs).To(HaveLen(1))
-		g.Expect(docs[0].Indicators).To(Equal([]indicator.Indicator{{
-			Name:  "test_name",
-			Title: "test_title",
-		}}))
-		g.Expect(docs[0].Labels).To(Equal(map[string]string{"test_label": "test_value"}))
+		g.Expect(store.All()).To(ConsistOf(productAVersion1Document))
 	})
 
 	t.Run("it upserts documents based on labels", func(t *testing.T) {
 		g := NewGomegaWithT(t)
+		store := registry.NewDocumentStore(10 * time.Millisecond)
 
-		d.Upsert(
-			map[string]string{"deployment": "cf-abc-123", "product": "pas"},
-			[]indicator.Indicator{{
-				Name: "test_name",
-			}},
-		)
-		d.Upsert(
-			map[string]string{"deployment": "cf-abc-123", "product": "pas"},
-			[]indicator.Indicator{{
-				Name: "router_latency",
-			}, {
-				Name: "diego_capacity",
-			}},
-		)
+		store.Upsert(productAVersion1Document)
+		g.Expect(store.All()).To(ConsistOf(productAVersion1Document))
 
-		docs := d.All()
-		g.Expect(docs).To(HaveLen(2))
-		g.Expect(docs[0].Indicators).To(Equal([]indicator.Indicator{{
-			Name:  "test_name",
-			Title: "test_title",
-		}}))
-		g.Expect(docs[0].Labels).To(Equal(map[string]string{"test_label": "test_value"}))
-		g.Expect(docs[1].Indicators).To(Equal([]indicator.Indicator{{
-			Name: "router_latency",
-		}, {
-			Name: "diego_capacity",
-		}}))
-		g.Expect(docs[1].Labels).To(Equal(map[string]string{"deployment": "cf-abc-123", "product": "pas"}))
+		store.Upsert(productBDocument)
+		g.Expect(store.All()).To(ConsistOf(productAVersion1Document, productBDocument))
+
+		store.Upsert(productAVersion2Document)
+		g.Expect(store.All()).To(ConsistOf(productAVersion2Document, productBDocument))
 	})
 
 	t.Run("documents expire after an interval", func(t *testing.T) {
 		g := NewGomegaWithT(t)
+		store := registry.NewDocumentStore(10 * time.Millisecond)
 
-		time.Sleep(10 * time.Millisecond)
-		g.Expect(d.All()).To(HaveLen(0))
+		store.Upsert(productAVersion1Document)
+		time.Sleep(11 * time.Millisecond)
+
+		g.Expect(store.All()).To(HaveLen(0))
 	})
 }

@@ -1,89 +1,91 @@
 package registry
 
-import (
-	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"time"
-)
+import "code.cloudfoundry.org/indicators/pkg/indicator"
 
-type Document struct {
-	Labels                map[string]string
-	Indicators            []indicator.Indicator
-	registrationTimestamp time.Time
-}
-
-type APIV0Metric struct {
-	Title       string `json:"title"`
-	Origin      string `json:"origin"`
-	SourceID    string `json:"source_id"`
-	Name        string `json:"name"`
-	Type        string `json:"type"`
-	Description string `json:"description"`
-	Frequency   string `json:"frequency"`
+type APIV0Document struct {
+	APIVersion    string             `json:"apiVersion"`
+	Product       string             `json:"product"`
+	Version       string             `json:"version"`
+	Metadata      map[string]string  `json:"metadata"`
+	Indicators    []APIV0Indicator   `json:"indicators"`
+	Documentation APIV0Documentation `json:"documentation"`
 }
 
 type APIV0Threshold struct {
 	Level    string  `json:"level"`
-	Dynamic  bool    `json:"dynamic"`
 	Operator string  `json:"operator"`
 	Value    float64 `json:"value"`
 }
 
 type APIV0Indicator struct {
-	Name        string           `json:"name"`
-	Title       string           `json:"title"`
-	Description string           `json:"description"`
-	PromQL      string           `json:"promql"`
-	Thresholds  []APIV0Threshold `json:"thresholds"`
-	Metrics     []APIV0Metric    `json:"metrics"`
-	Response    string           `json:"response"`
-	Measurement string           `json:"measurement"`
+	Name          string            `json:"name"`
+	PromQL        string            `json:"promql"`
+	Thresholds    []APIV0Threshold  `json:"thresholds"`
+	Documentation map[string]string `json:"documentation"`
+	SLO           float64           `json:"slo"`
 }
 
-type APIV0Document struct {
-	Labels     map[string]string `json:"labels"`
-	Indicators []APIV0Indicator  `json:"indicators"`
+type APIV0Documentation struct {
+	Title       string         `json:"title"`
+	Description string         `json:"description"`
+	Sections    []APIV0Section `json:"sections"`
+	Owner       string         `json:"owner"`
 }
 
-func (doc Document) ToAPIV0() APIV0Document {
+type APIV0Section struct {
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Indicators  []string `json:"indicators"`
+}
+
+func ToAPIV0Document(doc indicator.Document) APIV0Document {
 	indicators := make([]APIV0Indicator, 0)
+
 	for _, i := range doc.Indicators {
 		thresholds := make([]APIV0Threshold, 0)
 		for _, t := range i.Thresholds {
 			thresholds = append(thresholds, APIV0Threshold{
 				Level:    t.Level,
-				Dynamic:  t.Dynamic,
 				Operator: t.Operator.String(),
 				Value:    t.Value,
 			})
 		}
 
-		metrics := make([]APIV0Metric, 0)
-		for _, m := range i.Metrics {
-			metrics = append(metrics, APIV0Metric{
-				Title:       m.Title,
-				Origin:      m.Origin,
-				SourceID:    m.SourceID,
-				Name:        m.Name,
-				Type:        m.Type,
-				Description: m.Description,
-				Frequency:   m.Frequency,
-			})
+		indicators = append(indicators, APIV0Indicator{
+			Name:          i.Name,
+			PromQL:        i.PromQL,
+			Thresholds:    thresholds,
+			SLO:           i.SLO,
+			Documentation: i.Documentation,
+		})
+	}
+
+	sections := make([]APIV0Section, 0)
+
+	for _, s := range doc.Documentation.Sections {
+		indicatorNames := make([]string, 0)
+		for _, i := range s.Indicators {
+			indicatorNames = append(indicatorNames, i.Name)
 		}
 
-		indicators = append(indicators, APIV0Indicator{
-			Name:        i.Name,
-			Title:       i.Title,
-			Description: i.Description,
-			PromQL:      i.PromQL,
-			Thresholds:  thresholds,
-			Metrics:     metrics,
-			Response:    i.Response,
-			Measurement: i.Measurement,
+		sections = append(sections, APIV0Section{
+			Title:       s.Title,
+			Description: s.Description,
+			Indicators:  indicatorNames,
 		})
 	}
 
 	return APIV0Document{
-		Labels:     doc.Labels,
+		APIVersion: doc.APIVersion,
+		Product:    doc.Product,
+		Version:    doc.Version,
+		Metadata:   doc.Metadata,
 		Indicators: indicators,
+		Documentation: APIV0Documentation{
+			Title:       doc.Documentation.Title,
+			Description: doc.Documentation.Description,
+			Sections:    nil,
+			Owner:       doc.Documentation.Owner,
+		},
 	}
 }
