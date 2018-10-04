@@ -1,16 +1,20 @@
 package indicator
 
 import (
+  "bytes"
   "fmt"
   "strconv"
 
   "gopkg.in/yaml.v2"
 )
 
-func ReadIndicatorDocument(yamlBytes []byte) (Document, error) {
+func ReadIndicatorDocument(yamlBytes []byte, overrideMetadata ...map[string]string) (Document, error) {
+  metadata, err := readMetadata(yamlBytes)
+  parsedYAMLBytes := fillInMetadata(metadata, overrideMetadata, yamlBytes)
+
   var d yamlDocument
 
-  err := yaml.Unmarshal(yamlBytes, &d)
+  err = yaml.Unmarshal(parsedYAMLBytes, &d)
   if err != nil {
     return Document{}, fmt.Errorf("could not unmarshal indicators: %s", err)
   }
@@ -160,4 +164,32 @@ func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
     Operator: operator,
     Value:    value,
   }, nil
+}
+
+func readMetadata(document []byte) (map[string]string, error) {
+  var d struct {
+    Metadata map[string]string `yaml:"metadata"`
+  }
+
+  err := yaml.Unmarshal(document, &d)
+  if err != nil {
+    return nil, fmt.Errorf("could not unmarshal metadata: %s", err)
+  }
+
+  return d.Metadata, nil
+}
+
+func fillInMetadata(documentMetadata map[string]string, overrideMetadata []map[string]string, documentBytes []byte) []byte {
+
+  for _, overrides := range overrideMetadata {
+    for k, v := range overrides {
+      documentMetadata[k] = v
+    }
+  }
+
+  for k, v := range documentMetadata {
+    documentBytes = bytes.Replace(documentBytes, []byte("$"+k), []byte(v), -1)
+  }
+
+  return documentBytes
 }

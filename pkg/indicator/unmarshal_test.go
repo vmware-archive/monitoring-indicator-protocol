@@ -1,11 +1,10 @@
 package indicator_test
 
 import (
-  "code.cloudfoundry.org/indicators/pkg/indicator"
-
+  . "github.com/onsi/gomega"
   "testing"
 
-  . "github.com/onsi/gomega"
+  "code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
 func TestReturnsCompleteDocument(t *testing.T) {
