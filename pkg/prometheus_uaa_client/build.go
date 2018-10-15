@@ -13,7 +13,16 @@ import (
 )
 
 func Build(url string, uaaHost string, uaaClientID string, uaaClientSecret string, insecure bool) (v1.API, error) {
+	c, err := NewUaaClient(url, insecure, uaaHost, uaaClientID, uaaClientSecret)
 
+	if err != nil {
+		return nil, err
+	}
+
+	return v1.NewAPI(c), err
+}
+
+func NewUaaClient(url string, insecure bool, uaaHost string, uaaClientID string, uaaClientSecret string) (*uaaClient, error) {
 	client, err := api.NewClient(api.Config{
 		Address: url,
 		RoundTripper: &http.Transport{
@@ -26,7 +35,6 @@ func Build(url string, uaaHost string, uaaClientID string, uaaClientSecret strin
 	if err != nil {
 		return nil, err
 	}
-
 	c := &uaaClient{
 		Client:          client,
 		uaaHost:         uaaHost,
@@ -34,8 +42,7 @@ func Build(url string, uaaHost string, uaaClientID string, uaaClientSecret strin
 		uaaClientSecret: uaaClientSecret,
 		insecure:        insecure,
 	}
-
-	return v1.NewAPI(c), err
+	return c, nil
 }
 
 type uaaClient struct {
