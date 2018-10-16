@@ -45,8 +45,8 @@ indicators:
 		g.Expect(resp.Code).To(Equal(http.StatusOK))
 		g.Expect(docStore.All()).To(ConsistOf(indicator.Document{
 			APIVersion: "v0",
-			Product: "redis-tile",
-			Version: "0.11",
+			Product:    "redis-tile",
+			Version:    "0.11",
 			Metadata: map[string]string{
 				"deployment": "redis-abc-123",
 			},
@@ -128,7 +128,10 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 				"deployment": "abc-123",
 			},
 			Indicators: []indicator.Indicator{{
-				Name: "test_errors",
+				Name: "test_errors1",
+			}, {
+				Name: "test_errors2",
+				SLO:  1,
 			}},
 		})
 
@@ -152,11 +155,17 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
                     },
                     "indicators": [
                       {
-                        "name": "test_errors",
+                        "name": "test_errors1",
+                        "promql": "",
+                        "thresholds": [],
+                        "documentation": null
+                      },
+                      {
+                        "name": "test_errors2",
                         "promql": "",
                         "thresholds": [],
                         "documentation": null,
-                        "slo": 0
+                        "slo": 1
                       }
                     ],
                     "documentation": {

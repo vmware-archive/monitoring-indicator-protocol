@@ -22,7 +22,7 @@ type APIV0Indicator struct {
 	PromQL        string            `json:"promql"`
 	Thresholds    []APIV0Threshold  `json:"thresholds"`
 	Documentation map[string]string `json:"documentation"`
-	SLO           float64           `json:"slo"`
+	SLO           float64           `json:"slo,omitempty"`
 }
 
 type APIV0Documentation struct {

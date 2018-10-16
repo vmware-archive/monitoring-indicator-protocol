@@ -28,8 +28,7 @@
           "recommended_response": "Panic! Run around in circles flailing your arms.",
           "threshold_note": "These are environment specific",
           "title": "Doc Performance Indicator"
-        },
-        "slo": 0
+        }
       }
     ],
     "documentation": {
