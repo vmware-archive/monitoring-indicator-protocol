@@ -35,8 +35,6 @@ func (c *APIClient) IndicatorDocuments() ([]APIV0Document, error) {
 		return nil, fmt.Errorf("failed to get indicator documents: %s\n", e)
 	}
 
-	println(string(payload))
-
 	var d []APIV0Document
 	err := json.Unmarshal(payload, &d)
 	return d, err
