@@ -8,6 +8,18 @@ import (
 	"net/http"
 )
 
+var supportedCipherSuites = []uint16{
+	tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+	tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+	tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+	tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+	tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+	tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+	tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+	tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+}
+
 func NewServer(address, serverPEM, serverKey, rootCACert string, handler http.Handler) (func() error, func() error, error) {
 	caCert, err := ioutil.ReadFile(rootCACert)
 	if err != nil {
@@ -16,6 +28,7 @@ func NewServer(address, serverPEM, serverKey, rootCACert string, handler http.Ha
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
+
 	server := &http.Server{
 		Addr:    address,
 		Handler: handler,
@@ -24,17 +37,7 @@ func NewServer(address, serverPEM, serverKey, rootCACert string, handler http.Ha
 			ClientAuth:               tls.RequireAndVerifyClientCert,
 			MinVersion:               tls.VersionTLS12,
 			PreferServerCipherSuites: true,
-			CipherSuites: []uint16{
-				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-				tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
-				tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
-				tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
-				tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-				tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			},
+			CipherSuites:             supportedCipherSuites,
 		},
 	}
 
@@ -65,17 +68,7 @@ func NewClient(clientCert, clientKey, rootCACert string) (*http.Client, error) {
 		RootCAs:                  caCertPool,
 		MinVersion:               tls.VersionTLS12,
 		PreferServerCipherSuites: true,
-		CipherSuites: []uint16{
-			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-		},
+		CipherSuites: supportedCipherSuites,
 	}
 	tlsConfig.BuildNameToCertificate()
 	client := &http.Client{
