@@ -1,5 +1,14 @@
 # github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
 github.com/beorn7/perks/quantile
+# github.com/cespare/xxhash v1.1.0
+github.com/cespare/xxhash
+# github.com/go-kit/kit v0.7.0
+github.com/go-kit/kit/log
+github.com/go-kit/kit/log/level
+# github.com/go-logfmt/logfmt v0.3.0
+github.com/go-logfmt/logfmt
+# github.com/go-stack/stack v1.8.0
+github.com/go-stack/stack
 # github.com/gogo/protobuf v1.1.2-0.20180830160456-5669497fd644
 github.com/gogo/protobuf/proto
 # github.com/golang/protobuf v1.2.0
@@ -8,8 +17,12 @@ github.com/golang/protobuf/proto
 github.com/gorilla/context
 # github.com/gorilla/mux v1.6.2
 github.com/gorilla/mux
+# github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
+github.com/kr/logfmt
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
+# github.com/oklog/ulid v1.3.1
+github.com/oklog/ulid
 # github.com/onsi/gomega v1.4.0
 github.com/onsi/gomega
 github.com/onsi/gomega/gexec
@@ -26,11 +39,16 @@ github.com/onsi/gomega/matchers/support/goraph/bipartitegraph
 github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
+# github.com/opentracing/opentracing-go v1.0.2
+github.com/opentracing/opentracing-go
+github.com/opentracing/opentracing-go/log
+# github.com/pkg/errors v0.8.0
+github.com/pkg/errors
 # github.com/prometheus/client_golang v0.9.0-pre1.0.20180905125505-3525612fea19
-github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/promhttp
 github.com/prometheus/client_golang/api
 github.com/prometheus/client_golang/api/prometheus/v1
+github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 # github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
 github.com/prometheus/client_model/go
@@ -43,12 +61,36 @@ github.com/prometheus/procfs
 github.com/prometheus/procfs/nfs
 github.com/prometheus/procfs/xfs
 github.com/prometheus/procfs/internal/util
+# github.com/prometheus/prometheus v2.4.3+incompatible
+github.com/prometheus/prometheus/promql
+github.com/prometheus/prometheus/pkg/labels
+github.com/prometheus/prometheus/pkg/textparse
+github.com/prometheus/prometheus/pkg/timestamp
+github.com/prometheus/prometheus/pkg/value
+github.com/prometheus/prometheus/storage
+github.com/prometheus/prometheus/util/stats
+github.com/prometheus/prometheus/util/strutil
+github.com/prometheus/prometheus/util/testutil
+github.com/prometheus/prometheus/storage/tsdb
+# github.com/prometheus/tsdb v0.0.0-20181016081506-18af5763d8f5
+github.com/prometheus/tsdb
+github.com/prometheus/tsdb/labels
+github.com/prometheus/tsdb/chunkenc
+github.com/prometheus/tsdb/chunks
+github.com/prometheus/tsdb/fileutil
+github.com/prometheus/tsdb/index
+github.com/prometheus/tsdb/wal
 # github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95
 github.com/shurcooL/sanitized_anchor_name
 # golang.org/x/net v0.0.0-20180530234432-1e491301e022
+golang.org/x/net/context
 golang.org/x/net/html/charset
 golang.org/x/net/html
 golang.org/x/net/html/atom
+# golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
+golang.org/x/sync/errgroup
+# golang.org/x/sys v0.0.0-20180808154034-904bdc257025
+golang.org/x/sys/unix
 # golang.org/x/text v0.3.0
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap

@@ -129,7 +129,53 @@ func TestIndicatorValidation(t *testing.T) {
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name is required"),
+			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
 			errors.New("indicators[0] promql is required"),
+		))
+	})
+
+	t.Run("validation returns errors if indicator name is not valid promql", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product: "valid",
+			Version: "1",
+			Indicators: []indicator.Indicator{
+				{
+					Name:        "not.valid",
+					PromQL:      " ",
+				},
+			},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
+			errors.New("indicators[0] promql is required"),
+		))
+	})
+
+	t.Run("validation returns errors if indicator name is not valid promql", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product: "valid",
+			Version: "1",
+			Indicators: []indicator.Indicator{
+				{
+					Name:        `valid{labels="nope"}`,
+					PromQL:      `valid{labels="yep"}`,
+				},
+			},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
 		))
 	})
 }

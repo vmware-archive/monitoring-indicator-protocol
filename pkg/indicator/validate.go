@@ -2,6 +2,7 @@ package indicator
 
 import (
 	"fmt"
+	"github.com/prometheus/prometheus/promql"
 	"strings"
 )
 
@@ -27,6 +28,12 @@ func Validate(document Document) []error {
 		if strings.TrimSpace(i.Name) == "" {
 			es = append(es, fmt.Errorf("indicators[%d] name is required", idx))
 		}
+
+		labels, err := promql.ParseMetric(i.Name)
+		if err != nil || labels.Len() > 1 {
+			es = append(es, fmt.Errorf("indicators[%d] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)", idx))
+		}
+
 
 		if strings.TrimSpace(i.PromQL) == "" {
 			es = append(es, fmt.Errorf("indicators[%d] promql is required", idx))
