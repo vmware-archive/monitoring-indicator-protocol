@@ -36,7 +36,7 @@ documentation:
     description: This section includes indicators and metrics
     indicators:
     - test_performance_indicator
-`))
+`), true)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(d).To(Equal(indicator.Document{
@@ -95,7 +95,7 @@ func TestReturnsAnEmptyListWhenNoIndicatorsArePassed(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d, err := indicator.ReadIndicatorDocument([]byte(`---
-indicators: []`))
+indicators: []`), true)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(d.Indicators).To(HaveLen(0))
@@ -121,7 +121,7 @@ indicators:
   - gte: 642
     level: warning
   - gt: 1.222225
-    level: warning`))
+    level: warning`), true)
 
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -167,7 +167,7 @@ indicators:
 func TestReturnsAnErrorIfTheYAMLIsUnparsable(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	_, err := indicator.ReadIndicatorDocument([]byte(`--`))
+	_, err := indicator.ReadIndicatorDocument([]byte(`--`), true)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -181,7 +181,7 @@ indicators:
   promql: prom
   thresholds:
   - level: warning
-  `))
+  `), true)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -196,7 +196,7 @@ indicators:
   thresholds:
   - gte: abs
     level: warning
-  `))
+  `), true)
 	g.Expect(err).To(HaveOccurred())
 }
 
@@ -217,7 +217,7 @@ documentation:
     description: metric desc
     indicators:
     - not_found
-  `))
+  `), true)
 		g.Expect(err).To(MatchError(ContainSubstring("documentation.sections[0].indicators[0] references non-existent indicator")))
 	})
 }

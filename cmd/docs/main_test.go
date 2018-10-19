@@ -44,6 +44,8 @@ func TestGenerateDocsBinary(t *testing.T) {
 			g.Expect(html).To(ContainSubstring(`This section includes indicators`))
 
 			g.Expect(html).To(ContainSubstring(`### <a id="test_performance_indicator"></a>Test Performance Indicator`))
+
+			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="test",deployment="$deployment"}[5m])`))
 		})
 
 		t.Run("It does not have multiple % signs", func(t *testing.T) {

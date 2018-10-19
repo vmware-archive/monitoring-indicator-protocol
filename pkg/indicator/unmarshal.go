@@ -8,13 +8,18 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func ReadIndicatorDocument(yamlBytes []byte, overrideMetadata ...map[string]string) (Document, error) {
-	metadata, err := readMetadata(yamlBytes)
-	parsedYAMLBytes := fillInMetadata(metadata, overrideMetadata, yamlBytes)
+func ReadIndicatorDocument(yamlBytes []byte, interpolateMetadata bool, overrideMetadata ...map[string]string) (Document, error) {
+	if interpolateMetadata {
+		metadata, err := readMetadata(yamlBytes)
+		if err != nil {
+			return Document{}, fmt.Errorf("could not read metadata: %s", err)
+		}
 
+		yamlBytes = fillInMetadata(metadata, overrideMetadata, yamlBytes)
+	}
 	var d yamlDocument
 
-	err = yaml.Unmarshal(parsedYAMLBytes, &d)
+	err := yaml.Unmarshal(yamlBytes, &d)
 	if err != nil {
 		return Document{}, fmt.Errorf("could not unmarshal indicators: %s", err)
 	}

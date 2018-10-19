@@ -70,7 +70,9 @@ indicators:
 		body := bytes.NewBuffer([]byte(`---
 apiVersion: v0
 indicators:
-- promql: " "`))
+- promql: " "
+  name: none
+`))
 
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)
 		resp := httptest.NewRecorder()
@@ -86,7 +88,7 @@ indicators:
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["product is required", "version is required",  "indicators[0] name is required", "indicators[0] promql is required"]}`))
+		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["product is required", "version is required", "indicators[0] promql is required"]}`))
 	})
 
 	t.Run("it returns 400 if the yml is invalid", func(t *testing.T) {
