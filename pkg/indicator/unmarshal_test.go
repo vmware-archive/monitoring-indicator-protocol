@@ -14,7 +14,7 @@ apiVersion: v0
 product: well-performing-component
 version: 0.0.1
 metadata:
-  deployment: well-performing-deployment
+  deployment: <%= spec.deployment %>
 
 indicators:
 - name: test_performance_indicator
@@ -23,7 +23,7 @@ indicators:
     description: This is a valid markdown description.
     recommended_response: Panic!
     threshold_note: Threshold Note Text
-  promql: prom
+  promql: prom{deployment="$deployment"}
   thresholds:
   - level: warning
     gte: 50
@@ -36,7 +36,7 @@ documentation:
     description: This section includes indicators and metrics
     indicators:
     - test_performance_indicator
-`))
+`), indicator.SkipMetadataInterpolation, indicator.OverrideMetadata(map[string]string{"deployment": "well-performing-deployment"}))
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(d).To(Equal(indicator.Document{
@@ -47,7 +47,7 @@ documentation:
 		Indicators: []indicator.Indicator{
 			{
 				Name:   "test_performance_indicator",
-				PromQL: "prom",
+				PromQL: `prom{deployment="$deployment"}`,
 				Thresholds: []indicator.Threshold{
 					{
 						Level:    "warning",
@@ -71,7 +71,7 @@ documentation:
 				Description: "This section includes indicators and metrics",
 				Indicators: []indicator.Indicator{{
 					Name:   "test_performance_indicator",
-					PromQL: "prom",
+					PromQL: `prom{deployment="$deployment"}`,
 					Thresholds: []indicator.Threshold{
 						{
 							Level:    "warning",

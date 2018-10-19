@@ -68,7 +68,7 @@ func TestValidateIndicators(t *testing.T) {
 		cmd := exec.Command(
 			binPath,
 			"--indicators", "./test_fixtures/indicators.yml",
-			"--deployment", "my-demo-deployment",
+			"--metadata", "deployment=my-demo-deployment",
 			"--log-cache-url", "http://"+logCacheServer.Addr(),
 			"--uaa-url", "http://"+uaaServer.Addr(),
 			"--log-cache-client", "my-uaa-client",
@@ -120,7 +120,7 @@ func TestValidateIndicators(t *testing.T) {
 		cmd := exec.Command(
 			binPath,
 			"--indicators", "./test_fixtures/indicators.yml",
-			"--deployment", "cf",
+			"--metadata", "deployment=cf",
 			"--log-cache-url", "http://"+logCacheServer.Addr(),
 			"--uaa-url", "http://"+uaaServer.Addr(),
 			"--log-cache-client", "my-uaa-client",

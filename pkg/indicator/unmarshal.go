@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -39,6 +40,10 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 	err := yaml.Unmarshal(yamlBytes, &d)
 	if err != nil {
 		return Document{}, fmt.Errorf("could not unmarshal indicators: %s", err)
+	}
+
+	for k, v := range readOptions.overrides {
+		d.Metadata[k] = v
 	}
 
 	var indicators []Indicator
@@ -105,6 +110,19 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 		Indicators:    indicators,
 		Documentation: documentation,
 	}, nil
+}
+
+func ParseMetadata(input string) map[string]string {
+	metadata := map[string]string{}
+
+	for _, pair := range strings.Split(input, ",") {
+		v := strings.Split(pair, "=")
+		if len(v) > 1 {
+			metadata[v[0]] = v[1]
+		}
+	}
+
+	return metadata
 }
 
 func getReadOpts(optionsFuncs []ReadOpt) readOptions {

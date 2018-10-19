@@ -17,7 +17,7 @@ func main() {
 	flagSet := flag.NewFlagSet("validator", flag.ErrorHandling(0))
 	indicatorsFile := flagSet.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/indicators)")
 	logCacheURL := flagSet.String("log-cache-url", "", "the log-cache url (e.g. https://log-cache.system.cfapp.com")
-	deployment := flagSet.String("deployment", "", "the source deployment of metrics emitted to loggregator. replaces any $deployment metadata")
+	metadata := flagSet.String("metadata", "", "metadata to overide (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
 	uaaURL := flagSet.String("uaa-url", "", "UAA server host (e.g. https://uaa.my-pcf.com)")
 	uaaClient := flagSet.String("log-cache-client", "", "the UAA client which has access to log-cache (doppler.firehose or logs.admin scope")
 	uaaClientSecret := flagSet.String("log-cache-client-secret", "", "the client secret")
@@ -25,7 +25,7 @@ func main() {
 
 	flagSet.Parse(os.Args[1:])
 
-	document, err := indicator.ReadFile(*indicatorsFile, indicator.OverrideMetadata(map[string]string{"deployment": *deployment}))
+	document, err := indicator.ReadFile(*indicatorsFile, indicator.OverrideMetadata(indicator.ParseMetadata(*metadata)))
 	if err != nil {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}
