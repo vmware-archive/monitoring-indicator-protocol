@@ -1,12 +1,12 @@
 package main
 
 import (
-	"os"
-	"log"
 	"fmt"
+	"log"
+	"os"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
 	"code.cloudfoundry.org/indicators/pkg/docs"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
 func main() {

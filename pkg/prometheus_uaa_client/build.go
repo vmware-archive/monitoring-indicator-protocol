@@ -11,7 +11,7 @@ import (
 )
 
 type wrappedClient struct {
-	tf *uaaTokenFetcher
+	tf         *uaaTokenFetcher
 	prometheus api.Client
 }
 

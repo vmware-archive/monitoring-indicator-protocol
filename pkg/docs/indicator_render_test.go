@@ -62,7 +62,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
 	})
 
 	t.Run("it skips the threshold section when absent", func(t *testing.T) {
-		g:= NewGomegaWithT(t)
+		g := NewGomegaWithT(t)
 
 		indicator := indicator.Indicator{
 			Name: "test_indicator",

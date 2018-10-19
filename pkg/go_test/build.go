@@ -1,9 +1,9 @@
 package go_test
 
 import (
-	"os/exec"
 	"fmt"
 	"io/ioutil"
+	"os/exec"
 )
 
 func Build(packagePath string, args ...string) (compiledPath string, err error) {
@@ -12,7 +12,7 @@ func Build(packagePath string, args ...string) (compiledPath string, err error) 
 		return "", err
 	}
 
-	build := exec.Command("go", "build", "-mod=vendor", "-o", tmpDir + "/build", packagePath)
+	build := exec.Command("go", "build", "-mod=vendor", "-o", tmpDir+"/build", packagePath)
 
 	output, err := build.CombinedOutput()
 	if err != nil {

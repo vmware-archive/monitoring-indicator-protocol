@@ -18,8 +18,8 @@ func TestValidDocument(t *testing.T) {
 			Product:    "valid",
 			Version:    "0.1.1",
 			Indicators: []indicator.Indicator{{
-				Name:        "test_performance_indicator",
-				PromQL:      "prom",
+				Name:   "test_performance_indicator",
+				PromQL: "prom",
 			}},
 			Documentation: indicator.Documentation{
 				Title:       "Monitoring Test Product",
@@ -44,8 +44,8 @@ func TestProduct(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product: "",
-			Version: "0.1.1",
+			Product:    "",
+			Version:    "0.1.1",
 		}
 
 		es := indicator.Validate(document)
@@ -62,8 +62,8 @@ func TestVersion(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product: "product",
-			Version: "",
+			Product:    "product",
+			Version:    "",
 		}
 
 		es := indicator.Validate(document)
@@ -96,8 +96,8 @@ func TestAPIVersion(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "fake-version",
-			Product: "product",
-			Version: "1",
+			Product:    "product",
+			Version:    "1",
 		}
 
 		es := indicator.Validate(document)
@@ -115,12 +115,12 @@ func TestIndicatorValidation(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product: "valid",
-			Version: "1",
+			Product:    "valid",
+			Version:    "1",
 			Indicators: []indicator.Indicator{
 				{
-					Name:        " ",
-					PromQL:      " ",
+					Name:   " ",
+					PromQL: " ",
 				},
 			},
 		}
@@ -139,12 +139,12 @@ func TestIndicatorValidation(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product: "valid",
-			Version: "1",
+			Product:    "valid",
+			Version:    "1",
 			Indicators: []indicator.Indicator{
 				{
-					Name:        "not.valid",
-					PromQL:      " ",
+					Name:   "not.valid",
+					PromQL: " ",
 				},
 			},
 		}
@@ -162,12 +162,12 @@ func TestIndicatorValidation(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product: "valid",
-			Version: "1",
+			Product:    "valid",
+			Version:    "1",
 			Indicators: []indicator.Indicator{
 				{
-					Name:        `valid{labels="nope"}`,
-					PromQL:      `valid{labels="yep"}`,
+					Name:   `valid{labels="nope"}`,
+					PromQL: `valid{labels="yep"}`,
 				},
 			},
 		}

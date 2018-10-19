@@ -7,9 +7,9 @@ import (
 	"github.com/onsi/gomega/gexec"
 
 	"bytes"
+	"code.cloudfoundry.org/indicators/pkg/go_test"
 	"os"
 	"os/exec"
-	"code.cloudfoundry.org/indicators/pkg/go_test"
 )
 
 func TestGenerateDocsBinary(t *testing.T) {

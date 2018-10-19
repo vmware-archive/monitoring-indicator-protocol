@@ -1,31 +1,31 @@
 package indicator
 
 import (
-  "fmt"
-  "io/ioutil"
-  "log"
+	"fmt"
+	"io/ioutil"
+	"log"
 )
 
 func ReadFile(indicatorsFile string, interpolateMetadata bool, overrideMetadata ...map[string]string) (Document, error) {
-  fileBytes, err := ioutil.ReadFile(indicatorsFile)
-  if err != nil {
-    return Document{}, err
-  }
+	fileBytes, err := ioutil.ReadFile(indicatorsFile)
+	if err != nil {
+		return Document{}, err
+	}
 
-  indicatorDocument, err := ReadIndicatorDocument(fileBytes, interpolateMetadata, overrideMetadata...)
-  if err != nil {
-    return Document{}, err
-  }
+	indicatorDocument, err := ReadIndicatorDocument(fileBytes, interpolateMetadata, overrideMetadata...)
+	if err != nil {
+		return Document{}, err
+	}
 
-  validationErrors := Validate(indicatorDocument)
-  if len(validationErrors) > 0 {
+	validationErrors := Validate(indicatorDocument)
+	if len(validationErrors) > 0 {
 
-    for _, e := range validationErrors {
-      log.Printf("- %s \n", e.Error())
-    }
+		for _, e := range validationErrors {
+			log.Printf("- %s \n", e.Error())
+		}
 
-    return Document{}, fmt.Errorf("validation for indicator file failed - [%+v]", validationErrors)
-  }
+		return Document{}, fmt.Errorf("validation for indicator file failed - [%+v]", validationErrors)
+	}
 
-  return indicatorDocument, nil
+	return indicatorDocument, nil
 }

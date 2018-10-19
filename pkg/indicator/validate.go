@@ -34,7 +34,6 @@ func Validate(document Document) []error {
 			es = append(es, fmt.Errorf("indicators[%d] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)", idx))
 		}
 
-
 		if strings.TrimSpace(i.PromQL) == "" {
 			es = append(es, fmt.Errorf("indicators[%d] promql is required", idx))
 		}

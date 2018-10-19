@@ -21,4 +21,3 @@ func WaitForHTTPServer(host string, timeout time.Duration) error {
 		}
 	}
 }
-

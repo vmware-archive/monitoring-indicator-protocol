@@ -68,7 +68,7 @@ func NewClient(clientCert, clientKey, rootCACert string) (*http.Client, error) {
 		RootCAs:                  caCertPool,
 		MinVersion:               tls.VersionTLS12,
 		PreferServerCipherSuites: true,
-		CipherSuites: supportedCipherSuites,
+		CipherSuites:             supportedCipherSuites,
 	}
 	tlsConfig.BuildNameToCertificate()
 	client := &http.Client{
