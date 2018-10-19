@@ -20,7 +20,7 @@ func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 			return
 		}
 
-		doc, err := indicator.ReadIndicatorDocument(documentBytes, true)
+		doc, err := indicator.ReadIndicatorDocument(documentBytes)
 		if err != nil {
 			writeErrors(w, http.StatusBadRequest, err)
 			return

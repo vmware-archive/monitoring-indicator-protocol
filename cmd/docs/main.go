@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	document, err := indicator.ReadFile(os.Args[1], false)
+	document, err := indicator.ReadFile(os.Args[1], indicator.SkipMetadataInterpolation)
 	if err != nil {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}

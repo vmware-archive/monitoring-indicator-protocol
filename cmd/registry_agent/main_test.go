@@ -40,7 +40,7 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 			body, err := ioutil.ReadAll(r.Body)
 			g.Expect(err).To(Not(HaveOccurred()))
 
-			document, err := indicator.ReadIndicatorDocument(body, true)
+			document, err := indicator.ReadIndicatorDocument(body)
 			g.Expect(err).To(Not(HaveOccurred()))
 
 			receivedDocuments <- document

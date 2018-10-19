@@ -26,7 +26,7 @@ func TestRegistryAgent(t *testing.T) {
 			content, err := ioutil.ReadAll(r.Body)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			document, err := indicator.ReadIndicatorDocument(content, true)
+			document, err := indicator.ReadIndicatorDocument(content)
 			g.Expect(err).To(Not(HaveOccurred()))
 
 			receivedDocument <- document

@@ -8,15 +8,32 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func ReadIndicatorDocument(yamlBytes []byte, interpolateMetadata bool, overrideMetadata ...map[string]string) (Document, error) {
-	if interpolateMetadata {
+type ReadOpt func(options *readOptions)
+
+func SkipMetadataInterpolation(options *readOptions) {
+	options.interpolate = false
+}
+
+func OverrideMetadata(overrideMetadata map[string]string) func(options *readOptions) {
+	return func(options *readOptions) {
+		for k, v := range overrideMetadata {
+			options.overrides[k] = v
+		}
+	}
+}
+
+func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) {
+	readOptions := getReadOpts(opts)
+
+	if readOptions.interpolate {
 		metadata, err := readMetadata(yamlBytes)
 		if err != nil {
 			return Document{}, fmt.Errorf("could not read metadata: %s", err)
 		}
 
-		yamlBytes = fillInMetadata(metadata, overrideMetadata, yamlBytes)
+		yamlBytes = fillInMetadata(metadata, readOptions.overrides, yamlBytes)
 	}
+
 	var d yamlDocument
 
 	err := yaml.Unmarshal(yamlBytes, &d)
@@ -88,6 +105,24 @@ func ReadIndicatorDocument(yamlBytes []byte, interpolateMetadata bool, overrideM
 		Indicators:    indicators,
 		Documentation: documentation,
 	}, nil
+}
+
+func getReadOpts(optionsFuncs []ReadOpt) readOptions {
+	options := readOptions{
+		interpolate: true,
+		overrides:   map[string]string{},
+	}
+
+	for _, fn := range optionsFuncs {
+		fn(&options)
+	}
+
+	return options
+}
+
+type readOptions struct {
+	interpolate bool
+	overrides   map[string]string
 }
 
 type yamlDocument struct {
@@ -193,12 +228,10 @@ func readMetadata(document []byte) (map[string]string, error) {
 	return d.Metadata, nil
 }
 
-func fillInMetadata(documentMetadata map[string]string, overrideMetadata []map[string]string, documentBytes []byte) []byte {
+func fillInMetadata(documentMetadata map[string]string, overrideMetadata map[string]string, documentBytes []byte) []byte {
 
-	for _, overrides := range overrideMetadata {
-		for k, v := range overrides {
-			documentMetadata[k] = v
-		}
+	for k, v := range overrideMetadata {
+		documentMetadata[k] = v
 	}
 
 	for k, v := range documentMetadata {

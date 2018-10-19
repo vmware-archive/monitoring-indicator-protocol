@@ -22,7 +22,7 @@ indicators:
 
 	t.Run("it replaces promql $EXPR with metadata tags", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		d, err := indicator.ReadIndicatorDocument(fileBytes, true)
+		d, err := indicator.ReadIndicatorDocument(fileBytes)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d).To(Equal(indicator.Document{
@@ -42,7 +42,7 @@ indicators:
 
 	t.Run("it does not replaces promql $EXPR with metadata tags when passed flag", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		d, err := indicator.ReadIndicatorDocument(fileBytes, false)
+		d, err := indicator.ReadIndicatorDocument(fileBytes, indicator.SkipMetadataInterpolation)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d).To(Equal(indicator.Document{

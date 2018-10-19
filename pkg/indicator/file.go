@@ -6,13 +6,13 @@ import (
 	"log"
 )
 
-func ReadFile(indicatorsFile string, interpolateMetadata bool, overrideMetadata ...map[string]string) (Document, error) {
+func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
 	fileBytes, err := ioutil.ReadFile(indicatorsFile)
 	if err != nil {
 		return Document{}, err
 	}
 
-	indicatorDocument, err := ReadIndicatorDocument(fileBytes, interpolateMetadata, overrideMetadata...)
+	indicatorDocument, err := ReadIndicatorDocument(fileBytes, opts...)
 	if err != nil {
 		return Document{}, err
 	}

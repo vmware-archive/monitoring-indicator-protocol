@@ -24,7 +24,7 @@ func main() {
 
 	flagSet.Parse(os.Args[1:])
 
-	document, err := indicator.ReadFile(*indicatorsFile, true, map[string]string{"deployment": *deployment})
+	document, err := indicator.ReadFile(*indicatorsFile, indicator.OverrideMetadata(map[string]string{"deployment": *deployment}))
 	if err != nil {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}
