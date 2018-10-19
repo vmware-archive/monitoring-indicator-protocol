@@ -7,6 +7,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -29,7 +30,15 @@ func main() {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}
 
-	prometheusClient, err := prometheus_uaa_client.Build(*logCacheURL, *uaaURL, *uaaClient, *uaaClientSecret, *insecure)
+	tokenFetcher := prometheus_uaa_client.NewUAATokenFetcher(prometheus_uaa_client.UAAClientConfig{
+		*insecure,
+		*uaaURL,
+		*uaaClient,
+		*uaaClientSecret,
+		time.Minute,
+	})
+
+	prometheusClient, err := prometheus_uaa_client.Build(*logCacheURL, tokenFetcher.GetClientToken, *insecure)
 	if err != nil {
 		log.Fatalf("could not create prometheus client: %s\n", err)
 	}
