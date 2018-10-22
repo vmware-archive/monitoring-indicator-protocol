@@ -9,7 +9,7 @@
     "indicators": [
       {
         "name": "doc_performance_indicator",
-        "promql": "avg_over_time(demo_latency{source_id=\"doc\"}[5m])",
+        "promql": "avg_over_time(demo_latency{source_id=\"doc\",deployment=\"my-service-deployment\"}[5m])",
         "thresholds": [
           {
             "level": "warning",
