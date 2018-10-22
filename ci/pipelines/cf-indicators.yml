@@ -214,7 +214,7 @@ jobs:
           EOF
 
             go run -mod=vendor cmd/verification/main.go -indicators=indicators.yml \
-                                                        -deployment=${DEPLOYMENT_NAME} \
+                                                        -metadata="deployment=${DEPLOYMENT_NAME}" \
                                                         -uaa-url=https://login.${ENVIRONMENT}.cf-denver.com \
                                                         -log-cache-client=firehose_exporter \
                                                         -log-cache-client-secret=$(credhub g -n /bosh-${ENVIRONMENT}/cf/uaa_clients_firehose_exporter_secret -j | jq -r .value) \
