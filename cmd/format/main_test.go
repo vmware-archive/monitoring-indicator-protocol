@@ -54,4 +54,25 @@ func TestFormatBinary(t *testing.T) {
 			g.Expect(html).ToNot(ContainSubstring("%%"))
 		})
 	})
+
+	t.Run("accepts indicator yml and returns grafana dashboards", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		cmd := exec.Command(binPath, "-format","grafana","../../example.yml")
+
+		buffer := bytes.NewBuffer(nil)
+
+		sess, err := gexec.Start(cmd, buffer, os.Stderr)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Eventually(sess).Should(gexec.Exit(0))
+
+		text := buffer.String()
+
+		t.Run("it outputs indicators titles", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			g.Expect(text).To(ContainSubstring(`"title":"doc_performance_indicator"`))
+			g.Expect(text).To(ContainSubstring(`"expr":"avg_over_time(demo_latency{source_id=\"doc\",deployment=\"my-service-deployment\"}[5m])"`))
+		})
+	})
 }

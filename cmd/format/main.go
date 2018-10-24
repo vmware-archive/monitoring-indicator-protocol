@@ -4,8 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
-
+	
 	"code.cloudfoundry.org/indicators/pkg/docs"
+	"code.cloudfoundry.org/indicators/pkg/grafana_dashboard"
 	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
@@ -34,6 +35,8 @@ func parseDocument(format string, filePath string) (string, error) {
 	case "bookbinder":
 		s, e := docs.DocumentToHTML(getDocument(filePath, indicator.SkipMetadataInterpolation))
 		return string(s), e
+	case "grafana":
+		return grafana_dashboard.DocumentToDashboard(getDocument(filePath))
 
 	//case "prometheus-alerts":
 	//	yamlOutput, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(getDocument(filePath)))
@@ -45,7 +48,7 @@ func parseDocument(format string, filePath string) (string, error) {
 }
 
 func getDocument(docPath string, opts ...indicator.ReadOpt) indicator.Document {
-	document, err := indicator.ReadFile(docPath, indicator.SkipMetadataInterpolation)
+	document, err := indicator.ReadFile(docPath, opts...)
 	if err != nil {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}
