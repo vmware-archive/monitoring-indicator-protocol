@@ -114,7 +114,7 @@ jobs:
           export GO111MODULE=on
 
           pushd indicators/
-            go run -mod=vendor cmd/docs/main.go example.yml
+            go run -mod=vendor cmd/format/main.go -format bookbinder example.yml
           popd
 
 - name: upload-test-docs-to-s3
@@ -147,7 +147,7 @@ jobs:
           export WORKSPACE=$PWD
 
           pushd indicators/
-            go run -mod=vendor cmd/docs/main.go example.yml > ${WORKSPACE}/healthwatch_part.html
+            go run -mod=vendor cmd/format/main.go -format bookbinder example.yml > ${WORKSPACE}/healthwatch_part.html
           popd
 
           sed '/SUBSTITUTE_HERE/{
@@ -444,11 +444,11 @@ jobs:
 
           pushd indicators
             echo "Building darwin cli-plugin binary"
-            GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-docs-macosx64-${BUILD_NUMBER} cmd/docs/main.go
+            GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-format-macosx64-${BUILD_NUMBER} cmd/format/main.go
             GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-verification-macosx64-${BUILD_NUMBER} cmd/verification/main.go
 
             echo "Building amd64 linux cli-plugin binary"
-            GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-docs-linux64-${BUILD_NUMBER} cmd/docs/main.go
+            GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-format-linux64-${BUILD_NUMBER} cmd/format/main.go
             GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-verification-linux64-${BUILD_NUMBER} cmd/verification/main.go
           popd
   - put: indicators

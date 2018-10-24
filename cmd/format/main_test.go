@@ -21,7 +21,7 @@ func TestFormatBinary(t *testing.T) {
 	t.Run("accepts indicator yml file as a command line argument and returns formatted HTML", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		cmd := exec.Command(binPath, "-format","bookbinder","./test_fixtures/valid.yml")
+		cmd := exec.Command(binPath, "-format","bookbinder","../../example.yml")
 
 		buffer := bytes.NewBuffer(nil)
 
@@ -34,18 +34,18 @@ func TestFormatBinary(t *testing.T) {
 
 		t.Run("It displays document title and description", func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			g.Expect(html).To(ContainSubstring(`title: Monitoring Test Product`))
-			g.Expect(html).To(ContainSubstring(`Test description`))
+			g.Expect(html).To(ContainSubstring(`title: Monitoring Document Product`))
+			g.Expect(html).To(ContainSubstring(`Document description`))
 		})
 
 		t.Run("It displays indicator sections", func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			g.Expect(html).To(ContainSubstring(`## <a id="key-performance-indicators"></a>Key Performance Indicators`))
+			g.Expect(html).To(ContainSubstring(`## <a id="indicators"></a>Indicators`))
 			g.Expect(html).To(ContainSubstring(`This section includes indicators`))
 
-			g.Expect(html).To(ContainSubstring(`### <a id="test_performance_indicator"></a>Test Performance Indicator`))
+			g.Expect(html).To(ContainSubstring(`### <a id="doc_performance_indicator"></a>Doc Performance Indicator`))
 
-			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="test",deployment="$deployment"}[5m])`))
+			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="doc",deployment="$deployment"}[5m])`))
 		})
 
 		t.Run("It does not have multiple % signs", func(t *testing.T) {
