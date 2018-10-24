@@ -12,7 +12,7 @@ import (
 	"os/exec"
 )
 
-func TestGenerateDocsBinary(t *testing.T) {
+func TestFormatBinary(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	binPath, err := go_test.Build("./")
@@ -21,7 +21,7 @@ func TestGenerateDocsBinary(t *testing.T) {
 	t.Run("accepts indicator yml file as a command line argument and returns formatted HTML", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		cmd := exec.Command(binPath, "./test_fixtures/valid.yml")
+		cmd := exec.Command(binPath, "-format","bookbinder","./test_fixtures/valid.yml")
 
 		buffer := bytes.NewBuffer(nil)
 
