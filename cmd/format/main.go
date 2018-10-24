@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	output := flag.String("format", "bookbinder", "output format [bookbinder,html,grafana]")
+	outputFormat := flag.String("format", "bookbinder", "output format [bookbinder,prometheus-alerts]")
 	flag.Parse()
 
 	args := flag.Args()
@@ -18,19 +18,37 @@ func main() {
 		log.Fatalf("only one file argument allowed\n")
 	}
 
-	document, err := indicator.ReadFile(args[0], indicator.SkipMetadataInterpolation)
+	filePath := args[0]
+
+	output, err := parseDocument(*outputFormat, filePath)
+	if len(args) != 1 {
+		log.Fatal(err)
+	}
+
+	fmt.Print(output)
+
+}
+
+func parseDocument(format string, filePath string) (string, error) {
+	switch format {
+	case "bookbinder":
+		s, e := docs.DocumentToHTML(getDocument(filePath, indicator.SkipMetadataInterpolation))
+		return string(s), e
+
+	//case "prometheus-alerts":
+	//	yamlOutput, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(getDocument(filePath)))
+	//	return string(yamlOutput), err
+
+	default:
+		return "", fmt.Errorf(`format "%s" not supported`, format)
+	}
+}
+
+func getDocument(docPath string, opts ...indicator.ReadOpt) indicator.Document {
+	document, err := indicator.ReadFile(docPath, indicator.SkipMetadataInterpolation)
 	if err != nil {
 		log.Fatalf("could not read indicators document: %s\n", err)
 	}
-	var text string
 
-	switch *output {
-	case "bookbinder":
-		text, err = docs.DocumentToHTML(document)
-		if err != nil {
-			log.Fatalf("cannot render document: %s\n", err)
-		}
-	}
-
-	fmt.Print(text)
+	return document
 }
