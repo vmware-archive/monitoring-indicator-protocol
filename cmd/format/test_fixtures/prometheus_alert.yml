@@ -1,0 +1,43 @@
+---
+groups:
+- name: my-component
+  rules:
+  - alert: doc_performance_indicator
+    expr: avg_over_time(demo_latency{source_id="doc",deployment="my-service-deployment"}[5m]) >= 50
+    labels:
+      product: my-component
+      version: 1.2.3
+      level: warning
+      deployment: my-service-deployment
+    annotations:
+      title: Doc Performance Indicator
+      measurement: Average latency over last 5 minutes per instance
+      description: |
+        This is a valid markdown description.
+
+        **Use**: This indicates nothing. It is placeholder text.
+
+        **Type**: Gauge
+        **Frequency**: 60 s
+      recommended_response: Panic! Run around in circles flailing your arms.
+      threshold_note: These are environment specific
+
+  - alert: doc_performance_indicator
+    expr: avg_over_time(demo_latency{source_id="doc",deployment="my-service-deployment"}[5m]) > 100
+    labels:
+      product: my-component
+      version: 1.2.3
+      level: critical
+      deployment: my-service-deployment
+    annotations:
+      title: Doc Performance Indicator
+      measurement: Average latency over last 5 minutes per instance
+      description: |
+        This is a valid markdown description.
+
+        **Use**: This indicates nothing. It is placeholder text.
+
+        **Type**: Gauge
+        **Frequency**: 60 s
+      recommended_response: Panic! Run around in circles flailing your arms.
+      threshold_note: These are environment specific

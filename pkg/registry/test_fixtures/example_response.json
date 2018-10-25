@@ -18,7 +18,7 @@
           },
           {
             "level": "critical",
-            "operator": "gte",
+            "operator": "gt",
             "value": 100
           }
         ],

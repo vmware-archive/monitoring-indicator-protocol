@@ -1,8 +1,10 @@
 package main
 
 import (
+	"code.cloudfoundry.org/indicators/pkg/prometheus_alerts"
 	"flag"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"log"
 	
 	"code.cloudfoundry.org/indicators/pkg/docs"
@@ -38,9 +40,9 @@ func parseDocument(format string, filePath string) (string, error) {
 	case "grafana":
 		return grafana_dashboard.DocumentToDashboard(getDocument(filePath))
 
-	//case "prometheus-alerts":
-	//	yamlOutput, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(getDocument(filePath)))
-	//	return string(yamlOutput), err
+	case "prometheus-alerts":
+		yamlOutput, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(getDocument(filePath)))
+		return string(yamlOutput), err
 
 	default:
 		return "", fmt.Errorf(`format "%s" not supported`, format)

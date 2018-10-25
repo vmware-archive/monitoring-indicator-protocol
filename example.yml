@@ -14,7 +14,7 @@ indicators:
   - level: warning
     gte: 50
   - level: critical
-    gte: 100
+    gt: 100
   documentation:
     title: Doc Performance Indicator
     measurement: Average latency over last 5 minutes per instance

@@ -11,7 +11,7 @@ const (
 	GreaterThan
 )
 
-func (e OperatorType) String() string {
+func GetComparatorDescription(e OperatorType) string {
 	switch e {
 	case LessThan:
 		return "lt"
@@ -28,6 +28,25 @@ func (e OperatorType) String() string {
 	default:
 		return ""
 	}
+}
+
+func GetComparator(e OperatorType) string {
+	switch e {
+	case LessThan:
+		return "<"
+	case LessThanOrEqualTo:
+		return "<="
+	case EqualTo:
+		return "=="
+	case NotEqualTo:
+		return "!="
+	case GreaterThanOrEqualTo:
+		return ">="
+	case GreaterThan:
+		return ">"
+	}
+
+	return ""
 }
 
 type Document struct {

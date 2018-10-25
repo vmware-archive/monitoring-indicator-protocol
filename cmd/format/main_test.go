@@ -1,15 +1,16 @@
 package main_test
 
 import (
+	"bytes"
+	"io/ioutil"
+	"os"
+	"os/exec"
 	"testing"
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
-	"bytes"
 	"code.cloudfoundry.org/indicators/pkg/go_test"
-	"os"
-	"os/exec"
 )
 
 func TestFormatBinary(t *testing.T) {
@@ -21,7 +22,7 @@ func TestFormatBinary(t *testing.T) {
 	t.Run("accepts indicator yml file as a command line argument and returns formatted HTML", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		cmd := exec.Command(binPath, "-format","bookbinder","../../example.yml")
+		cmd := exec.Command(binPath, "-format", "bookbinder", "../../example.yml")
 
 		buffer := bytes.NewBuffer(nil)
 
@@ -55,10 +56,30 @@ func TestFormatBinary(t *testing.T) {
 		})
 	})
 
+	t.Run("accepts indicator yml file as a command line argument and outputs prometheus alert configuration", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		cmd := exec.Command(binPath, "-format", "prometheus-alerts", "../../example.yml")
+
+		buffer := bytes.NewBuffer(nil)
+
+		sess, err := gexec.Start(cmd, buffer, os.Stderr)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Eventually(sess).Should(gexec.Exit(0))
+
+		prometheusAlertConfigurationYML := buffer.String()
+
+		fileBytes, err := ioutil.ReadFile("test_fixtures/prometheus_alert.yml")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(prometheusAlertConfigurationYML).To(MatchYAML(fileBytes))
+	})
+
 	t.Run("accepts indicator yml and returns grafana dashboards", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		cmd := exec.Command(binPath, "-format","grafana","../../example.yml")
+		cmd := exec.Command(binPath, "-format", "grafana", "../../example.yml")
 
 		buffer := bytes.NewBuffer(nil)
 

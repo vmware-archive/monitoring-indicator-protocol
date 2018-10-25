@@ -175,7 +175,6 @@ type yamlIndicator struct {
 
 type yamlThreshold struct {
 	Level   string `yaml:"level"`
-	Dynamic bool   `yaml:"dynamic"`
 	LT      string `yaml:"lt"`
 	LTE     string `yaml:"lte"`
 	EQ      string `yaml:"eq"`

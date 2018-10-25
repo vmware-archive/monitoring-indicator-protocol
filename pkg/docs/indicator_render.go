@@ -102,22 +102,7 @@ func (t thresholdPresenter) OperatorAndValue() string {
 }
 
 func (t thresholdPresenter) operator() string {
-	switch t.threshold.Operator {
-	case indicator.LessThan:
-		return "<"
-	case indicator.LessThanOrEqualTo:
-		return "<="
-	case indicator.EqualTo:
-		return "=="
-	case indicator.NotEqualTo:
-		return "!="
-	case indicator.GreaterThanOrEqualTo:
-		return ">="
-	case indicator.GreaterThan:
-		return ">"
-	default:
-		return ""
-	}
+	return indicator.GetComparator(t.threshold.Operator)
 }
 
 func (t thresholdPresenter) value() string {
