@@ -11,44 +11,6 @@ const (
 	GreaterThan
 )
 
-func GetComparatorDescription(e OperatorType) string {
-	switch e {
-	case LessThan:
-		return "lt"
-	case LessThanOrEqualTo:
-		return "lte"
-	case EqualTo:
-		return "eq"
-	case NotEqualTo:
-		return "neq"
-	case GreaterThanOrEqualTo:
-		return "gte"
-	case GreaterThan:
-		return "gt"
-	default:
-		return ""
-	}
-}
-
-func GetComparator(e OperatorType) string {
-	switch e {
-	case LessThan:
-		return "<"
-	case LessThanOrEqualTo:
-		return "<="
-	case EqualTo:
-		return "=="
-	case NotEqualTo:
-		return "!="
-	case GreaterThanOrEqualTo:
-		return ">="
-	case GreaterThan:
-		return ">"
-	}
-
-	return ""
-}
-
 type Document struct {
 	APIVersion    string
 	Product       string
@@ -70,6 +32,44 @@ type Threshold struct {
 	Level    string
 	Operator OperatorType
 	Value    float64
+}
+
+func (e *Threshold) GetComparatorAbbrev() string {
+	switch e.Operator {
+	case LessThan:
+		return "lt"
+	case LessThanOrEqualTo:
+		return "lte"
+	case EqualTo:
+		return "eq"
+	case NotEqualTo:
+		return "neq"
+	case GreaterThanOrEqualTo:
+		return "gte"
+	case GreaterThan:
+		return "gt"
+	default:
+		return ""
+	}
+}
+
+func (e *Threshold) GetComparator() string {
+	switch e.Operator {
+	case LessThan:
+		return "<"
+	case LessThanOrEqualTo:
+		return "<="
+	case EqualTo:
+		return "=="
+	case NotEqualTo:
+		return "!="
+	case GreaterThanOrEqualTo:
+		return ">="
+	case GreaterThan:
+		return ">"
+	}
+
+	return ""
 }
 
 type Documentation struct {

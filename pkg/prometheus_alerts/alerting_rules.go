@@ -17,7 +17,7 @@ type Document struct {
 }
 
 type Group struct {
-	Name string
+	Name  string
 	Rules []Rule
 }
 
@@ -38,15 +38,15 @@ func AlertDocumentFrom(document indicator.Document) Document {
 	}
 }
 
-func ruleFrom(document indicator.Document, ind indicator.Indicator, threshold indicator.Threshold) Rule {
+func ruleFrom(document indicator.Document, indicator indicator.Indicator, threshold indicator.Threshold) Rule {
 	labels := map[string]string{
 		"product": document.Product,
 		"version": document.Version,
 		"level":   threshold.Level,
 	}
 
-	if ind.SLO != 0 {
-		labels["slo"] = fmt.Sprintf("%+v", ind.SLO)
+	if indicator.SLO != 0 {
+		labels["slo"] = fmt.Sprintf("%+v", indicator.SLO)
 	}
 
 	for k, v := range document.Metadata {
@@ -54,9 +54,9 @@ func ruleFrom(document indicator.Document, ind indicator.Indicator, threshold in
 	}
 
 	return Rule{
-		Alert:       ind.Name,
-		Expr:        fmt.Sprintf("%s %s %+v", ind.PromQL, indicator.GetComparator(threshold.Operator), threshold.Value),
+		Alert:       indicator.Name,
+		Expr:        fmt.Sprintf("%s %s %+v", indicator.PromQL, threshold.GetComparator(), threshold.Value),
 		Labels:      labels,
-		Annotations: ind.Documentation,
+		Annotations: indicator.Documentation,
 	}
 }

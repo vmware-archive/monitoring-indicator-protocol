@@ -46,7 +46,7 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 		for _, t := range i.Thresholds {
 			thresholds = append(thresholds, APIV0Threshold{
 				Level:    t.Level,
-				Operator: indicator.GetComparatorDescription(t.Operator),
+				Operator: t.GetComparatorAbbrev(),
 				Value:    t.Value,
 			})
 		}

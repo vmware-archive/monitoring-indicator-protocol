@@ -102,7 +102,7 @@ func (t thresholdPresenter) OperatorAndValue() string {
 }
 
 func (t thresholdPresenter) operator() string {
-	return indicator.GetComparator(t.threshold.Operator)
+	return t.threshold.GetComparator()
 }
 
 func (t thresholdPresenter) value() string {
