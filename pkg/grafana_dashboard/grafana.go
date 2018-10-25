@@ -1,86 +1,86 @@
 package grafana_dashboard
 
 import (
+	"bytes"
+	"fmt"
+	"strings"
+	"text/template"
+
 	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"encoding/json"
-	"github.com/grafana-tools/sdk"
 )
 
+var documatationTmpl = template.Must(template.New("grafana").Parse(grafanaTemplate))
+var indicatorTmpl = template.Must(template.New("grafanaRow").Parse(grafanaIndicatorTemplate))
+
 func DocumentToDashboard(document indicator.Document) (string, error) {
-	board := sdk.NewBoard(document.Documentation.Title)
-	setBoardDefaults(board)
+	buffer := bytes.NewBuffer(nil)
+	err := documatationTmpl.Execute(buffer, grafanaDashboard{document})
 
-	for _, i := range document.Indicators {
-		row := board.AddRow(i.Name)
-
-		graph := generateIndicatorGraph(i)
-
-		row.Add(graph)
+	if err != nil {
+		return "", err
 	}
 
-	text, err := json.Marshal(board)
-	return string(text), err
+	return buffer.String(), err
 }
 
-func setBoardDefaults(board *sdk.Board) {
-	board.Time = sdk.Time{
-		From: "now-1h",
-		To:   "now",
-	}
-	now := new(bool)
-	*now = true
-	board.Timepicker = sdk.Timepicker{
-		Now: now,
-		RefreshIntervals: []string{
-			"5s",
-			"10s",
-			"30s",
-			"1m",
-			"5m",
-			"15m",
-			"30m",
-			"1h",
-			"2h",
-			"1d",
-		},
-		TimeOptions: []string{
-			"5m",
-			"15m",
-			"1h",
-			"6h",
-			"12h",
-			"24h",
-			"2d",
-			"7d",
-			"30d",
-		},
-	}
+type grafanaDashboard struct {
+	document indicator.Document
 }
 
-func generateIndicatorGraph(i indicator.Indicator) *sdk.Panel {
-	graph := sdk.NewGraph(i.Name)
-	graph.AddTarget(&sdk.Target{
-		Expr:           i.PromQL,
-		Format:         "time_series",
-		IntervalFactor: 1,
-	})
-	graph.Lines = true
-	graph.Linewidth = 2
-	graph.Yaxes = []sdk.Axis{{
-		Format:  "short",
-		LogBase: 1,
-		Show:    true,
-	}, {
-		Format:  "short",
-		LogBase: 1,
-		Show:    true,
-	}}
-	graph.Legend.Show = true
-	graph.Tooltip = sdk.Tooltip{
-		ValueType: "individual",
-		Shared:    true,
-		Sort:      0,
+func (g grafanaDashboard) Title() string {
+	return g.document.Documentation.Title
+}
+
+func (g grafanaDashboard) Indicators() string {
+	grafanaIndicators := make([]string, len(g.document.Indicators))
+	for idx, i := range g.document.Indicators {
+		buffer := bytes.NewBuffer(nil)
+		err := indicatorTmpl.Execute(buffer, grafanaIndicator{i})
+
+		if err != nil {
+			fmt.Fprint(buffer, "{}")
+		}
+
+		grafanaIndicators[idx] = buffer.String()
 	}
-	graph.AliasColors = struct{}{}
-	return graph
+
+	return fmt.Sprintf(`[%s]`, strings.Join(grafanaIndicators, ","))
+}
+
+type grafanaIndicator struct {
+	indicator indicator.Indicator
+}
+
+func (i grafanaIndicator) Title() string {
+	return i.indicator.Name
+}
+
+func (i grafanaIndicator) Promql() string {
+	return strings.Replace(i.indicator.PromQL, `"`, `\"`, -1)
+}
+
+func (i grafanaIndicator) Thresholds() string {
+	wat := make([]string, 0)
+	for _, t := range i.indicator.Thresholds {
+		var comparator string
+		switch {
+		case t.Operator <= indicator.LessThanOrEqualTo:
+			comparator = "lt"
+		case t.Operator >= indicator.GreaterThanOrEqualTo:
+			comparator = "gt"
+		default:
+			continue
+		}
+
+		var level string
+		switch t.Level {
+		case "warning":
+		case "critical":
+			level = t.Level
+		default:
+			level = "custom"
+		}
+		wat = append(wat, fmt.Sprintf(`{"value":%v, "colorMode":"%v", "op":"%v", "fill":true, "line":true, "yaxis":"left"}`, t.Value, level, comparator))
+	}
+	return fmt.Sprintf(`[%s]`, strings.Join(wat, ","))
 }

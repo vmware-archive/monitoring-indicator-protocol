@@ -92,8 +92,8 @@ func TestFormatBinary(t *testing.T) {
 
 		t.Run("it outputs indicators titles", func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			g.Expect(text).To(ContainSubstring(`"title":"doc_performance_indicator"`))
-			g.Expect(text).To(ContainSubstring(`"expr":"avg_over_time(demo_latency{source_id=\"doc\",deployment=\"my-service-deployment\"}[5m])"`))
+			g.Expect(text).To(ContainSubstring(`"title": "doc_performance_indicator"`))
+			g.Expect(text).To(ContainSubstring(`"expr": "avg_over_time(demo_latency{source_id=\"doc\",deployment=\"my-service-deployment\"}[5m])"`))
 		})
 	})
 }
