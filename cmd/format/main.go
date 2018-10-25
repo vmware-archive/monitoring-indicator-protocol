@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	outputFormat := flag.String("format", "bookbinder", "output format [bookbinder,prometheus-alerts]")
+	outputFormat := flag.String("format", "bookbinder", "output format [bookbinder,prometheus-alerts,grafana]")
 	flag.Parse()
 
 	args := flag.Args()
