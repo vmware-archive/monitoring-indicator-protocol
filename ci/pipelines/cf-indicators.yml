@@ -179,8 +179,8 @@ jobs:
       - name: indicators
       - name: env-state
       params:
-        ENVIRONMENT: sunstorm
-        BBL_STATE_DIR: acceptance-bosh/claimed/sunstorm
+        ENVIRONMENT: madlamp
+        BBL_STATE_DIR: acceptance-bosh/claimed/madlamp
         DEPLOYMENT_NAME: cf
       run:
         path: bash
@@ -300,7 +300,7 @@ jobs:
   - task: deploy
     config:
       params:
-        BBL_STATE_DIR: acceptance-bosh/claimed/sunstorm
+        BBL_STATE_DIR: acceptance-bosh/claimed/madlamp
         S3_ACCESS_KEY: {{aws-access-key-id}}
         S3_SECRET_KEY: {{aws-secret-access-key}}
       platform: linux
