@@ -16,12 +16,12 @@ func Validate(document Document) []error {
 		es = append(es, fmt.Errorf("only apiVersion v0 is supported"))
 	}
 
-	if document.Product == "" {
-		es = append(es, fmt.Errorf("product is required"))
+	if document.Product.Name == "" {
+		es = append(es, fmt.Errorf("product name is required"))
 	}
 
-	if document.Version == "" {
-		es = append(es, fmt.Errorf("version is required"))
+	if document.Product.Version == "" {
+		es = append(es, fmt.Errorf("product version is required"))
 	}
 
 	for idx, i := range document.Indicators {

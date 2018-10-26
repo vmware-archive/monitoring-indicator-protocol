@@ -11,8 +11,9 @@ func TestReturnsCompleteDocument(t *testing.T) {
 	g := NewGomegaWithT(t)
 	d, err := indicator.ReadIndicatorDocument([]byte(`---
 apiVersion: v0
-product: well-performing-component
-version: 0.0.1
+product: 
+  name: well-performing-component
+  version: 0.0.1
 metadata:
   deployment: <%= spec.deployment %>
 
@@ -41,8 +42,7 @@ documentation:
 
 	g.Expect(d).To(Equal(indicator.Document{
 		APIVersion: "v0",
-		Product:    "well-performing-component",
-		Version:    "0.0.1",
+		Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 		Metadata:   map[string]string{"deployment": "well-performing-deployment"},
 		Indicators: []indicator.Indicator{
 			{
@@ -206,8 +206,9 @@ func TestReturnsErrors(t *testing.T) {
 
 		_, err := indicator.ReadIndicatorDocument([]byte(`---
 apiVersion: v0
-product: my-product
-version: 1
+product: 
+  name: my-product
+  version: 1
 indicators: []
 documentation:
   title: docs

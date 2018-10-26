@@ -32,7 +32,7 @@ func AlertDocumentFrom(document indicator.Document) Document {
 
 	return Document{
 		Groups: []Group{{
-			Name:  document.Product,
+			Name:  document.Product.Name,
 			Rules: rules,
 		}},
 	}
@@ -40,8 +40,8 @@ func AlertDocumentFrom(document indicator.Document) Document {
 
 func ruleFrom(document indicator.Document, indicator indicator.Indicator, threshold indicator.Threshold) Rule {
 	labels := map[string]string{
-		"product": document.Product,
-		"version": document.Version,
+		"product": document.Product.Name,
+		"version": document.Product.Version,
 		"level":   threshold.Level,
 	}
 

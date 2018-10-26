@@ -14,9 +14,8 @@ func TestValidDocument(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
-			Product:    "valid",
-			Version:    "0.1.1",
+			APIVersion:     "v0",
+			Product: indicator.Product{Name: "valid", Version: "0.1.1"},
 			Indicators: []indicator.Indicator{{
 				Name:   "test_performance_indicator",
 				PromQL: "prom",
@@ -44,14 +43,13 @@ func TestProduct(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product:    "",
-			Version:    "0.1.1",
+			Product:    indicator.Product{Name: "", Version: "0.0.1"},
 		}
 
 		es := indicator.Validate(document)
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("product is required"),
+			errors.New("product name is required"),
 		))
 	})
 }
@@ -62,14 +60,13 @@ func TestVersion(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product:    "product",
-			Version:    "",
+			Product:    indicator.Product{Name: "product", Version: ""},
 		}
 
 		es := indicator.Validate(document)
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("version is required"),
+			errors.New("product version is required"),
 		))
 	})
 }
@@ -79,8 +76,7 @@ func TestAPIVersion(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			Product: "product",
-			Version: "1",
+			Product: indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 		}
 
 		es := indicator.Validate(document)
@@ -96,8 +92,7 @@ func TestAPIVersion(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "fake-version",
-			Product:    "product",
-			Version:    "1",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 		}
 
 		es := indicator.Validate(document)
@@ -115,8 +110,7 @@ func TestIndicatorValidation(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product:    "valid",
-			Version:    "1",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{
 				{
 					Name:   " ",
@@ -139,8 +133,7 @@ func TestIndicatorValidation(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product:    "valid",
-			Version:    "1",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{
 				{
 					Name:   "not.valid",
@@ -162,8 +155,7 @@ func TestIndicatorValidation(t *testing.T) {
 
 		document := indicator.Document{
 			APIVersion: "v0",
-			Product:    "valid",
-			Version:    "1",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{
 				{
 					Name:   `valid{labels="nope"}`,

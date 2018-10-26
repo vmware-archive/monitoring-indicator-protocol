@@ -10,8 +10,9 @@ import (
 func TestUpdateMetadata(t *testing.T) {
 	fileBytes := []byte(`---
 apiVersion: v0
-product: well-performing-component
-version: 0.0.1
+product: 
+  name: well-performing-component
+  version: 0.0.1
 metadata:
   deployment: well-performing-deployment
 
@@ -27,8 +28,7 @@ indicators:
 
 		g.Expect(d).To(Equal(indicator.Document{
 			APIVersion: "v0",
-			Product:    "well-performing-component",
-			Version:    "0.0.1",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Metadata:   map[string]string{"deployment": "well-performing-deployment"},
 			Indicators: []indicator.Indicator{
 				{
@@ -47,8 +47,7 @@ indicators:
 
 		g.Expect(d).To(Equal(indicator.Document{
 			APIVersion: "v0",
-			Product:    "well-performing-component",
-			Version:    "0.0.1",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Metadata:   map[string]string{"deployment": "well-performing-deployment"},
 			Indicators: []indicator.Indicator{
 				{

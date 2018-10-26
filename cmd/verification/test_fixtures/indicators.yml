@@ -1,7 +1,8 @@
 ---
 apiVersion: v0
-product: my-product
-version: 0.1.1
+product:
+  name: my-product
+  version: 0.1.1
 
 metadata:
   deployment: <%= spec.deployment %>

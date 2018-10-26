@@ -48,7 +48,7 @@ func TestRegistryAgent(t *testing.T) {
 
 		document := <-receivedDocument
 		g.Expect(document.Metadata["deployment"]).To(Equal("abc-123"))
-		g.Expect(document.Product).To(Equal("job-a-product"))
+		g.Expect(document.Product.Name).To(Equal("job-a-product"))
 	})
 }
 

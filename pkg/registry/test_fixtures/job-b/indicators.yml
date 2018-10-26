@@ -1,8 +1,9 @@
 ---
 apiVersion: v0
 
-product: job-b-product
-version: 0.0.1
+product:
+  name: job-b-product
+  version: 0.0.1
 
 metadata:
   deployment: abc-123

@@ -103,12 +103,14 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 	}
 
 	return Document{
-		APIVersion:    d.APIVersion,
-		Product:       d.Product,
-		Version:       d.Version,
-		Metadata:      d.Metadata,
-		Indicators:    indicators,
-		Documentation: documentation,
+		APIVersion:     d.APIVersion,
+		Product:Product{
+			Name:    d.Product.Name,
+			Version: d.Product.Version,
+		},
+		Metadata:       d.Metadata,
+		Indicators:     indicators,
+		Documentation:  documentation,
 	}, nil
 }
 
@@ -145,11 +147,15 @@ type readOptions struct {
 
 type yamlDocument struct {
 	APIVersion string            `yaml:"apiVersion"`
-	Product    string            `yaml:"product"`
-	Version    string            `yaml:"version"`
+	Product    yamlProduct       `yaml:"product"`
 	Metadata   map[string]string `yaml:"metadata"`
 	Indicators []yamlIndicator   `yaml:"indicators"`
 	YAMLDoc    yamlDocumentation `yaml:"documentation"`
+}
+
+type yamlProduct struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
 }
 
 type yamlDocumentation struct {
@@ -174,13 +180,13 @@ type yamlIndicator struct {
 }
 
 type yamlThreshold struct {
-	Level   string `yaml:"level"`
-	LT      string `yaml:"lt"`
-	LTE     string `yaml:"lte"`
-	EQ      string `yaml:"eq"`
-	NEQ     string `yaml:"neq"`
-	GTE     string `yaml:"gte"`
-	GT      string `yaml:"gt"`
+	Level string `yaml:"level"`
+	LT    string `yaml:"lt"`
+	LTE   string `yaml:"lte"`
+	EQ    string `yaml:"eq"`
+	NEQ   string `yaml:"neq"`
+	GTE   string `yaml:"gte"`
+	GT    string `yaml:"gt"`
 }
 
 func findIndicator(name string, indicators []Indicator) (Indicator, bool) {

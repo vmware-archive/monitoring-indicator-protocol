@@ -13,11 +13,15 @@ const (
 
 type Document struct {
 	APIVersion    string
-	Product       string
-	Version       string
+	Product       Product
 	Metadata      map[string]string
 	Indicators    []Indicator
 	Documentation Documentation
+}
+
+type Product struct {
+	Name    string
+	Version string
 }
 
 type Indicator struct {

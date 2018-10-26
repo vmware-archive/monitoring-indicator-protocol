@@ -12,8 +12,7 @@ import (
 func TestInsertDocument(t *testing.T) {
 
 	productAVersion1Document := indicator.Document{
-		Product: "my-product-a",
-		Version: "1",
+		Product: indicator.Product{Name: "my-product-a", Version: "1"},
 		Metadata: map[string]string{
 			"deployment": "abc-123",
 		},
@@ -23,8 +22,7 @@ func TestInsertDocument(t *testing.T) {
 	}
 
 	productAVersion2Document := indicator.Document{
-		Product: "my-product-a",
-		Version: "2",
+		Product: indicator.Product{Name: "my-product-a", Version: "2"},
 		Metadata: map[string]string{
 			"deployment": "abc-123",
 		},
@@ -34,8 +32,7 @@ func TestInsertDocument(t *testing.T) {
 	}
 
 	productBDocument := indicator.Document{
-		Product: "my-product-b",
-		Version: "1",
+		Product: indicator.Product{Name: "my-product-b", Version: "1"},
 		Metadata: map[string]string{
 			"deployment": "def-456",
 		},

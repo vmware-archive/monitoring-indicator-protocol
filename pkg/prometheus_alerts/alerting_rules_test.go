@@ -71,8 +71,7 @@ func TestAlertGeneration(t *testing.T) {
 		g = NewGomegaWithT(t)
 
 		doc := indicator.Document{
-			Product:  "product-lol",
-			Version:  "beta.9",
+			Product:  indicator.Product{Name: "product-lol", Version: "beta.9"},
 			Metadata: map[string]string{"meta-lol": "data-lol"},
 			Indicators: []indicator.Indicator{{
 				Name: "indicator_lol",

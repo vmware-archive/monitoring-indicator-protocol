@@ -4,11 +4,15 @@ import "code.cloudfoundry.org/indicators/pkg/indicator"
 
 type APIV0Document struct {
 	APIVersion    string             `json:"apiVersion"`
-	Product       string             `json:"product"`
-	Version       string             `json:"version"`
+	Product       APIV0Product       `json:"product"`
 	Metadata      map[string]string  `json:"metadata"`
 	Indicators    []APIV0Indicator   `json:"indicators"`
 	Documentation APIV0Documentation `json:"documentation"`
+}
+
+type APIV0Product struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
 type APIV0Threshold struct {
@@ -77,8 +81,10 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 
 	return APIV0Document{
 		APIVersion: doc.APIVersion,
-		Product:    doc.Product,
-		Version:    doc.Version,
+		Product: APIV0Product{
+			Name:    doc.Product.Name,
+			Version: doc.Product.Version,
+		},
 		Metadata:   doc.Metadata,
 		Indicators: indicators,
 		Documentation: APIV0Documentation{

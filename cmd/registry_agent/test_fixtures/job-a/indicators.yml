@@ -1,8 +1,9 @@
 ---
 apiVersion: v0
 
-product: job-a-product
-version: 1
+product:
+  name: job-a-product
+  version: 1
 
 metadata:
   deployment: job-a-deployment

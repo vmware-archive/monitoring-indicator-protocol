@@ -21,8 +21,9 @@ func TestRegisterHandler(t *testing.T) {
 		body := bytes.NewBuffer([]byte(`---
 apiVersion: v0
 
-product: redis-tile
-version: 0.11
+product: 
+  name: redis-tile
+  version: 0.11
 
 metadata:
   deployment: redis-abc-123
@@ -45,8 +46,7 @@ indicators:
 		g.Expect(resp.Code).To(Equal(http.StatusOK))
 		g.Expect(docStore.All()).To(ConsistOf(indicator.Document{
 			APIVersion: "v0",
-			Product:    "redis-tile",
-			Version:    "0.11",
+			Product:    indicator.Product{Name: "redis-tile", Version: "0.11"},
 			Metadata: map[string]string{
 				"deployment": "redis-abc-123",
 			},
@@ -88,7 +88,7 @@ indicators:
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["product is required", "version is required", "indicators[0] promql is required"]}`))
+		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["product name is required", "product version is required", "indicators[0] promql is required"]}`))
 	})
 
 	t.Run("it returns 400 if the yml is invalid", func(t *testing.T) {
@@ -124,8 +124,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 
 		docStore := registry.NewDocumentStore(1 * time.Minute)
 		docStore.Upsert(indicator.Document{
-			Product: "my-product-a",
-			Version: "1",
+			Product: indicator.Product{Name: "my-product-a", Version: "1"},
 			Metadata: map[string]string{
 				"deployment": "abc-123",
 			},
@@ -150,8 +149,10 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 			[
  				{
                     "apiVersion": "",
-                    "product": "my-product-a",
-                    "version": "1",
+                    "product": {
+						"name": "my-product-a",
+                    	"version": "1"
+					},
                     "metadata": {
                       "deployment": "abc-123"
                     },
