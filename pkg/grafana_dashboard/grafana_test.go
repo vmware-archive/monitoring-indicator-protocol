@@ -24,6 +24,10 @@ func TestDocumentToDashboard(t *testing.T) {
 				Operator: indicator.NotEqualTo,
 				Value:    17,
 			}, {
+				Level:    "warning",
+				Operator: indicator.GreaterThanOrEqualTo,
+				Value:    700,
+			}, {
 				Level:    "uh-oh!",
 				Operator: indicator.LessThan,
 				Value:    500,
@@ -48,6 +52,8 @@ func TestDocumentToDashboard(t *testing.T) {
 		g := NewGomegaWithT(t)
 		g.Expect(text).To(ContainSubstring(`"thresholds": [`))
 		g.Expect(text).To(ContainSubstring(`"value":1000, "colorMode":"critical", "op":"gt"`))
+		g.Expect(text).To(ContainSubstring(`"value":700, "colorMode":"warning", "op":"gt"`))
+		g.Expect(text).ToNot(ContainSubstring(`"colorMode":""`))
 	})
 
 	t.Run("it skips thresholds with unrepresentable operators", func(t *testing.T) {

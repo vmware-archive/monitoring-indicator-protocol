@@ -75,6 +75,7 @@ func (i grafanaIndicator) Thresholds() string {
 		var level string
 		switch t.Level {
 		case "warning":
+			level = t.Level
 		case "critical":
 			level = t.Level
 		default:
