@@ -2,20 +2,16 @@ package docs
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
-	"os"
 	"strings"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
 	"gopkg.in/russross/blackfriday.v2"
 )
 
-var documatationTmpl = template.Must(template.New("Metric").Parse(htmlDocumentTemplate))
-
-func DocumentToHTML(d indicator.Document) (string, error) {
+func docToTemplate(d indicator.Document, t * template.Template) (string, error) {
 	buffer := bytes.NewBuffer(nil)
-	err := documatationTmpl.Execute(buffer, documentPresenter{d.Documentation})
+	err := t.Execute(buffer, documentPresenter{d.Documentation})
 
 	if err != nil {
 		return "", err
@@ -60,16 +56,10 @@ func (sp sectionPresenter) Indicators() []indicatorPresenter {
 	return indicatorPresenters
 }
 
-func (sp sectionPresenter) HTMLIndicators() []template.HTML {
-	var renderedIndicators []template.HTML
+func (sp sectionPresenter) HTMLIndicators() []indicatorPresenter {
+	var renderedIndicators []indicatorPresenter
 	for _, i := range sp.Section.Indicators {
-		rendered, err := IndicatorToHTML(i)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Could not render Indicator: %s", err)
-			continue
-		}
-
-		renderedIndicators = append(renderedIndicators, template.HTML(rendered))
+		renderedIndicators = append(renderedIndicators, indicatorPresenter{i})
 	}
 	return renderedIndicators
 }

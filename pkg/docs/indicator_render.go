@@ -2,6 +2,7 @@ package docs
 
 import (
 	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"log"
 	"strings"
 
 	"bytes"
@@ -10,21 +11,58 @@ import (
 	"html/template"
 )
 
-var indicatorTmpl = template.Must(template.New("Indicator").Parse(htmlIndicatorTemplate))
+var indicatorTmpl = template.Must(template.New("Indicator").Parse(`
+<table>
+    <tr>
+        <th width="25%">Description</th>
+        <td>{{.Description}}</td>
+    </tr>
+    <tr>
+        <th>PromQL</th>
+        <td>
+			<code>{{.PromQL}}</code>
+		</td>
+    </tr>
+    <tr>
+		{{if .Thresholds}}
+        <th>Thresholds</th>
+        <td>
+            {{range .Thresholds}} <em>{{.Level}}</em>: {{.Operator}} {{.Value}}<br/> {{end}}
+			{{if ne .ThresholdNote ""}}
+				{{.ThresholdNote}}
+			{{- end}}
+        </td>
+		{{- end}}
+    </tr>
+	{{range $key, $value :=.OtherDocumentationFields}}
+    	<tr>
+    	    <th>{{$key}}</th>
+    	    <td>
+    	        {{$value}}
+    	    </td>
+    	</tr>
+	{{- end}}
+</table>`))
 
-func IndicatorToHTML(i indicator.Indicator) (string, error) {
-	buffer := bytes.NewBuffer(nil)
-	err := indicatorTmpl.Execute(buffer, indicatorPresenter{i})
-
-	if err != nil {
-		return "", err
-	}
-
-	return buffer.String(), err
-}
 
 type indicatorPresenter struct {
 	indicator.Indicator
+}
+
+func NewIndicatorPresenter(i indicator.Indicator) indicatorPresenter {
+	return indicatorPresenter{i}
+}
+
+
+func (p *indicatorPresenter) HTML() template.HTML {
+	buffer := bytes.NewBuffer(nil)
+	err := indicatorTmpl.Execute(buffer, p)
+
+	if err != nil {
+		log.Fatalf("could not render indicator: %s", err.Error())
+	}
+
+	return template.HTML(buffer.String())
 }
 
 func (p indicatorPresenter) PromQL() template.HTML {
@@ -97,14 +135,11 @@ func (t thresholdPresenter) Level() string {
 	}
 }
 
-func (t thresholdPresenter) OperatorAndValue() string {
-	return fmt.Sprintf("%s %s", t.operator(), t.value())
-}
 
-func (t thresholdPresenter) operator() string {
+func (t thresholdPresenter) Operator() string {
 	return t.threshold.GetComparator()
 }
 
-func (t thresholdPresenter) value() string {
+func (t thresholdPresenter) Value() string {
 	return fmt.Sprintf("%v", t.threshold.Value)
 }

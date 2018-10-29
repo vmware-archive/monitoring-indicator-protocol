@@ -43,10 +43,10 @@ func TestRenderIndicatorHTML(t *testing.T) {
 			},
 		}
 
-		html, err := docs.IndicatorToHTML(indicator)
-		g.Expect(err).ToNot(HaveOccurred())
+		ind := docs.NewIndicatorPresenter(indicator)
+		html := string(ind.HTML())
 
-		g.Expect(html).To(ContainSubstring(`### <a id="test_indicator"></a>Test Indicator`))
+
 		g.Expect(html).To(ContainSubstring("<p><em>test description</em> of kpi</p>"))
 		g.Expect(html).To(ContainSubstring(`<code>avg_over_time(test_latency{source_id="test"}[100m])</code>`))
 
@@ -77,8 +77,8 @@ func TestRenderIndicatorHTML(t *testing.T) {
 			Thresholds: []indicator.Threshold{},
 		}
 
-		html, err := docs.IndicatorToHTML(indicator)
-		g.Expect(err).ToNot(HaveOccurred())
+		ind := docs.NewIndicatorPresenter(indicator)
+		html := string(ind.HTML())
 
 		g.Expect(html).ToNot(ContainSubstring("<th>Thresholds</th>"))
 	})

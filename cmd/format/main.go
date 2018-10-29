@@ -35,6 +35,8 @@ func main() {
 func parseDocument(format string, filePath string) (string, error) {
 	switch format {
 	case "bookbinder":
+		return docs.DocumentToBookbinder(getDocument(filePath, indicator.SkipMetadataInterpolation))
+	case "html":
 		return docs.DocumentToHTML(getDocument(filePath, indicator.SkipMetadataInterpolation))
 	case "grafana":
 		return grafana_dashboard.DocumentToDashboard(getDocument(filePath))

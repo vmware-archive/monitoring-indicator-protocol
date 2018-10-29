@@ -19,7 +19,45 @@ func TestFormatBinary(t *testing.T) {
 	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
-	t.Run("accepts indicator yml file as a command line argument and returns formatted HTML", func(t *testing.T) {
+	t.Run("outputs formatted HTML", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		cmd := exec.Command(binPath, "-format", "html", "../../example.yml")
+
+		buffer := bytes.NewBuffer(nil)
+
+		sess, err := gexec.Start(cmd, buffer, os.Stderr)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Eventually(sess).Should(gexec.Exit(0))
+
+		html := buffer.String()
+
+		t.Run("It displays document title and description", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			g.Expect(html).To(ContainSubstring(`<title>Monitoring Document Product</title>`))
+			g.Expect(html).To(ContainSubstring(`<h1>Monitoring Document Product</h1>`))
+			g.Expect(html).To(ContainSubstring(`Document description`))
+		})
+
+		t.Run("It displays indicator sections", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			g.Expect(html).To(ContainSubstring(`<h2><a id="indicators"></a>Indicators</h2>`))
+			g.Expect(html).To(ContainSubstring(`This section includes indicators`))
+
+			g.Expect(html).To(ContainSubstring(`<h3><a id="doc_performance_indicator"></a>Doc Performance Indicator</h3>`))
+
+			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="doc",deployment="$deployment"}[5m])`))
+		})
+
+		t.Run("It does not have multiple % signs", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			g.Expect(html).ToNot(ContainSubstring("%%"))
+		})
+	})
+
+	t.Run("outputs bookbinder formatted HTML", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		cmd := exec.Command(binPath, "-format", "bookbinder", "../../example.yml")
@@ -56,7 +94,7 @@ func TestFormatBinary(t *testing.T) {
 		})
 	})
 
-	t.Run("accepts indicator yml file as a command line argument and outputs prometheus alert configuration", func(t *testing.T) {
+	t.Run("outputs prometheus alert configuration", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		cmd := exec.Command(binPath, "-format", "prometheus-alerts", "../../example.yml")
@@ -76,7 +114,7 @@ func TestFormatBinary(t *testing.T) {
 		g.Expect(prometheusAlertConfigurationYML).To(MatchYAML(fileBytes))
 	})
 
-	t.Run("accepts indicator yml and returns grafana dashboards", func(t *testing.T) {
+	t.Run("outputs grafana dashboards", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		cmd := exec.Command(binPath, "-format", "grafana", "../../example.yml")

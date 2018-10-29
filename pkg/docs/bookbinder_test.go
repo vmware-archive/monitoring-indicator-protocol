@@ -51,7 +51,7 @@ func TestRenderDocumentHTML(t *testing.T) {
 		},
 	}
 
-	html, err := docs.DocumentToHTML(document)
+	html, err := docs.DocumentToBookbinder(document)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("It displays document title and description", func(t *testing.T) {
