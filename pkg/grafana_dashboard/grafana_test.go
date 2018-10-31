@@ -32,7 +32,6 @@ func TestDocumentToDashboard(t *testing.T) {
 				Operator: indicator.LessThan,
 				Value:    500,
 			}},
-			SLO: 0.999,
 		}},
 		Documentation: indicator.Documentation{
 			Title: "Indicator Test Dashboard",

@@ -74,8 +74,8 @@ func TestAlertGeneration(t *testing.T) {
 			Product:  indicator.Product{Name: "product-lol", Version: "beta.9"},
 			Metadata: map[string]string{"meta-lol": "data-lol"},
 			Indicators: []indicator.Indicator{{
-				Name: "indicator_lol",
-				SLO:  0.99999999999999,
+				Name:         "indicator_lol",
+				ServiceLevel: true,
 				Thresholds: []indicator.Threshold{{
 					Level: "warning",
 				}},
@@ -83,11 +83,11 @@ func TestAlertGeneration(t *testing.T) {
 		}
 
 		g.Expect(getFirstRule(doc).Labels).To(Equal(map[string]string{
-			"product":  "product-lol",
-			"version":  "beta.9",
-			"level":    "warning",
-			"meta-lol": "data-lol",
-			"slo":      "0.99999999999999",
+			"product":                 "product-lol",
+			"version":                 "beta.9",
+			"level":                   "warning",
+			"meta-lol":                "data-lol",
+			"service_level_indicator": "true",
 		}))
 	})
 

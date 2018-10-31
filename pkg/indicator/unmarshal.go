@@ -47,7 +47,7 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 	}
 
 	var indicators []Indicator
-	for idx, yamlIndicator := range d.Indicators {
+	for _, yamlIndicator := range d.Indicators {
 		var thresholds []Threshold
 		for _, yamlThreshold := range yamlIndicator.Thresholds {
 			threshold, err := thresholdFromYAML(yamlThreshold)
@@ -58,19 +58,11 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 			thresholds = append(thresholds, threshold)
 		}
 
-		var slo float64
-		if yamlIndicator.SLO != "" {
-			slo, err = strconv.ParseFloat(yamlIndicator.SLO, 64)
-			if err != nil {
-				return Document{}, fmt.Errorf("indicators[%d] slo unparsable: %s\n", idx, err)
-			}
-		}
-
 		indicators = append(indicators, Indicator{
 			Name:          yamlIndicator.Name,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
-			SLO:           slo,
+			ServiceLevel:  yamlIndicator.ServiceLevel,
 			Documentation: yamlIndicator.Documentation,
 		})
 	}
@@ -103,14 +95,14 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 	}
 
 	return Document{
-		APIVersion:     d.APIVersion,
-		Product:Product{
+		APIVersion: d.APIVersion,
+		Product: Product{
 			Name:    d.Product.Name,
 			Version: d.Product.Version,
 		},
-		Metadata:       d.Metadata,
-		Indicators:     indicators,
-		Documentation:  documentation,
+		Metadata:      d.Metadata,
+		Indicators:    indicators,
+		Documentation: documentation,
 	}, nil
 }
 
@@ -175,7 +167,7 @@ type yamlIndicator struct {
 	Name          string            `yaml:"name"`
 	Promql        string            `yaml:"promql"`
 	Thresholds    []yamlThreshold   `yaml:"thresholds"`
-	SLO           string            `yaml:"slo"`
+	ServiceLevel  bool              `yaml:"service_level"`
 	Documentation map[string]string `yaml:"documentation"`
 }
 

@@ -131,8 +131,8 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 			Indicators: []indicator.Indicator{{
 				Name: "test_errors1",
 			}, {
-				Name: "test_errors2",
-				SLO:  1,
+				Name:         "test_errors2",
+				ServiceLevel: true,
 			}},
 		})
 
@@ -168,7 +168,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
                         "promql": "",
                         "thresholds": [],
                         "documentation": null,
-                        "slo": 1
+                        "service_level": true
                       }
                     ],
                     "documentation": {

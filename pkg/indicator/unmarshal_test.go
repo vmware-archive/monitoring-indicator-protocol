@@ -108,7 +108,7 @@ func TestReturnsAConvertedIndicator(t *testing.T) {
 indicators:
 - name: test-kpi
   promql: prom
-  slo: 0.99
+  service_level: true
   thresholds:
   - lt: 0
     level: warning
@@ -126,9 +126,9 @@ indicators:
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(d.Indicators).To(Equal([]indicator.Indicator{{
-		Name:   "test-kpi",
-		PromQL: "prom",
-		SLO:    0.99,
+		Name:         "test-kpi",
+		PromQL:       "prom",
+		ServiceLevel: true,
 		Thresholds: []indicator.Threshold{
 			{
 				Level:    "warning",

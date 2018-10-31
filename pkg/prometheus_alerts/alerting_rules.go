@@ -45,8 +45,8 @@ func ruleFrom(document indicator.Document, indicator indicator.Indicator, thresh
 		"level":   threshold.Level,
 	}
 
-	if indicator.SLO != 0 {
-		labels["slo"] = fmt.Sprintf("%+v", indicator.SLO)
+	if indicator.ServiceLevel {
+		labels["service_level_indicator"] = "true"
 	}
 
 	for k, v := range document.Metadata {
