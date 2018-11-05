@@ -358,7 +358,7 @@ jobs:
       passed: [indicator-verification,indicator-docs]
       trigger: false
     - get: release-version
-      params: {bump: patch}
+      params: {}
   - task: create-final-release
     config:
       platform: linux
@@ -469,6 +469,7 @@ jobs:
   - put: release-version
     params:
       file: release-version/version
+      bump: patch
   - put: indicator-protocol-final-release
     params:
       repository: final-release
