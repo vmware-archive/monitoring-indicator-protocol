@@ -35,7 +35,7 @@ func TestValidateIndicators(t *testing.T) {
 				req.ParseForm()
 
 				q := req.Form.Get("query")
-				if q != `avg_over_time(demo_latency{source_id="demo_component",deployment="my-demo-deployment"}[5m])` {
+				if q != `avg_over_time(demo_latency{source_id="demo_component",deployment="fake-deploy"}[5m])` {
 					w.WriteHeader(422)
 					return
 				}
@@ -48,7 +48,7 @@ func TestValidateIndicators(t *testing.T) {
 				req.ParseForm()
 				q := req.Form.Get("query")
 
-				if q != `saturation{source_id="demo_component",deployment="my-demo-deployment"}` {
+				if q != `saturation{source_id="demo_component",deployment="fake-deploy"}` {
 					w.WriteHeader(422)
 					return
 				}
@@ -59,27 +59,18 @@ func TestValidateIndicators(t *testing.T) {
 			},
 		)
 
-		uaaServer := ghttp.NewServer()
-		defer uaaServer.Close()
-		uaaServer.AppendHandlers(
-			ghttp.RespondWith(200, `{"access_token":"abc-123"}`, map[string][]string{"Content-Type:": {"application/json;charset=UTF-8"}}),
-		)
-
 		cmd := exec.Command(
 			binPath,
 			"--indicators", "./test_fixtures/indicators.yml",
-			"--metadata", "deployment=my-demo-deployment",
-			"--log-cache-url", "http://"+logCacheServer.Addr(),
-			"--uaa-url", "http://"+uaaServer.Addr(),
-			"--log-cache-client", "my-uaa-client",
-			"--log-cache-client-secret", "client-secret",
+			"--metadata", "deployment=fake-deploy",
+			"--query-endpoint", "http://"+logCacheServer.Addr(),
+			"--authorization", "bearer test-token",
 			"-k",
 		)
 
 		session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(uaaServer.ReceivedRequests).Should(HaveLen(1))
 		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))
 		g.Eventually(session).Should(gexec.Exit(0))
 	})
@@ -94,7 +85,7 @@ func TestValidateIndicators(t *testing.T) {
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
-				g.Expect(q).To(Equal(`avg_over_time(demo_latency{source_id="demo_component",deployment="cf"}[5m])`))
+				g.Expect(q).To(Equal(`avg_over_time(demo_latency{source_id="demo_component",deployment="my-demo-deployment"}[5m])`))
 
 				body := logCachePromQLResponse(3, 4)
 				w.Write(body)
@@ -103,7 +94,7 @@ func TestValidateIndicators(t *testing.T) {
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
-				g.Expect(q).To(Equal(`saturation{source_id="demo_component",deployment="cf"}`))
+				g.Expect(q).To(Equal(`saturation{source_id="demo_component",deployment="my-demo-deployment"}`))
 
 				body := logCachePromQLResponse(0, 0)
 				w.Write(body)
@@ -111,27 +102,18 @@ func TestValidateIndicators(t *testing.T) {
 			},
 		)
 
-		uaaServer := ghttp.NewServer()
-		defer uaaServer.Close()
-		uaaServer.AppendHandlers(
-			ghttp.RespondWith(200, `{"access_token":"abc-123"}`, map[string][]string{"Content-Type:": {"application/json;charset=UTF-8"}}),
-		)
-
 		cmd := exec.Command(
 			binPath,
 			"--indicators", "./test_fixtures/indicators.yml",
-			"--metadata", "deployment=cf",
-			"--log-cache-url", "http://"+logCacheServer.Addr(),
-			"--uaa-url", "http://"+uaaServer.Addr(),
-			"--log-cache-client", "my-uaa-client",
-			"--log-cache-client-secret", "client-secret",
+			"--metadata", "deployment=my-demo-deployment",
+			"--query-endpoint", "http://"+logCacheServer.Addr(),
+			"--authorization", "bearer test-token",
 			"-k",
 		)
 
 		session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(uaaServer.ReceivedRequests).Should(HaveLen(1))
 		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))
 		g.Eventually(session).Should(gexec.Exit(1))
 	})
