@@ -214,12 +214,13 @@ jobs:
             promql: rate(requests_global_status_2xx_count{source_id="uaa",deployment="\$deployment"}[10m])
           EOF
 
+            uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/cf/uaa_clients_firehose_exporter_secret -j | jq -r .value)"
+            access_token=$(curl -X POST "https://login.${ENVIRONMENT}.cf-denver.com/oauth/token" -k -u "firehose_exporter:${uaa_secret}" -H 'Accept: application/json' -d 'grant_type=client_credentials'  | jq -r .access_token)
+
             go run -mod=vendor cmd/verification/main.go -indicators=indicators.yml \
                                                         -metadata="deployment=${DEPLOYMENT_NAME}" \
-                                                        -uaa-url=https://login.${ENVIRONMENT}.cf-denver.com \
-                                                        -log-cache-client=firehose_exporter \
-                                                        -log-cache-client-secret=$(credhub g -n /bosh-${ENVIRONMENT}/cf/uaa_clients_firehose_exporter_secret -j | jq -r .value) \
-                                                        -log-cache-url=https://log-cache.${ENVIRONMENT}.cf-denver.com \
+                                                        -authorization="bearer ${access_token}" \
+                                                        -query-endpoint=https://log-cache.${ENVIRONMENT}.cf-denver.com \
                                                         -k
 
           popd
