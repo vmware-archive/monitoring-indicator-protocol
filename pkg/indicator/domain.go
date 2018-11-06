@@ -28,7 +28,6 @@ type Indicator struct {
 	Name          string
 	PromQL        string
 	Thresholds    []Threshold
-	ServiceLevel  bool
 	Documentation map[string]string
 }
 

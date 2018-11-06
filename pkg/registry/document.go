@@ -26,7 +26,6 @@ type APIV0Indicator struct {
 	PromQL        string            `json:"promql"`
 	Thresholds    []APIV0Threshold  `json:"thresholds"`
 	Documentation map[string]string `json:"documentation"`
-	ServiceLevel  bool              `json:"service_level,omitempty"`
 }
 
 type APIV0Documentation struct {
@@ -59,7 +58,6 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 			Name:          i.Name,
 			PromQL:        i.PromQL,
 			Thresholds:    thresholds,
-			ServiceLevel:  i.ServiceLevel,
 			Documentation: i.Documentation,
 		})
 	}

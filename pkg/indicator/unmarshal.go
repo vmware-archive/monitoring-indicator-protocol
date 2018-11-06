@@ -62,7 +62,6 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 			Name:          yamlIndicator.Name,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
-			ServiceLevel:  yamlIndicator.ServiceLevel,
 			Documentation: yamlIndicator.Documentation,
 		})
 	}
@@ -167,7 +166,6 @@ type yamlIndicator struct {
 	Name          string            `yaml:"name"`
 	Promql        string            `yaml:"promql"`
 	Thresholds    []yamlThreshold   `yaml:"thresholds"`
-	ServiceLevel  bool              `yaml:"service_level"`
 	Documentation map[string]string `yaml:"documentation"`
 }
 

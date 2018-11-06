@@ -75,7 +75,6 @@ func TestAlertGeneration(t *testing.T) {
 			Metadata: map[string]string{"meta-lol": "data-lol"},
 			Indicators: []indicator.Indicator{{
 				Name:         "indicator_lol",
-				ServiceLevel: true,
 				Thresholds: []indicator.Threshold{{
 					Level: "warning",
 				}},
@@ -87,7 +86,6 @@ func TestAlertGeneration(t *testing.T) {
 			"version":                 "beta.9",
 			"level":                   "warning",
 			"meta-lol":                "data-lol",
-			"service_level_indicator": "true",
 		}))
 	})
 

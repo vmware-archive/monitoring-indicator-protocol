@@ -45,10 +45,6 @@ func ruleFrom(document indicator.Document, indicator indicator.Indicator, thresh
 		"level":   threshold.Level,
 	}
 
-	if indicator.ServiceLevel {
-		labels["service_level_indicator"] = "true"
-	}
-
 	for k, v := range document.Metadata {
 		labels[k] = v
 	}
