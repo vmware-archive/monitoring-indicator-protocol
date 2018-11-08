@@ -468,7 +468,6 @@ jobs:
       - github-release/indicator-*
   - put: release-version
     params:
-      file: release-version/version
       bump: patch
   - put: indicator-protocol-final-release
     params:
