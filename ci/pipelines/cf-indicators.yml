@@ -466,12 +466,12 @@ jobs:
       body: github-release/body
       globs:
       - github-release/indicator-*
-  - put: release-version
-    params:
-      bump: patch
   - put: indicator-protocol-final-release
     params:
       repository: final-release
       rebase: true
       tag: release-version/version
       tag_prefix: v
+  - put: release-version
+    params:
+      bump: patch
