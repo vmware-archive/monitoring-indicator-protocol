@@ -181,7 +181,7 @@ jobs:
       params:
         ENVIRONMENT: madlamp
         BBL_STATE_DIR: acceptance-bosh/claimed/madlamp
-        DEPLOYMENT_NAME: cf
+        DEPLOYMENT_NAME: cf-01234567890123456789
       run:
         path: bash
         args:
@@ -214,7 +214,7 @@ jobs:
             promql: rate(requests_global_status_2xx_count{source_id="uaa",deployment="\$deployment"}[10m])
           EOF
 
-            uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/cf/uaa_clients_firehose_exporter_secret -j | jq -r .value)"
+            uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_firehose_exporter_secret -j | jq -r .value)"
             access_token=$(curl -X POST "https://login.${ENVIRONMENT}.cf-denver.com/oauth/token" -k -u "firehose_exporter:${uaa_secret}" -H 'Accept: application/json' -d 'grant_type=client_credentials'  | jq -r .access_token)
 
             go run -mod=vendor cmd/verification/main.go -indicators=indicators.yml \
