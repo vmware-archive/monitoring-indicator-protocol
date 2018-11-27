@@ -71,6 +71,7 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 			"--tls-pem-path", clientCert,
 			"--tls-key-path", clientKey,
 			"--tls-root-ca-pem", rootCACert,
+			"--tls-server-cn", "localhost",
 			"--interval", "50ms",
 		)
 

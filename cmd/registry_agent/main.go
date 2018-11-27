@@ -19,14 +19,15 @@ func main() {
 	intervalTime := flag.Duration("interval", 5*time.Minute, "The send interval")
 	documentsGlob := flag.String("documents-glob", "/var/vcap/jobs/*/indicators.yml", "Glob path of indicator files")
 
-	clientPEM := flag.String("tls-pem-path", "", "Server TLS public cert pem path")
-	clientKey := flag.String("tls-key-path", "", "Server TLS private key path")
-	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs.")
+	clientPEM := flag.String("tls-pem-path", "", "Client TLS public cert pem path which can connect to the server (indicator-registry)")
+	clientKey := flag.String("tls-key-path", "", "Server TLS private key path which can connect to the server (indicator-registry)")
+	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs")
+	serverCommonName := flag.String("tls-server-cn", "indicator-registry", "server (indicator-registry) common name")
 	flag.Parse()
 
 	startMetricsEndpoint()
 
-	client, err := mtls.NewClient(*clientPEM, *clientKey, *rootCACert)
+	client, err := mtls.NewClient(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
 		log.Fatalf("failed to create mtls http client, %s", err)
 	}

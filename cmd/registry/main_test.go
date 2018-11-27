@@ -27,7 +27,7 @@ var (
 func TestIndicatorRegistry(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	client, err := mtls.NewClient(clientCert, clientKey, rootCACert)
+	client, err := mtls.NewClient(clientCert, clientKey, rootCACert, "localhost")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("it saves and exposes indicator documents", func(t *testing.T) {

@@ -47,7 +47,7 @@ func NewServer(address, serverPEM, serverKey, rootCACert string, handler http.Ha
 	return start, stop, nil
 }
 
-func NewClient(clientCert, clientKey, rootCACert string) (*http.Client, error) {
+func NewClient(clientCert, clientKey, rootCACert, serverCommonName string) (*http.Client, error) {
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
 	if err != nil {
 		return nil, err
@@ -69,8 +69,9 @@ func NewClient(clientCert, clientKey, rootCACert string) (*http.Client, error) {
 		MinVersion:               tls.VersionTLS12,
 		PreferServerCipherSuites: true,
 		CipherSuites:             supportedCipherSuites,
+		ServerName:               serverCommonName,
 	}
-	tlsConfig.BuildNameToCertificate()
+
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: tlsConfig,
