@@ -21,9 +21,9 @@ func main() {
 
 	config := registry.WebServerConfig{
 		Address:       address,
-		ServerPEM:     *serverPEM,
-		ServerKey:     *serverKey,
-		RootCACert:    *rootCACert,
+		ServerPEMPath: *serverPEM,
+		ServerKeyPath: *serverKey,
+		RootCAPath:    *rootCACert,
 		DocumentStore: registry.NewDocumentStore(*expiration),
 	}
 

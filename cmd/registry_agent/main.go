@@ -27,9 +27,17 @@ func main() {
 
 	startMetricsEndpoint()
 
-	client, err := mtls.NewClient(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
+	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
 		log.Fatalf("failed to create mtls http client, %s", err)
+	}
+
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			DisableKeepAlives: true,
+			TLSClientConfig: tlsConfig,
+		},
 	}
 
 	agent := registry.Agent{

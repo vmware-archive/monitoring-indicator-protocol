@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 )
 
 var supportedCipherSuites = []uint16{
@@ -20,40 +19,30 @@ var supportedCipherSuites = []uint16{
 	tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
 }
 
-func NewServer(address, serverPEM, serverKey, rootCACert string, handler http.Handler) (func() error, func() error, error) {
-	caCert, err := ioutil.ReadFile(rootCACert)
+func NewServerConfig(caPath string) (*tls.Config, error) {
+	caCert, err := ioutil.ReadFile(caPath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read root CA certificate: %s\n", err)
+		return nil, fmt.Errorf("failed to read root CA certificate: %s\n", err)
 	}
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
-	server := &http.Server{
-		Addr:    address,
-		Handler: handler,
-		TLSConfig: &tls.Config{
-			ClientCAs:                caCertPool,
-			ClientAuth:               tls.RequireAndVerifyClientCert,
-			MinVersion:               tls.VersionTLS12,
-			PreferServerCipherSuites: true,
-			CipherSuites:             supportedCipherSuites,
-		},
-	}
-
-	start := func() error { return server.ListenAndServeTLS(serverPEM, serverKey) }
-	stop := func() error { return server.Close() }
-
-	return start, stop, nil
+	return &tls.Config{
+		ClientCAs:                caCertPool,
+		ClientAuth:               tls.RequireAndVerifyClientCert,
+		MinVersion:               tls.VersionTLS12,
+		PreferServerCipherSuites: true,
+		CipherSuites:             supportedCipherSuites,
+	}, nil
 }
 
-func NewClient(clientCert, clientKey, rootCACert, serverCommonName string) (*http.Client, error) {
+func NewClientConfig(clientCert, clientKey, rootCACert, serverCommonName string) (*tls.Config, error) {
 	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
 	if err != nil {
 		return nil, err
 	}
 
-	// Load CA cert
 	caCert, err := ioutil.ReadFile(rootCACert)
 	if err != nil {
 		return nil, err
@@ -62,21 +51,12 @@ func NewClient(clientCert, clientKey, rootCACert, serverCommonName string) (*htt
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
-	// Setup HTTPS client
-	tlsConfig := &tls.Config{
+	return &tls.Config{
 		Certificates:             []tls.Certificate{cert},
 		RootCAs:                  caCertPool,
 		MinVersion:               tls.VersionTLS12,
 		PreferServerCipherSuites: true,
 		CipherSuites:             supportedCipherSuites,
 		ServerName:               serverCommonName,
-	}
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-	}
-
-	return client, nil
+	}, nil
 }

@@ -51,9 +51,18 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 		serverUrl := "127.0.0.1:34534"
 		r := mux.NewRouter()
 		r.HandleFunc("/v1/register", handler).Methods("POST")
-		start, stop, err := mtls.NewServer(serverUrl, serverCert, serverKey, rootCACert, r)
 
+		tlsConfig, err := mtls.NewServerConfig(rootCACert)
 		g.Expect(err).NotTo(HaveOccurred())
+
+		server := &http.Server{
+			Addr:      serverUrl,
+			Handler:   r,
+			TLSConfig: tlsConfig,
+		}
+
+		start := func() error { return server.ListenAndServeTLS(serverCert, serverKey) }
+		stop := func() error { return server.Close() }
 
 		go func() {
 			err = start()

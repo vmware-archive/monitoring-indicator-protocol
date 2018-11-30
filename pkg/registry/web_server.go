@@ -13,15 +13,29 @@ import (
 )
 
 type WebServerConfig struct {
-	Address    string
-	ServerPEM  string
-	ServerKey  string
-	RootCACert string
+	Address       string
+	ServerPEMPath string
+	ServerKeyPath string
+	RootCAPath    string
 	*DocumentStore
 }
 
 func NewWebServer(c WebServerConfig) (func() error, func() error, error) {
-	return mtls.NewServer(c.Address, c.ServerPEM, c.ServerKey, c.RootCACert, newRouter(c.DocumentStore))
+	tlsConfig, err := mtls.NewServerConfig(c.RootCAPath)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	server := &http.Server{
+		Addr:    c.Address,
+		Handler: newRouter(c.DocumentStore),
+		TLSConfig: tlsConfig,
+	}
+
+	start := func() error { return server.ListenAndServeTLS(c.ServerPEMPath, c.ServerKeyPath) }
+	stop := func() error { return server.Close() }
+
+	return start, stop, nil
 }
 
 var httpRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
