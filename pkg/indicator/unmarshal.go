@@ -67,7 +67,7 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 	}
 
 	var sections []Section
-	for idx, s := range d.YAMLDoc.Sections {
+	for idx, s := range d.YAMLLayout.Sections {
 
 		var sectionIndicators []Indicator
 		for iIdx, i := range s.IndicatorRefs {
@@ -86,11 +86,11 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 		})
 	}
 
-	documentation := Documentation{
-		Title:       d.YAMLDoc.Title,
-		Description: d.YAMLDoc.Description,
+	documentation := Layout{
+		Title:       d.YAMLLayout.Title,
+		Description: d.YAMLLayout.Description,
 		Sections:    sections,
-		Owner:       d.YAMLDoc.Owner,
+		Owner:       d.YAMLLayout.Owner,
 	}
 
 	return Document{
@@ -99,9 +99,9 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 			Name:    d.Product.Name,
 			Version: d.Product.Version,
 		},
-		Metadata:      d.Metadata,
-		Indicators:    indicators,
-		Documentation: documentation,
+		Metadata:   d.Metadata,
+		Indicators: indicators,
+		Layout:     documentation,
 	}, nil
 }
 
@@ -141,7 +141,7 @@ type yamlDocument struct {
 	Product    yamlProduct       `yaml:"product"`
 	Metadata   map[string]string `yaml:"metadata"`
 	Indicators []yamlIndicator   `yaml:"indicators"`
-	YAMLDoc    yamlDocumentation `yaml:"documentation"`
+	YAMLLayout yamlLayout        `yaml:"layout"`
 }
 
 type yamlProduct struct {
@@ -149,7 +149,7 @@ type yamlProduct struct {
 	Version string `yaml:"version"`
 }
 
-type yamlDocumentation struct {
+type yamlLayout struct {
 	Title       string        `yaml:"title"`
 	Description string        `yaml:"description"`
 	Sections    []yamlSection `yaml:"sections"`

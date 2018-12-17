@@ -29,7 +29,7 @@ type grafanaDashboard struct {
 }
 
 func (g grafanaDashboard) Title() string {
-	return g.document.Documentation.Title
+	return g.document.Layout.Title
 }
 
 func (g grafanaDashboard) Indicators() string {

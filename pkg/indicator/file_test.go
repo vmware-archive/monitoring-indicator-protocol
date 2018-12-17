@@ -36,7 +36,7 @@ indicators:
 					PromQL: `query_metric{source_id="well-performing-deployment"}`,
 				},
 			},
-			Documentation: indicator.Documentation{},
+			Layout: indicator.Layout{},
 		}))
 	})
 
@@ -55,7 +55,7 @@ indicators:
 					PromQL: `query_metric{source_id="$deployment"}`,
 				},
 			},
-			Documentation: indicator.Documentation{},
+			Layout: indicator.Layout{},
 		}))
 	})
 }

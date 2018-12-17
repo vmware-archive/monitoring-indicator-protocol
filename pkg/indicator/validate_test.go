@@ -20,7 +20,7 @@ func TestValidDocument(t *testing.T) {
 				Name:   "test_performance_indicator",
 				PromQL: "prom",
 			}},
-			Documentation: indicator.Documentation{
+			Layout: indicator.Layout{
 				Title:       "Monitoring Test Product",
 				Owner:       "Test Owner Team",
 				Description: "Test description",

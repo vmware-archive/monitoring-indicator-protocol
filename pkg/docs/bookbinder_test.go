@@ -13,7 +13,7 @@ func TestRenderDocumentHTML(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	document := indicator.Document{
-		Documentation: indicator.Documentation{
+		Layout: indicator.Layout{
 			Title:       "Test Document",
 			Owner:       "Test Owner",
 			Description: "This is a document for testing `code`",

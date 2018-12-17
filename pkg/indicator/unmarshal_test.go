@@ -29,7 +29,7 @@ indicators:
   - level: warning
     gte: 50
 
-documentation:
+layout:
   title: Monitoring Test Product
   description: Test description
   sections:
@@ -63,7 +63,7 @@ documentation:
 				},
 			},
 		},
-		Documentation: indicator.Documentation{
+		Layout: indicator.Layout{
 			Title:       "Monitoring Test Product",
 			Description: "Test description",
 			Sections: []indicator.Section{{
@@ -208,7 +208,7 @@ product:
   name: my-product
   version: 1
 indicators: []
-documentation:
+layout:
   title: docs
   description: desc
   sections:

@@ -29,7 +29,7 @@ indicators:
     recommended_response: Panic! Run around in circles flailing your arms.
     threshold_note: These are environment specific
 
-documentation:
+layout:
   owner: Example Team
   title: Monitoring Document Product
   description: Document description

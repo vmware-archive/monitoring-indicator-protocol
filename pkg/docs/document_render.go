@@ -11,7 +11,7 @@ import (
 
 func docToTemplate(d indicator.Document, t * template.Template) (string, error) {
 	buffer := bytes.NewBuffer(nil)
-	err := t.Execute(buffer, documentPresenter{d.Documentation})
+	err := t.Execute(buffer, documentPresenter{d.Layout})
 
 	if err != nil {
 		return "", err
@@ -21,16 +21,16 @@ func docToTemplate(d indicator.Document, t * template.Template) (string, error) 
 }
 
 type documentPresenter struct {
-	indicator.Documentation
+	indicator.Layout
 }
 
 func (dp documentPresenter) Description() template.HTML {
-	return template.HTML(blackfriday.Run([]byte(dp.Documentation.Description)))
+	return template.HTML(blackfriday.Run([]byte(dp.Layout.Description)))
 }
 
 func (dp documentPresenter) Sections() []sectionPresenter {
 	var s []sectionPresenter
-	for _, section := range dp.Documentation.Sections {
+	for _, section := range dp.Layout.Sections {
 		s = append(s, sectionPresenter{section})
 	}
 	return s

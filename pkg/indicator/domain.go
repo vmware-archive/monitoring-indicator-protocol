@@ -12,11 +12,11 @@ const (
 )
 
 type Document struct {
-	APIVersion    string
-	Product       Product
-	Metadata      map[string]string
-	Indicators    []Indicator
-	Documentation Documentation
+	APIVersion string
+	Product    Product
+	Metadata   map[string]string
+	Indicators []Indicator
+	Layout     Layout
 }
 
 type Product struct {
@@ -75,7 +75,7 @@ func (e *Threshold) GetComparator() string {
 	return ""
 }
 
-type Documentation struct {
+type Layout struct {
 	Title       string
 	Description string
 	Sections    []Section

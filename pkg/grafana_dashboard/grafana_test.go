@@ -33,7 +33,7 @@ func TestDocumentToDashboard(t *testing.T) {
 				Value:    500,
 			}},
 		}},
-		Documentation: indicator.Documentation{
+		Layout: indicator.Layout{
 			Title: "Indicator Test Dashboard",
 		},
 	}

@@ -64,7 +64,7 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 
 	sections := make([]APIV0Section, 0)
 
-	for _, s := range doc.Documentation.Sections {
+	for _, s := range doc.Layout.Sections {
 		indicatorNames := make([]string, 0)
 		for _, i := range s.Indicators {
 			indicatorNames = append(indicatorNames, i.Name)
@@ -86,10 +86,10 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 		Metadata:   doc.Metadata,
 		Indicators: indicators,
 		Documentation: APIV0Documentation{
-			Title:       doc.Documentation.Title,
-			Description: doc.Documentation.Description,
+			Title:       doc.Layout.Title,
+			Description: doc.Layout.Description,
 			Sections:    nil,
-			Owner:       doc.Documentation.Owner,
+			Owner:       doc.Layout.Owner,
 		},
 	}
 }
