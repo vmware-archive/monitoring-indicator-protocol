@@ -180,7 +180,7 @@ jobs:
       - name: env-state
       params:
         ENVIRONMENT: madlamp
-        BBL_STATE_DIR: acceptance-bosh/claimed/madlamp
+        BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
         DEPLOYMENT_NAME: cf-01234567890123456789
       run:
         path: bash
@@ -301,7 +301,7 @@ jobs:
   - task: deploy
     config:
       params:
-        BBL_STATE_DIR: acceptance-bosh/claimed/madlamp
+        BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
         S3_ACCESS_KEY: {{aws-access-key-id}}
         S3_SECRET_KEY: {{aws-secret-access-key}}
       platform: linux
