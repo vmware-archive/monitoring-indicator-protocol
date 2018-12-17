@@ -12,6 +12,9 @@ resources:
     uri: git@github.com:cloudfoundry-incubator/indicators.git
     branch: master
     private_key: {{event-producer-github-key}}
+    ignore_paths:
+    - README.md
+    - ci
 - name: env-state
   type: git
   source:
