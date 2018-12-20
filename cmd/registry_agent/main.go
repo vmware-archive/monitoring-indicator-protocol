@@ -17,7 +17,7 @@ import (
 func main() {
 	registryURI := flag.String("registry", "", "URI of a registry instance")
 	intervalTime := flag.Duration("interval", 5*time.Minute, "The send interval")
-	documentsGlob := flag.String("documents-glob", "/var/vcap/jobs/*/indicators.yml", "Glob path of indicator files")
+	documentsGlob := flag.String("documents-glob", "/var/vcap/jobs/config/*/indicators.yml", "Glob path of indicator files")
 
 	clientPEM := flag.String("tls-pem-path", "", "Client TLS public cert pem path which can connect to the server (indicator-registry)")
 	clientKey := flag.String("tls-key-path", "", "Server TLS private key path which can connect to the server (indicator-registry)")
