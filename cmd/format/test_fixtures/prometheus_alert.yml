@@ -3,12 +3,13 @@ groups:
 - name: my-component
   rules:
   - alert: doc_performance_indicator
-    expr: avg_over_time(demo_latency{source_id="doc",deployment="my-service-deployment"}[5m]) >= 50
+    expr: avg_over_time(demo_latency{source_id="my-metric-source",deployment="my-service-deployment"}[5m]) >= 50
     labels:
       product: my-component
       version: 1.2.3
       level: warning
       deployment: my-service-deployment
+      source_id: my-metric-source
     annotations:
       title: Doc Performance Indicator
       measurement: Average latency over last 5 minutes per instance
@@ -23,12 +24,13 @@ groups:
       threshold_note: These are environment specific
 
   - alert: doc_performance_indicator
-    expr: avg_over_time(demo_latency{source_id="doc",deployment="my-service-deployment"}[5m]) > 100
+    expr: avg_over_time(demo_latency{source_id="my-metric-source",deployment="my-service-deployment"}[5m]) > 100
     labels:
       product: my-component
       version: 1.2.3
       level: critical
       deployment: my-service-deployment
+      source_id: my-metric-source
     annotations:
       title: Doc Performance Indicator
       measurement: Average latency over last 5 minutes per instance

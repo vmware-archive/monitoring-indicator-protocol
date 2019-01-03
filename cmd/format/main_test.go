@@ -22,7 +22,7 @@ func TestFormatBinary(t *testing.T) {
 	t.Run("outputs formatted HTML", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		cmd := exec.Command(binPath, "-format", "html", "../../example.yml")
+		cmd := exec.Command(binPath, "-format", "html", "-metadata", "deployment=my-other-service-deployment", "../../example.yml")
 
 		buffer := bytes.NewBuffer(nil)
 
@@ -47,7 +47,7 @@ func TestFormatBinary(t *testing.T) {
 
 			g.Expect(html).To(ContainSubstring(`<h3><a id="doc_performance_indicator"></a>Doc Performance Indicator</h3>`))
 
-			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="doc",deployment="$deployment"}[5m])`))
+			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])`))
 		})
 
 		t.Run("It does not have multiple % signs", func(t *testing.T) {
@@ -60,7 +60,7 @@ func TestFormatBinary(t *testing.T) {
 	t.Run("outputs bookbinder formatted HTML", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		cmd := exec.Command(binPath, "-format", "bookbinder", "../../example.yml")
+		cmd := exec.Command(binPath, "-format", "bookbinder", "-metadata", "deployment=my-other-service-deployment", "../../example.yml")
 
 		buffer := bytes.NewBuffer(nil)
 
@@ -84,7 +84,7 @@ func TestFormatBinary(t *testing.T) {
 
 			g.Expect(html).To(ContainSubstring(`### <a id="doc_performance_indicator"></a>Doc Performance Indicator`))
 
-			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="doc",deployment="$deployment"}[5m])`))
+			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])`))
 		})
 
 		t.Run("It does not have multiple % signs", func(t *testing.T) {
@@ -95,43 +95,85 @@ func TestFormatBinary(t *testing.T) {
 	})
 
 	t.Run("outputs prometheus alert configuration", func(t *testing.T) {
-		g := NewGomegaWithT(t)
+		t.Run("with no metadata flag", func(t *testing.T) {
+			g := NewGomegaWithT(t)
 
-		cmd := exec.Command(binPath, "-format", "prometheus-alerts", "../../example.yml")
+			cmd := exec.Command(binPath, "-format", "prometheus-alerts", "../../example.yml")
 
-		buffer := bytes.NewBuffer(nil)
+			buffer := bytes.NewBuffer(nil)
 
-		sess, err := gexec.Start(cmd, buffer, os.Stderr)
-		g.Expect(err).ToNot(HaveOccurred())
+			sess, err := gexec.Start(cmd, buffer, os.Stderr)
+			g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(sess).Should(gexec.Exit(0))
+			g.Eventually(sess).Should(gexec.Exit(0))
 
-		prometheusAlertConfigurationYML := buffer.String()
+			prometheusAlertConfigurationYML := buffer.String()
 
-		fileBytes, err := ioutil.ReadFile("test_fixtures/prometheus_alert.yml")
-		g.Expect(err).ToNot(HaveOccurred())
+			fileBytes, err := ioutil.ReadFile("test_fixtures/prometheus_alert.yml")
+			g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(prometheusAlertConfigurationYML).To(MatchYAML(fileBytes))
+			g.Expect(prometheusAlertConfigurationYML).To(MatchYAML(fileBytes))
+		})
+
+		t.Run("with metadata flag", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			cmd := exec.Command(binPath, "-format", "prometheus-alerts", "-metadata", "deployment=my-other-service-deployment", "../../example.yml")
+
+			buffer := bytes.NewBuffer(nil)
+
+			sess, err := gexec.Start(cmd, buffer, os.Stderr)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Eventually(sess).Should(gexec.Exit(0))
+
+			prometheusAlertConfigurationYML := buffer.String()
+
+			g.Expect(prometheusAlertConfigurationYML).To(ContainSubstring(`deployment: my-other-service-deployment`))
+		})
 	})
 
 	t.Run("outputs grafana dashboards", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		cmd := exec.Command(binPath, "-format", "grafana", "../../example.yml")
-
-		buffer := bytes.NewBuffer(nil)
-
-		sess, err := gexec.Start(cmd, buffer, os.Stderr)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		g.Eventually(sess).Should(gexec.Exit(0))
-
-		text := buffer.String()
-
-		t.Run("it outputs indicators titles", func(t *testing.T) {
+		t.Run("with no metadata flag", func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			g.Expect(text).To(ContainSubstring(`"title": "doc_performance_indicator"`))
-			g.Expect(text).To(ContainSubstring(`"expr": "avg_over_time(demo_latency{source_id=\"doc\",deployment=\"my-service-deployment\"}[5m])"`))
+
+			cmd := exec.Command(binPath, "-format", "grafana", "../../example.yml")
+
+			buffer := bytes.NewBuffer(nil)
+
+			sess, err := gexec.Start(cmd, buffer, os.Stderr)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Eventually(sess).Should(gexec.Exit(0))
+
+			text := buffer.String()
+
+			t.Run("it outputs indicators titles", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				g.Expect(text).To(ContainSubstring(`"title": "doc_performance_indicator"`))
+				g.Expect(text).To(ContainSubstring(`"expr": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-service-deployment\"}[5m])"`))
+			})
+		})
+
+		t.Run("with metadata flag", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			cmd := exec.Command(binPath, "-format", "grafana", "-metadata", "deployment=my-other-service-deployment", "../../example.yml")
+
+			buffer := bytes.NewBuffer(nil)
+
+			sess, err := gexec.Start(cmd, buffer, os.Stderr)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Eventually(sess).Should(gexec.Exit(0))
+
+			text := buffer.String()
+
+			t.Run("it outputs indicators titles", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				g.Expect(text).To(ContainSubstring(`"title": "doc_performance_indicator"`))
+				g.Expect(text).To(ContainSubstring(`"expr": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-other-service-deployment\"}[5m])"`))
+			})
 		})
 	})
 }
