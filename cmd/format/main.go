@@ -15,18 +15,16 @@ import (
 func main() {
 	outputFormat := flag.String("format", "bookbinder", "output format [bookbinder,prometheus-alerts,grafana]")
 	metadata := flag.String("metadata", "", "metadata to override (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
+	indicatorsFilePath := flag.String("indicators", "", "indicators YAML file path")
 
 	flag.Parse()
 
-	args := flag.Args()
-	if len(args) != 1 {
-		log.Fatalf("only one file argument allowed\n")
+	if len(*indicatorsFilePath) == 0 {
+		log.Fatalf("-indicators flag is required")
 	}
 
-	filePath := args[0]
-
-	output, err := parseDocument(*outputFormat, *metadata, filePath)
-	if len(args) != 1 {
+	output, err := parseDocument(*outputFormat, *metadata, *indicatorsFilePath)
+	if err != nil {
 		log.Fatal(err)
 	}
 

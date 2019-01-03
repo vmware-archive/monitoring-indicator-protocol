@@ -19,10 +19,24 @@ func TestFormatBinary(t *testing.T) {
 	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
+	t.Run("complains if no indicators file path specified", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		cmd := exec.Command(binPath)
+
+		buffer := bytes.NewBuffer(nil)
+
+		sess, _ := gexec.Start(cmd, buffer, os.Stderr)
+		g.Eventually(sess).Should(gexec.Exit(1))
+	})
+
 	t.Run("outputs formatted HTML", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		cmd := exec.Command(binPath, "-format", "html", "-metadata", "deployment=my-other-service-deployment", "../../example.yml")
+		cmd := exec.Command(binPath,
+			"-format", "html",
+			"-metadata", "deployment=my-other-service-deployment",
+			"-indicators", "../../example.yml")
 
 		buffer := bytes.NewBuffer(nil)
 
@@ -60,7 +74,10 @@ func TestFormatBinary(t *testing.T) {
 	t.Run("outputs bookbinder formatted HTML", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		cmd := exec.Command(binPath, "-format", "bookbinder", "-metadata", "deployment=my-other-service-deployment", "../../example.yml")
+		cmd := exec.Command(binPath,
+			"-format", "bookbinder",
+			"-metadata", "deployment=my-other-service-deployment",
+			"-indicators", "../../example.yml")
 
 		buffer := bytes.NewBuffer(nil)
 
@@ -98,7 +115,9 @@ func TestFormatBinary(t *testing.T) {
 		t.Run("with no metadata flag", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
-			cmd := exec.Command(binPath, "-format", "prometheus-alerts", "../../example.yml")
+			cmd := exec.Command(binPath,
+				"-format", "prometheus-alerts",
+				"-indicators", "../../example.yml")
 
 			buffer := bytes.NewBuffer(nil)
 
@@ -118,7 +137,10 @@ func TestFormatBinary(t *testing.T) {
 		t.Run("with metadata flag", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
-			cmd := exec.Command(binPath, "-format", "prometheus-alerts", "-metadata", "deployment=my-other-service-deployment", "../../example.yml")
+			cmd := exec.Command(binPath,
+				"-format", "prometheus-alerts",
+				"-metadata", "deployment=my-other-service-deployment",
+				"-indicators", "../../example.yml")
 
 			buffer := bytes.NewBuffer(nil)
 
@@ -137,7 +159,9 @@ func TestFormatBinary(t *testing.T) {
 		t.Run("with no metadata flag", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
-			cmd := exec.Command(binPath, "-format", "grafana", "../../example.yml")
+			cmd := exec.Command(binPath,
+				"-format", "grafana",
+				"-indicators", "../../example.yml")
 
 			buffer := bytes.NewBuffer(nil)
 
@@ -158,7 +182,10 @@ func TestFormatBinary(t *testing.T) {
 		t.Run("with metadata flag", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
-			cmd := exec.Command(binPath, "-format", "grafana", "-metadata", "deployment=my-other-service-deployment", "../../example.yml")
+			cmd := exec.Command(binPath,
+				"-format", "grafana",
+				"-metadata", "deployment=my-other-service-deployment",
+				"-indicators", "../../example.yml")
 
 			buffer := bytes.NewBuffer(nil)
 

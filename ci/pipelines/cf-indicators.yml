@@ -117,7 +117,7 @@ jobs:
           export GO111MODULE=on
 
           pushd indicators/
-            go run -mod=vendor cmd/format/main.go -format bookbinder example.yml
+            go run -mod=vendor cmd/format/main.go -format bookbinder -indicators example.yml
           popd
 
 - name: upload-test-docs-to-s3
@@ -150,7 +150,7 @@ jobs:
           export WORKSPACE=$PWD
 
           pushd indicators/
-            go run -mod=vendor cmd/format/main.go -format bookbinder example.yml > ${WORKSPACE}/healthwatch_part.html
+            go run -mod=vendor cmd/format/main.go -format bookbinder -indicators example.yml > ${WORKSPACE}/healthwatch_part.html
           popd
 
           sed '/SUBSTITUTE_HERE/{
