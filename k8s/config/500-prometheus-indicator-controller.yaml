@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-indicator-controller
+  namespace: prometheus
+  labels:
+    app: prometheus-indicator-controller
+spec:
+  selector:
+    matchLabels:
+      app: prometheus-indicator-controller
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: prometheus-indicator-controller
+    spec:
+      serviceAccountName: prometheus-indicator-controller
+      containers:
+      - name: prometheus-indicator-controller
+        image: indicatorprotocol/prometheus-indicator-controller:latest
+        imagePullPolicy: Always
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace

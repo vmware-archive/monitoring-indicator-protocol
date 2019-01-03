@@ -1,0 +1,10 @@
+apiVersion: apps.pivotal.io/v1alpha1
+kind: IndicatorDocument
+metadata:
+  name: missing-indicator-promql
+spec:
+  product:
+    name: Our Product
+    version: 1
+  indicators:
+  - name: nodes_reachable

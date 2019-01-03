@@ -1,0 +1,12 @@
+apiVersion: apps.pivotal.io/v1alpha1
+kind: IndicatorDocument
+metadata:
+  name: documentation
+spec:
+  product:
+    name: my-component
+    version: 1.2.3
+  indicators:
+  - name: doc_performance_indicator
+    promql: avg_over_time(demo_latency{source_id="doc",deployment="$deployment"}[5m])
+    documentation: "some-string"

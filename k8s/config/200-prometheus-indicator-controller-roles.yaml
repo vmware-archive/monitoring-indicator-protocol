@@ -1,0 +1,14 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: prometheus-indicator-controller
+  namespace: prometheus
+rules:
+  # The prometheus-indicator-controller needs to patch the configmap for prometheus
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "patch"]
+  # The prometheus-indicator-controller needs to be able to watch indicatordocuments
+  - apiGroups: ["apps.pivotal.io"]
+    resources: ["indicatordocuments"]
+    verbs: ["get", "list", "watch"]

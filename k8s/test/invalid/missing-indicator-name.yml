@@ -1,0 +1,10 @@
+apiVersion: apps.pivotal.io/v1alpha1
+kind: IndicatorDocument
+metadata:
+  name: missing-indicator-name
+spec:
+  product:
+    name: Our Product
+    version: 1
+  indicators:
+  - promql: avg_over_time(demo_latency{source_id="doc",deployment="$deployment"}[5m])
