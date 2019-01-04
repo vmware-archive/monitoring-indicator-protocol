@@ -1,7 +1,7 @@
 package grafana_dashboard
 
 const grafanaTemplate = `{
-  "id": 1,
+  "id": null,
   "slug": "",
   "title": "{{.Title}}",
   "originalTitle": "",
@@ -65,7 +65,7 @@ const grafanaIndicatorTemplate = `{
       "editable": false,
       "error": false,
       "gridPos": {},
-      "id": 1,
+      "id": null,
       "isNew": true,
       "renderer": "flot",
       "span": 12,
