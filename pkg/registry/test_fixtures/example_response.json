@@ -37,7 +37,15 @@
     "layout": {
       "title": "Monitoring Document Product",
       "description": "Document description",
-      "sections": null,
+      "sections": [
+        {
+          "title": "Indicators",
+          "description": "This section includes indicators",
+          "indicators": [
+            "doc_performance_indicator"
+          ]
+        }
+      ],
       "owner": "Example Team"
     }
   }

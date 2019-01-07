@@ -172,7 +172,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
                     "layout": {
                       "title": "",
                       "description": "",
-                      "sections": null,
+                      "sections": [],
                       "owner": ""
                     }
                   }

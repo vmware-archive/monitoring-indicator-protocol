@@ -88,7 +88,7 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 		Layout: APIV0Layout{
 			Title:       doc.Layout.Title,
 			Description: doc.Layout.Description,
-			Sections:    nil,
+			Sections:    sections,
 			Owner:       doc.Layout.Owner,
 		},
 	}
