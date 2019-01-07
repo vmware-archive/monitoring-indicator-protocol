@@ -3,11 +3,11 @@ package registry
 import "code.cloudfoundry.org/indicators/pkg/indicator"
 
 type APIV0Document struct {
-	APIVersion    string             `json:"apiVersion"`
-	Product       APIV0Product       `json:"product"`
-	Metadata      map[string]string  `json:"metadata"`
-	Indicators    []APIV0Indicator   `json:"indicators"`
-	Documentation APIV0Documentation `json:"documentation"`
+	APIVersion string            `json:"apiVersion"`
+	Product    APIV0Product      `json:"product"`
+	Metadata   map[string]string `json:"metadata"`
+	Indicators []APIV0Indicator  `json:"indicators"`
+	Layout     APIV0Layout       `json:"layout"`
 }
 
 type APIV0Product struct {
@@ -28,7 +28,7 @@ type APIV0Indicator struct {
 	Documentation map[string]string `json:"documentation"`
 }
 
-type APIV0Documentation struct {
+type APIV0Layout struct {
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
 	Sections    []APIV0Section `json:"sections"`
@@ -85,7 +85,7 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 		},
 		Metadata:   doc.Metadata,
 		Indicators: indicators,
-		Documentation: APIV0Documentation{
+		Layout: APIV0Layout{
 			Title:       doc.Layout.Title,
 			Description: doc.Layout.Description,
 			Sections:    nil,

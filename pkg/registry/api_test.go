@@ -169,7 +169,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
                         "documentation": null
                       }
                     ],
-                    "documentation": {
+                    "layout": {
                       "title": "",
                       "description": "",
                       "sections": null,
