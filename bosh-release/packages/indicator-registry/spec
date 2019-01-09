@@ -1,0 +1,8 @@
+---
+name: indicator-registry
+
+dependencies:
+- golang-1.11-linux
+
+files:
+- code.cloudfoundry.org/indicators/**/*

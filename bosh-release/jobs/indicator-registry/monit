@@ -1,0 +1,5 @@
+check process indicator-registry
+  with pidfile /var/vcap/sys/run/bpm/indicator-registry/indicator-registry.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start indicator-registry"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop indicator-registry" with timeout 60 seconds
+  group vcap

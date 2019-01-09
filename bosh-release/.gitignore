@@ -1,0 +1,31 @@
+# Intellij project files
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# BOSH
+config/dev.yml
+config/private.yml
+.blobs
+blobs/
+/.final_builds/jobs/**/*.tgz
+/.final_builds/packages/**/*.tgz
+/releases/*.tgz
+/releases/**/*.tgz
+/.dev_builds
+dev_releases
+src/version
+.DS_Store
+/tmp/*
+
+# golang
+pkg/
+/bin/
+*.prof
+*.mprof
+*.coverprofile
+*.test
+
+# macOS
+.DS_Store

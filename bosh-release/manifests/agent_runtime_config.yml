@@ -1,0 +1,17 @@
+releases:
+- name: indicator-protocol
+  version: ((indicator-protocol-version))
+
+addons:
+- name: indicator-registration-agent
+  jobs:
+  - name: indicator-registration-agent
+    release: indicator-protocol
+    consumes:
+      indicator-registry: {deployment: indicator-registry}
+
+  include:
+    deployments: [indicator-registry]
+    stemcell:
+    - os: ubuntu-trusty
+    - os: ubuntu-xenial

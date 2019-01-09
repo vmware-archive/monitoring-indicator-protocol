@@ -1,0 +1,68 @@
+---
+name: indicator-registry
+
+stemcells:
+- alias: default
+  os: ubuntu-xenial
+  version: latest
+
+releases:
+- name: indicator-protocol
+  version: latest
+- name: bpm
+  version: latest
+
+instance_groups:
+- name: cf-indicator-registry
+  azs:
+    - z1
+  instances: 1
+  vm_type: minimal
+  stemcell: default
+  networks:
+  - name: default
+  jobs:
+  - name: bpm
+    release: bpm
+  - name: indicator-registry
+    release: indicator-protocol
+    provides:
+      indicator-registry: {shared: true}
+    properties:
+      tls:
+        ca_cert: ((indicator_protocol_ca.ca))
+        server_cert: ((indicator_registry_ssl.certificate))
+        server_key: ((indicator_registry_ssl.private_key))
+        server_common_name: indicator-registry
+        client_cert: ((indicator_registration_agent_ssl.certificate))
+        client_key: ((indicator_registration_agent_ssl.private_key))
+
+update:
+  canaries: 0
+  canary_watch_time: 30000-240000
+  update_watch_time: 30000-600000
+  max_in_flight: 1
+
+variables:
+- name: indicator_protocol_ca
+  type: certificate
+  options:
+    common_name: indicator-protocol-ca
+    is_ca: true
+- name: indicator_registry_ssl
+  type: certificate
+  options:
+    ca: indicator_protocol_ca
+    common_name: indicator-registry
+    extended_key_usage:
+    - server_auth
+- name: indicator_registration_agent_ssl
+  type: certificate
+  options:
+    ca: indicator_protocol_ca
+    common_name: indicator-registration-agent
+    extended_key_usage:
+    - client_auth
+
+features:
+  converge_variables: true

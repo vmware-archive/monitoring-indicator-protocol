@@ -1,0 +1,24 @@
+set -e -x
+
+source /var/vcap/packages/golang-1.11-linux/bosh/compile.env
+
+mkdir -p ${BOSH_INSTALL_TARGET}/src
+cp -a . ${BOSH_INSTALL_TARGET}/src
+
+export GOPATH=$BOSH_INSTALL_TARGET
+export PATH=$GOPATH/bin:$PATH
+
+mkdir -p $GOPATH/cache
+export GOCACHE=$GOPATH/cache
+
+export GO111MODULE=on
+
+pushd code.cloudfoundry.org/indicators
+    go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/registry cmd/registry/main.go
+    go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/registry_agent cmd/registry_agent/main.go
+popd
+
+# clean up source artifacts
+rm -rf ${BOSH_INSTALL_TARGET}/src \
+    ${BOSH_INSTALL_TARGET}/pkg \
+    ${GOPATH}/cache

@@ -1,0 +1,15 @@
+---
+processes:
+- name: indicator-registry
+  executable: /var/vcap/packages/indicator-registry/registry
+  args:
+  - --port
+  - <%= p('port') %>
+  - --tls-pem-path
+  - /var/vcap/jobs/indicator-registry/certs/registry.crt
+  - --tls-key-path
+  - /var/vcap/jobs/indicator-registry/certs/registry.key
+  - --tls-root-ca-pem
+  - /var/vcap/jobs/indicator-registry/certs/indicator_protocol_ca.crt
+  limits:
+    memory: 256M
