@@ -280,8 +280,8 @@ jobs:
               secret_access_key: ${S3_SECRET_KEY}
           EOF
 
-            bosh -n create-release --sha2 --final \
-              --tarball ../github-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz \
+            bosh -n create-release --sha2 --final --force \
+              --tarball ../../github-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz \
               --version "$BUILD_NUMBER"
             git add .
 
