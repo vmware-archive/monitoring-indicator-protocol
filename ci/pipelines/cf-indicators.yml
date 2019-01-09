@@ -1,11 +1,5 @@
 ---
 resources:
-- name: indicator-protocol-release
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry-incubator/indicator-protocol-release.git
-    branch: master
-    private_key: {{event-producer-github-key}}
 - name: indicators
   type: git
   source:
@@ -38,30 +32,15 @@ resources:
     repository: indicators
     access_token: {{event-producer-github-token}}
     drafts: true
-- name: indicator-protocol-final-release
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry-incubator/indicator-protocol-release.git
-    branch: master
-    private_key: {{event-producer-github-key}}
-    ignore_paths:
-    - .final_builds
-    - releases
-- name: pcf-kpis
-  type: git
-  source:
-    uri: git@github.com:pivotal-cf/pcf-kpis.git
-    branch: master
-    private_key: {{event-producer-github-key}}
-- name: cf-indicators-docs
-  type: s3
-  source:
-    region_name: us-east-2
-    bucket: cf-indicators-doc-tests
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
-    versioned_file: healthwatch.html
-
+#- name: indicator-protocol-final-release
+#  type: git
+#  source:
+#    uri: git@github.com:cloudfoundry-incubator/indicators.git
+#    branch: master
+#    private_key: {{event-producer-github-key}}
+#    ignore_paths:
+#    - bosh-release/.final_builds
+#    - bosh-release/releases
 jobs:
 - name: build-and-test
   plan:
@@ -119,50 +98,6 @@ jobs:
           pushd indicators/
             go run -mod=vendor cmd/format/main.go -format bookbinder -indicators example.yml
           popd
-
-- name: upload-test-docs-to-s3
-  plan:
-  - aggregate:
-    - get: indicators
-      passed: [indicator-docs]
-    - get: pcf-kpis
-  - task: generate-and-upload-docs
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfmetrics/indicators-build-and-test
-      inputs:
-      - name: indicators
-      - name: pcf-kpis
-      outputs:
-      - name: docs_out
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-
-          set -exu
-
-          export WORKSPACE=$PWD
-
-          pushd indicators/
-            go run -mod=vendor cmd/format/main.go -format bookbinder -indicators example.yml > ${WORKSPACE}/healthwatch_part.html
-          popd
-
-          sed '/SUBSTITUTE_HERE/{
-              s/SUBSTITUTE_HERE//g
-              r healthwatch_part.html
-          }' ${WORKSPACE}/pcf-kpis/template.html > docs_out/healthwatch.html
-
-  - put: cf-indicators-docs
-    params:
-      file: docs_out/healthwatch.html
-      acl: public-read
-      content_type: text/html
 
 - name: indicator-verification
   plan:
@@ -228,79 +163,13 @@ jobs:
 
           popd
 
-- name: bump-release-submodule
-  plan:
-  - aggregate:
-    - get: indicators
-      passed: [build-and-test]
-      trigger: true
-    - get: indicator-protocol-release
-  - task: bump-submodule
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: pcfmetrics/indicators-build-and-test
-      inputs:
-      - name: indicators
-      - name: indicator-protocol-release
-      outputs:
-      - name: indicator-protocol-release-updated
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-
-          set -exu
-
-          pushd indicators
-            REPO_PATH=$PWD
-            SOURCE_SHA=`git rev-parse HEAD`
-            COMMIT_MSG=`git rev-list --format=%B --max-count=1 $SOURCE_SHA`
-          popd
-
-          # Bumping submodule
-          pushd indicator-protocol-release/src/code.cloudfoundry.org/indicators
-            git remote add local $REPO_PATH
-            git fetch local
-            git checkout $SOURCE_SHA
-          popd
-
-          pushd indicator-protocol-release
-            export GOPATH=$PWD
-            export PATH=$PATH:$GOPATH/bin
-
-            git add src/code.cloudfoundry.org/indicators
-
-            if [[ -z $(git status -s) ]]; then
-              echo "No changes to indicators submodule"
-              rsync -a . ../indicator-protocol-release-updated
-              exit 0
-            fi
-
-            git config --global user.email "cf-event-producer@pivotal.io"
-            git config --global user.name "event-producer-cibot"
-            git commit -m "Updated indicators submodule version to:\
-
-            `echo "$COMMIT_MSG" | awk '{ print "\t"$0 }'`"
-          popd
-
-          rsync -a indicator-protocol-release/ indicator-protocol-release-updated
-    on_success:
-      put: indicator-protocol-release
-      params:
-        repository: indicator-protocol-release-updated
-        rebase: true
-
 - name: deploy-indicator-registry
   plan:
   - aggregate:
     - get: env-state
-    - get: indicator-protocol-release
+    - get: indicators
       trigger: true
+      passed: [build-and-test]
   - task: deploy
     config:
       params:
@@ -313,7 +182,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicator-protocol-release
+      - name: indicators
       - name: env-state
       run:
         path: bash
@@ -329,7 +198,10 @@ jobs:
           popd
           set -x
 
-          pushd indicator-protocol-release
+          mkdir -p indicators/bosh-release/src/code.cloudfoundry.org
+          rsync -Rr ./indicators/ ./indicators/bosh-release/src/code.cloudfoundry.org/
+
+          pushd indicators/bosh-release
 
             cat << EOF > config/private.yml
           ---
@@ -339,7 +211,7 @@ jobs:
               secret_access_key: ${S3_SECRET_KEY}
           EOF
 
-            bosh create-release
+            bosh create-release --force
             bosh -n upload-release --fix --rebase
 
             bosh update-runtime-config -n \
@@ -350,15 +222,13 @@ jobs:
 
 
           bosh -n -d indicator-registry deploy \
-            indicator-protocol-release/manifests/manifest.yml
+            indicators/bosh-release/manifests/manifest.yml
 
 - name: publish-release
   plan:
   - aggregate:
-    - get: indicator-protocol-release
-      passed: [deploy-indicator-registry]
     - get: indicators
-      passed: [indicator-verification,indicator-docs]
+      passed: [indicator-verification,indicator-docs,deploy-indicator-registry]
       trigger: false
     - get: release-version
       params: {}
@@ -371,12 +241,11 @@ jobs:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
       - name: release-version
-      - name: indicator-protocol-release
+      - name: indicators
       outputs:
       - name: final-release
       - name: github-release
       params:
-        RELEASE: indicator-protocol-release
         RELEASE_NAME: indicator-protocol
         S3_BUCKET: cf-indicators-bosh-blubs
         S3_ACCESS_KEY: {{aws-access-key-id}}
@@ -397,7 +266,10 @@ jobs:
           echo $tag_name > github-release/tag
           echo "TBD" > github-release/body
 
-          pushd $RELEASE
+          mkdir -p indicators/bosh-release/src/code.cloudfoundry.org
+          rsync -Rr ./indicators/ ./indicators/bosh-release/src/code.cloudfoundry.org/
+
+          pushd indicators/bosh-release
             cat << EOF > config/private.yml
           ---
           blobstore:
@@ -420,7 +292,6 @@ jobs:
             [ci skip]"
           popd
 
-          cp -r "${RELEASE}/." "final-release/"
   - task: publish-github-release
     config:
       platform: linux
@@ -469,12 +340,6 @@ jobs:
       body: github-release/body
       globs:
       - github-release/indicator-*
-  - put: indicator-protocol-final-release
-    params:
-      repository: final-release
-      rebase: true
-      tag: release-version/version
-      tag_prefix: v
   - put: release-version
     params:
       bump: patch
