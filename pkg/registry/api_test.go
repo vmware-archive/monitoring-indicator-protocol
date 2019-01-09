@@ -50,6 +50,22 @@ indicators:
 			Metadata: map[string]string{
 				"deployment": "redis-abc-123",
 			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title: "Metrics",
+					Indicators: []indicator.Indicator{{
+						Name:   "test_performance_indicator",
+						PromQL: "prom",
+						Thresholds: []indicator.Threshold{
+							{
+								Level:    "warning",
+								Operator: indicator.GreaterThanOrEqualTo,
+								Value:    50,
+							},
+						},
+					}},
+				}},
+			},
 			Indicators: []indicator.Indicator{{
 				Name:   "test_performance_indicator",
 				PromQL: "prom",
@@ -131,7 +147,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 			Indicators: []indicator.Indicator{{
 				Name: "test_errors1",
 			}, {
-				Name:         "test_errors2",
+				Name: "test_errors2",
 			}},
 		})
 

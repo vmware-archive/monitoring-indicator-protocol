@@ -125,8 +125,8 @@ indicators:
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(d.Indicators).To(Equal([]indicator.Indicator{{
-		Name:         "test-kpi",
-		PromQL:       "prom",
+		Name:   "test-kpi",
+		PromQL: "prom",
 		Thresholds: []indicator.Threshold{
 			{
 				Level:    "warning",
@@ -219,4 +219,44 @@ layout:
   `))
 		g.Expect(err).To(MatchError(ContainSubstring("documentation.sections[0].indicators[0] references non-existent indicator")))
 	})
+}
+
+func TestReturnsDefaultLayoutWhenGivenNoLayout(t *testing.T) {
+	g := NewGomegaWithT(t)
+	d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product: 
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_performance_indicator
+  promql: promql_test_expr
+`))
+	g.Expect(err).ToNot(HaveOccurred())
+
+	g.Expect(d).To(Equal(indicator.Document{
+		APIVersion: "v0",
+		Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+		Metadata:   map[string]string{"deployment": "valid-deployment"},
+		Indicators: []indicator.Indicator{
+			{
+				Name:   "test_performance_indicator",
+				PromQL: "promql_test_expr",
+			},
+		},
+		Layout: indicator.Layout{
+			Sections: []indicator.Section{{
+				Title:       "Metrics",
+				Indicators: []indicator.Indicator{
+					{
+						Name:   "test_performance_indicator",
+						PromQL: "promql_test_expr",
+					},
+				},
+			}},
+		},
+	}))
 }

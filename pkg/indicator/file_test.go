@@ -36,7 +36,17 @@ indicators:
 					PromQL: `query_metric{source_id="well-performing-deployment"}`,
 				},
 			},
-			Layout: indicator.Layout{},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title: "Metrics",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_performance_indicator",
+							PromQL: `query_metric{source_id="well-performing-deployment"}`,
+						},
+					},
+				}},
+			},
 		}))
 	})
 
@@ -55,7 +65,17 @@ indicators:
 					PromQL: `query_metric{source_id="$deployment"}`,
 				},
 			},
-			Layout: indicator.Layout{},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title: "Metrics",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_performance_indicator",
+							PromQL: `query_metric{source_id="$deployment"}`,
+						},
+					},
+				}},
+			},
 		}))
 	})
 }

@@ -66,14 +66,40 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 		})
 	}
 
-	var sections []Section
-	for idx, s := range d.YAMLLayout.Sections {
+	layout, err := getLayout(d.YAMLLayout, indicators)
+	if err != nil {
+		return Document{}, err
+	}
 
+	return Document{
+		APIVersion: d.APIVersion,
+		Product: Product{
+			Name:    d.Product.Name,
+			Version: d.Product.Version,
+		},
+		Metadata:   d.Metadata,
+		Indicators: indicators,
+		Layout:     layout,
+	}, nil
+}
+
+func getLayout(l *yamlLayout, indicators []Indicator) (Layout, error) {
+	var sections []Section
+	if l == nil {
+		return Layout{
+			Sections: []Section{{
+				Title:       "Metrics",
+				Indicators:  indicators,
+			}},
+		}, nil
+	}
+
+	for idx, s := range l.Sections {
 		var sectionIndicators []Indicator
 		for iIdx, i := range s.IndicatorRefs {
 			indic, ok := findIndicator(i, indicators)
 			if !ok {
-				return Document{}, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator", idx, iIdx)
+				return Layout{}, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator", idx, iIdx)
 			}
 
 			sectionIndicators = append(sectionIndicators, indic)
@@ -86,22 +112,11 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 		})
 	}
 
-	documentation := Layout{
-		Title:       d.YAMLLayout.Title,
-		Description: d.YAMLLayout.Description,
+	return Layout{
+		Title:       l.Title,
+		Description: l.Description,
+		Owner:       l.Owner,
 		Sections:    sections,
-		Owner:       d.YAMLLayout.Owner,
-	}
-
-	return Document{
-		APIVersion: d.APIVersion,
-		Product: Product{
-			Name:    d.Product.Name,
-			Version: d.Product.Version,
-		},
-		Metadata:   d.Metadata,
-		Indicators: indicators,
-		Layout:     documentation,
 	}, nil
 }
 
@@ -141,7 +156,7 @@ type yamlDocument struct {
 	Product    yamlProduct       `yaml:"product"`
 	Metadata   map[string]string `yaml:"metadata"`
 	Indicators []yamlIndicator   `yaml:"indicators"`
-	YAMLLayout yamlLayout        `yaml:"layout"`
+	YAMLLayout *yamlLayout       `yaml:"layout"`
 }
 
 type yamlProduct struct {
