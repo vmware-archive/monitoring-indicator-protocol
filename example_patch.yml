@@ -1,0 +1,14 @@
+---
+apiVersion: v1/patch
+
+match:
+  name: my-component
+  version: 1.2.3
+
+operations:
+- op: add
+  path: /indicators/name=success_percentage
+  value:
+    promql: success_percentage_promql{source_id="origin"}
+    documentation:
+      title: Success Percentage

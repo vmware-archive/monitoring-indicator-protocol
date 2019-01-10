@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/krishicks/yaml-patch"
 )
 
 func TestReturnsCompleteDocument(t *testing.T) {
@@ -249,7 +250,7 @@ indicators:
 		},
 		Layout: indicator.Layout{
 			Sections: []indicator.Section{{
-				Title:       "Metrics",
+				Title: "Metrics",
 				Indicators: []indicator.Indicator{
 					{
 						Name:   "test_performance_indicator",
@@ -259,4 +260,101 @@ indicators:
 			}},
 		},
 	}))
+}
+
+func TestReturnsACompletePatchDocument(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	var val interface{}
+	val = map[interface{}]interface{}{
+		"promql": `success_percentage_promql{source_id="origin"}`,
+		"documentation": map[interface{}]interface{}{
+			"title": "Success Percentage",
+		}}
+
+	name := "my-component"
+	version := "1.2.3"
+	patch := indicator.Patch{
+		APIVersion: "test-apiversion",
+		Origin:     "file-origin.yml",
+		Match: indicator.Match{
+			Name:    &name,
+			Version: &version,
+		},
+		Operations: []yamlpatch.Operation{{
+			Op:    "add",
+			Path:  "/indicators/name=success_percentage",
+			Value: yamlpatch.NewNode(&val),
+		}},
+	}
+
+	documentBytes := []byte(`---
+apiVersion: test-apiversion
+
+match:
+  name: my-component
+  version: 1.2.3
+
+operations:
+- op: add
+  path: /indicators/name=success_percentage
+  value:
+    promql: success_percentage_promql{source_id="origin"}
+    documentation:
+      title: Success Percentage
+
+`)
+	p, err := indicator.ReadPatchBytes("file-origin.yml", documentBytes)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	g.Expect(p).To(BeEquivalentTo(patch))
+}
+
+func TestReturnsPatchDocumentWithBlankVersion(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	var val interface{}
+	val = map[interface{}]interface{}{
+		"promql": `success_percentage_promql{source_id="origin"}`,
+		"documentation": map[interface{}]interface{}{
+			"title": "Success Percentage",
+		}}
+
+	patch := indicator.Patch{
+		APIVersion: "test-apiversion",
+		Origin:     "file-origin.yml",
+		Match: indicator.Match{
+			Name:    nil,
+			Version: nil,
+			Metadata: map[string]string{
+				"deployment": "test-deployment",
+			},
+		},
+		Operations: []yamlpatch.Operation{{
+			Op:    "add",
+			Path:  "/indicators/name=success_percentage",
+			Value: yamlpatch.NewNode(&val),
+		}},
+	}
+
+	documentBytes := []byte(`---
+apiVersion: test-apiversion
+
+match:
+  metadata:
+    deployment: test-deployment
+
+operations:
+- op: add
+  path: /indicators/name=success_percentage
+  value:
+    promql: success_percentage_promql{source_id="origin"}
+    documentation:
+      title: Success Percentage
+
+`)
+	p, err := indicator.ReadPatchBytes("file-origin.yml", documentBytes)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	g.Expect(p).To(BeEquivalentTo(patch))
 }

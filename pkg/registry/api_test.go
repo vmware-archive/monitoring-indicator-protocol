@@ -44,7 +44,7 @@ indicators:
 
 		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
 		g.Expect(resp.Code).To(Equal(http.StatusOK))
-		g.Expect(docStore.All()).To(ConsistOf(indicator.Document{
+		g.Expect(docStore.AllDocuments()).To(ConsistOf(indicator.Document{
 			APIVersion: "v0",
 			Product:    indicator.Product{Name: "redis-tile", Version: "0.11"},
 			Metadata: map[string]string{
@@ -97,7 +97,7 @@ indicators:
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
-		g.Expect(docStore.All()).To(HaveLen(0))
+		g.Expect(docStore.AllDocuments()).To(HaveLen(0))
 
 		g.Expect(resp.Code).To(Equal(http.StatusUnprocessableEntity))
 
@@ -120,7 +120,7 @@ indicators: aasdfasdf`))
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
-		g.Expect(docStore.All()).To(HaveLen(0))
+		g.Expect(docStore.AllDocuments()).To(HaveLen(0))
 
 		g.Expect(resp.Code).To(Equal(http.StatusBadRequest))
 
@@ -139,7 +139,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		resp := httptest.NewRecorder()
 
 		docStore := registry.NewDocumentStore(1 * time.Minute)
-		docStore.Upsert(indicator.Document{
+		docStore.UpsertDocument(indicator.Document{
 			Product: indicator.Product{Name: "my-product-a", Version: "1"},
 			Metadata: map[string]string{
 				"deployment": "abc-123",

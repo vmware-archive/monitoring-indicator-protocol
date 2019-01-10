@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/krishicks/yaml-patch"
 	"gopkg.in/yaml.v2"
 )
 
@@ -83,13 +84,33 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 	}, nil
 }
 
+func ReadPatchBytes(origin string, yamlBytes []byte) (Patch, error) {
+	p := yamlPatch{}
+	err := yaml.Unmarshal(yamlBytes, &p)
+
+	if err != nil {
+		return Patch{}, fmt.Errorf("unable to parse bytes: %s\n", err)
+	}
+
+	return Patch{
+		Origin:     origin,
+		APIVersion: p.APIVersion,
+		Match: Match{
+			Name:     p.Match.Name,
+			Version:  p.Match.Version,
+			Metadata: p.Match.Metadata,
+		},
+		Operations: p.Operations,
+	}, nil
+}
+
 func getLayout(l *yamlLayout, indicators []Indicator) (Layout, error) {
 	var sections []Section
 	if l == nil {
 		return Layout{
 			Sections: []Section{{
-				Title:       "Metrics",
-				Indicators:  indicators,
+				Title:      "Metrics",
+				Indicators: indicators,
 			}},
 		}, nil
 	}
@@ -192,6 +213,18 @@ type yamlThreshold struct {
 	NEQ   string `yaml:"neq"`
 	GTE   string `yaml:"gte"`
 	GT    string `yaml:"gt"`
+}
+
+type yamlPatch struct {
+	APIVersion string                `yaml:"apiVersion"`
+	Match      yamlMatch             `yaml:"match"`
+	Operations []yamlpatch.Operation `yaml:"operations"`
+}
+
+type yamlMatch struct {
+	Name     *string           `yaml:"name,omitempty"`
+	Version  *string           `yaml:"version,omitempty"`
+	Metadata map[string]string `yaml:"metadata,omitempty"`
 }
 
 func findIndicator(name string, indicators []Indicator) (Indicator, bool) {

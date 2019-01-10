@@ -5,6 +5,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"testing"
 
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -61,6 +62,32 @@ func TestIndicatorRegistry(t *testing.T) {
 			g.Expect(len(json)).To(BeNumerically(">", 200))
 			g.Expect(bytes).To(MatchJSON(json))
 		})
+	})
+
+	t.Run("it logs ingested patch files", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		binPath, err := go_test.Build("./")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		port := "12345"
+		cmd := exec.Command(binPath,
+			"--port", port,
+			"--tls-pem-path", serverCert,
+			"--tls-key-path", serverKey,
+			"--tls-root-ca-pem", rootCACert,
+			"--patch", "../../example_patch.yml",
+		)
+
+		buffer := bytes.NewBuffer(nil)
+		session, err := gexec.Start(cmd, os.Stdout, buffer)
+		g.Expect(err).ToNot(HaveOccurred())
+		defer session.Kill()
+
+		serverHost := "localhost:" + port
+		go_test.WaitForHTTPServer(serverHost, 3*time.Second)
+
+		g.Expect(buffer.String()).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
 	})
 
 	t.Run("it exposes a metrics endpoint", func(t *testing.T) {
@@ -132,7 +159,8 @@ func withServer(port string, g *GomegaWithT, testFun func(string)) {
 		"--tls-key-path", serverKey,
 		"--tls-root-ca-pem", rootCACert,
 	)
-	session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
+	buffer := bytes.NewBuffer(nil)
+	session, err := gexec.Start(cmd, buffer, buffer)
 	g.Expect(err).ToNot(HaveOccurred())
 	defer session.Kill()
 	serverHost := "localhost:" + port

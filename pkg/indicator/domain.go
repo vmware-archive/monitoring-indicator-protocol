@@ -1,5 +1,7 @@
 package indicator
 
+import "github.com/krishicks/yaml-patch"
+
 type OperatorType int
 
 const (
@@ -17,6 +19,19 @@ type Document struct {
 	Metadata   map[string]string
 	Indicators []Indicator
 	Layout     Layout
+}
+
+type Patch struct {
+	Origin     string
+	APIVersion string
+	Match      Match
+	Operations []yamlpatch.Operation
+}
+
+type Match struct {
+	Name     *string
+	Version  *string
+	Metadata map[string]string
 }
 
 type Product struct {

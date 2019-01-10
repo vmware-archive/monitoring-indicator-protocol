@@ -36,7 +36,7 @@ func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 			return
 		}
 
-		store.Upsert(doc)
+		store.UpsertDocument(doc)
 
 		w.WriteHeader(http.StatusOK)
 	}
@@ -69,7 +69,7 @@ func NewIndicatorDocumentsHandler(store *DocumentStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		bytes, _ := marshal(store.All())
+		bytes, _ := marshal(store.AllDocuments())
 		fmt.Fprintf(w, string(bytes))
 	}
 }

@@ -29,3 +29,16 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
 
 	return indicatorDocument, nil
 }
+
+func ReadPatchFile(patchFile string) (Patch, error) {
+	fileBytes, err := ioutil.ReadFile(patchFile)
+	if err != nil {
+		return Patch{}, err
+	}
+
+	patch, err := ReadPatchBytes(patchFile, fileBytes)
+	if err != nil {
+		return Patch{}, err
+	}
+	return patch, nil
+}
