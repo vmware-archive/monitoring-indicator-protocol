@@ -12,9 +12,9 @@ import (
 
 func TestInsertDocument(t *testing.T) {
 	var val interface{}
-	val = indicator.Indicator{
-		PromQL: "foo{bar&bar}",
-		Documentation: map[string]string{
+	val = map[interface{}]interface{}{
+		"promQL": "foo{bar&bar}",
+		"documentation": map[interface{}]interface{}{
 			"title": "Great Success",
 		},
 	}

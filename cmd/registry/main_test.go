@@ -64,30 +64,41 @@ func TestIndicatorRegistry(t *testing.T) {
 		})
 	})
 
+	t.Run("it patches indicator documents when received", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		buffer := bytes.NewBuffer(nil)
+		withPatchingServer("10567", buffer, g, func(serverUrl string) {
+			file, err := os.Open("../../example.yml")
+			g.Expect(err).ToNot(HaveOccurred())
+
+			resp, err := client.Post(serverUrl+"/v1/register", "text/plain", file)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Expect(resp.StatusCode, resp.Body).To(Equal(http.StatusOK))
+
+			resp, err = client.Get(serverUrl + "/v1/indicator-documents")
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			bytes, err := ioutil.ReadAll(resp.Body)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			json, err := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_patched_response.json")
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Expect(len(json)).To(BeNumerically(">", 200))
+			g.Expect(bytes).To(MatchJSON(json))
+		})
+	})
+
 	t.Run("it logs ingested patch files", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		binPath, err := go_test.Build("./")
-		g.Expect(err).ToNot(HaveOccurred())
-
-		port := "12345"
-		cmd := exec.Command(binPath,
-			"--port", port,
-			"--tls-pem-path", serverCert,
-			"--tls-key-path", serverKey,
-			"--tls-root-ca-pem", rootCACert,
-			"--patch", "../../example_patch.yml",
-		)
-
 		buffer := bytes.NewBuffer(nil)
-		session, err := gexec.Start(cmd, os.Stdout, buffer)
-		g.Expect(err).ToNot(HaveOccurred())
-		defer session.Kill()
-
-		serverHost := "localhost:" + port
-		go_test.WaitForHTTPServer(serverHost, 3*time.Second)
-
-		g.Expect(buffer.String()).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
+		withPatchingServer("12345", buffer, g, func(serverUrl string) {
+			g.Expect(buffer.String()).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
+		})
 	})
 
 	t.Run("it exposes a metrics endpoint", func(t *testing.T) {
@@ -160,6 +171,26 @@ func withServer(port string, g *GomegaWithT, testFun func(string)) {
 		"--tls-root-ca-pem", rootCACert,
 	)
 	buffer := bytes.NewBuffer(nil)
+	session, err := gexec.Start(cmd, buffer, buffer)
+	g.Expect(err).ToNot(HaveOccurred())
+	defer session.Kill()
+	serverHost := "localhost:" + port
+	go_test.WaitForHTTPServer(serverHost, 3*time.Second)
+	testFun("https://" + serverHost)
+}
+
+func withPatchingServer(port string, buffer *bytes.Buffer, g *GomegaWithT, testFun func(string)) {
+	binPath, err := go_test.Build("./")
+	g.Expect(err).ToNot(HaveOccurred())
+
+	cmd := exec.Command(binPath,
+		"--port", port,
+		"--tls-pem-path", serverCert,
+		"--tls-key-path", serverKey,
+		"--tls-root-ca-pem", rootCACert,
+		"--patch", "../../example_patch.yml",
+	)
+
 	session, err := gexec.Start(cmd, buffer, buffer)
 	g.Expect(err).ToNot(HaveOccurred())
 	defer session.Kill()

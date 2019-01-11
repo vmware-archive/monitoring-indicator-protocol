@@ -7,8 +7,9 @@ match:
 
 operations:
 - op: add
-  path: /indicators/name=success_percentage
+  path: /indicators/-
   value:
+    name: success_percentage
     promql: success_percentage_promql{source_id="origin"}
     documentation:
       title: Success Percentage

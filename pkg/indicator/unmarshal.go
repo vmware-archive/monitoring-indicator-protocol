@@ -3,6 +3,7 @@ package indicator
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -22,6 +23,63 @@ func OverrideMetadata(overrideMetadata map[string]string) func(options *readOpti
 			options.overrides[k] = v
 		}
 	}
+}
+
+func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
+	_, err := readMetadata(documentBytes)
+	if err != nil {
+		return []byte{}, fmt.Errorf("could not read document metadata: %s", err)
+	}
+	var node yamlpatch.Node
+	err = yaml.Unmarshal(documentBytes, &node)
+	if err != nil {
+		return []byte{}, fmt.Errorf("failed to unmarshal document for patching: %s\n", err)
+	}
+
+	var patched []byte
+	for _, p := range patches {
+		if MatchDocument(p.Match, documentBytes) {
+			for _, o := range p.Operations {
+				err = o.Perform(node.Container())
+				if err != nil {
+					return []byte{}, fmt.Errorf("failed to apply operation %s %s: %s\n", o.Op, o.Path, err)
+				}
+			}
+		}
+	}
+
+	patched, err = yaml.Marshal(node.Container())
+	if err != nil {
+		return []byte{}, err
+	}
+	return patched, nil
+}
+
+func MatchDocument(criteria Match, documentBytes []byte) bool {
+	product, err := readProductInfo(documentBytes)
+	if err != nil {
+		return false
+	}
+
+	if criteria.Name != nil && *criteria.Name != product.Name {
+		return false
+	}
+	if criteria.Version != nil && *criteria.Version != product.Version {
+		return false
+	}
+
+	if criteria.Metadata != nil {
+		metadata, err := readMetadata(documentBytes)
+		if err != nil {
+			return false
+		}
+
+		if !reflect.DeepEqual(metadata, criteria.Metadata) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) {
@@ -287,6 +345,19 @@ func readMetadata(document []byte) (map[string]string, error) {
 	}
 
 	return d.Metadata, nil
+}
+
+func readProductInfo(documentBytes []byte) (yamlProduct, error) {
+	var document struct {
+		Product yamlProduct `yaml:"product"`
+	}
+
+	err := yaml.Unmarshal(documentBytes, &document)
+	if err != nil {
+		return yamlProduct{}, fmt.Errorf("could not unmarshal metadata: %s", err)
+	}
+
+	return document.Product, nil
 }
 
 func fillInMetadata(documentMetadata map[string]string, overrideMetadata map[string]string, documentBytes []byte) []byte {

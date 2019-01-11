@@ -358,3 +358,231 @@ operations:
 
 	g.Expect(p).To(BeEquivalentTo(patch))
 }
+
+func TestDocumentMatching(t *testing.T) {
+	name1 := "testing"
+	version1 := "123"
+	matcher1 := indicator.Match{
+		Name:    &name1,
+		Version: &version1,
+	}
+
+	matcher2 := indicator.Match{
+		Name:    nil,
+		Version: nil,
+		Metadata: map[string]string{
+			"deployment": "test-deployment",
+		},
+	}
+
+	name2 := "other-testing"
+	version2 := "456"
+	matcher3 := indicator.Match{
+		Name:    &name2,
+		Version: &version2,
+		Metadata: map[string]string{
+			"deployment": "other-test-deployment",
+		},
+	}
+
+	t.Run("name and version", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		documentBytes := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: non-matching-test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+
+		g.Expect(indicator.MatchDocument(matcher1, documentBytes)).To(BeTrue())
+		g.Expect(indicator.MatchDocument(matcher2, documentBytes)).To(BeFalse())
+		g.Expect(indicator.MatchDocument(matcher3, documentBytes)).To(BeFalse())
+	})
+
+	t.Run("metadata", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		documentBytes := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing-foo-foo
+  version: 123456
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+
+		g.Expect(indicator.MatchDocument(matcher1, documentBytes)).To(BeFalse())
+		g.Expect(indicator.MatchDocument(matcher2, documentBytes)).To(BeTrue())
+		g.Expect(indicator.MatchDocument(matcher3, documentBytes)).To(BeFalse())
+	})
+
+	t.Run("name and version and metadata", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		documentBytes := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: other-testing
+  version: 456
+
+metadata:
+  deployment: other-test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+
+		g.Expect(indicator.MatchDocument(matcher1, documentBytes)).To(BeFalse())
+		g.Expect(indicator.MatchDocument(matcher2, documentBytes)).To(BeFalse())
+		g.Expect(indicator.MatchDocument(matcher3, documentBytes)).To(BeTrue())
+	})
+}
+
+func TestPatching(t *testing.T) {
+	var val interface{}
+	val = map[interface{}]interface{}{
+		"name":   "inserted_indicator",
+		"promql": `inserted_indicator_promql{source_id="origin"}`,
+		"documentation": map[interface{}]interface{}{
+			"title": "Success Percentage",
+		}}
+
+	patch := []indicator.Patch{{
+		APIVersion: "test-apiversion/patch",
+		Origin:     "file-origin.yml",
+		Match: indicator.Match{
+			Metadata: map[string]string{
+				"deployment": "test-deployment",
+			},
+		},
+		Operations: []yamlpatch.Operation{{
+			Op:    "add",
+			Path:  "/indicators/-",
+			Value: yamlpatch.NewNode(&val),
+		}},
+	}}
+
+	matchingDocument := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+
+	nonMatchingDocument := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: non-matching-test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+
+	t.Run("patches files that match", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		patchedBytes, err := indicator.ApplyPatches(patch, matchingDocument)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		d, err := indicator.ReadIndicatorDocument(patchedBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "test-apiversion/document",
+			Product: indicator.Product{
+				Name:    "testing",
+				Version: "123",
+			},
+			Metadata: map[string]string{
+				"deployment": "test-deployment",
+			},
+			Indicators: []indicator.Indicator{{
+				Name:   "test_indicator",
+				PromQL: "test_expr",
+			}, {
+				Name:          "inserted_indicator",
+				PromQL:        `inserted_indicator_promql{source_id="origin"}`,
+				Documentation: map[string]string{"title": "Success Percentage"},
+			}},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title:       "Metrics",
+					Description: "",
+					Indicators: []indicator.Indicator{{
+						Name:   "test_indicator",
+						PromQL: "test_expr",
+					}, {
+						Name:          "inserted_indicator",
+						PromQL:        `inserted_indicator_promql{source_id="origin"}`,
+						Documentation: map[string]string{"title": "Success Percentage"},
+					}},
+				}},
+			},
+		}))
+	})
+
+	t.Run("does not patch files that do not match", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		unpatchedBytes, err := indicator.ApplyPatches(patch, nonMatchingDocument)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		d, err := indicator.ReadIndicatorDocument(unpatchedBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "test-apiversion/document",
+			Product: indicator.Product{
+				Name:    "testing",
+				Version: "123",
+			},
+			Metadata: map[string]string{
+				"deployment": "non-matching-test-deployment",
+			},
+			Indicators: []indicator.Indicator{{
+				Name:   "test_indicator",
+				PromQL: "test_expr",
+			}},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title:       "Metrics",
+					Description: "",
+					Indicators: []indicator.Indicator{{
+						Name:   "test_indicator",
+						PromQL: "test_expr",
+					}},
+				}},
+			},
+		}))
+	})
+}

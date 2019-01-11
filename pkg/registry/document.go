@@ -24,21 +24,21 @@ type APIV0Threshold struct {
 type APIV0Indicator struct {
 	Name          string            `json:"name"`
 	PromQL        string            `json:"promql"`
-	Thresholds    []APIV0Threshold  `json:"thresholds"`
-	Documentation map[string]string `json:"documentation"`
+	Thresholds    []APIV0Threshold  `json:"thresholds,omitempty"`
+	Documentation map[string]string `json:"documentation,omitempty"`
 }
 
 type APIV0Layout struct {
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
-	Sections    []APIV0Section `json:"sections"`
+	Sections    []APIV0Section `json:"sections,omitempty"`
 	Owner       string         `json:"owner"`
 }
 
 type APIV0Section struct {
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
-	Indicators  []string `json:"indicators"`
+	Indicators  []string `json:"indicators,omitempty"`
 }
 
 func ToAPIV0Document(doc indicator.Document) APIV0Document {
