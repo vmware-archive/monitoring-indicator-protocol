@@ -64,11 +64,22 @@ func TestIndicatorRegistry(t *testing.T) {
 		})
 	})
 
+	t.Run("it loads patches from git sources", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		buffer := bytes.NewBuffer(nil)
+
+		withPatchingServer("10567", "test_fixtures/git_config.yml", buffer, g, func(serverUrl string) {
+			results := buffer.String()
+			g.Expect(results).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
+			g.Expect(results).ToNot(ContainSubstring("registered patch for\n"))
+		})
+	})
+
 	t.Run("it patches indicator documents when received", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		buffer := bytes.NewBuffer(nil)
-		withPatchingServer("10567", buffer, g, func(serverUrl string) {
+		withPatchingServer("10567", "test_fixtures/local_config.yml", buffer, g, func(serverUrl string) {
 			file, err := os.Open("../../example.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
@@ -91,15 +102,6 @@ func TestIndicatorRegistry(t *testing.T) {
 
 			g.Expect(len(json)).To(BeNumerically(">", 200))
 			g.Expect(bytes).To(MatchJSON(json))
-		})
-	})
-
-	t.Run("it logs ingested patch files", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		buffer := bytes.NewBuffer(nil)
-		withPatchingServer("12345", buffer, g, func(serverUrl string) {
-			g.Expect(buffer.String()).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
 		})
 	})
 
@@ -181,7 +183,7 @@ func withServer(port string, g *GomegaWithT, testFun func(string)) {
 	testFun("https://" + serverHost)
 }
 
-func withPatchingServer(port string, buffer *bytes.Buffer, g *GomegaWithT, testFun func(string)) {
+func withPatchingServer(port, configPath string, buffer *bytes.Buffer, g *GomegaWithT, testFun func(string)) {
 	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -190,7 +192,7 @@ func withPatchingServer(port string, buffer *bytes.Buffer, g *GomegaWithT, testF
 		"--tls-pem-path", serverCert,
 		"--tls-key-path", serverKey,
 		"--tls-root-ca-pem", rootCACert,
-		"--config", "test_fixtures/config.yml",
+		"--config", configPath,
 	)
 
 	session, err := gexec.Start(cmd, buffer, buffer)

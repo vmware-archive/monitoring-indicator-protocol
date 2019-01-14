@@ -1,0 +1,6 @@
+---
+sources:
+  - type: local
+    path: test_fixtures/patch1.yml
+  - type: local
+    path: test_fixtures/patch2.yml

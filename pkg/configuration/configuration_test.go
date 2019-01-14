@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"code.cloudfoundry.org/indicators/pkg/configuration"
+	"code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
-func TestReadConfigurationFile(t *testing.T) {
+func TestReadLocalConfigurationFile(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	patches, err := configuration.Read("test_fixtures/config.yml")
+	patches, err := configuration.Read("test_fixtures/local_config.yml")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(patches).To(HaveLen(2))
@@ -22,6 +23,77 @@ func TestReadConfigurationFile(t *testing.T) {
 	g.Expect(*patch2.Match.Name).To(Equal("my-component-2"))
 }
 
+func TestOpenGitSource(t *testing.T) {
+	g := NewGomegaWithT(t)
+	testPatches := []indicator.Patch{{
+		Origin:     "test-file",
+		APIVersion: "whocares",
+		Match:      indicator.Match{},
+		Operations: nil,
+	}}
+
+	fakeGetter := func(s configuration.Source) ([]indicator.Patch, error) {
+		g.Expect(s.Repository).To(Equal("https://fakegit.nope/slowens/test-repo.git"))
+		g.Expect(s.Token).To(Equal("test_private_key"))
+		return testPatches, nil
+	}
+
+	configuration.SetGitPatchGetter(fakeGetter)
+
+	patches, err := configuration.Read("test_fixtures/git_config.yml")
+	g.Expect(err).ToNot(HaveOccurred())
+
+	g.Expect(patches).To(ConsistOf(testPatches))
+}
+
+func TestValidateConfigFile(t *testing.T) {
+	t.Run("does not return error if token is not provided with SSH git repo", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		err := configuration.Validate(configuration.File{
+			Sources: []configuration.Source{{
+				Type:       "git",
+				Repository: "git@fakegit.nope:slowens/test-repo.git",
+			}},
+		})
+		g.Expect(err).ToNot(HaveOccurred())
+	})
+
+	t.Run("returns error if token is provided with SSH git repo", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		err := configuration.Validate(configuration.File{
+			Sources: []configuration.Source{{
+				Type:       "git",
+				Repository: "git@fakegit.nope:slowens/test-repo.git",
+				Token:      "asdfasdf",
+			}},
+		})
+		g.Expect(err).To(MatchError(ContainSubstring("personal access token can only be used over HTTPS")))
+	})
+
+	t.Run("returns error if repo isn't provided in git source", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		err := configuration.Validate(configuration.File{
+			Sources: []configuration.Source{{
+				Type: "git",
+			}},
+		})
+		g.Expect(err).To(MatchError(ContainSubstring("repository is required for git sources")))
+	})
+
+	t.Run("returns error if path isn't provided in local source", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		err := configuration.Validate(configuration.File{
+			Sources: []configuration.Source{{
+				Type: "local",
+			}},
+		})
+		g.Expect(err).To(MatchError(ContainSubstring("path is required for local sources")))
+	})
+}
 
 func TestFailToReadConfigurationFile(t *testing.T) {
 	t.Run("returns an error if config file cannot be read", func(t *testing.T) {
@@ -39,7 +111,7 @@ func TestFailToReadConfigurationFile(t *testing.T) {
 	})
 
 	t.Run("returns a partial list if some patches cannot be read", func(t *testing.T) {
-	    g:= NewGomegaWithT(t)
+		g := NewGomegaWithT(t)
 
 		patches, err := configuration.Read("test_fixtures/partial_bad.yml")
 		g.Expect(err).ToNot(HaveOccurred())

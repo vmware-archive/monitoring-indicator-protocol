@@ -1,3 +1,7 @@
 ---
 sources:
-  - example_patch.yml
+  - type: local
+    path: example_patch.yml
+  - type: git
+    repository: https://github.com/cloudfoundry-incubator/indicators.git
+    token: "some-key"

@@ -1,0 +1,5 @@
+---
+sources:
+  - type: git
+    repository: https://fakegit.nope/slowens/test-repo.git
+    token: "test_private_key"

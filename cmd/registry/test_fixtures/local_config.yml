@@ -1,0 +1,4 @@
+---
+sources:
+  - type: local
+    path: ../../example_patch.yml
