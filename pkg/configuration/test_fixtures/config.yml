@@ -1,0 +1,4 @@
+---
+sources:
+  - test_fixtures/patch1.yml
+  - test_fixtures/patch2.yml

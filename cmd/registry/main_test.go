@@ -84,6 +84,8 @@ func TestIndicatorRegistry(t *testing.T) {
 			bytes, err := ioutil.ReadAll(resp.Body)
 			g.Expect(err).ToNot(HaveOccurred())
 
+			g.Expect(buffer.String()).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
+
 			json, err := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_patched_response.json")
 			g.Expect(err).ToNot(HaveOccurred())
 
@@ -188,7 +190,7 @@ func withPatchingServer(port string, buffer *bytes.Buffer, g *GomegaWithT, testF
 		"--tls-pem-path", serverCert,
 		"--tls-key-path", serverKey,
 		"--tls-root-ca-pem", rootCACert,
-		"--patch", "../../example_patch.yml",
+		"--config", "test_fixtures/config.yml",
 	)
 
 	session, err := gexec.Start(cmd, buffer, buffer)

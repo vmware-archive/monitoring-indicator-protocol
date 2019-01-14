@@ -1,0 +1,4 @@
+---
+sources:
+  - test_fixtures/patch1.yml
+  - badpath/nothing_here.yml

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/indicator"
 	"flag"
 	"fmt"
 	"log"
 	"time"
 
+	"code.cloudfoundry.org/indicators/pkg/configuration"
 	"code.cloudfoundry.org/indicators/pkg/registry"
 )
 
@@ -16,16 +16,24 @@ func main() {
 	serverKey := flag.String("tls-key-path", "", "Server TLS private key path")
 	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs.")
 	expiration := flag.Duration("indicator-expiration", 120*time.Minute, "Document expiration duration")
-	patch := flag.String("patch", "", "Patch file to apply from local disk")
+	configFile := flag.String("config", "", "Configuration yaml for patch sources")
 
 	flag.Parse()
 
 	address := fmt.Sprintf(":%d", *port)
 
-	parsedPatch, err := indicator.ReadPatchFile(*patch)
-
 	store := registry.NewDocumentStore(*expiration)
-	store.UpsertPatch(parsedPatch)
+
+	if *configFile != "" {
+		patches, err := configuration.Read(*configFile)
+		if err != nil {
+			log.Fatalf("failed to read configuration file: %s\n", err)
+		}
+
+		for _, patch := range patches {
+			store.UpsertPatch(patch)
+		}
+	}
 
 	config := registry.WebServerConfig{
 		Address:       address,

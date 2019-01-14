@@ -14,7 +14,7 @@ go run cmd/registry/main.go \
   -tls-root-ca-pem ${CERTS}/root.pem \
   -port ${REGISTRY_PORT} \
   -indicator-expiration 1m \
-  -patch example_patch.yml &
+  -config example_config.yml &
 sleep 3
 echo "Starting registry agent for $REGISTRY_HOST"
 go run cmd/registry_agent/main.go \
