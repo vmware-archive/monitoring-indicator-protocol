@@ -71,6 +71,7 @@ func TestIndicatorRegistry(t *testing.T) {
 		withPatchingServer("10567", "test_fixtures/git_config.yml", buffer, g, func(serverUrl string) {
 			results := buffer.String()
 			g.Expect(results).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
+			g.Expect(results).To(ContainSubstring("registered patch for name: much-yaml-component version: 1.2.3"))
 			g.Expect(results).ToNot(ContainSubstring("registered patch for\n"))
 		})
 	})

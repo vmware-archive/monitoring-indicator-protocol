@@ -143,7 +143,7 @@ func retrievePatchesAndDocuments(files *object.FileIter, repo string) ([]indicat
 	var patchesBytes []unparsedPatch
 	var documentsBytes [][]byte
 	err := files.ForEach(func(f *object.File) error {
-		if strings.Contains(f.Name, ".yml") {
+		if strings.Contains(f.Name, ".yml") || strings.Contains(f.Name, ".yaml") {
 			contents, err := f.Contents()
 			if err != nil {
 				log.Println(err)
