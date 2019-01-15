@@ -15,31 +15,32 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type GitPatchGetter func(Source) ([]indicator.Patch, error)
+type GitGetter func(Source) ([]indicator.Patch, []indicator.Document, error)
 
-var getGitPatches GitPatchGetter = realGetGitPatches
+var getGitPatchesAndDocuments GitGetter = realGitGet
 
-func SetGitPatchGetter(getter GitPatchGetter) {
-	getGitPatches = getter
+func SetGitGetter(getter GitGetter) {
+	getGitPatchesAndDocuments = getter
 }
 
-func Read(configFile string) ([]indicator.Patch, error) {
+func Read(configFile string) ([]indicator.Patch, []indicator.Document, error) {
 	fileBytes, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		return nil, fmt.Errorf("error reading configuration file: %s\n", err)
+		return nil, nil, fmt.Errorf("error reading configuration file: %s\n", err)
 	}
 
 	var f File
 	err = yaml.Unmarshal(fileBytes, &f)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing configuration file: %s\n", err)
+		return nil, nil, fmt.Errorf("error parsing configuration file: %s\n", err)
 	}
 
 	if err := Validate(f); err != nil {
-		return nil, fmt.Errorf("configuration is not valid: %s\n", err)
+		return nil, nil, fmt.Errorf("configuration is not valid: %s\n", err)
 	}
 
 	var patches []indicator.Patch
+	var documents []indicator.Document
 	for _, source := range f.Sources {
 
 		switch source.Type {
@@ -52,77 +53,20 @@ func Read(configFile string) ([]indicator.Patch, error) {
 
 			patches = append(patches, patch)
 		case "git":
-			gitPatches, err := getGitPatches(source)
+			gitPatches, gitDocuments, err := getGitPatchesAndDocuments(source)
 			if err != nil {
 				log.Printf("failed to read patches in %s from config file %s: %s\n", source.Repository, configFile, err)
 				continue
 			}
 			patches = append(patches, gitPatches...)
+			documents = append(documents, gitDocuments...)
 		default:
 			log.Printf("invalid type [%s] in file: %s\n", source.Type, configFile)
 			continue
 		}
 	}
 
-	return patches, nil
-}
-
-func realGetGitPatches(s Source) ([]indicator.Patch, error) {
-	storage := memory.NewStorage()
-
-	var auth transport.AuthMethod = nil
-	if s.Token != "" {
-		auth = &http.BasicAuth{
-			Username: "github",
-			Password: s.Token,
-		}
-	}
-
-	r, err := git.Clone(storage, nil, &git.CloneOptions{
-		Auth: auth,
-		URL:  s.Repository,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to clone repo: %s\n", err)
-	}
-
-	ref, err := r.Head()
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch repo head: %s\n", err)
-	}
-
-	commit, err := r.CommitObject(ref.Hash())
-	tree, err := commit.Tree()
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch commit: %s\n", err)
-	}
-
-	var patches []indicator.Patch
-	err = tree.Files().ForEach(func(f *object.File) error {
-		if strings.Contains(f.Name, ".yml") {
-			contents, err := f.Contents()
-			if err != nil {
-				log.Println(err)
-				return nil
-			}
-
-			p, err := indicator.ReadPatchBytes(fmt.Sprintf("%s/%s", s.Repository, f.Name), []byte(contents))
-			if err != nil {
-				log.Println(err)
-				return nil
-			}
-
-			if p.APIVersion == "v1/patch" {
-				patches = append(patches, p)
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to traverse git tree: %s\n", err)
-	}
-
-	return patches, nil
+	return patches, documents, nil
 }
 
 func Validate(f File) error {
@@ -155,4 +99,118 @@ type Source struct {
 	Path       string `yaml:"path"`
 	Repository string `yaml:"repository"`
 	Token      string `yaml:"token"`
+}
+
+func realGitGet(s Source) ([]indicator.Patch, []indicator.Document, error) {
+	storage := memory.NewStorage()
+
+	var auth transport.AuthMethod = nil
+	if s.Token != "" {
+		auth = &http.BasicAuth{
+			Username: "github",
+			Password: s.Token,
+		}
+	}
+
+	repo := s.Repository
+	r, err := git.Clone(storage, nil, &git.CloneOptions{
+		Auth: auth,
+		URL:  repo,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to clone repo: %s\n", err)
+	}
+
+	ref, err := r.Head()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to fetch repo head: %s\n", err)
+	}
+
+	commit, err := r.CommitObject(ref.Hash())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to fetch commit: %s\n", err)
+	}
+
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to fetch commit tree: %s\n", err)
+	}
+
+	return retrievePatchesAndDocuments(tree.Files(), repo)
+}
+
+func retrievePatchesAndDocuments(files *object.FileIter, repo string) ([]indicator.Patch, []indicator.Document, error) {
+	var patchesBytes []unparsedPatch
+	var documentsBytes [][]byte
+	err := files.ForEach(func(f *object.File) error {
+		if strings.Contains(f.Name, ".yml") {
+			contents, err := f.Contents()
+			if err != nil {
+				log.Println(err)
+				return nil
+			}
+
+			apiVersion := getAPIVersion([]byte(contents))
+			switch apiVersion {
+			case "v1/patch":
+				patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
+			case "v0":
+				documentsBytes = append(documentsBytes, []byte(contents))
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to traverse git tree: %s\n", err)
+	}
+	patches := readPatches(patchesBytes, repo)
+	documents := processDocuments(documentsBytes, patches)
+	return patches, documents, err
+}
+
+type unparsedPatch struct {
+	YAMLBytes []byte
+	Filename  string
+}
+
+func readPatches(unparsedPatches []unparsedPatch, repo string) []indicator.Patch {
+	var patches []indicator.Patch
+	for _, p := range unparsedPatches {
+		p, err := indicator.ReadPatchBytes(fmt.Sprintf("%v %v", repo, p.Filename), p.YAMLBytes)
+		if err != nil {
+			log.Println(err)
+		}
+		patches = append(patches, p)
+	}
+	return patches
+}
+
+func processDocuments(documentsBytes [][]byte, patches []indicator.Patch) []indicator.Document {
+	var documents []indicator.Document
+	for _, documentBytes := range documentsBytes {
+		doc, errs := indicator.ProcessDocument(patches, documentBytes)
+		if len(errs) > 0 {
+			for _, e := range errs {
+				log.Printf("- %s \n", e.Error())
+			}
+
+			log.Printf("validation for indicator file failed - [%+v]\n", errs)
+		}
+
+		documents = append(documents, doc)
+	}
+	return documents
+}
+
+func getAPIVersion(fileBytes []byte) string {
+	var f struct {
+		APIVersion string `yaml:"apiVersion"`
+	}
+
+	err := yaml.Unmarshal(fileBytes, &f)
+	if err != nil {
+		return err.Error()
+	}
+
+	return f.APIVersion
 }

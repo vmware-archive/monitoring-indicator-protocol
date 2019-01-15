@@ -11,7 +11,7 @@ import (
 func TestReadLocalConfigurationFile(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	patches, err := configuration.Read("test_fixtures/local_config.yml")
+	patches, _, err := configuration.Read("test_fixtures/local_config.yml")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(patches).To(HaveLen(2))
@@ -23,27 +23,30 @@ func TestReadLocalConfigurationFile(t *testing.T) {
 	g.Expect(*patch2.Match.Name).To(Equal("my-component-2"))
 }
 
-func TestOpenGitSource(t *testing.T) {
+func TestReadGitConfigurationFile(t *testing.T) {
 	g := NewGomegaWithT(t)
 	testPatches := []indicator.Patch{{
 		Origin:     "test-file",
 		APIVersion: "whocares",
-		Match:      indicator.Match{},
-		Operations: nil,
 	}}
 
-	fakeGetter := func(s configuration.Source) ([]indicator.Patch, error) {
+	testDocuments := []indicator.Document{{
+		APIVersion: "whocares-doc",
+	}}
+
+	fakeGetter := func(s configuration.Source) ([]indicator.Patch, []indicator.Document, error) {
 		g.Expect(s.Repository).To(Equal("https://fakegit.nope/slowens/test-repo.git"))
 		g.Expect(s.Token).To(Equal("test_private_key"))
-		return testPatches, nil
+		return testPatches, testDocuments, nil
 	}
 
-	configuration.SetGitPatchGetter(fakeGetter)
+	configuration.SetGitGetter(fakeGetter)
 
-	patches, err := configuration.Read("test_fixtures/git_config.yml")
+	patches, documents, err := configuration.Read("test_fixtures/git_config.yml")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(patches).To(ConsistOf(testPatches))
+	g.Expect(documents).To(ConsistOf(testDocuments))
 }
 
 func TestValidateConfigFile(t *testing.T) {
@@ -99,21 +102,21 @@ func TestFailToReadConfigurationFile(t *testing.T) {
 	t.Run("returns an error if config file cannot be read", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		_, err := configuration.Read(`files are overrated`)
+		_, _, err := configuration.Read(`files are overrated`)
 		g.Expect(err).To(MatchError(ContainSubstring("error reading configuration file:")))
 	})
 
 	t.Run("returns an error if config cannot be parsed", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		_, err := configuration.Read("test_fixtures/bad.yml")
+		_, _, err := configuration.Read("test_fixtures/bad.yml")
 		g.Expect(err).To(MatchError(ContainSubstring("error parsing configuration file:")))
 	})
 
 	t.Run("returns a partial list if some patches cannot be read", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		patches, err := configuration.Read("test_fixtures/partial_bad.yml")
+		patches, _, err := configuration.Read("test_fixtures/partial_bad.yml")
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(patches).To(HaveLen(1))

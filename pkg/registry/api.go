@@ -20,25 +20,9 @@ func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 			return
 		}
 
-		patchedDocBytes, err := indicator.ApplyPatches(store.AllPatches(), documentBytes)
-		if err != nil {
-			writeErrors(w, http.StatusBadRequest, err)
-			return
-		}
-
-		doc, err := indicator.ReadIndicatorDocument(patchedDocBytes)
-		if err != nil {
-			writeErrors(w, http.StatusBadRequest, err)
-			return
-		}
-
-		if doc.Metadata == nil {
-			doc.Metadata = make(map[string]string)
-		}
-
-		errs := indicator.Validate(doc)
-		if len(errs) > 0 {
-			writeErrors(w, http.StatusUnprocessableEntity, errs...)
+		doc, errs := indicator.ProcessDocument(store.AllPatches(), documentBytes)
+		if errs != nil {
+			writeErrors(w, http.StatusBadRequest, errs...)
 			return
 		}
 

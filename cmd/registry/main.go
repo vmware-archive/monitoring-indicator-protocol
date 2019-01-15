@@ -16,7 +16,7 @@ func main() {
 	serverKey := flag.String("tls-key-path", "", "Server TLS private key path")
 	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs.")
 	expiration := flag.Duration("indicator-expiration", 120*time.Minute, "Document expiration duration")
-	configFile := flag.String("config", "", "Configuration yaml for patch sources")
+	configFile := flag.String("config", "", "Configuration yaml for patch and document sources")
 
 	flag.Parse()
 
@@ -25,13 +25,17 @@ func main() {
 	store := registry.NewDocumentStore(*expiration)
 
 	if *configFile != "" {
-		patches, err := configuration.Read(*configFile)
+		patches, documents, err := configuration.Read(*configFile)
 		if err != nil {
 			log.Fatalf("failed to read configuration file: %s\n", err)
 		}
 
-		for _, patch := range patches {
-			store.UpsertPatch(patch)
+		for _, p := range patches {
+			store.UpsertPatch(p)
+		}
+
+		for _, d := range documents {
+			store.UpsertDocument(d)
 		}
 	}
 

@@ -25,6 +25,25 @@ func OverrideMetadata(overrideMetadata map[string]string) func(options *readOpti
 	}
 }
 
+func ProcessDocument(patches []Patch, documentBytes []byte) (Document, []error) {
+	patchedDocBytes, err := ApplyPatches(patches, documentBytes)
+	if err != nil {
+		return Document{}, []error{err}
+	}
+
+	doc, err := ReadIndicatorDocument(patchedDocBytes)
+	if err != nil {
+		return Document{}, []error{err}
+	}
+
+	errs := Validate(doc)
+	if len(errs) > 0 {
+		return Document{}, errs
+	}
+
+	return doc, nil
+}
+
 func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 	_, err := readMetadata(documentBytes)
 	if err != nil {

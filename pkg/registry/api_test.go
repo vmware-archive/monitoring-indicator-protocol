@@ -80,7 +80,7 @@ indicators:
 		}))
 	})
 
-	t.Run("it returns 422 if there are validation errors", func(t *testing.T) {
+	t.Run("it returns 400 if there are validation errors", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		body := bytes.NewBuffer([]byte(`---
@@ -99,7 +99,7 @@ indicators:
 
 		g.Expect(docStore.AllDocuments()).To(HaveLen(0))
 
-		g.Expect(resp.Code).To(Equal(http.StatusUnprocessableEntity))
+		g.Expect(resp.Code).To(Equal(http.StatusBadRequest))
 
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())

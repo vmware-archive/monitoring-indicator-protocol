@@ -5,7 +5,7 @@ product:
   version: 0.1.1
 
 metadata:
-  deployment: <%= spec.deployment %>
+  deployment: spec.deployment
   source_id: demo_component
 
 indicators:

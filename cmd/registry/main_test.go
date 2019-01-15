@@ -75,6 +75,21 @@ func TestIndicatorRegistry(t *testing.T) {
 		})
 	})
 
+	t.Run("it loads indicator documents from git sources", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		buffer := bytes.NewBuffer(nil)
+
+		withPatchingServer("10567", "test_fixtures/git_config.yml", buffer, g, func(serverUrl string) {
+			resp, err := client.Get(serverUrl + "/v1/indicator-documents")
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			bytes, err := ioutil.ReadAll(resp.Body)
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(bytes).To(ContainSubstring("success_percentage"))
+		})
+	})
+
 	t.Run("it patches indicator documents when received", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
