@@ -1,8 +1,9 @@
 #! /bin/bash
 
-GO111MODULE=on
-
+GO111MODULE=off # https://github.com/golang/go/issues/28680
 go clean -cache
+
+GO111MODULE=on
 go test -mod=vendor ./... -v
 
 exit_status=$?
