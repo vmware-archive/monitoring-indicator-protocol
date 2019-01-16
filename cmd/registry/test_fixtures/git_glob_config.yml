@@ -1,0 +1,5 @@
+---
+sources:
+  - type: git
+    repository: ../../
+    glob: "**/registry_test*.yml"

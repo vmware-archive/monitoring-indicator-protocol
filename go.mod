@@ -6,6 +6,7 @@ require (
 	github.com/go-kit/kit v0.7.0 // indirect
 	github.com/go-logfmt/logfmt v0.3.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
+	github.com/gobwas/glob v0.2.3
 	github.com/gogo/protobuf v1.1.2-0.20180830160456-5669497fd644 // indirect
 	github.com/golang/protobuf v1.2.0 // indirect
 	github.com/gorilla/context v1.1.1 // indirect

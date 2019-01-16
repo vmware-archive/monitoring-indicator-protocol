@@ -1,8 +1,6 @@
 package main_test
 
 import (
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 	"testing"
 
 	"bytes"
@@ -14,6 +12,8 @@ import (
 
 	"code.cloudfoundry.org/indicators/pkg/go_test"
 	"code.cloudfoundry.org/indicators/pkg/mtls"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 var (
@@ -53,14 +53,14 @@ func TestIndicatorRegistry(t *testing.T) {
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-			bytes, err := ioutil.ReadAll(resp.Body)
+			responseBytes, err := ioutil.ReadAll(resp.Body)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			json, err := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_response.json")
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(len(json)).To(BeNumerically(">", 200))
-			g.Expect(bytes).To(MatchJSON(json))
+			g.Expect(responseBytes).To(MatchJSON(json))
 		})
 	})
 
@@ -68,7 +68,7 @@ func TestIndicatorRegistry(t *testing.T) {
 		g := NewGomegaWithT(t)
 		buffer := bytes.NewBuffer(nil)
 
-		withPatchingServer("10567", "test_fixtures/git_config.yml", buffer, g, func(serverUrl string) {
+		withConfigServer("10567", "test_fixtures/git_config.yml", buffer, g, func(serverUrl string) {
 			results := buffer.String()
 			g.Expect(results).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
 			g.Expect(results).To(ContainSubstring("registered patch for name: much-yaml-component version: 1.2.3"))
@@ -80,14 +80,34 @@ func TestIndicatorRegistry(t *testing.T) {
 		g := NewGomegaWithT(t)
 		buffer := bytes.NewBuffer(nil)
 
-		withPatchingServer("10567", "test_fixtures/git_config.yml", buffer, g, func(serverUrl string) {
+		withConfigServer("10567", "test_fixtures/git_config.yml", buffer, g, func(serverUrl string) {
 			resp, err := client.Get(serverUrl + "/v1/indicator-documents")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-			bytes, err := ioutil.ReadAll(resp.Body)
+			responseBytes, err := ioutil.ReadAll(resp.Body)
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(bytes).To(ContainSubstring("success_percentage"))
+			g.Expect(responseBytes).To(ContainSubstring("success_percentage"))
+		})
+	})
+
+	t.Run("it loads documents and patches from git sources based on glob", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		buffer := bytes.NewBuffer(nil)
+
+		withConfigServer("10567", "test_fixtures/git_glob_config.yml", buffer, g, func(serverUrl string) {
+			resp, err := client.Get(serverUrl + "/v1/indicator-documents")
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			responseBytes, err := ioutil.ReadAll(resp.Body)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			json, err := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_patched_response.json")
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Expect(len(json)).To(BeNumerically(">", 200))
+			g.Expect(responseBytes).To(MatchJSON(json))
 		})
 	})
 
@@ -95,7 +115,7 @@ func TestIndicatorRegistry(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		buffer := bytes.NewBuffer(nil)
-		withPatchingServer("10567", "test_fixtures/local_config.yml", buffer, g, func(serverUrl string) {
+		withConfigServer("10567", "test_fixtures/local_config.yml", buffer, g, func(serverUrl string) {
 			file, err := os.Open("../../example.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
@@ -108,7 +128,7 @@ func TestIndicatorRegistry(t *testing.T) {
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-			bytes, err := ioutil.ReadAll(resp.Body)
+			responseBytes, err := ioutil.ReadAll(resp.Body)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(buffer.String()).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
@@ -117,7 +137,7 @@ func TestIndicatorRegistry(t *testing.T) {
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(len(json)).To(BeNumerically(">", 200))
-			g.Expect(bytes).To(MatchJSON(json))
+			g.Expect(responseBytes).To(MatchJSON(json))
 		})
 	})
 
@@ -195,11 +215,12 @@ func withServer(port string, g *GomegaWithT, testFun func(string)) {
 	g.Expect(err).ToNot(HaveOccurred())
 	defer session.Kill()
 	serverHost := "localhost:" + port
-	go_test.WaitForHTTPServer(serverHost, 3*time.Second)
+	err = go_test.WaitForHTTPServer(serverHost, 3*time.Second)
+	g.Expect(err).ToNot(HaveOccurred())
 	testFun("https://" + serverHost)
 }
 
-func withPatchingServer(port, configPath string, buffer *bytes.Buffer, g *GomegaWithT, testFun func(string)) {
+func withConfigServer(port, configPath string, buffer *bytes.Buffer, g *GomegaWithT, testFun func(string)) {
 	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -215,6 +236,7 @@ func withPatchingServer(port, configPath string, buffer *bytes.Buffer, g *Gomega
 	g.Expect(err).ToNot(HaveOccurred())
 	defer session.Kill()
 	serverHost := "localhost:" + port
-	go_test.WaitForHTTPServer(serverHost, 3*time.Second)
+	err = go_test.WaitForHTTPServer(serverHost, 3*time.Second)
+	g.Expect(err).ToNot(HaveOccurred())
 	testFun("https://" + serverHost)
 }

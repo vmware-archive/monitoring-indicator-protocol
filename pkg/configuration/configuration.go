@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
+	glob2 "github.com/gobwas/glob"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
@@ -99,6 +100,7 @@ type Source struct {
 	Path       string `yaml:"path"`
 	Repository string `yaml:"repository"`
 	Token      string `yaml:"token"`
+	Glob       string `yaml:"glob"`
 }
 
 func realGitGet(s Source) ([]indicator.Patch, []indicator.Document, error) {
@@ -136,14 +138,20 @@ func realGitGet(s Source) ([]indicator.Patch, []indicator.Document, error) {
 		return nil, nil, fmt.Errorf("failed to fetch commit tree: %s\n", err)
 	}
 
-	return retrievePatchesAndDocuments(tree.Files(), repo)
+	return retrievePatchesAndDocuments(tree.Files(), repo, s.Glob)
 }
 
-func retrievePatchesAndDocuments(files *object.FileIter, repo string) ([]indicator.Patch, []indicator.Document, error) {
+func retrievePatchesAndDocuments(files *object.FileIter, repo string, glob string) ([]indicator.Patch, []indicator.Document, error) {
 	var patchesBytes []unparsedPatch
 	var documentsBytes [][]byte
+
+	if glob == "" {
+		glob = "**/*.y*ml"
+	}
+	g := glob2.MustCompile(glob)
+
 	err := files.ForEach(func(f *object.File) error {
-		if strings.Contains(f.Name, ".yml") || strings.Contains(f.Name, ".yaml") {
+		if g.Match(f.Name) {
 			contents, err := f.Contents()
 			if err != nil {
 				log.Println(err)

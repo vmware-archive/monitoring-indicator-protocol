@@ -16,6 +16,15 @@ github.com/go-kit/kit/log/level
 github.com/go-logfmt/logfmt
 # github.com/go-stack/stack v1.8.0
 github.com/go-stack/stack
+# github.com/gobwas/glob v0.2.3
+github.com/gobwas/glob
+github.com/gobwas/glob/compiler
+github.com/gobwas/glob/syntax
+github.com/gobwas/glob/match
+github.com/gobwas/glob/syntax/ast
+github.com/gobwas/glob/util/runes
+github.com/gobwas/glob/syntax/lexer
+github.com/gobwas/glob/util/strings
 # github.com/gogo/protobuf v1.1.2-0.20180830160456-5669497fd644
 github.com/gogo/protobuf/proto
 # github.com/golang/protobuf v1.2.0

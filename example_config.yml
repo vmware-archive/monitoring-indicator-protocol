@@ -5,3 +5,4 @@ sources:
   - type: git
     repository: https://github.com/cloudfoundry-incubator/indicators.git
     token: "some-key"
+    glob: "**/*.y*ml"
