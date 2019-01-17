@@ -25,18 +25,8 @@ func main() {
 	store := registry.NewDocumentStore(*expiration)
 
 	if *configFile != "" {
-		patches, documents, err := configuration.Read(*configFile)
-		if err != nil {
-			log.Fatalf("failed to read configuration file: %s\n", err)
-		}
-
-		for _, p := range patches {
-			store.UpsertPatch(p)
-		}
-
-		for _, d := range documents {
-			store.UpsertDocument(d)
-		}
+		upsertFromConfig(*configFile, store)
+		go readConfigEachMinute(*configFile, store)
 	}
 
 	config := registry.WebServerConfig{
@@ -57,5 +47,30 @@ func main() {
 	err = start()
 	if err != nil {
 		log.Fatalf("failed to create server: %s\n", err)
+	}
+}
+
+func readConfigEachMinute(configFile string, store *registry.DocumentStore) {
+	timer := time.NewTicker(1 * time.Minute)
+
+	for {
+		select {
+		case <-timer.C:
+			upsertFromConfig(configFile, store)
+		default:
+		}
+	}
+}
+
+func upsertFromConfig(configFile string, store *registry.DocumentStore) {
+	patches, documents, err := configuration.Read(configFile)
+	if err != nil {
+		log.Fatalf("failed to read configuration file: %s\n", err)
+	}
+	for _, p := range patches {
+		store.UpsertPatch(p)
+	}
+	for _, d := range documents {
+		store.UpsertDocument(d)
 	}
 }

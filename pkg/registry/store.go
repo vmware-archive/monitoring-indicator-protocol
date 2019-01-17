@@ -14,6 +14,7 @@ import (
 func NewDocumentStore(timeout time.Duration) *DocumentStore {
 	return &DocumentStore{
 		documents: make([]registeredDocument, 0),
+		patches:   make(map[string]registeredPatch),
 		timeout:   timeout,
 	}
 }
@@ -31,7 +32,7 @@ type registeredPatch struct {
 type DocumentStore struct {
 	sync.RWMutex
 	documents []registeredDocument
-	patches   []registeredPatch
+	patches   map[string]registeredPatch
 	timeout   time.Duration
 }
 
@@ -57,19 +58,13 @@ func (d *DocumentStore) UpsertPatch(patch indicator.Patch) {
 	d.Lock()
 	defer d.Unlock()
 
-	pos := d.getPatchPosition(patch)
-
 	rp := registeredPatch{
 		indicatorPatch: patch,
 		registeredAt:   time.Now(),
 	}
 
-	if pos == -1 {
-		d.patches = append(d.patches, rp)
-		logPatchInsert(rp)
-	} else {
-		d.patches[pos] = rp
-	}
+	d.patches[patch.Origin] = rp
+	logPatchInsert(rp)
 }
 
 func (d *DocumentStore) AllDocuments() []indicator.Document {
@@ -112,15 +107,6 @@ func (d *DocumentStore) expireDocuments() {
 	}
 
 	d.documents = unexpiredDocuments
-}
-
-func (d *DocumentStore) getPatchPosition(patch indicator.Patch) int {
-	for idx, p := range d.patches {
-		if p.indicatorPatch.Origin == patch.Origin {
-			return idx
-		}
-	}
-	return -1
 }
 
 func (d *DocumentStore) getPosition(indicatorDocument indicator.Document) int {
