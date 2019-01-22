@@ -1,14 +1,15 @@
 package main_test
 
 import (
+	"bytes"
+	"io/ioutil"
+	"net/http"
+	"os/exec"
+	"testing"
+
 	"github.com/gorilla/mux"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"os/exec"
-	"testing"
 
 	"code.cloudfoundry.org/indicators/pkg/go_test"
 	"code.cloudfoundry.org/indicators/pkg/indicator"
@@ -71,8 +72,6 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 
 		defer stop()
 
-		println(serverUrl)
-
 		cmd := exec.Command(
 			binPath,
 			"--documents-glob", "./test_fixtures/*/indicators.yml",
@@ -84,7 +83,8 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 			"--interval", "50ms",
 		)
 
-		session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
+		buffer := bytes.NewBuffer(nil)
+		session, err := gexec.Start(cmd, buffer, buffer)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		defer session.Kill()

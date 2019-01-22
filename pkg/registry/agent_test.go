@@ -1,18 +1,24 @@
 package registry_test
 
 import (
+	"bytes"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"testing"
+	"time"
+
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
-	"io/ioutil"
-	"testing"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
 	"code.cloudfoundry.org/indicators/pkg/registry"
-	"net/http"
-	"time"
 )
 
 func TestRegistryAgent(t *testing.T) {
+	buffer := bytes.NewBuffer(nil)
+	log.SetOutput(buffer)
+
 	t.Run("it sends an indicator document to the registry on an interval", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 

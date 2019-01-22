@@ -3,7 +3,7 @@ package grafana_dashboard
 import (
 	"bytes"
 	"fmt"
-	"os"
+	"log"
 	"strings"
 	"text/template"
 
@@ -70,8 +70,7 @@ func (i grafanaIndicator) Thresholds() string {
 		case t.Operator >= indicator.GreaterThanOrEqualTo:
 			comparator = "gt"
 		default:
-			fmt.Fprintf(
-				os.Stderr,
+			log.Printf(
 				"grafana dashboards only support lt/gt thresholds, threshold skipped: %s: %s %s %v\n",
 				i.indicator.Name,
 				t.Level,

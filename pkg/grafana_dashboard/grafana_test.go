@@ -1,14 +1,20 @@
 package grafana_dashboard_test
 
 import (
-  "code.cloudfoundry.org/indicators/pkg/grafana_dashboard"
-  . "github.com/onsi/gomega"
+  "bytes"
+  "log"
   "testing"
 
+  . "github.com/onsi/gomega"
+
+  "code.cloudfoundry.org/indicators/pkg/grafana_dashboard"
   "code.cloudfoundry.org/indicators/pkg/indicator"
 )
 
 func TestDocumentToDashboard(t *testing.T) {
+  buffer := bytes.NewBuffer(nil)
+  log.SetOutput(buffer)
+
   g := NewGomegaWithT(t)
 
   document := indicator.Document{

@@ -1,20 +1,19 @@
 package main_test
 
 import (
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
-	"github.com/onsi/gomega/ghttp"
-	"testing"
-
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"os/exec"
+	"testing"
 	"time"
 
-	"code.cloudfoundry.org/indicators/pkg/go_test"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
+	"github.com/onsi/gomega/ghttp"
 
+	"code.cloudfoundry.org/indicators/pkg/go_test"
 	"github.com/prometheus/common/model"
 )
 
@@ -68,7 +67,8 @@ func TestValidateIndicators(t *testing.T) {
 			"-k",
 		)
 
-		session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
+		buffer := bytes.NewBuffer(nil)
+		session, err := gexec.Start(cmd, buffer, buffer)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))
@@ -111,7 +111,8 @@ func TestValidateIndicators(t *testing.T) {
 			"-k",
 		)
 
-		session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
+		buffer := bytes.NewBuffer(nil)
+		session, err := gexec.Start(cmd, buffer, buffer)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))

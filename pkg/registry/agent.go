@@ -90,7 +90,7 @@ func logErrorResponse(resp *http.Response) {
 		return
 	}
 
-	log.Printf("received error response from registry: %s\n", string(body))
+	log.Printf("received error response from registry: %s %s\n", resp.Status, string(body))
 }
 
 func closeBodyAndReuseConnection(resp *http.Response) {

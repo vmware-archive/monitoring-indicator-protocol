@@ -1,8 +1,11 @@
 package configuration_test
 
 import (
-	. "github.com/onsi/gomega"
+	"bytes"
+	"log"
 	"testing"
+
+	. "github.com/onsi/gomega"
 
 	"code.cloudfoundry.org/indicators/pkg/configuration"
 	"code.cloudfoundry.org/indicators/pkg/indicator"
@@ -114,6 +117,9 @@ func TestFailToReadConfigurationFile(t *testing.T) {
 	})
 
 	t.Run("returns a partial list if some patches cannot be read", func(t *testing.T) {
+		buffer := bytes.NewBuffer(nil)
+		log.SetOutput(buffer)
+
 		g := NewGomegaWithT(t)
 
 		patches, _, err := configuration.Read("test_fixtures/partial_bad.yml")
@@ -121,5 +127,7 @@ func TestFailToReadConfigurationFile(t *testing.T) {
 
 		g.Expect(patches).To(HaveLen(1))
 		g.Expect(*patches[0].Match.Name).To(Equal("my-component-1"))
+
+		g.Expect(buffer.String()).To(ContainSubstring("failed to read patch badpath/nothing_here.yml from config file test_fixtures/partial_bad.yml"))
 	})
 }

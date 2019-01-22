@@ -1,9 +1,10 @@
 package registry_test
 
 import (
-	. "github.com/onsi/gomega"
 	"testing"
 	"time"
+	
+	. "github.com/onsi/gomega"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
 	"code.cloudfoundry.org/indicators/pkg/registry"

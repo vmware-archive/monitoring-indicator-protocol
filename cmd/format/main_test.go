@@ -3,7 +3,6 @@ package main_test
 import (
 	"bytes"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"testing"
 
@@ -26,8 +25,9 @@ func TestFormatBinary(t *testing.T) {
 
 		buffer := bytes.NewBuffer(nil)
 
-		sess, _ := gexec.Start(cmd, buffer, os.Stderr)
+		sess, _ := gexec.Start(cmd, buffer, buffer)
 		g.Eventually(sess).Should(gexec.Exit(1))
+		g.Expect(buffer.String()).To(ContainSubstring("-indicators flag is required"))
 	})
 
 	t.Run("outputs formatted HTML", func(t *testing.T) {
@@ -40,7 +40,7 @@ func TestFormatBinary(t *testing.T) {
 
 		buffer := bytes.NewBuffer(nil)
 
-		sess, err := gexec.Start(cmd, buffer, os.Stderr)
+		sess, err := gexec.Start(cmd, buffer, buffer)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(sess).Should(gexec.Exit(0))
@@ -81,7 +81,7 @@ func TestFormatBinary(t *testing.T) {
 
 		buffer := bytes.NewBuffer(nil)
 
-		sess, err := gexec.Start(cmd, buffer, os.Stderr)
+		sess, err := gexec.Start(cmd, buffer, buffer)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(sess).Should(gexec.Exit(0))
@@ -121,7 +121,7 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			sess, err := gexec.Start(cmd, buffer, os.Stderr)
+			sess, err := gexec.Start(cmd, buffer, buffer)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Eventually(sess).Should(gexec.Exit(0))
@@ -144,7 +144,7 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			sess, err := gexec.Start(cmd, buffer, os.Stderr)
+			sess, err := gexec.Start(cmd, buffer, buffer)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Eventually(sess).Should(gexec.Exit(0))
@@ -165,7 +165,7 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			sess, err := gexec.Start(cmd, buffer, os.Stderr)
+			sess, err := gexec.Start(cmd, buffer, buffer)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Eventually(sess).Should(gexec.Exit(0))
@@ -189,7 +189,7 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			sess, err := gexec.Start(cmd, buffer, os.Stderr)
+			sess, err := gexec.Start(cmd, buffer, buffer)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Eventually(sess).Should(gexec.Exit(0))
