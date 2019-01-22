@@ -70,7 +70,7 @@ func TestIndicatorRegistry(t *testing.T) {
 
 		withConfigServer("10567", "test_fixtures/git_config.yml", buffer, g, func(serverUrl string) {
 			results := buffer.String()
-			g.Expect(results).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
+			g.Expect(results).To(ContainSubstring("registered patch for name: my-blob version: 1.2.3"))
 			g.Expect(results).To(ContainSubstring("registered patch for name: much-yaml-component version: 1.2.3"))
 			g.Expect(results).ToNot(ContainSubstring("registered patch for\n"))
 		})
@@ -87,7 +87,7 @@ func TestIndicatorRegistry(t *testing.T) {
 
 			responseBytes, err := ioutil.ReadAll(resp.Body)
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(responseBytes).To(ContainSubstring("success_percentage"))
+			g.Expect(responseBytes).To(ContainSubstring("only_in_example_yml"))
 		})
 	})
 
@@ -103,7 +103,7 @@ func TestIndicatorRegistry(t *testing.T) {
 			responseBytes, err := ioutil.ReadAll(resp.Body)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			json, err := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_patched_response.json")
+			json, err := ioutil.ReadFile("test_fixtures/glob_match_response.json")
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(len(json)).To(BeNumerically(">", 200))

@@ -2,14 +2,12 @@
 apiVersion: v1/patch
 
 match:
-  name: my-component
+  name: my-blob
   version: 1.2.3
 
 operations:
 - op: add
   path: /indicators/-
   value:
-    name: success_percentage
-    promql: success_percentage_promql{source_id="origin"}
-    documentation:
-      title: Success Percentage
+    name: new_blob_indicator
+    promql: new_blob_promql{source_id="origin"}

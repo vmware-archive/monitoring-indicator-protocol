@@ -1,0 +1,37 @@
+[
+  {
+    "apiVersion": "v0",
+    "product": {
+      "name": "my-blob",
+      "version": "1.2.3"
+    },
+    "metadata": {
+      "deployment": "my-blob-deployment"
+    },
+    "indicators": [
+      {
+        "name": "blob_matched_indicator",
+        "promql": "blob_match_promql"
+      },
+      {
+        "name": "new_blob_indicator",
+        "promql": "new_blob_promql{source_id=\"origin\"}"
+      }
+    ],
+    "layout": {
+      "title": "",
+      "description": "",
+      "sections": [
+        {
+          "title": "Metrics",
+          "description": "",
+          "indicators": [
+            "blob_matched_indicator",
+            "new_blob_indicator"
+          ]
+        }
+      ],
+      "owner": ""
+    }
+  }
+]

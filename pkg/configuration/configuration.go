@@ -146,7 +146,7 @@ func retrievePatchesAndDocuments(files *object.FileIter, repo string, glob strin
 	var documentsBytes [][]byte
 
 	if glob == "" {
-		glob = "**/*.y*ml"
+		glob = "*.y*ml"
 	}
 	g := glob2.MustCompile(glob)
 

@@ -2,40 +2,12 @@
 apiVersion: v0
 
 product:
-  name: my-component
+  name: my-blob
   version: 1.2.3
 
 metadata:
-  deployment: my-service-deployment
-  source_id: my-metric-source
+  deployment: my-blob-deployment
 
 indicators:
-- name: doc_performance_indicator
-  promql: avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])
-  thresholds:
-  - level: warning
-    gte: 50
-  - level: critical
-    gt: 100
-  documentation:
-    title: Doc Performance Indicator
-    measurement: Average latency over last 5 minutes per instance
-    description: |
-      This is a valid markdown description.
-
-      **Use**: This indicates nothing. It is placeholder text.
-
-      **Type**: Gauge
-      **Frequency**: 60 s
-    recommended_response: Panic! Run around in circles flailing your arms.
-    threshold_note: These are environment specific
-
-layout:
-  owner: Example Team
-  title: Monitoring Document Product
-  description: Document description
-  sections:
-  - title: Indicators
-    description: This section includes indicators
-    indicators:
-    - doc_performance_indicator
+- name: blob_matched_indicator
+  promql: blob_match_promql
