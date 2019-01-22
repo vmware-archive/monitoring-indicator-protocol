@@ -57,7 +57,6 @@ func readConfigEachMinute(configFile string, store *registry.DocumentStore) {
 		select {
 		case <-timer.C:
 			upsertFromConfig(configFile, store)
-		default:
 		}
 	}
 }
