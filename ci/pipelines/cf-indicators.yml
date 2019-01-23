@@ -32,15 +32,6 @@ resources:
     repository: indicators
     access_token: {{event-producer-github-token}}
     drafts: true
-#- name: indicator-protocol-final-release
-#  type: git
-#  source:
-#    uri: git@github.com:cloudfoundry-incubator/indicators.git
-#    branch: master
-#    private_key: {{event-producer-github-key}}
-#    ignore_paths:
-#    - bosh-release/.final_builds
-#    - bosh-release/releases
 jobs:
 - name: build-and-test
   plan:
@@ -117,8 +108,8 @@ jobs:
       - name: indicators
       - name: env-state
       params:
-        ENVIRONMENT: madlamp
-        BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
+        ENVIRONMENT: sunstorm
+        BBL_STATE_DIR: acceptance-bosh/claimed/sunstorm
         DEPLOYMENT_NAME: cf-01234567890123456789
       run:
         path: bash
@@ -145,18 +136,15 @@ jobs:
           product:
             name: uaa-test
             version: 0
-          metadata:
-            deployment: <%= spec.deployment %>
           indicators:
           - name: uaa_request_rate
-            promql: rate(requests_global_status_2xx_count{source_id="uaa",deployment="\$deployment"}[10m])
+            promql: rate(requests_global_status_2xx_count{source_id="uaa"}[10m])
           EOF
 
             uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_firehose_exporter_secret -j | jq -r .value)"
             access_token=$(curl -X POST "https://login.${ENVIRONMENT}.cf-denver.com/oauth/token" -k -u "firehose_exporter:${uaa_secret}" -H 'Accept: application/json' -d 'grant_type=client_credentials'  | jq -r .access_token)
 
             go run -mod=vendor cmd/verification/main.go -indicators=indicators.yml \
-                                                        -metadata="deployment=${DEPLOYMENT_NAME}" \
                                                         -authorization="bearer ${access_token}" \
                                                         -query-endpoint=https://log-cache.${ENVIRONMENT}.cf-denver.com \
                                                         -k
