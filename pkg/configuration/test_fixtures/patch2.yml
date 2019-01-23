@@ -2,8 +2,9 @@
 apiVersion: v1/patch
 
 match:
-  name: my-component-2
-  version: 3.2.1
+  product:
+    name: my-component-2
+    version: 3.2.1
 
 operations:
   - op: add

@@ -173,8 +173,8 @@ func ReadPatchBytes(origin string, yamlBytes []byte) (Patch, error) {
 		Origin:     origin,
 		APIVersion: p.APIVersion,
 		Match: Match{
-			Name:     p.Match.Name,
-			Version:  p.Match.Version,
+			Name:     p.Match.Product.Name,
+			Version:  p.Match.Product.Version,
 			Metadata: p.Match.Metadata,
 		},
 		Operations: p.Operations,
@@ -299,8 +299,10 @@ type yamlPatch struct {
 }
 
 type yamlMatch struct {
-	Name     *string           `yaml:"name,omitempty"`
-	Version  *string           `yaml:"version,omitempty"`
+	Product  struct {
+		Name    *string `yaml:"name,omitempty"`
+		Version *string `yaml:"version,omitempty"`
+	} `yaml:"product,omitempty"`
 	Metadata map[string]string `yaml:"metadata,omitempty"`
 }
 

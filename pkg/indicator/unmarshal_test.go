@@ -292,8 +292,9 @@ func TestReturnsACompletePatchDocument(t *testing.T) {
 apiVersion: test-apiversion
 
 match:
-  name: my-component
-  version: 1.2.3
+  product:
+    name: my-component
+    version: 1.2.3
 
 operations:
 - op: add
