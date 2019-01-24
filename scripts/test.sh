@@ -9,7 +9,15 @@ go test -mod=vendor ./... -v
 exit_status=$?
 
 if [ $exit_status -ne 0 ]; then
-    echo "TESTS FAILED!"
+    echo "~~~~~~~~~~~~~~~~~~~"
+    echo "   TESTS FAILED!"
+    echo "┻━┻︵ \(°□°)/ ︵ ┻━┻"
+    echo "~~~~~~~~~~~~~~~~~~~"
+else
+    echo "~~~~~~~~~~~~~~~~"
+    echo " TESTS PASSED!"
+    echo " ┏━┓ ︵ /(^.^/)"
+    echo "~~~~~~~~~~~~~~~~"
 fi
 
 exit $exit_status
