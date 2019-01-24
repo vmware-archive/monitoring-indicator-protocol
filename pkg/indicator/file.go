@@ -36,7 +36,7 @@ func ReadPatchFile(patchFile string) (Patch, error) {
 		return Patch{}, err
 	}
 
-	patch, err := ReadPatchBytes(patchFile, fileBytes)
+	patch, err := ReadPatchBytes(fileBytes)
 	if err != nil {
 		return Patch{}, err
 	}

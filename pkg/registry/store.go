@@ -13,9 +13,9 @@ import (
 
 func NewDocumentStore(timeout time.Duration) *DocumentStore {
 	return &DocumentStore{
-		documents: make([]registeredDocument, 0),
-		patches:   make(map[string]registeredPatch),
-		timeout:   timeout,
+		documents:       make([]registeredDocument, 0),
+		patchesBySource: make(map[string][]indicator.Patch),
+		timeout:         timeout,
 	}
 }
 
@@ -24,16 +24,16 @@ type registeredDocument struct {
 	registeredAt      time.Time
 }
 
-type registeredPatch struct {
-	indicatorPatch indicator.Patch
-	registeredAt   time.Time
-}
-
 type DocumentStore struct {
 	sync.RWMutex
-	documents []registeredDocument
-	patches   map[string]registeredPatch
-	timeout   time.Duration
+	documents       []registeredDocument
+	patchesBySource map[string][]indicator.Patch
+	timeout         time.Duration
+}
+
+type PatchList struct {
+	Source  string
+	Patches []indicator.Patch
 }
 
 func (d *DocumentStore) UpsertDocument(doc indicator.Document) {
@@ -54,17 +54,15 @@ func (d *DocumentStore) UpsertDocument(doc indicator.Document) {
 	}
 }
 
-func (d *DocumentStore) UpsertPatch(patch indicator.Patch) {
+func (d *DocumentStore) UpsertPatches(patchList PatchList) {
 	d.Lock()
 	defer d.Unlock()
 
-	rp := registeredPatch{
-		indicatorPatch: patch,
-		registeredAt:   time.Now(),
-	}
+	d.patchesBySource[patchList.Source] = patchList.Patches
 
-	d.patches[patch.Origin] = rp
-	logPatchInsert(rp)
+	for _, p := range patchList.Patches {
+		logPatchInsert(p)
+	}
 }
 
 func (d *DocumentStore) AllDocuments() []indicator.Document {
@@ -86,13 +84,13 @@ func (d *DocumentStore) AllPatches() []indicator.Patch {
 	d.RLock()
 	defer d.RUnlock()
 
-	patches := make([]indicator.Patch, 0)
+	allPatches := make([]indicator.Patch, 0)
 
-	for _, patch := range d.patches {
-		patches = append(patches, patch.indicatorPatch)
+	for _, patches := range d.patchesBySource {
+		allPatches = append(allPatches, patches...)
 	}
 
-	return patches
+	return allPatches
 }
 
 func (d *DocumentStore) expireDocuments() {
@@ -119,17 +117,17 @@ func (d *DocumentStore) getPosition(indicatorDocument indicator.Document) int {
 	return -1
 }
 
-func logPatchInsert(rp registeredPatch) {
+func logPatchInsert(p indicator.Patch) {
 	logLine := strings.Builder{}
 	logLine.Write([]byte("registered patch for"))
-	if rp.indicatorPatch.Match.Name != nil {
-		logLine.WriteString(" name: " + *rp.indicatorPatch.Match.Name)
+	if p.Match.Name != nil {
+		logLine.WriteString(" name: " + *p.Match.Name)
 	}
-	if rp.indicatorPatch.Match.Version != nil {
-		logLine.WriteString(" version: " + *rp.indicatorPatch.Match.Version)
+	if p.Match.Version != nil {
+		logLine.WriteString(" version: " + *p.Match.Version)
 	}
-	if rp.indicatorPatch.Match.Metadata != nil {
-		logLine.WriteString(fmt.Sprintf(" metadata: %v", rp.indicatorPatch.Match.Metadata))
+	if p.Match.Metadata != nil {
+		logLine.WriteString(fmt.Sprintf(" metadata: %v", p.Match.Metadata))
 	}
 	log.Println(logLine.String())
 }

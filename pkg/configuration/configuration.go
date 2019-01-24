@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/registry"
 	glob2 "github.com/gobwas/glob"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
@@ -24,7 +25,7 @@ func SetGitGetter(getter GitGetter) {
 	getGitPatchesAndDocuments = getter
 }
 
-func Read(configFile string) ([]indicator.Patch, []indicator.Document, error) {
+func Read(configFile string) ([]registry.PatchList, []indicator.Document, error) {
 	fileBytes, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error reading configuration file: %s\n", err)
@@ -40,7 +41,7 @@ func Read(configFile string) ([]indicator.Patch, []indicator.Document, error) {
 		return nil, nil, fmt.Errorf("configuration is not valid: %s\n", err)
 	}
 
-	var patches []indicator.Patch
+	var patches []registry.PatchList
 	var documents []indicator.Document
 	for _, source := range f.Sources {
 
@@ -52,14 +53,20 @@ func Read(configFile string) ([]indicator.Patch, []indicator.Document, error) {
 				continue
 			}
 
-			patches = append(patches, patch)
+			patches = append(patches, registry.PatchList{
+				Source:  source.Path,
+				Patches: []indicator.Patch{patch},
+			})
 		case "git":
 			gitPatches, gitDocuments, err := getGitPatchesAndDocuments(source)
 			if err != nil {
 				log.Printf("failed to read patches in %s from config file %s: %s\n", source.Repository, configFile, err)
 				continue
 			}
-			patches = append(patches, gitPatches...)
+			patches = append(patches, registry.PatchList{
+				Source:  source.Repository,
+				Patches: gitPatches,
+			})
 			documents = append(documents, gitDocuments...)
 		default:
 			log.Printf("invalid type [%s] in file: %s\n", source.Type, configFile)
@@ -138,10 +145,10 @@ func realGitGet(s Source) ([]indicator.Patch, []indicator.Document, error) {
 		return nil, nil, fmt.Errorf("failed to fetch commit tree: %s\n", err)
 	}
 
-	return retrievePatchesAndDocuments(tree.Files(), repo, s.Glob)
+	return retrievePatchesAndDocuments(tree.Files(), s.Glob)
 }
 
-func retrievePatchesAndDocuments(files *object.FileIter, repo string, glob string) ([]indicator.Patch, []indicator.Document, error) {
+func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicator.Patch, []indicator.Document, error) {
 	var patchesBytes []unparsedPatch
 	var documentsBytes [][]byte
 
@@ -171,7 +178,7 @@ func retrievePatchesAndDocuments(files *object.FileIter, repo string, glob strin
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to traverse git tree: %s\n", err)
 	}
-	patches := readPatches(patchesBytes, repo)
+	patches := readPatches(patchesBytes)
 	documents := processDocuments(documentsBytes, patches)
 	return patches, documents, err
 }
@@ -181,10 +188,10 @@ type unparsedPatch struct {
 	Filename  string
 }
 
-func readPatches(unparsedPatches []unparsedPatch, repo string) []indicator.Patch {
+func readPatches(unparsedPatches []unparsedPatch) []indicator.Patch {
 	var patches []indicator.Patch
 	for _, p := range unparsedPatches {
-		p, err := indicator.ReadPatchBytes(fmt.Sprintf("%v %v", repo, p.Filename), p.YAMLBytes)
+		p, err := indicator.ReadPatchBytes(p.YAMLBytes)
 		if err != nil {
 			log.Println(err)
 		}

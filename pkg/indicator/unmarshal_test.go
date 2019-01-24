@@ -276,7 +276,6 @@ func TestReturnsACompletePatchDocument(t *testing.T) {
 	version := "1.2.3"
 	patch := indicator.Patch{
 		APIVersion: "test-apiversion",
-		Origin:     "file-origin.yml",
 		Match: indicator.Match{
 			Name:    &name,
 			Version: &version,
@@ -305,7 +304,7 @@ operations:
       title: Success Percentage
 
 `)
-	p, err := indicator.ReadPatchBytes("file-origin.yml", documentBytes)
+	p, err := indicator.ReadPatchBytes(documentBytes)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(p).To(BeEquivalentTo(patch))
@@ -323,7 +322,6 @@ func TestReturnsPatchDocumentWithBlankVersion(t *testing.T) {
 
 	patch := indicator.Patch{
 		APIVersion: "test-apiversion",
-		Origin:     "file-origin.yml",
 		Match: indicator.Match{
 			Name:    nil,
 			Version: nil,
@@ -354,7 +352,7 @@ operations:
       title: Success Percentage
 
 `)
-	p, err := indicator.ReadPatchBytes("file-origin.yml", documentBytes)
+	p, err := indicator.ReadPatchBytes(documentBytes)
 	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(p).To(BeEquivalentTo(patch))
@@ -467,7 +465,6 @@ func TestPatching(t *testing.T) {
 
 	patch := []indicator.Patch{{
 		APIVersion: "test-apiversion/patch",
-		Origin:     "file-origin.yml",
 		Match: indicator.Match{
 			Metadata: map[string]string{
 				"deployment": "test-deployment",

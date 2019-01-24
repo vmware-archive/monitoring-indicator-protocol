@@ -9,6 +9,7 @@ import (
 
 	"code.cloudfoundry.org/indicators/pkg/configuration"
 	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"code.cloudfoundry.org/indicators/pkg/registry"
 )
 
 func TestReadLocalConfigurationFile(t *testing.T) {
@@ -19,8 +20,8 @@ func TestReadLocalConfigurationFile(t *testing.T) {
 
 	g.Expect(patches).To(HaveLen(2))
 
-	patch1 := patches[0]
-	patch2 := patches[1]
+	patch1 := patches[0].Patches[0]
+	patch2 := patches[1].Patches[0]
 
 	g.Expect(*patch1.Match.Name).To(Equal("my-component-1"))
 	g.Expect(*patch2.Match.Name).To(Equal("my-component-2"))
@@ -29,7 +30,6 @@ func TestReadLocalConfigurationFile(t *testing.T) {
 func TestReadGitConfigurationFile(t *testing.T) {
 	g := NewGomegaWithT(t)
 	testPatches := []indicator.Patch{{
-		Origin:     "test-file",
 		APIVersion: "whocares",
 	}}
 
@@ -48,7 +48,10 @@ func TestReadGitConfigurationFile(t *testing.T) {
 	patches, documents, err := configuration.Read("test_fixtures/git_config.yml")
 	g.Expect(err).ToNot(HaveOccurred())
 
-	g.Expect(patches).To(ConsistOf(testPatches))
+	g.Expect(patches).To(ConsistOf([]registry.PatchList{{
+		Source:  "https://fakegit.nope/slowens/test-repo.git",
+		Patches: testPatches,
+	}}))
 	g.Expect(documents).To(ConsistOf(testDocuments))
 }
 
@@ -126,7 +129,7 @@ func TestFailToReadConfigurationFile(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(patches).To(HaveLen(1))
-		g.Expect(*patches[0].Match.Name).To(Equal("my-component-1"))
+		g.Expect(*patches[0].Patches[0].Match.Name).To(Equal("my-component-1"))
 
 		g.Expect(buffer.String()).To(ContainSubstring("failed to read patch badpath/nothing_here.yml from config file test_fixtures/partial_bad.yml"))
 	})

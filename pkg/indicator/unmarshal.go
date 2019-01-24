@@ -161,7 +161,7 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 	}, nil
 }
 
-func ReadPatchBytes(origin string, yamlBytes []byte) (Patch, error) {
+func ReadPatchBytes(yamlBytes []byte) (Patch, error) {
 	p := yamlPatch{}
 	err := yaml.Unmarshal(yamlBytes, &p)
 
@@ -170,7 +170,6 @@ func ReadPatchBytes(origin string, yamlBytes []byte) (Patch, error) {
 	}
 
 	return Patch{
-		Origin:     origin,
 		APIVersion: p.APIVersion,
 		Match: Match{
 			Name:     p.Match.Product.Name,

@@ -3,7 +3,7 @@ package registry_test
 import (
 	"testing"
 	"time"
-	
+
 	. "github.com/onsi/gomega"
 
 	"code.cloudfoundry.org/indicators/pkg/indicator"
@@ -22,8 +22,7 @@ func TestInsertDocument(t *testing.T) {
 
 	productName := "test-app"
 	productVersion := "test-version"
-	patchAVer1 := indicator.Patch{
-		Origin: "git:repo/file.yml",
+	patchA := indicator.Patch{
 		Match: indicator.Match{
 			Name:    &productName,
 			Version: &productVersion,
@@ -31,25 +30,11 @@ func TestInsertDocument(t *testing.T) {
 		Operations: []yamlpatch.Operation{{
 			Op:    "replace",
 			Path:  "indicators/name=success_percentage",
-			Value: yamlpatch.NewNode(&val),
-		}},
-	}
-
-	patchAVer2 := indicator.Patch{
-		Origin: "git:repo/file.yml",
-		Match: indicator.Match{
-			Name:    &productName,
-			Version: &productVersion,
-		},
-		Operations: []yamlpatch.Operation{{
-			Op:    "replace",
-			Path:  "indicators/name=succsoops_percentage",
 			Value: yamlpatch.NewNode(&val),
 		}},
 	}
 
 	patchB := indicator.Patch{
-		Origin: "git:other-repo/file.yml",
 		Match: indicator.Match{
 			Name:    &productName,
 			Version: &productVersion,
@@ -58,6 +43,23 @@ func TestInsertDocument(t *testing.T) {
 			Op:    "replace",
 			Path:  "indicators/name=success_percentage",
 			Value: yamlpatch.NewNode(&val),
+		}},
+	}
+
+	var newIndicator interface{}
+	newIndicator = map[interface{}]interface{}{
+		"name":   "another_indicator",
+		"promQL": "foo{bar&bar}",
+	}
+	patchC := indicator.Patch{
+		Match: indicator.Match{
+			Name:    &productName,
+			Version: &productVersion,
+		},
+		Operations: []yamlpatch.Operation{{
+			Op:    "add",
+			Path:  "indicators/-",
+			Value: yamlpatch.NewNode(&newIndicator),
 		}},
 	}
 
@@ -91,6 +93,30 @@ func TestInsertDocument(t *testing.T) {
 		}},
 	}
 
+	t.Run("it upserts patchesBySource in bulk by source", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(10 * time.Millisecond)
+
+		store.UpsertPatches(registry.PatchList{
+			Source:  "git:other-repo",
+			Patches: []indicator.Patch{patchB, patchC},
+		})
+		g.Expect(store.AllPatches()).To(ConsistOf(patchB, patchC))
+
+		store.UpsertPatches(registry.PatchList{
+			Source:  "git:other-repo",
+			Patches: []indicator.Patch{patchB},
+		})
+		g.Expect(store.AllPatches()).To(ConsistOf(patchB))
+
+		store.UpsertPatches(registry.PatchList{
+			Source:  "git:repo",
+			Patches: []indicator.Patch{patchA},
+		})
+		g.Expect(store.AllPatches()).To(ConsistOf(patchB, patchA))
+	})
+
 	t.Run("it saves documents sent to it", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		store := registry.NewDocumentStore(10 * time.Millisecond)
@@ -122,28 +148,5 @@ func TestInsertDocument(t *testing.T) {
 		time.Sleep(11 * time.Millisecond)
 
 		g.Expect(store.AllDocuments()).To(HaveLen(0))
-	})
-
-	t.Run("it saves inserted patches", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		store := registry.NewDocumentStore(10 * time.Millisecond)
-
-		store.UpsertPatch(patchAVer1)
-
-		g.Expect(store.AllPatches()).To(ConsistOf(patchAVer1))
-	})
-
-	t.Run("it upserts patches based on origin", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		store := registry.NewDocumentStore(10 * time.Millisecond)
-
-		store.UpsertPatch(patchAVer1)
-		g.Expect(store.AllPatches()).To(ConsistOf(patchAVer1))
-
-		store.UpsertPatch(patchB)
-		g.Expect(store.AllPatches()).To(ConsistOf(patchAVer1, patchB))
-
-		store.UpsertPatch(patchAVer2)
-		g.Expect(store.AllPatches()).To(ConsistOf(patchAVer2, patchB))
 	})
 }

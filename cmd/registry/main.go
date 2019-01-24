@@ -67,7 +67,7 @@ func upsertFromConfig(configFile string, store *registry.DocumentStore) {
 		log.Fatalf("failed to read configuration file: %s\n", err)
 	}
 	for _, p := range patches {
-		store.UpsertPatch(p)
+		store.UpsertPatches(p)
 	}
 	for _, d := range documents {
 		store.UpsertDocument(d)

@@ -22,7 +22,6 @@ type Document struct {
 }
 
 type Patch struct {
-	Origin     string
 	APIVersion string
 	Match      Match
 	Operations []yamlpatch.Operation
