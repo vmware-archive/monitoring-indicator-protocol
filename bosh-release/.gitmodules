@@ -1,3 +1,0 @@
-[submodule "src/code.cloudfoundry.org/indicators"]
-	path = src/code.cloudfoundry.org/indicators
-	url = https://github.com/cloudfoundry-incubator/indicators

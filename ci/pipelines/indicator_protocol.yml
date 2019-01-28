@@ -3,9 +3,9 @@ resources:
 - name: indicators
   type: git
   source:
-    uri: git@github.com:cloudfoundry-incubator/indicators.git
+    uri: https://github.com/pivotal/indicator-protocol
     branch: master
-    private_key: {{event-producer-github-key}}
+    password: {{indicator-protocol-access-token}}
     ignore_paths:
     - README.md
     - ci
@@ -28,9 +28,9 @@ resources:
 - name: github-release-drafts
   type: github-release
   source:
-    user: cloudfoundry-incubator
-    repository: indicators
-    access_token: {{event-producer-github-token}}
+    user: pivotal
+    repository: indicator-protocol
+    access_token: {{indicator-protocol-access-token}}
     drafts: true
 jobs:
 - name: build-and-test
