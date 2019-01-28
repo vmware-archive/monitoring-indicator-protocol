@@ -2,7 +2,7 @@
 name: indicator-registration-agent
 
 templates:
-  agent_ctl.erb: bin/agent_ctl
+  bpm.yml.erb: config/bpm.yml
   client.crt.erb: certs/client.crt
   client.key.erb: certs/client.key
   indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt

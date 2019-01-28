@@ -1,5 +1,5 @@
 check process indicator-registration-agent
-  with pidfile /var/vcap/sys/run/indicator-registration-agent/agent.pid
-  start program "/var/vcap/jobs/indicator-registration-agent/bin/agent_ctl start"
-  stop program "/var/vcap/jobs/indicator-registration-agent/bin/agent_ctl stop"
+  with pidfile /var/vcap/sys/run/bpm/indicator-registration-agent/indicator-registration-agent.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start indicator-registration-agent"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop indicator-registration-agent" with timeout 60 seconds
   group vcap
