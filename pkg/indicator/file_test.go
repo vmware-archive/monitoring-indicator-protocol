@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/gomega"
 	"testing"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 )
 
 func TestUpdateMetadata(t *testing.T) {

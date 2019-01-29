@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"code.cloudfoundry.org/indicators/pkg/go_test"
-	"code.cloudfoundry.org/indicators/pkg/registry"
+	"github.com/pivotal/indicator-protocol/pkg/go_test"
+	"github.com/pivotal/indicator-protocol/pkg/registry"
 )
 
 func TestAPIClient_IndicatorDocuments(t *testing.T) {

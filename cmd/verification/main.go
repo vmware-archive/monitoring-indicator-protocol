@@ -1,9 +1,9 @@
 package main
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"code.cloudfoundry.org/indicators/pkg/prometheus_uaa_client"
-	"code.cloudfoundry.org/indicators/pkg/verification"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/prometheus_uaa_client"
+	"github.com/pivotal/indicator-protocol/pkg/verification"
 	"flag"
 	"log"
 	"os"

@@ -186,8 +186,8 @@ jobs:
           popd
           set -x
 
-          mkdir -p indicators/bosh-release/src/code.cloudfoundry.org
-          rsync -Rr ./indicators/ ./indicators/bosh-release/src/code.cloudfoundry.org/
+          mkdir -p indicators/bosh-release/src/github.com/pivotal/
+          rsync -Rr ./indicators/ ./indicators/bosh-release/src/github.com/pivotal/
 
           pushd indicators/bosh-release
 
@@ -254,8 +254,8 @@ jobs:
           echo $tag_name > github-release/tag
           echo "TBD" > github-release/body
 
-          mkdir -p indicators/bosh-release/src/code.cloudfoundry.org
-          rsync -Rr ./indicators/ ./indicators/bosh-release/src/code.cloudfoundry.org/
+          mkdir -p indicators/bosh-release/src/github.com/pivotal
+          rsync -Rr ./indicators/ ./indicators/bosh-release/src/github.com/pivotal/
 
           pushd indicators/bosh-release
             cat << EOF > config/private.yml

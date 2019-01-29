@@ -1,15 +1,15 @@
 package main
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/prometheus_alerts"
 	"flag"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"log"
 
-	"code.cloudfoundry.org/indicators/pkg/docs"
-	"code.cloudfoundry.org/indicators/pkg/grafana_dashboard"
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/docs"
+	"github.com/pivotal/indicator-protocol/pkg/grafana_dashboard"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/prometheus_alerts"
 )
 
 func main() {

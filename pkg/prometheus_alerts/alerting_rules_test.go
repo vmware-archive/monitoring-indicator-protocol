@@ -1,8 +1,8 @@
 package prometheus_alerts_test
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"code.cloudfoundry.org/indicators/pkg/prometheus_alerts"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/prometheus_alerts"
 	. "github.com/onsi/gomega"
 	"testing"
 )

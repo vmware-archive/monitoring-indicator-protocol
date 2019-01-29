@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"code.cloudfoundry.org/indicators/pkg/registry"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/registry"
 )
 
 func TestRegisterHandler(t *testing.T) {

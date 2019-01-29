@@ -9,7 +9,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"code.cloudfoundry.org/indicators/pkg/mtls"
+	"github.com/pivotal/indicator-protocol/pkg/mtls"
 )
 
 type WebServerConfig struct {

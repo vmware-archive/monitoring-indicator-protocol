@@ -11,9 +11,9 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
-	"code.cloudfoundry.org/indicators/pkg/go_test"
-	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"code.cloudfoundry.org/indicators/pkg/mtls"
+	"github.com/pivotal/indicator-protocol/pkg/go_test"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/mtls"
 )
 
 var (

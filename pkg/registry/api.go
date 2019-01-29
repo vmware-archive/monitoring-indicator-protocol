@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 )
 
 func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {

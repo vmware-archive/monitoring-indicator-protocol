@@ -1,7 +1,7 @@
 package prometheus_alerts
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"fmt"
 )
 

@@ -6,7 +6,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 )
 
 func TestValidDocument(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"code.cloudfoundry.org/indicators/pkg/prometheus_uaa_client"
+	"github.com/pivotal/indicator-protocol/pkg/prometheus_uaa_client"
 )
 
 func TestUAATokenFetcher(t *testing.T) {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/mtls"
+	"github.com/pivotal/indicator-protocol/pkg/mtls"
 	"flag"
 	"fmt"
 	"log"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"code.cloudfoundry.org/indicators/pkg/registry"
+	"github.com/pivotal/indicator-protocol/pkg/registry"
 )
 
 func main() {

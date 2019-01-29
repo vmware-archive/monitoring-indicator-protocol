@@ -10,8 +10,8 @@ import (
 	"os/exec"
 	"time"
 
-	"code.cloudfoundry.org/indicators/pkg/go_test"
-	"code.cloudfoundry.org/indicators/pkg/mtls"
+	"github.com/pivotal/indicator-protocol/pkg/go_test"
+	"github.com/pivotal/indicator-protocol/pkg/mtls"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )

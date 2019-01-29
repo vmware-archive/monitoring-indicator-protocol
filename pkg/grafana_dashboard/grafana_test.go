@@ -7,8 +7,8 @@ import (
 
   . "github.com/onsi/gomega"
 
-  "code.cloudfoundry.org/indicators/pkg/grafana_dashboard"
-  "code.cloudfoundry.org/indicators/pkg/indicator"
+  "github.com/pivotal/indicator-protocol/pkg/grafana_dashboard"
+  "github.com/pivotal/indicator-protocol/pkg/indicator"
 )
 
 func TestDocumentToDashboard(t *testing.T) {

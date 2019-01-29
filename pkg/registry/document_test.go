@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	. "github.com/onsi/gomega"
 	"testing"
 )

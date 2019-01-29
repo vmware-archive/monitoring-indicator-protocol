@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"strings"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"gopkg.in/russross/blackfriday.v2"
 )
 

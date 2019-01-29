@@ -7,9 +7,9 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"code.cloudfoundry.org/indicators/pkg/configuration"
-	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"code.cloudfoundry.org/indicators/pkg/registry"
+	"github.com/pivotal/indicator-protocol/pkg/configuration"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/registry"
 )
 
 func TestReadLocalConfigurationFile(t *testing.T) {

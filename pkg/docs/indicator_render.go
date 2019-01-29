@@ -1,7 +1,7 @@
 package docs
 
 import (
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"log"
 	"strings"
 

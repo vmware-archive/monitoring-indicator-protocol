@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 )
 
 var documatationTmpl = template.Must(template.New("grafana").Parse(grafanaTemplate))

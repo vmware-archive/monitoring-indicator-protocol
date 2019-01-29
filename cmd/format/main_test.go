@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
-	"code.cloudfoundry.org/indicators/pkg/go_test"
+	"github.com/pivotal/indicator-protocol/pkg/go_test"
 )
 
 func TestFormatBinary(t *testing.T) {

@@ -1,6 +1,6 @@
 package registry
 
-import "code.cloudfoundry.org/indicators/pkg/indicator"
+import "github.com/pivotal/indicator-protocol/pkg/indicator"
 
 type APIV0Document struct {
 	APIVersion string            `json:"apiVersion"`

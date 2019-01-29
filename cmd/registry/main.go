@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"code.cloudfoundry.org/indicators/pkg/configuration"
-	"code.cloudfoundry.org/indicators/pkg/registry"
+	"github.com/pivotal/indicator-protocol/pkg/configuration"
+	"github.com/pivotal/indicator-protocol/pkg/registry"
 )
 
 func main() {

@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 )
 
 func NewDocumentStore(timeout time.Duration) *DocumentStore {

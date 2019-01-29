@@ -5,4 +5,4 @@ dependencies:
 - golang-1.11-linux
 
 files:
-- code.cloudfoundry.org/indicators/**/*
+- github.com/pivotal/indicator-protocol/**/*

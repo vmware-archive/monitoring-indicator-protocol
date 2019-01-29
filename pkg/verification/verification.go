@@ -7,7 +7,7 @@ import (
 
 	"github.com/prometheus/common/model"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 )
 
 type Result struct {

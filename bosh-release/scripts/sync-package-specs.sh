@@ -30,7 +30,7 @@ function sync_package() {
   )
 }
 
-sync_package indicator-registry -app code.cloudfoundry.org/indicators/cmd/registry &
-sync_package indicator-registration-agent -app code.cloudfoundry.org/indicators/cmd/registry_agent &
+sync_package indicator-registry -app github.com/pivotal/indicator-protocol/cmd/registry &
+sync_package indicator-registration-agent -app github.com/pivotal/indicator-protocol/cmd/registry_agent &
 
 wait

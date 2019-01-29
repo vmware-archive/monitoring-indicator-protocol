@@ -10,8 +10,8 @@ import (
 
 	"github.com/prometheus/common/model"
 
-	"code.cloudfoundry.org/indicators/pkg/indicator"
-	"code.cloudfoundry.org/indicators/pkg/verification"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/verification"
 )
 
 func TestVerifyMetric(t *testing.T) {
