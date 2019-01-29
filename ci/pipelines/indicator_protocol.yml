@@ -5,6 +5,7 @@ resources:
   source:
     uri: https://github.com/pivotal/indicator-protocol
     branch: master
+    username: git
     password: {{indicator-protocol-access-token}}
     ignore_paths:
     - README.md
