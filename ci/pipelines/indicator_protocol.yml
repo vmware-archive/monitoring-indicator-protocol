@@ -1,6 +1,6 @@
 ---
 resources:
-- name: indicators
+- name: indicator-protocol
   type: git
   source:
     uri: https://github.com/pivotal/indicator-protocol
@@ -36,7 +36,7 @@ jobs:
 - name: build-and-test
   plan:
   - aggregate:
-    - get: indicators
+    - get: indicator-protocol
       trigger: true
   - task: build-and-test
     config:
@@ -46,7 +46,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicators
+      - name: indicator-protocol
       run:
         path: bash
         args:
@@ -56,14 +56,14 @@ jobs:
 
             set -exu
 
-            pushd indicators
+            pushd indicator-protocol
               scripts/test.sh
             popd
 
 - name: indicator-docs
   plan:
   - aggregate:
-    - get: indicators
+    - get: indicator-protocol
       passed: [build-and-test]
       trigger: true
   - task: generate-docs
@@ -74,7 +74,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicators
+      - name: indicator-protocol
       run:
         path: bash
         args:
@@ -86,14 +86,14 @@ jobs:
 
           export GO111MODULE=on
 
-          pushd indicators/
+          pushd indicator-protocol/
             go run -mod=vendor cmd/format/main.go -format bookbinder -indicators example.yml
           popd
 
 - name: indicator-verification
   plan:
   - aggregate:
-    - get: indicators
+    - get: indicator-protocol
       passed: [build-and-test]
       trigger: true
     - get: env-state
@@ -105,7 +105,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicators
+      - name: indicator-protocol
       - name: env-state
       params:
         ENVIRONMENT: sunstorm
@@ -128,7 +128,7 @@ jobs:
 
           export GO111MODULE=on
 
-          pushd indicators/
+          pushd indicator-protocol/
 
             cat << EOF > indicators.yml
           ---
@@ -155,7 +155,7 @@ jobs:
   plan:
   - aggregate:
     - get: env-state
-    - get: indicators
+    - get: indicator-protocol
       trigger: true
       passed: [build-and-test]
   - task: deploy
@@ -170,7 +170,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicators
+      - name: indicator-protocol
       - name: env-state
       run:
         path: bash
@@ -186,10 +186,10 @@ jobs:
           popd
           set -x
 
-          mkdir -p indicators/bosh-release/src/github.com/pivotal/
-          rsync -Rr ./indicators/ ./indicators/bosh-release/src/github.com/pivotal/
+          mkdir -p indicator-protocol/bosh-release/src/github.com/pivotal/
+          rsync -Rr ./indicator-protocol/ ./indicator-protocol/bosh-release/src/github.com/pivotal/
 
-          pushd indicators/bosh-release
+          pushd indicator-protocol/bosh-release
 
             cat << EOF > config/private.yml
           ---
@@ -210,12 +210,12 @@ jobs:
 
 
           bosh -n -d indicator-registry deploy \
-            indicators/bosh-release/manifests/manifest.yml
+            indicator-protocol/bosh-release/manifests/manifest.yml
 
 - name: publish-release
   plan:
   - aggregate:
-    - get: indicators
+    - get: indicator-protocol
       passed: [indicator-verification,indicator-docs,deploy-indicator-registry]
       trigger: false
     - get: release-version
@@ -229,7 +229,7 @@ jobs:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
       - name: release-version
-      - name: indicators
+      - name: indicator-protocol
       outputs:
       - name: final-release
       - name: github-release
@@ -254,10 +254,10 @@ jobs:
           echo $tag_name > github-release/tag
           echo "TBD" > github-release/body
 
-          mkdir -p indicators/bosh-release/src/github.com/pivotal
-          rsync -Rr ./indicators/ ./indicators/bosh-release/src/github.com/pivotal/
+          mkdir -p indicator-protocol/bosh-release/src/github.com/pivotal
+          rsync -Rr ./indicator-protocol/ ./indicator-protocol/bosh-release/src/github.com/pivotal/
 
-          pushd indicators/bosh-release
+          pushd indicator-protocol/bosh-release
             cat << EOF > config/private.yml
           ---
           blobstore:
@@ -288,7 +288,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicators
+      - name: indicator-protocol
       - name: release-version
       - name: github-release
       outputs:
@@ -306,7 +306,7 @@ jobs:
 
           BUILD_NUMBER=$(cat release-version/number)
 
-          pushd indicators
+          pushd indicator-protocol
             echo "Building darwin cli-plugin binary"
             GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-format-macosx64-${BUILD_NUMBER} cmd/format/main.go
             GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-verification-macosx64-${BUILD_NUMBER} cmd/verification/main.go
@@ -315,9 +315,9 @@ jobs:
             GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-format-linux64-${BUILD_NUMBER} cmd/format/main.go
             GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-verification-linux64-${BUILD_NUMBER} cmd/verification/main.go
           popd
-  - put: indicators
+  - put: indicator-protocol
     params:
-      repository: indicators
+      repository: indicator-protocol
       rebase: true
       tag: release-version/version
       tag_prefix: v
