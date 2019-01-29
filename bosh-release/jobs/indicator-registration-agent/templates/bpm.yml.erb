@@ -28,7 +28,5 @@ processes:
     memory: 128M
   unsafe:
     unrestricted_volumes:
-    - path: /var/vcap/jobs/
-      writable: false
-      allow_executions: false
-      mount_only: false
+    - path: /var/vcap/jobs
+      mount_only: true
