@@ -4,6 +4,8 @@
 *.iws
 .idea/
 
+src/
+
 # BOSH
 config/dev.yml
 config/private.yml
