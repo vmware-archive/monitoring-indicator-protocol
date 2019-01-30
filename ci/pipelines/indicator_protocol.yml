@@ -281,6 +281,8 @@ jobs:
             [ci skip]"
           popd
 
+          cp -r "${RELEASE_NAME}/." "final-release/"
+
   - task: publish-github-release
     config:
       platform: linux
@@ -319,6 +321,12 @@ jobs:
   - put: indicator-protocol
     params:
       repository: indicator-protocol
+      rebase: true
+      tag: release-version/version
+      tag_prefix: v
+  - put: indicator-protocol
+    params:
+      repository: final-relase
       rebase: true
       tag: release-version/version
       tag_prefix: v
