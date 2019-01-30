@@ -326,10 +326,8 @@ jobs:
       tag_prefix: v
   - put: indicator-protocol
     params:
-      repository: final-relase
+      repository: final-release
       rebase: true
-      tag: release-version/version
-      tag_prefix: v
   - put: github-release-drafts
     params:
       name: github-release/name
