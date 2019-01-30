@@ -10,6 +10,8 @@ resources:
     ignore_paths:
     - README.md
     - ci
+    - bosh-release/.final_builds
+    - bosh-release/releases
 - name: env-state
   type: git
   source:
