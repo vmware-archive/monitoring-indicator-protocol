@@ -19,6 +19,10 @@ indicators:
     gte: 50
   - level: critical
     gt: 100
+  presentation:
+    chartType: line
+    currentValue: false
+    interval: 1m
   documentation:
     title: Doc Performance Indicator
     measurement: Average latency over last 5 minutes per instance

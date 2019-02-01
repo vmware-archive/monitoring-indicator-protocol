@@ -1,9 +1,10 @@
 package registry
 
 import (
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"testing"
+	"time"
 )
 
 func TestToAPIV0Document(t *testing.T) {
@@ -15,17 +16,22 @@ func TestToAPIV0Document(t *testing.T) {
 			Product:    indicator.Product{},
 			Metadata:   nil,
 			Indicators: []indicator.Indicator{{
-				Name:          "test_indicator",
-				PromQL:        "test_indicator_promql{}",
+				Name:   "test_indicator",
+				PromQL: "test_indicator_promql{}",
+				Presentation: &indicator.Presentation{
+					ChartType:    "line",
+					CurrentValue: false,
+					Interval:     time.Minute,
+				},
 			}},
 			Layout: indicator.Layout{
-				Title:       "test title",
+				Title: "test title",
 				Sections: []indicator.Section{{
 					Title:       "test section",
 					Description: "test section description",
-					Indicators:  []indicator.Indicator{{
-						Name:          "test_indicator",
-						PromQL:        "test_indicator_promql{}",
+					Indicators: []indicator.Indicator{{
+						Name:   "test_indicator",
+						PromQL: "test_indicator_promql{}",
 					}},
 				}},
 			},
@@ -36,5 +42,15 @@ func TestToAPIV0Document(t *testing.T) {
 		g.Expect(result.Layout.Sections).To(HaveLen(1))
 		g.Expect(result.Layout.Sections[0].Title).To(Equal("test section"))
 		g.Expect(result.Layout.Sections[0].Indicators).To(ConsistOf("test_indicator"))
+		g.Expect(result.Indicators).To(ConsistOf(APIV0Indicator{
+			Name:       "test_indicator",
+			PromQL:     "test_indicator_promql{}",
+			Thresholds: []APIV0Threshold{},
+			Presentation: &APIV0Presentation{
+				ChartType:    "line",
+				CurrentValue: false,
+				Interval:     "1m0s",
+			},
+		}))
 	})
 }

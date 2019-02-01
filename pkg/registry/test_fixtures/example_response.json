@@ -11,46 +11,19 @@
     },
     "indicators": [
       {
-        "name": "only_in_example_yml",
-        "promql": "test_query"
-      },
-      {
-        "name": "doc_performance_indicator",
-        "promql": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-service-deployment\"}[5m])",
-        "thresholds": [
-          {
-            "level": "warning",
-            "operator": "gte",
-            "value": 50
-          },
-          {
-            "level": "critical",
-            "operator": "gt",
-            "value": 100
-          }
-        ],
-        "documentation": {
-          "description": "This is a valid markdown description.\n\n**Use**: This indicates nothing. It is placeholder text.\n\n**Type**: Gauge\n**Frequency**: 60 s\n",
-          "measurement": "Average latency over last 5 minutes per instance",
-          "recommended_response": "Panic! Run around in circles flailing your arms.",
-          "threshold_note": "These are environment specific",
-          "title": "Doc Performance Indicator"
-        }
+        "name": "some_indicator",
+        "promql": "some_promql"
       }
     ],
     "layout": {
-      "title": "Monitoring Document Product",
-      "description": "Document description",
+      "title": "Monitoring",
       "sections": [
         {
-          "title": "Indicators",
-          "description": "This section includes indicators",
           "indicators": [
             "doc_performance_indicator"
           ]
         }
-      ],
-      "owner": "Example Team"
+      ]
     }
   }
 ]

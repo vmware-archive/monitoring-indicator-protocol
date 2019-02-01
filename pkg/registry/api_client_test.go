@@ -14,7 +14,7 @@ import (
 
 func TestAPIClient_IndicatorDocuments(t *testing.T) {
 	g := NewGomegaWithT(t)
-	exampleJSON, e := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_response.json")
+	exampleJSON, e := ioutil.ReadFile("test_fixtures/example_response.json")
 	g.Expect(e).ToNot(HaveOccurred())
 	http.HandleFunc("/v1/indicator-documents", func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write(exampleJSON)

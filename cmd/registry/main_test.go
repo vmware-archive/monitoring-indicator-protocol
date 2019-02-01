@@ -56,7 +56,7 @@ func TestIndicatorRegistry(t *testing.T) {
 			responseBytes, err := ioutil.ReadAll(resp.Body)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			json, err := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_response.json")
+			json, err := ioutil.ReadFile("test_fixtures/example_response.json")
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(len(json)).To(BeNumerically(">", 200))
@@ -133,7 +133,7 @@ func TestIndicatorRegistry(t *testing.T) {
 
 			g.Expect(buffer.String()).To(ContainSubstring("registered patch for name: my-component version: 1.2.3"))
 
-			json, err := ioutil.ReadFile("../../pkg/registry/test_fixtures/example_patched_response.json")
+			json, err := ioutil.ReadFile("test_fixtures/example_patched_response.json")
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(len(json)).To(BeNumerically(">", 200))

@@ -3,14 +3,16 @@ package indicator_test
 import (
 	. "github.com/onsi/gomega"
 	"testing"
+	"time"
 
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"github.com/krishicks/yaml-patch"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 )
 
 func TestReturnsCompleteDocument(t *testing.T) {
-	g := NewGomegaWithT(t)
-	d, err := indicator.ReadIndicatorDocument([]byte(`---
+	t.Run("it can parse all document fields", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
 apiVersion: v0
 product: 
   name: well-performing-component
@@ -26,6 +28,10 @@ indicators:
     recommended_response: Panic!
     threshold_note: Threshold Note Text
   promql: prom{deployment="$deployment"}
+  presentation:
+    currentValue: false
+    chartType: line
+    interval: 5s
   thresholds:
   - level: warning
     gte: 50
@@ -39,38 +45,14 @@ layout:
     indicators:
     - test_performance_indicator
 `), indicator.SkipMetadataInterpolation, indicator.OverrideMetadata(map[string]string{"deployment": "well-performing-deployment"}))
-	g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(err).ToNot(HaveOccurred())
 
-	g.Expect(d).To(Equal(indicator.Document{
-		APIVersion: "v0",
-		Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
-		Metadata:   map[string]string{"deployment": "well-performing-deployment"},
-		Indicators: []indicator.Indicator{
-			{
-				Name:   "test_performance_indicator",
-				PromQL: `prom{deployment="$deployment"}`,
-				Thresholds: []indicator.Threshold{
-					{
-						Level:    "warning",
-						Operator: indicator.GreaterThanOrEqualTo,
-						Value:    50,
-					},
-				},
-				Documentation: map[string]string{
-					"title":                "Test Performance Indicator",
-					"description":          "This is a valid markdown description.",
-					"recommended_response": "Panic!",
-					"threshold_note":       "Threshold Note Text",
-				},
-			},
-		},
-		Layout: indicator.Layout{
-			Title:       "Monitoring Test Product",
-			Description: "Test description",
-			Sections: []indicator.Section{{
-				Title:       "Test Section",
-				Description: "This section includes indicators and metrics",
-				Indicators: []indicator.Indicator{{
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+			Metadata:   map[string]string{"deployment": "well-performing-deployment"},
+			Indicators: []indicator.Indicator{
+				{
 					Name:   "test_performance_indicator",
 					PromQL: `prom{deployment="$deployment"}`,
 					Thresholds: []indicator.Threshold{
@@ -80,16 +62,98 @@ layout:
 							Value:    50,
 						},
 					},
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    indicator.LineChart,
+						Interval:     time.Duration(5 * time.Second),
+					},
 					Documentation: map[string]string{
 						"title":                "Test Performance Indicator",
 						"description":          "This is a valid markdown description.",
 						"recommended_response": "Panic!",
 						"threshold_note":       "Threshold Note Text",
 					},
+				},
+			},
+			Layout: indicator.Layout{
+				Title:       "Monitoring Test Product",
+				Description: "Test description",
+				Sections: []indicator.Section{{
+					Title:       "Test Section",
+					Description: "This section includes indicators and metrics",
+					Indicators: []indicator.Indicator{{
+						Name:   "test_performance_indicator",
+						PromQL: `prom{deployment="$deployment"}`,
+						Thresholds: []indicator.Threshold{
+							{
+								Level:    "warning",
+								Operator: indicator.GreaterThanOrEqualTo,
+								Value:    50,
+							},
+						},
+						Presentation: &indicator.Presentation{
+							CurrentValue: false,
+							ChartType:    indicator.LineChart,
+							Interval:     time.Duration(5 * time.Second),
+						},
+						Documentation: map[string]string{
+							"title":                "Test Performance Indicator",
+							"description":          "This is a valid markdown description.",
+							"recommended_response": "Panic!",
+							"threshold_note":       "Threshold Note Text",
+						},
+					}},
 				}},
-			}},
-		},
-	}))
+			},
+		}))
+	})
+
+	t.Run("it omits empty presentation data", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+metadata:
+  deployment: test_deployment
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="$deployment"}
+
+layout:
+  sections:
+  - title: Metrics
+    indicators:
+    - test_performance_indicator
+
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "test_product", Version: "0.0.1"},
+			Metadata:   map[string]string{"deployment": "test_deployment"},
+			Indicators: []indicator.Indicator{
+				{
+					Name:         "test_performance_indicator",
+					PromQL:       `prom{deployment="test_deployment"}`,
+					Presentation: nil,
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title: "Metrics",
+					Indicators: []indicator.Indicator{{
+						Name:         "test_performance_indicator",
+						PromQL:       `prom{deployment="test_deployment"}`,
+						Presentation: nil,
+					}},
+				}},
+			},
+		}))
+	})
 }
 
 func TestReturnsAnEmptyListWhenNoIndicatorsArePassed(t *testing.T) {
@@ -164,10 +228,32 @@ indicators:
 }
 
 func TestReturnsAnErrorIfTheYAMLIsUnparsable(t *testing.T) {
-	g := NewGomegaWithT(t)
+	t.Run("bad document", func(t *testing.T) {
+		g := NewGomegaWithT(t)
 
-	_, err := indicator.ReadIndicatorDocument([]byte(`--`))
-	g.Expect(err).To(HaveOccurred())
+		_, err := indicator.ReadIndicatorDocument([]byte(`--`))
+		g.Expect(err).To(HaveOccurred())
+	})
+
+	t.Run("bad chart type", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		_, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+metadata:
+  deployment: test_deployment
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="$deployment"}
+  presentation:
+    chartType: bad-fake-no-good-chart`))
+
+		g.Expect(err).To(HaveOccurred())
+	})
 }
 
 func TestReturnsAnErrorIfAThresholdHasNoValue(t *testing.T) {
@@ -205,7 +291,7 @@ func TestReturnsErrors(t *testing.T) {
 
 		_, err := indicator.ReadIndicatorDocument([]byte(`---
 apiVersion: v0
-product: 
+product:
   name: my-product
   version: 1
 indicators: []
@@ -226,7 +312,7 @@ func TestReturnsDefaultLayoutWhenGivenNoLayout(t *testing.T) {
 	g := NewGomegaWithT(t)
 	d, err := indicator.ReadIndicatorDocument([]byte(`---
 apiVersion: v0
-product: 
+product:
   name: well-performing-component
   version: 0.0.1
 metadata:

@@ -21,11 +21,18 @@ type APIV0Threshold struct {
 	Value    float64 `json:"value"`
 }
 
+type APIV0Presentation struct {
+	ChartType    string `json:"chartType"`
+	CurrentValue bool   `json:"currentValue"`
+	Interval     string `json:"interval"`
+}
+
 type APIV0Indicator struct {
 	Name          string            `json:"name"`
 	PromQL        string            `json:"promql"`
 	Thresholds    []APIV0Threshold  `json:"thresholds,omitempty"`
 	Documentation map[string]string `json:"documentation,omitempty"`
+	Presentation  *APIV0Presentation `json:"presentation,omitempty"`
 }
 
 type APIV0Layout struct {
@@ -54,11 +61,21 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 			})
 		}
 
+		var presentation *APIV0Presentation
+		if i.Presentation != nil {
+			presentation = &APIV0Presentation{
+				ChartType:    string(i.Presentation.ChartType),
+				CurrentValue: i.Presentation.CurrentValue,
+				Interval:     i.Presentation.Interval.String(),
+			}
+		}
+
 		indicators = append(indicators, APIV0Indicator{
 			Name:          i.Name,
 			PromQL:        i.PromQL,
 			Thresholds:    thresholds,
 			Documentation: i.Documentation,
+			Presentation:  presentation,
 		})
 	}
 

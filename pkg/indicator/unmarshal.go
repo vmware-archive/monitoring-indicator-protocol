@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/krishicks/yaml-patch"
 	"gopkg.in/yaml.v2"
@@ -125,21 +126,27 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 	}
 
 	var indicators []Indicator
-	for _, yamlIndicator := range d.Indicators {
+	for i, yamlIndicator := range d.Indicators {
 		var thresholds []Threshold
 		for _, yamlThreshold := range yamlIndicator.Thresholds {
 			threshold, err := thresholdFromYAML(yamlThreshold)
 			if err != nil {
-				return Document{}, fmt.Errorf("could not convert yaml indicators to indicators: %s", err)
+				return Document{}, fmt.Errorf("could not convert yaml indicator[%v]: %s", i, err)
 			}
 
 			thresholds = append(thresholds, threshold)
+		}
+
+		p, err := presentationFromYAML(yamlIndicator.Presentation)
+		if err != nil {
+			return Document{}, fmt.Errorf("could not convert yaml indicator[%v]: %s", i, err)
 		}
 
 		indicators = append(indicators, Indicator{
 			Name:          yamlIndicator.Name,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
+			Presentation:  p,
 			Documentation: yamlIndicator.Documentation,
 		})
 	}
@@ -279,6 +286,7 @@ type yamlIndicator struct {
 	Promql        string            `yaml:"promql"`
 	Thresholds    []yamlThreshold   `yaml:"thresholds"`
 	Documentation map[string]string `yaml:"documentation"`
+	Presentation  yamlPresentation  `yaml:"presentation"`
 }
 
 type yamlThreshold struct {
@@ -291,6 +299,12 @@ type yamlThreshold struct {
 	GT    string `yaml:"gt"`
 }
 
+type yamlPresentation struct {
+	ChartType    ChartType     `yaml:"chartType"`
+	CurrentValue bool          `yaml:"currentValue"`
+	Interval     time.Duration `yaml:"interval"`
+}
+
 type yamlPatch struct {
 	APIVersion string                `yaml:"apiVersion"`
 	Match      yamlMatch             `yaml:"match"`
@@ -298,7 +312,7 @@ type yamlPatch struct {
 }
 
 type yamlMatch struct {
-	Product  struct {
+	Product struct {
 		Name    *string `yaml:"name,omitempty"`
 		Version *string `yaml:"version,omitempty"`
 	} `yaml:"product,omitempty"`
@@ -351,6 +365,27 @@ func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
 		Level:    threshold.Level,
 		Operator: operator,
 		Value:    value,
+	}, nil
+}
+
+func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
+	defaultValue := yamlPresentation{}
+	if p == defaultValue {
+		return nil, nil
+	}
+
+	switch p.ChartType {
+	case LineChart:
+	case AreaChart:
+	case BarChart:
+	default:
+		return nil, fmt.Errorf("invalid chartType provided: %s", p.ChartType)
+	}
+
+	return &Presentation{
+		ChartType:    p.ChartType,
+		CurrentValue: p.CurrentValue,
+		Interval:     p.Interval,
 	}, nil
 }
 

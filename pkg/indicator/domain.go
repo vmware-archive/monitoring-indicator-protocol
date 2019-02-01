@@ -1,6 +1,9 @@
 package indicator
 
-import "github.com/krishicks/yaml-patch"
+import (
+	"github.com/krishicks/yaml-patch"
+	"time"
+)
 
 type OperatorType int
 
@@ -43,6 +46,7 @@ type Indicator struct {
 	PromQL        string
 	Thresholds    []Threshold
 	Documentation map[string]string
+	Presentation  *Presentation
 }
 
 type Threshold struct {
@@ -50,6 +54,20 @@ type Threshold struct {
 	Operator OperatorType
 	Value    float64
 }
+
+type Presentation struct {
+	ChartType
+	CurrentValue bool
+	Interval     time.Duration
+}
+
+const (
+	LineChart ChartType = "line"
+	AreaChart ChartType = "area"
+	BarChart  ChartType = "bar"
+)
+
+type ChartType string
 
 func (e *Threshold) GetComparatorAbbrev() string {
 	switch e.Operator {
