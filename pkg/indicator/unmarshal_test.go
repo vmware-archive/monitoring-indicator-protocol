@@ -31,7 +31,7 @@ indicators:
   presentation:
     currentValue: false
     chartType: line
-    interval: 5s
+    frequency: 5s
   thresholds:
   - level: warning
     gte: 50
@@ -65,7 +65,7 @@ layout:
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
 						ChartType:    indicator.LineChart,
-						Interval:     time.Duration(5 * time.Second),
+						Frequency:    time.Duration(5 * time.Second),
 					},
 					Documentation: map[string]string{
 						"title":                "Test Performance Indicator",
@@ -94,7 +94,7 @@ layout:
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
 							ChartType:    indicator.LineChart,
-							Interval:     time.Duration(5 * time.Second),
+							Frequency:    time.Duration(5 * time.Second),
 						},
 						Documentation: map[string]string{
 							"title":                "Test Performance Indicator",

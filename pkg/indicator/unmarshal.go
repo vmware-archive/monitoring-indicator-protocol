@@ -302,7 +302,7 @@ type yamlThreshold struct {
 type yamlPresentation struct {
 	ChartType    ChartType     `yaml:"chartType"`
 	CurrentValue bool          `yaml:"currentValue"`
-	Interval     time.Duration `yaml:"interval"`
+	Frequency    time.Duration `yaml:"frequency"`
 }
 
 type yamlPatch struct {
@@ -385,7 +385,7 @@ func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 	return &Presentation{
 		ChartType:    p.ChartType,
 		CurrentValue: p.CurrentValue,
-		Interval:     p.Interval,
+		Frequency:    p.Frequency,
 	}, nil
 }
 

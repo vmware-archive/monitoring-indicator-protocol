@@ -21,7 +21,7 @@ func TestToAPIV0Document(t *testing.T) {
 				Presentation: &indicator.Presentation{
 					ChartType:    "line",
 					CurrentValue: false,
-					Interval:     time.Minute,
+					Frequency:    time.Minute,
 				},
 			}},
 			Layout: indicator.Layout{
@@ -49,7 +49,7 @@ func TestToAPIV0Document(t *testing.T) {
 			Presentation: &APIV0Presentation{
 				ChartType:    "line",
 				CurrentValue: false,
-				Interval:     "1m0s",
+				Frequency:    "1m0s",
 			},
 		}))
 	})

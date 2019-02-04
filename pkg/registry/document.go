@@ -24,14 +24,14 @@ type APIV0Threshold struct {
 type APIV0Presentation struct {
 	ChartType    string `json:"chartType"`
 	CurrentValue bool   `json:"currentValue"`
-	Interval     string `json:"interval"`
+	Frequency    string `json:"frequency"`
 }
 
 type APIV0Indicator struct {
-	Name          string            `json:"name"`
-	PromQL        string            `json:"promql"`
-	Thresholds    []APIV0Threshold  `json:"thresholds,omitempty"`
-	Documentation map[string]string `json:"documentation,omitempty"`
+	Name          string             `json:"name"`
+	PromQL        string             `json:"promql"`
+	Thresholds    []APIV0Threshold   `json:"thresholds,omitempty"`
+	Documentation map[string]string  `json:"documentation,omitempty"`
 	Presentation  *APIV0Presentation `json:"presentation,omitempty"`
 }
 
@@ -66,7 +66,7 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 			presentation = &APIV0Presentation{
 				ChartType:    string(i.Presentation.ChartType),
 				CurrentValue: i.Presentation.CurrentValue,
-				Interval:     i.Presentation.Interval.String(),
+				Frequency:    i.Presentation.Frequency.String(),
 			}
 		}
 

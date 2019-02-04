@@ -22,7 +22,7 @@ indicators:
   presentation:
     chartType: line
     currentValue: false
-    interval: 1m
+    frequency: 1m
   documentation:
     title: Doc Performance Indicator
     measurement: Average latency over last 5 minutes per instance

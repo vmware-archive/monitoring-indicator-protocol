@@ -58,7 +58,7 @@ type Threshold struct {
 type Presentation struct {
 	ChartType
 	CurrentValue bool
-	Interval     time.Duration
+	Frequency    time.Duration
 }
 
 const (
