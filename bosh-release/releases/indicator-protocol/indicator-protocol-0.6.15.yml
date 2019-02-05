@@ -1,0 +1,25 @@
+name: indicator-protocol
+version: 0.6.15
+commit_hash: 1f5e7e6
+uncommitted_changes: false
+jobs:
+- name: indicator-registration-agent
+  version: c090f4126705f754f06dc149a4281b65bbc2bd5eea6b420a67fcd889507c9c49
+  fingerprint: c090f4126705f754f06dc149a4281b65bbc2bd5eea6b420a67fcd889507c9c49
+  sha1: sha256:47c42a8c613ac16aaf5bf62f93bdd994f0cb72b9daf8ec99c70b09d8e30427b4
+- name: indicator-registry
+  version: 10914bd33b3baac926b2e76ffa9cf5baf20fdf100b625c2b1797f0b459863941
+  fingerprint: 10914bd33b3baac926b2e76ffa9cf5baf20fdf100b625c2b1797f0b459863941
+  sha1: sha256:a2b5f292691b60d5948a79ebb5bcba9fea8e11b739c8b2ff3ea3925bd7651044
+packages:
+- name: golang-1.11-linux
+  version: bb9ab510b4b82a163137540402017207b9fc7e06
+  fingerprint: bb9ab510b4b82a163137540402017207b9fc7e06
+  sha1: f76df378af8cfd97e8fd60cdbc5b00ee952d5caf
+  dependencies: []
+- name: indicator-registry
+  version: e611f01ed82424b9a7f9dc985d089324997186398f31c766879b93701b0ad103
+  fingerprint: e611f01ed82424b9a7f9dc985d089324997186398f31c766879b93701b0ad103
+  sha1: sha256:546d592f160f8ba41a1d217f7bfa21b725fcac6448485805a80653fdad52f602
+  dependencies:
+  - golang-1.11-linux
