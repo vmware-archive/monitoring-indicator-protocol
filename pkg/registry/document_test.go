@@ -49,7 +49,7 @@ func TestToAPIV0Document(t *testing.T) {
 			Presentation: &APIV0Presentation{
 				ChartType:    "line",
 				CurrentValue: false,
-				Frequency:    "1m0s",
+				Frequency:    60,
 			},
 		}))
 	})

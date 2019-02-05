@@ -22,9 +22,9 @@ type APIV0Threshold struct {
 }
 
 type APIV0Presentation struct {
-	ChartType    string `json:"chartType"`
-	CurrentValue bool   `json:"currentValue"`
-	Frequency    string `json:"frequency"`
+	ChartType    string  `json:"chartType"`
+	CurrentValue bool    `json:"currentValue"`
+	Frequency    float64 `json:"frequency"`
 }
 
 type APIV0Indicator struct {
@@ -66,7 +66,7 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 			presentation = &APIV0Presentation{
 				ChartType:    string(i.Presentation.ChartType),
 				CurrentValue: i.Presentation.CurrentValue,
-				Frequency:    i.Presentation.Frequency.String(),
+				Frequency:    i.Presentation.Frequency.Seconds(),
 			}
 		}
 
