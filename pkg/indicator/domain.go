@@ -87,6 +87,24 @@ func (e *Threshold) GetComparatorAbbrev() string {
 		return ""
 	}
 }
+func GetComparatorFromString(operator string) OperatorType {
+	switch operator {
+	case "lt":
+		return LessThan
+	case "lte":
+		return LessThanOrEqualTo
+	case "eq":
+		return EqualTo
+	case "neq":
+		return NotEqualTo
+	case "gte":
+		return GreaterThanOrEqualTo
+	case "gt":
+		return GreaterThan
+	default:
+		return -1
+	}
+}
 
 func (e *Threshold) GetComparator() string {
 	switch e.Operator {
