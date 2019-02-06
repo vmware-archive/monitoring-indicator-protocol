@@ -5,6 +5,8 @@ processes:
   args:
   - --port
   - <%= p('port') %>
+  - --config
+  - /var/vcap/jobs/indicator-registry/config/sources.yml
   - --tls-pem-path
   - /var/vcap/jobs/indicator-registry/certs/registry.crt
   - --tls-key-path

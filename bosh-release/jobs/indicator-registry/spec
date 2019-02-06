@@ -3,6 +3,7 @@ name: indicator-registry
 
 templates:
   bpm.yml.erb: config/bpm.yml
+  sources.yml.erb: config/sources.yml
   registry.crt.erb: certs/registry.crt
   registry.key.erb: certs/registry.key
   indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
@@ -39,3 +40,6 @@ properties:
   tls.client_key:
     description: "TLS Client private key"
 
+  sources:
+    description: "An array of sources matching the format described at https://github.com/pivotal/indicator-protocol/wiki/Configuration-and-Patches"
+    default: []
