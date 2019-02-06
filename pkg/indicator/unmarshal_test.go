@@ -108,7 +108,7 @@ layout:
 		}))
 	})
 
-	t.Run("it omits empty presentation data", func(t *testing.T) {
+	t.Run("it uses defaults in the case of empty presentation data", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		d, err := indicator.ReadIndicatorDocument([]byte(`---
 apiVersion: v0
@@ -137,18 +137,83 @@ layout:
 			Metadata:   map[string]string{"deployment": "test_deployment"},
 			Indicators: []indicator.Indicator{
 				{
-					Name:         "test_performance_indicator",
-					PromQL:       `prom{deployment="test_deployment"}`,
-					Presentation: nil,
+					Name:   "test_performance_indicator",
+					PromQL: `prom{deployment="test_deployment"}`,
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+					},
 				},
 			},
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{{
 					Title: "Metrics",
 					Indicators: []indicator.Indicator{{
-						Name:         "test_performance_indicator",
-						PromQL:       `prom{deployment="test_deployment"}`,
-						Presentation: nil,
+						Name:   "test_performance_indicator",
+						PromQL: `prom{deployment="test_deployment"}`,
+						Presentation: &indicator.Presentation{
+							CurrentValue: false,
+							ChartType:    "step",
+							Frequency:    0,
+						},
+					}},
+				}},
+			},
+		}))
+	})
+
+	t.Run("it sets chartType to 'step' if none is provided", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+metadata:
+  deployment: test_deployment
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="$deployment"}
+  presentation:
+    currentValue: false
+
+layout:
+  sections:
+  - title: Metrics
+    indicators:
+    - test_performance_indicator
+
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "test_product", Version: "0.0.1"},
+			Metadata:   map[string]string{"deployment": "test_deployment"},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_performance_indicator",
+					PromQL: `prom{deployment="test_deployment"}`,
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+					},
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title: "Metrics",
+					Indicators: []indicator.Indicator{{
+						Name:   "test_performance_indicator",
+						PromQL: `prom{deployment="test_deployment"}`,
+						Presentation: &indicator.Presentation{
+							CurrentValue: false,
+							ChartType:    "step",
+							Frequency:    0,
+						},
 					}},
 				}},
 			},
@@ -223,6 +288,11 @@ indicators:
 				Operator: indicator.GreaterThan,
 				Value:    1.222225,
 			},
+		},
+		Presentation: &indicator.Presentation{
+			CurrentValue: false,
+			ChartType:    "step",
+			Frequency:    0,
 		},
 	}}))
 }
@@ -332,6 +402,11 @@ indicators:
 			{
 				Name:   "test_performance_indicator",
 				PromQL: "promql_test_expr",
+				Presentation: &indicator.Presentation{
+					CurrentValue: false,
+					ChartType:    "step",
+					Frequency:    0,
+				},
 			},
 		},
 		Layout: indicator.Layout{
@@ -341,6 +416,11 @@ indicators:
 					{
 						Name:   "test_performance_indicator",
 						PromQL: "promql_test_expr",
+						Presentation: &indicator.Presentation{
+							CurrentValue: false,
+							ChartType:    "step",
+							Frequency:    0,
+						},
 					},
 				},
 			}},
@@ -614,9 +694,19 @@ indicators:
 			Indicators: []indicator.Indicator{{
 				Name:   "test_indicator",
 				PromQL: "test_expr",
+				Presentation: &indicator.Presentation{
+					CurrentValue: false,
+					ChartType: "step",
+					Frequency: 0,
+				},
 			}, {
 				Name:          "inserted_indicator",
 				PromQL:        `inserted_indicator_promql{source_id="origin"}`,
+				Presentation: &indicator.Presentation{
+					CurrentValue: false,
+					ChartType: "step",
+					Frequency: 0,
+				},
 				Documentation: map[string]string{"title": "Success Percentage"},
 			}},
 			Layout: indicator.Layout{
@@ -626,9 +716,19 @@ indicators:
 					Indicators: []indicator.Indicator{{
 						Name:   "test_indicator",
 						PromQL: "test_expr",
+						Presentation: &indicator.Presentation{
+							CurrentValue: false,
+							ChartType: "step",
+							Frequency: 0,
+						},
 					}, {
 						Name:          "inserted_indicator",
 						PromQL:        `inserted_indicator_promql{source_id="origin"}`,
+						Presentation: &indicator.Presentation{
+							CurrentValue: false,
+							ChartType: "step",
+							Frequency: 0,
+						},
 						Documentation: map[string]string{"title": "Success Percentage"},
 					}},
 				}},
@@ -656,6 +756,11 @@ indicators:
 			Indicators: []indicator.Indicator{{
 				Name:   "test_indicator",
 				PromQL: "test_expr",
+				Presentation: &indicator.Presentation{
+					CurrentValue: false,
+					ChartType: "step",
+					Frequency: 0,
+				},
 			}},
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{{
@@ -664,6 +769,11 @@ indicators:
 					Indicators: []indicator.Indicator{{
 						Name:   "test_indicator",
 						PromQL: "test_expr",
+						Presentation: &indicator.Presentation{
+							CurrentValue: false,
+							ChartType: "step",
+							Frequency: 0,
+						},
 					}},
 				}},
 			},

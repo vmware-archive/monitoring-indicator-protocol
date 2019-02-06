@@ -56,6 +56,11 @@ indicators:
 					Indicators: []indicator.Indicator{{
 						Name:   "test_performance_indicator",
 						PromQL: "prom",
+						Presentation: &indicator.Presentation{
+							CurrentValue: false,
+							ChartType: "step",
+							Frequency: 0,
+						},
 						Thresholds: []indicator.Threshold{
 							{
 								Level:    "warning",
@@ -69,6 +74,11 @@ indicators:
 			Indicators: []indicator.Indicator{{
 				Name:   "test_performance_indicator",
 				PromQL: "prom",
+				Presentation: &indicator.Presentation{
+					CurrentValue: false,
+					ChartType: "step",
+					Frequency: 0,
+				},
 				Thresholds: []indicator.Threshold{
 					{
 						Level:    "warning",

@@ -371,12 +371,18 @@ func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
 func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 	defaultValue := yamlPresentation{}
 	if p == defaultValue {
-		return nil, nil
+		return &Presentation{
+			ChartType: StepChart,
+			CurrentValue: false,
+			Frequency: 0,
+		}, nil
 	}
 
 	switch p.ChartType {
 	case StepChart:
 	case BarChart:
+	case "":
+		p.ChartType = StepChart
 	default:
 		return nil, fmt.Errorf("invalid chartType provided: '%s' - valid chart types are %s", p.ChartType, getChartTypesList())
 	}

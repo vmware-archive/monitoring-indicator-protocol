@@ -11,11 +11,21 @@
     "indicators": [
       {
         "name": "blob_matched_indicator",
-        "promql": "blob_match_promql"
+        "promql": "blob_match_promql",
+        "presentation": {
+          "chartType": "step",
+          "frequency": 0,
+          "currentValue": false
+        }
       },
       {
         "name": "new_blob_indicator",
-        "promql": "new_blob_promql{source_id=\"origin\"}"
+        "promql": "new_blob_promql{source_id=\"origin\"}",
+        "presentation": {
+          "chartType": "step",
+          "frequency": 0,
+          "currentValue": false
+        }
       }
     ],
     "layout": {

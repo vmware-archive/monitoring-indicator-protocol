@@ -34,6 +34,11 @@ indicators:
 				{
 					Name:   "test_performance_indicator",
 					PromQL: `query_metric{source_id="well-performing-deployment"}`,
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType: "step",
+						Frequency: 0,
+					},
 				},
 			},
 			Layout: indicator.Layout{
@@ -43,6 +48,11 @@ indicators:
 						{
 							Name:   "test_performance_indicator",
 							PromQL: `query_metric{source_id="well-performing-deployment"}`,
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType: "step",
+								Frequency: 0,
+							},
 						},
 					},
 				}},
@@ -63,6 +73,11 @@ indicators:
 				{
 					Name:   "test_performance_indicator",
 					PromQL: `query_metric{source_id="$deployment"}`,
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType: "step",
+						Frequency: 0,
+					},
 				},
 			},
 			Layout: indicator.Layout{
@@ -72,6 +87,11 @@ indicators:
 						{
 							Name:   "test_performance_indicator",
 							PromQL: `query_metric{source_id="$deployment"}`,
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType: "step",
+								Frequency: 0,
+							},
 						},
 					},
 				}},
