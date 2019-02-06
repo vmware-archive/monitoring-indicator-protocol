@@ -210,6 +210,7 @@ func processDocuments(documentsBytes [][]byte, patches []indicator.Patch) []indi
 			}
 
 			log.Printf("validation for indicator file failed - [%+v]\n", errs)
+			continue
 		}
 
 		documents = append(documents, doc)
