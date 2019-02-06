@@ -20,7 +20,7 @@ indicators:
   - level: critical
     gt: 100
   presentation:
-    chartType: line
+    chartType: step
     currentValue: false
     frequency: 1m
   documentation:

@@ -19,7 +19,7 @@ func TestToAPIV0Document(t *testing.T) {
 				Name:   "test_indicator",
 				PromQL: "test_indicator_promql{}",
 				Presentation: &indicator.Presentation{
-					ChartType:    "line",
+					ChartType:    "step",
 					CurrentValue: false,
 					Frequency:    time.Minute,
 				},
@@ -47,7 +47,7 @@ func TestToAPIV0Document(t *testing.T) {
 			PromQL:     "test_indicator_promql{}",
 			Thresholds: []APIV0Threshold{},
 			Presentation: &APIV0Presentation{
-				ChartType:    "line",
+				ChartType:    "step",
 				CurrentValue: false,
 				Frequency:    60,
 			},

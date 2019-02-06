@@ -61,13 +61,14 @@ type Presentation struct {
 	Frequency    time.Duration
 }
 
+type ChartType string
+
 const (
-	LineChart ChartType = "line"
-	AreaChart ChartType = "area"
-	BarChart  ChartType = "bar"
+	StepChart   ChartType = "step"
+	BarChart    ChartType = "bar"
 )
 
-type ChartType string
+var ChartTypes = []ChartType{StepChart, BarChart}
 
 func (e *Threshold) GetComparatorAbbrev() string {
 	switch e.Operator {

@@ -375,11 +375,10 @@ func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 	}
 
 	switch p.ChartType {
-	case LineChart:
-	case AreaChart:
+	case StepChart:
 	case BarChart:
 	default:
-		return nil, fmt.Errorf("invalid chartType provided: %s", p.ChartType)
+		return nil, fmt.Errorf("invalid chartType provided: '%s' - valid chart types are %s", p.ChartType, getChartTypesList())
 	}
 
 	return &Presentation{
@@ -387,6 +386,18 @@ func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 		CurrentValue: p.CurrentValue,
 		Frequency:    p.Frequency,
 	}, nil
+}
+
+func getChartTypesList() string {
+	var chartTypes = ""
+	for i, chartType := range ChartTypes {
+		if i == 0 {
+			chartTypes = string(chartType)
+		} else {
+			chartTypes = fmt.Sprintf("%s, %s", chartTypes, chartType)
+		}
+	}
+	return chartTypes
 }
 
 func readMetadata(document []byte) (map[string]string, error) {

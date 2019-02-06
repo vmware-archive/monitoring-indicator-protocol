@@ -30,7 +30,7 @@ indicators:
   promql: prom{deployment="$deployment"}
   presentation:
     currentValue: false
-    chartType: line
+    chartType: step
     frequency: 5s
   thresholds:
   - level: warning
@@ -64,7 +64,7 @@ layout:
 					},
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
-						ChartType:    indicator.LineChart,
+						ChartType:    indicator.StepChart,
 						Frequency:    time.Duration(5 * time.Second),
 					},
 					Documentation: map[string]string{
@@ -93,7 +93,7 @@ layout:
 						},
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
-							ChartType:    indicator.LineChart,
+							ChartType:    indicator.StepChart,
 							Frequency:    time.Duration(5 * time.Second),
 						},
 						Documentation: map[string]string{
@@ -252,7 +252,7 @@ indicators:
   presentation:
     chartType: bad-fake-no-good-chart`))
 
-		g.Expect(err).To(HaveOccurred())
+		g.Expect(err).To(MatchError(ContainSubstring("'bad-fake-no-good-chart' - valid chart types are step, bar")))
 	})
 }
 
