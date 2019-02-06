@@ -238,7 +238,6 @@ func TestPrometheusAlertControllerBinary(t *testing.T) {
 
 		data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", directory, "test_product_5.yml"))
 		g.Expect(err).ToNot(HaveOccurred())
-		fmt.Println(string(data))
 		g.Expect(string(data)).To(ContainSubstring("> 5"))
 	})
 
