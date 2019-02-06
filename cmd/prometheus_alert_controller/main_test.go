@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os/exec"
 	"testing"
 	"time"
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-
+	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal/indicator-protocol/pkg/go_test"
 	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"github.com/pivotal/indicator-protocol/pkg/registry"
@@ -68,10 +69,21 @@ func TestPrometheusAlertControllerBinary(t *testing.T) {
 		defer stop()
 		go start()
 
+		prometheusServer := ghttp.NewServer()
+		defer prometheusServer.Close()
+
+		prometheusServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			g.Expect(r.Method).To(Equal("POST"))
+			g.Expect(r.URL.Path).To(Equal("/-/reload"))
+
+			w.WriteHeader(http.StatusOK)
+		})
+
 		directory, err := ioutil.TempDir("", "test")
 		g.Expect(err).ToNot(HaveOccurred())
 
-		session := run(g, directory)
+		session := run(g, directory, prometheusServer.URL())
 		defer session.Kill()
 
 		g.Eventually(session).Should(gexec.Exit(0))
@@ -84,15 +96,18 @@ func TestPrometheusAlertControllerBinary(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(string(data)).To(ContainSubstring(`expr: test_query{deployment="test_deployment"}`))
+
+		g.Expect(prometheusServer.ReceivedRequests()).To(HaveLen(1))
 	})
 }
 
-func run(g *GomegaWithT, outputDirectory string) *gexec.Session {
+func run(g *GomegaWithT, outputDirectory string, prometheusURI string) *gexec.Session {
 	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 	cmd := exec.Command(
 		binPath,
 		"--registry", "https://localhost:12345",
+		"--prometheus", prometheusURI,
 		"--tls-pem-path", clientCert,
 		"--tls-key-path", clientKey,
 		"--tls-root-ca-pem", rootCACert,

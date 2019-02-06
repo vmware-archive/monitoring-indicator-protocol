@@ -1,28 +1,55 @@
 package prometheus_alerts
 
 import (
+	"bytes"
 	"fmt"
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
-	"github.com/pivotal/indicator-protocol/pkg/mtls"
-	"github.com/pivotal/indicator-protocol/pkg/registry"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/indicator-protocol/pkg/registry"
 )
 
 type ControllerConfig struct {
-	RegistryURI       string
-	TLSPEMPath        string
-	TLSKeyPath        string
-	TLSRootCACertPath string
-	TLSServerCN       string
-	OutputDirectory   string
+	RegistryAPIClient   registry.APIClient
+	PrometheusAPIClient PrometheusClient
+	OutputDirectory     string
+}
+
+type PrometheusClient interface {
+	Reload() error
+}
+
+type prometheusClient struct {
+	prometheusURI string
+	client        *http.Client
+}
+
+func (p *prometheusClient) Reload() error {
+	buffer := bytes.NewBuffer(nil)
+	resp, err := p.client.Post(fmt.Sprintf("%s/-/reload", p.prometheusURI), "", buffer)
+	if err != nil  {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("received %v response from prometheus: %s", resp.StatusCode, resp.Status)
+	}
+
+	return nil
+}
+
+func NewPrometheusClient(prometheusURI string, client *http.Client) PrometheusClient {
+	return &prometheusClient{
+		prometheusURI: prometheusURI,
+		client:        client,
+	}
 }
 
 type Controller interface {
-	Update()
+	Update() error
 }
 
 func NewController(c ControllerConfig) Controller {
@@ -33,28 +60,14 @@ type controller struct {
 	ControllerConfig
 }
 
-func (c controller) Update() {
-	tlsConfig, err := mtls.NewClientConfig(c.TLSPEMPath, c.TLSKeyPath, c.TLSRootCACertPath, c.TLSServerCN)
+func (c controller) Update() error {
+	documents, err := c.RegistryAPIClient.IndicatorDocuments()
 	if err != nil {
-		log.Fatalf("failed to create mtls http client, %s", err)
-	}
-
-	httpClient := &http.Client{
-		Timeout: 10 * time.Second,
-		Transport: &http.Transport{
-			DisableKeepAlives: true,
-			TLSClientConfig:   tlsConfig,
-		},
-	}
-
-	apiClient := registry.NewAPIClient(c.RegistryURI, httpClient)
-
-	documents, err := apiClient.IndicatorDocuments()
-	if err != nil {
-		log.Fatalf("failed to fetch indicator documents, %s", err)
+		return fmt.Errorf("failed to fetch indicator documents, %s", err)
 	}
 
 	writeDocuments(formatDocuments(documents), c.OutputDirectory)
+	return c.PrometheusAPIClient.Reload()
 }
 
 func formatDocuments(documents []registry.APIV0Document) []indicator.Document {

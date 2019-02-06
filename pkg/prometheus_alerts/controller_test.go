@@ -3,12 +3,11 @@ package prometheus_alerts_test
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"testing"
-	"time"
 
 	. "github.com/onsi/gomega"
-
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal/indicator-protocol/pkg/prometheus_alerts"
 	"github.com/pivotal/indicator-protocol/pkg/registry"
 )
@@ -23,42 +22,25 @@ var (
 )
 
 func TestAlertController(t *testing.T) {
-	address := "localhost:12347"
 	t.Run("reads and writes multiple documents to output directory", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		store := registry.NewDocumentStore(5 * time.Second)
-
-		upsertDocuments(store, 3)
-
-		config := registry.WebServerConfig{
-			Address:       address,
-			ServerPEMPath: serverCert,
-			ServerKeyPath: serverKey,
-			RootCAPath:    rootCACert,
-			DocumentStore: store,
+		registryClient := &mockRegistryClient{
+			Documents: createTestDocuments(3),
 		}
-
-		start, stop, err := registry.NewWebServer(config)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		defer stop()
-		go start()
 
 		directory, err := ioutil.TempDir("", "test")
 		g.Expect(err).ToNot(HaveOccurred())
 
 		c := prometheus_alerts.ControllerConfig{
-			RegistryURI:       fmt.Sprintf("https://%s", address),
-			TLSPEMPath:        clientCert,
-			TLSKeyPath:        clientKey,
-			TLSRootCACertPath: rootCACert,
-			TLSServerCN:       "localhost",
-			OutputDirectory:   directory,
+			RegistryAPIClient:   registryClient,
+			PrometheusAPIClient: &mockPrometheusClient{},
+			OutputDirectory:     directory,
 		}
 
 		controller := prometheus_alerts.NewController(c)
-		controller.Update()
+		err = controller.Update()
+		g.Expect(err).ToNot(HaveOccurred())
 
 		files, err := ioutil.ReadDir(directory)
 		g.Expect(err).ToNot(HaveOccurred())
@@ -68,35 +50,17 @@ func TestAlertController(t *testing.T) {
 	t.Run("saves documents with expected file names", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		store := registry.NewDocumentStore(5 * time.Second)
-
-		count := 3
-		upsertDocuments(store, count)
-
-		config := registry.WebServerConfig{
-			Address:       address,
-			ServerPEMPath: serverCert,
-			ServerKeyPath: serverKey,
-			RootCAPath:    rootCACert,
-			DocumentStore: store,
+		registryClient := &mockRegistryClient{
+			Documents: createTestDocuments(3),
 		}
-
-		start, stop, err := registry.NewWebServer(config)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		defer stop()
-		go start()
 
 		directory, err := ioutil.TempDir("", "test")
 		g.Expect(err).ToNot(HaveOccurred())
 
 		c := prometheus_alerts.ControllerConfig{
-			RegistryURI:       fmt.Sprintf("https://%s", address),
-			TLSPEMPath:        clientCert,
-			TLSKeyPath:        clientKey,
-			TLSRootCACertPath: rootCACert,
-			TLSServerCN:       "localhost",
-			OutputDirectory:   directory,
+			RegistryAPIClient:   registryClient,
+			PrometheusAPIClient: &mockPrometheusClient{},
+			OutputDirectory:     directory,
 		}
 
 		controller := prometheus_alerts.NewController(c)
@@ -111,34 +75,17 @@ func TestAlertController(t *testing.T) {
 	t.Run("write correct rule", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		store := registry.NewDocumentStore(5 * time.Second)
-
-		upsertDocuments(store, 1)
-
-		config := registry.WebServerConfig{
-			Address:       address,
-			ServerPEMPath: serverCert,
-			ServerKeyPath: serverKey,
-			RootCAPath:    rootCACert,
-			DocumentStore: store,
+		registryClient := &mockRegistryClient{
+			Documents: createTestDocuments(1),
 		}
-
-		start, stop, err := registry.NewWebServer(config)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		defer stop()
-		go start()
 
 		directory, err := ioutil.TempDir("", "test")
 		g.Expect(err).ToNot(HaveOccurred())
 
 		c := prometheus_alerts.ControllerConfig{
-			RegistryURI:       fmt.Sprintf("https://%s", address),
-			TLSPEMPath:        clientCert,
-			TLSKeyPath:        clientKey,
-			TLSRootCACertPath: rootCACert,
-			TLSServerCN:       "localhost",
-			OutputDirectory:   directory,
+			RegistryAPIClient:   registryClient,
+			PrometheusAPIClient: &mockPrometheusClient{},
+			OutputDirectory:     directory,
 		}
 
 		controller := prometheus_alerts.NewController(c)
@@ -164,35 +111,17 @@ func TestAlertController(t *testing.T) {
 	t.Run("writes correctly formatted comparator to correct file", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		store := registry.NewDocumentStore(5 * time.Second)
-
-		count := 6
-		upsertDocuments(store, count)
-
-		config := registry.WebServerConfig{
-			Address:       address,
-			ServerPEMPath: serverCert,
-			ServerKeyPath: serverKey,
-			RootCAPath:    rootCACert,
-			DocumentStore: store,
+		registryClient := &mockRegistryClient{
+			Documents: createTestDocuments(6),
 		}
-
-		start, stop, err := registry.NewWebServer(config)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		defer stop()
-		go start()
 
 		directory, err := ioutil.TempDir("", "test")
 		g.Expect(err).ToNot(HaveOccurred())
 
 		c := prometheus_alerts.ControllerConfig{
-			RegistryURI:       fmt.Sprintf("https://%s", address),
-			TLSPEMPath:        clientCert,
-			TLSKeyPath:        clientKey,
-			TLSRootCACertPath: rootCACert,
-			TLSServerCN:       "localhost",
-			OutputDirectory:   directory,
+			RegistryAPIClient:   registryClient,
+			PrometheusAPIClient: &mockPrometheusClient{},
+			OutputDirectory:     directory,
 		}
 
 		controller := prometheus_alerts.NewController(c)
@@ -222,7 +151,131 @@ func TestAlertController(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(string(data)).To(ContainSubstring("> 5"))
 	})
+}
 
+func TestPrometheusClientIntegration(t *testing.T) {
+	t.Run("it POSTs to prometheus reload endpoint when done", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		registryClient := &mockRegistryClient{
+			Documents: createTestDocuments(1),
+		}
+
+		prometheusClient := &mockPrometheusClient{}
+
+		directory, err := ioutil.TempDir("", "test")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		c := prometheus_alerts.ControllerConfig{
+			RegistryAPIClient:   registryClient,
+			PrometheusAPIClient: prometheusClient,
+			OutputDirectory:     directory,
+		}
+
+		controller := prometheus_alerts.NewController(c)
+		err = controller.Update()
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(prometheusClient.Calls).To(Equal(1))
+	})
+
+	t.Run("it doesn't post to reload if there is an error getting documents", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		registryClient := &mockRegistryClient{
+			Documents: nil,
+			Error:     fmt.Errorf("oh no! this is bad"),
+		}
+
+		prometheusClient := &mockPrometheusClient{}
+
+		directory, err := ioutil.TempDir("", "test")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		c := prometheus_alerts.ControllerConfig{
+			RegistryAPIClient:   registryClient,
+			PrometheusAPIClient: prometheusClient,
+			OutputDirectory:     directory,
+		}
+
+		controller := prometheus_alerts.NewController(c)
+
+		err = controller.Update()
+		g.Expect(err).To(HaveOccurred())
+
+		g.Expect(prometheusClient.Calls).To(Equal(0))
+	})
+
+	t.Run("returns an error if Prometheus reload fails", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		registryClient := &mockRegistryClient{
+			Documents: createTestDocuments(1),
+		}
+
+		prometheusClient := &mockPrometheusClient{
+			Error: fmt.Errorf("oh no! this is bad, too bad"),
+		}
+
+		directory, err := ioutil.TempDir("", "test")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		c := prometheus_alerts.ControllerConfig{
+			RegistryAPIClient:   registryClient,
+			PrometheusAPIClient: prometheusClient,
+			OutputDirectory:     directory,
+		}
+
+		controller := prometheus_alerts.NewController(c)
+
+		err = controller.Update()
+		g.Expect(err).To(HaveOccurred())
+		g.Expect(err).To(MatchError(ContainSubstring("oh no! this is bad, too bad")))
+
+		g.Expect(prometheusClient.Calls).To(Equal(1))
+	})
+}
+
+func TestPrometheusClient(t *testing.T) {
+	t.Run("it posts to /-/reload", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		prometheusServer := ghttp.NewServer()
+		defer prometheusServer.Close()
+
+		prometheusServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			g.Expect(r.Method).To(Equal("POST"))
+			g.Expect(r.URL.Path).To(Equal("/-/reload"))
+
+			w.WriteHeader(http.StatusOK)
+		})
+
+		client := prometheus_alerts.NewPrometheusClient(prometheusServer.URL(), &http.Client{})
+		err := client.Reload()
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(prometheusServer.ReceivedRequests()).To(HaveLen(1))
+	})
+
+	t.Run("it returns an error if prometheus responds with an error", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		prometheusServer := ghttp.NewServer()
+		defer prometheusServer.Close()
+
+		prometheusServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			g.Expect(r.Method).To(Equal("POST"))
+			g.Expect(r.URL.Path).To(Equal("/-/reload"))
+
+			w.WriteHeader(http.StatusInternalServerError)
+		})
+
+		client := prometheus_alerts.NewPrometheusClient(prometheusServer.URL(), &http.Client{})
+		err := client.Reload()
+		g.Expect(err).To(HaveOccurred())
+	})
 }
 
 func getFileNames(g *GomegaWithT, directory string) []string {
@@ -235,21 +288,24 @@ func getFileNames(g *GomegaWithT, directory string) []string {
 	return fileNames
 }
 
-func upsertDocuments(store *registry.DocumentStore, count int) {
+var testComparators = []string{"lt", "lte", "eq", "neq", "gte", "gt"}
+
+func createTestDocuments(count int) []registry.APIV0Document {
+	docs := make([]registry.APIV0Document, count)
 	for i := 0; i < count; i++ {
-		store.UpsertDocument(indicator.Document{
+		docs[i] = registry.APIV0Document{
 			APIVersion: "v0",
-			Product: indicator.Product{
+			Product: registry.APIV0Product{
 				Name:    fmt.Sprintf("test_product_%d", i),
 				Version: "v1.2.3",
 			},
 			Metadata: map[string]string{"deployment": "test_deployment"},
-			Indicators: []indicator.Indicator{{
+			Indicators: []registry.APIV0Indicator{{
 				Name:   fmt.Sprintf("test_indicator_%d", i),
 				PromQL: `test_query{deployment="test_deployment"}`,
-				Thresholds: []indicator.Threshold{{
+				Thresholds: []registry.APIV0Threshold{{
 					Level:    "critical",
-					Operator: indicator.OperatorType(i),
+					Operator: testComparators[i],
 					Value:    5,
 				}},
 				Documentation: map[string]string{
@@ -257,6 +313,26 @@ func upsertDocuments(store *registry.DocumentStore, count int) {
 					"test2": "b",
 				},
 			}},
-		})
+		}
 	}
+	return docs
+}
+
+type mockRegistryClient struct {
+	Documents []registry.APIV0Document
+	Error     error
+}
+
+func (a mockRegistryClient) IndicatorDocuments() ([]registry.APIV0Document, error) {
+	return a.Documents, a.Error
+}
+
+type mockPrometheusClient struct {
+	Error error
+	Calls int
+}
+
+func (p *mockPrometheusClient) Reload() error {
+	p.Calls = p.Calls + 1
+	return p.Error
 }
