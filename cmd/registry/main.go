@@ -3,6 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"gopkg.in/src-d/go-git.v4/storage/memory"
 	"log"
 	"time"
 
@@ -62,7 +66,7 @@ func readConfigEachMinute(configFile string, store *registry.DocumentStore) {
 }
 
 func upsertFromConfig(configFile string, store *registry.DocumentStore) {
-	patches, documents, err := configuration.Read(configFile)
+	patches, documents, err := configuration.Read(configFile, getRealRepository)
 	if err != nil {
 		log.Fatalf("failed to read configuration file: %s\n", err)
 	}
@@ -72,4 +76,21 @@ func upsertFromConfig(configFile string, store *registry.DocumentStore) {
 	for _, d := range documents {
 		store.UpsertDocument(d)
 	}
+}
+
+func getRealRepository(s configuration.Source) (*git.Repository, error) {
+	storage := memory.NewStorage()
+	var auth transport.AuthMethod = nil
+	if s.Token != "" {
+		auth = &http.BasicAuth{
+			Username: "github",
+			Password: s.Token,
+		}
+	}
+	repoURL := s.Repository
+	r, err := git.Clone(storage, nil, &git.CloneOptions{
+		Auth: auth,
+		URL:  repoURL,
+	})
+	return r, err
 }

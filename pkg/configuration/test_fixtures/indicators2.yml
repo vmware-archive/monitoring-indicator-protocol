@@ -1,0 +1,10 @@
+---
+apiVersion: v0
+
+product:
+  name: someone-elses-component
+  version: 1.2.3
+
+indicators:
+- name: only_in_example_yml
+  promql: test_query

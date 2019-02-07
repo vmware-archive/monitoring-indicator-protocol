@@ -6,26 +6,17 @@ import (
 	"log"
 	"strings"
 
+	glob2 "github.com/gobwas/glob"
 	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"github.com/pivotal/indicator-protocol/pkg/registry"
-	glob2 "github.com/gobwas/glob"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	"gopkg.in/src-d/go-git.v4/storage/memory"
 	"gopkg.in/yaml.v2"
 )
 
-type GitGetter func(Source) ([]indicator.Patch, []indicator.Document, error)
+type RepositoryGetter func(Source) (*git.Repository, error)
 
-var getGitPatchesAndDocuments GitGetter = realGitGet
-
-func SetGitGetter(getter GitGetter) {
-	getGitPatchesAndDocuments = getter
-}
-
-func Read(configFile string) ([]registry.PatchList, []indicator.Document, error) {
+func Read(configFile string, repositoryGetter RepositoryGetter) ([]registry.PatchList, []indicator.Document, error) {
 	fileBytes, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error reading configuration file: %s\n", err)
@@ -58,7 +49,13 @@ func Read(configFile string) ([]registry.PatchList, []indicator.Document, error)
 				Patches: []indicator.Patch{patch},
 			})
 		case "git":
-			gitPatches, gitDocuments, err := getGitPatchesAndDocuments(source)
+			repository, err := repositoryGetter(source)
+			//TODO Improve logging: Hard to tell if the app is working from the logs right now
+			if err != nil {
+				log.Printf("failed to initialize repository in %s from config file %s: %s\n", source.Repository, configFile, err)
+				continue
+			}
+			gitPatches, gitDocuments, err := realGitGet(source, repository)
 			if err != nil {
 				log.Printf("failed to read patches in %s from config file %s: %s\n", source.Repository, configFile, err)
 				continue
@@ -110,26 +107,7 @@ type Source struct {
 	Glob       string `yaml:"glob"`
 }
 
-func realGitGet(s Source) ([]indicator.Patch, []indicator.Document, error) {
-	storage := memory.NewStorage()
-
-	var auth transport.AuthMethod = nil
-	if s.Token != "" {
-		auth = &http.BasicAuth{
-			Username: "github",
-			Password: s.Token,
-		}
-	}
-
-	repo := s.Repository
-	r, err := git.Clone(storage, nil, &git.CloneOptions{
-		Auth: auth,
-		URL:  repo,
-	})
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to clone repo: %s\n", err)
-	}
-
+func realGitGet(s Source, r *git.Repository) ([]indicator.Patch, []indicator.Document, error) {
 	ref, err := r.Head()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch repo head: %s\n", err)
