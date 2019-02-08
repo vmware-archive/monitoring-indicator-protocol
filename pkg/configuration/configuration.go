@@ -50,12 +50,11 @@ func Read(configFile string, repositoryGetter RepositoryGetter) ([]registry.Patc
 			})
 		case "git":
 			repository, err := repositoryGetter(source)
-			//TODO Improve logging: Hard to tell if the app is working from the logs right now
 			if err != nil {
 				log.Printf("failed to initialize repository in %s from config file %s: %s\n", source.Repository, configFile, err)
 				continue
 			}
-			gitPatches, gitDocuments, err := realGitGet(source, repository)
+			gitPatches, gitDocuments, err := parseRepositoryHead(source, repository)
 			if err != nil {
 				log.Printf("failed to read patches in %s from config file %s: %s\n", source.Repository, configFile, err)
 				continue
@@ -65,6 +64,7 @@ func Read(configFile string, repositoryGetter RepositoryGetter) ([]registry.Patc
 				Patches: gitPatches,
 			})
 			documents = append(documents, gitDocuments...)
+			log.Printf("Parsed %d documents and %d patches from %s git source", len(gitDocuments), len(gitPatches), source.Repository)
 		default:
 			log.Printf("invalid type [%s] in file: %s\n", source.Type, configFile)
 			continue
@@ -107,7 +107,7 @@ type Source struct {
 	Glob       string `yaml:"glob"`
 }
 
-func realGitGet(s Source, r *git.Repository) ([]indicator.Patch, []indicator.Document, error) {
+func parseRepositoryHead(s Source, r *git.Repository) ([]indicator.Patch, []indicator.Document, error) {
 	ref, err := r.Head()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch repo head: %s\n", err)
@@ -172,6 +172,7 @@ func readPatches(unparsedPatches []unparsedPatch) []indicator.Patch {
 		p, err := indicator.ReadPatchBytes(p.YAMLBytes)
 		if err != nil {
 			log.Println(err)
+			continue
 		}
 		patches = append(patches, p)
 	}
