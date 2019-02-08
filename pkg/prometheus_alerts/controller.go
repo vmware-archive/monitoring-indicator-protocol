@@ -117,6 +117,8 @@ func convertThreshold(t registry.APIV0Threshold) indicator.Threshold {
 }
 
 func writeDocuments(documents []indicator.Document, outputDirectory string) {
+	log.Printf("writing alerting rules to %s for %d indicator documents", outputDirectory, len(documents))
+
 	for _, d := range documents {
 		fileBytes, _ := yaml.Marshal(AlertDocumentFrom(d))
 		err := ioutil.WriteFile(fmt.Sprintf("%s/%s.yml", outputDirectory, d.Product.Name), fileBytes, 0644)
