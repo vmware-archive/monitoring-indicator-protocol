@@ -36,7 +36,7 @@ func TestFormatBinary(t *testing.T) {
 		cmd := exec.Command(binPath,
 			"-format", "html",
 			"-metadata", "deployment=my-other-service-deployment",
-			"-indicators", "../../example.yml")
+			"-indicators", "../../example_indicators.yml")
 
 		buffer := bytes.NewBuffer(nil)
 
@@ -77,7 +77,7 @@ func TestFormatBinary(t *testing.T) {
 		cmd := exec.Command(binPath,
 			"-format", "bookbinder",
 			"-metadata", "deployment=my-other-service-deployment",
-			"-indicators", "../../example.yml")
+			"-indicators", "../../example_indicators.yml")
 
 		buffer := bytes.NewBuffer(nil)
 
@@ -117,7 +117,7 @@ func TestFormatBinary(t *testing.T) {
 
 			cmd := exec.Command(binPath,
 				"-format", "prometheus-alerts",
-				"-indicators", "../../example.yml")
+				"-indicators", "../../example_indicators.yml")
 
 			buffer := bytes.NewBuffer(nil)
 
@@ -140,7 +140,7 @@ func TestFormatBinary(t *testing.T) {
 			cmd := exec.Command(binPath,
 				"-format", "prometheus-alerts",
 				"-metadata", "deployment=my-other-service-deployment",
-				"-indicators", "../../example.yml")
+				"-indicators", "../../example_indicators.yml")
 
 			buffer := bytes.NewBuffer(nil)
 
@@ -161,7 +161,7 @@ func TestFormatBinary(t *testing.T) {
 
 			cmd := exec.Command(binPath,
 				"-format", "grafana",
-				"-indicators", "../../example.yml")
+				"-indicators", "../../example_indicators.yml")
 
 			buffer := bytes.NewBuffer(nil)
 
@@ -185,7 +185,7 @@ func TestFormatBinary(t *testing.T) {
 			cmd := exec.Command(binPath,
 				"-format", "grafana",
 				"-metadata", "deployment=my-other-service-deployment",
-				"-indicators", "../../example.yml")
+				"-indicators", "../../example_indicators.yml")
 
 			buffer := bytes.NewBuffer(nil)
 

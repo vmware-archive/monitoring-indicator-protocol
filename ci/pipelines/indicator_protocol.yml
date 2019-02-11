@@ -90,7 +90,7 @@ jobs:
           export GO111MODULE=on
 
           pushd indicator-protocol/
-            go run -mod=vendor cmd/format/main.go -format bookbinder -indicators example.yml
+            go run -mod=vendor cmd/format/main.go -format bookbinder -indicators example_indicators.yml
           popd
 
 - name: indicator-verification

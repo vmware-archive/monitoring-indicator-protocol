@@ -16,31 +16,35 @@ import (
 
 type RepositoryGetter func(Source) (*git.Repository, error)
 
-func Read(configFile string, repositoryGetter RepositoryGetter) ([]registry.PatchList, []indicator.Document, error) {
-	fileBytes, err := ioutil.ReadFile(configFile)
+func ParseSourcesFile(filePath string) ([]Source, error) {
+	fileBytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error reading configuration file: %s\n", err)
+		return nil, fmt.Errorf("error reading configuration file: %s\n", err)
 	}
 
-	var f File
+	var f SourcesFile
 	err = yaml.Unmarshal(fileBytes, &f)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error parsing configuration file: %s\n", err)
+		return nil, fmt.Errorf("error parsing configuration file: %s\n", err)
 	}
 
 	if err := Validate(f); err != nil {
-		return nil, nil, fmt.Errorf("configuration is not valid: %s\n", err)
+		return nil, fmt.Errorf("configuration is not valid: %s\n", err)
 	}
 
+	return f.Sources, nil
+}
+
+func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.PatchList, []indicator.Document, error) {
 	var patches []registry.PatchList
 	var documents []indicator.Document
-	for _, source := range f.Sources {
+	for _, source := range sources {
 
 		switch source.Type {
 		case "local":
 			patch, err := indicator.ReadPatchFile(source.Path)
 			if err != nil {
-				log.Printf("failed to read patch %s from config file %s: %s\n", source.Path, configFile, err)
+				log.Printf("failed to read local patch %s: %s\n", source.Path, err)
 				continue
 			}
 
@@ -51,12 +55,12 @@ func Read(configFile string, repositoryGetter RepositoryGetter) ([]registry.Patc
 		case "git":
 			repository, err := repositoryGetter(source)
 			if err != nil {
-				log.Printf("failed to initialize repository in %s from config file %s: %s\n", source.Repository, configFile, err)
+				log.Printf("failed to initialize repository in %s: %s\n", source.Repository, err)
 				continue
 			}
 			gitPatches, gitDocuments, err := parseRepositoryHead(source, repository)
 			if err != nil {
-				log.Printf("failed to read patches in %s from config file %s: %s\n", source.Repository, configFile, err)
+				log.Printf("failed to read patches in %s: %s\n", source.Repository, err)
 				continue
 			}
 			patches = append(patches, registry.PatchList{
@@ -66,7 +70,7 @@ func Read(configFile string, repositoryGetter RepositoryGetter) ([]registry.Patc
 			documents = append(documents, gitDocuments...)
 			log.Printf("Parsed %d documents and %d patches from %s git source", len(gitDocuments), len(gitPatches), source.Repository)
 		default:
-			log.Printf("invalid type [%s] in file: %s\n", source.Type, configFile)
+			log.Printf("invalid source type [%s]\n", source.Type)
 			continue
 		}
 	}
@@ -74,7 +78,7 @@ func Read(configFile string, repositoryGetter RepositoryGetter) ([]registry.Patc
 	return patches, documents, nil
 }
 
-func Validate(f File) error {
+func Validate(f SourcesFile) error {
 	for _, s := range f.Sources {
 		switch s.Type {
 		case "local":
@@ -95,7 +99,7 @@ func Validate(f File) error {
 	return nil
 }
 
-type File struct {
+type SourcesFile struct {
 	Sources []Source `yaml:"sources"`
 }
 
@@ -133,7 +137,7 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 	if glob == "" {
 		glob = "*.y*ml"
 	}
-	g := glob2.MustCompile(glob)
+	g := glob2.MustCompile(glob) //TODO test with separator
 
 	err := files.ForEach(func(f *object.File) error {
 		if g.Match(f.Name) {

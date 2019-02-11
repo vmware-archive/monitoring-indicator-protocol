@@ -2,3 +2,4 @@
 sources:
   - type: git
     repository: ../../
+    glob: example_*.yml

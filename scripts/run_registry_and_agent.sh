@@ -5,7 +5,7 @@ export CERTS=./test_fixtures
 export REGISTRY_PORT=8091
 export REGISTRY_HOST="https://localhost:${REGISTRY_PORT}"
 export DASHBOARD_PORT=8092
-export INDICATOR_DOCUMENTS='./example.yml'
+export INDICATOR_DOCUMENTS='./example_indicators.yml'
 
 echo "Starting registry on PORT $REGISTRY_PORT"
 go run cmd/registry/main.go \

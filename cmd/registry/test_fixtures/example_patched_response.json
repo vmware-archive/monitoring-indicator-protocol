@@ -34,29 +34,17 @@
             "value": 100
           }
         ],
-        "presentation": {
-          "chartType": "step",
-          "currentValue": false,
-          "frequency": 60
-        },
         "documentation": {
           "description": "This is a valid markdown description.\n\n**Use**: This indicates nothing. It is placeholder text.\n\n**Type**: Gauge\n**Frequency**: 60 s\n",
           "measurement": "Average latency over last 5 minutes per instance",
           "recommended_response": "Panic! Run around in circles flailing your arms.",
           "threshold_note": "These are environment specific",
           "title": "Doc Performance Indicator"
-        }
-      },
-      {
-        "name": "success_percentage",
-        "promql": "success_percentage_promql{source_id=\"origin\"}",
+        },
         "presentation": {
           "chartType": "step",
-          "frequency": 0,
+          "frequency": 60,
           "currentValue": false
-        },
-        "documentation": {
-          "title": "Success Percentage"
         }
       }
     ],
@@ -73,6 +61,55 @@
         }
       ],
       "owner": "Example Team"
+    }
+  },
+  {
+    "apiVersion": "v0",
+    "product": {
+      "name": "my-other-component",
+      "version": "1.2.3"
+    },
+    "metadata": {
+      "deployment": "my-service-deployment",
+      "source_id": "my-metric-source"
+    },
+    "indicators": [
+      {
+        "name": "very_good_indicator",
+        "promql": "test_query",
+        "presentation": {
+          "chartType": "step",
+          "currentValue": false,
+          "frequency": 0
+        }
+      },
+      {
+        "name": "success_percentage",
+        "promql": "success_percentage_promql{source_id=\"origin\"}",
+        "presentation": {
+          "chartType": "step",
+          "frequency": 0,
+          "currentValue": false
+        },
+        "documentation": {
+          "title": "Success Percentage"
+        }
+      }
+    ],
+    "layout": {
+      "title": "",
+      "description": "",
+      "sections": [
+        {
+          "title": "Metrics",
+          "description": "",
+          "indicators": [
+            "very_good_indicator",
+            "success_percentage"
+          ]
+        }
+      ],
+      "owner": ""
     }
   }
 ]
