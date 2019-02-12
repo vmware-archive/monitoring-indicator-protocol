@@ -137,7 +137,7 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 	if glob == "" {
 		glob = "*.y*ml"
 	}
-	g := glob2.MustCompile(glob) //TODO test with separator
+	g := glob2.MustCompile(glob)
 
 	err := files.ForEach(func(f *object.File) error {
 		if g.Match(f.Name) {
