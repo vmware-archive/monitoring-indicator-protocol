@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"github.com/pivotal/indicator-protocol/pkg/registry"
@@ -30,7 +31,7 @@ type prometheusClient struct {
 func (p *prometheusClient) Reload() error {
 	buffer := bytes.NewBuffer(nil)
 	resp, err := p.client.Post(fmt.Sprintf("%s/-/reload", p.prometheusURI), "", buffer)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 
@@ -66,8 +67,23 @@ func (c controller) Update() error {
 		return fmt.Errorf("failed to fetch indicator documents, %s", err)
 	}
 
+	clearDirectory(c.OutputDirectory)
 	writeDocuments(formatDocuments(documents), c.OutputDirectory)
 	return c.PrometheusAPIClient.Reload()
+}
+
+func clearDirectory(d string) {
+	files, err := ioutil.ReadDir(d)
+	if err != nil {
+		log.Printf("failed to read directory %s: %s\n", d, err)
+	}
+
+	for _, f := range files {
+		err = os.Remove(fmt.Sprintf("%s/%s", d, f.Name()))
+		if err != nil {
+			log.Printf("failed to delete document %s: %s\n", f.Name(), err)
+		}
+	}
 }
 
 func formatDocuments(documents []registry.APIV0Document) []indicator.Document {

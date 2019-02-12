@@ -1,8 +1,10 @@
 package prometheus_alerts_test
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"testing"
 
@@ -12,16 +14,10 @@ import (
 	"github.com/pivotal/indicator-protocol/pkg/registry"
 )
 
-var (
-	serverCert = "../../test_fixtures/leaf.pem"
-	serverKey  = "../../test_fixtures/leaf.key"
-	rootCACert = "../../test_fixtures/root.pem"
-
-	clientKey  = "../../test_fixtures/client.key"
-	clientCert = "../../test_fixtures/client.pem"
-)
-
 func TestAlertController(t *testing.T) {
+	buffer := bytes.NewBuffer(nil)
+	log.SetOutput(buffer)
+
 	t.Run("reads and writes multiple documents to output directory", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
@@ -64,7 +60,8 @@ func TestAlertController(t *testing.T) {
 		}
 
 		controller := prometheus_alerts.NewController(c)
-		controller.Update()
+		err = controller.Update()
+		g.Expect(err).ToNot(HaveOccurred())
 
 		fileNames := getFileNames(g, directory)
 
@@ -89,7 +86,8 @@ func TestAlertController(t *testing.T) {
 		}
 
 		controller := prometheus_alerts.NewController(c)
-		controller.Update()
+		err = controller.Update()
+		g.Expect(err).ToNot(HaveOccurred())
 
 		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", directory, "test_product_0.yml"))
 		g.Expect(err).ToNot(HaveOccurred())
@@ -125,7 +123,8 @@ func TestAlertController(t *testing.T) {
 		}
 
 		controller := prometheus_alerts.NewController(c)
-		controller.Update()
+		err = controller.Update()
+		g.Expect(err).ToNot(HaveOccurred())
 
 		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", directory, "test_product_0.yml"))
 		g.Expect(err).ToNot(HaveOccurred())
@@ -150,6 +149,141 @@ func TestAlertController(t *testing.T) {
 		data, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", directory, "test_product_5.yml"))
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(string(data)).To(ContainSubstring("> 5"))
+	})
+
+	t.Run("Update removes outdated files from output directory", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		initialRegistryStateClient := &mockRegistryClient{
+			Documents: []registry.APIV0Document{{
+				APIVersion: "v0",
+				Product: registry.APIV0Product{
+					Name:    "test_product_A",
+					Version: "v1.2.3",
+				},
+				Indicators: []registry.APIV0Indicator{{
+					Name:   "test_indicator",
+					PromQL: `test_query{deployment="test_deployment"}`,
+					Thresholds: []registry.APIV0Threshold{{
+						Level:    "critical",
+						Operator: "lt",
+						Value:    5,
+					}},
+				}},
+			}},
+		}
+
+		directory, err := ioutil.TempDir("", "test")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		c := prometheus_alerts.ControllerConfig{
+			RegistryAPIClient:   initialRegistryStateClient,
+			PrometheusAPIClient: &mockPrometheusClient{},
+			OutputDirectory:     directory,
+		}
+
+		controller := prometheus_alerts.NewController(c)
+		err = controller.Update()
+		g.Expect(err).ToNot(HaveOccurred())
+
+		files, err := ioutil.ReadDir(directory)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(files).To(HaveLen(1))
+		g.Expect(files[0].Name()).To(Equal("test_product_A.yml"))
+
+		newRegistryStateClient := &mockRegistryClient{
+			Documents: []registry.APIV0Document{{
+				APIVersion: "v0",
+				Product: registry.APIV0Product{
+					Name:    "test_product_B",
+					Version: "v1.2.3",
+				},
+				Indicators: []registry.APIV0Indicator{{
+					Name:   "test_indicator",
+					PromQL: `test_query{deployment="test_deployment"}`,
+					Thresholds: []registry.APIV0Threshold{{
+						Level:    "critical",
+						Operator: "lt",
+						Value:    5,
+					}},
+				}},
+			}},
+		}
+
+		c = prometheus_alerts.ControllerConfig{
+			RegistryAPIClient:   newRegistryStateClient,
+			PrometheusAPIClient: &mockPrometheusClient{},
+			OutputDirectory:     directory,
+		}
+
+		controller = prometheus_alerts.NewController(c)
+		err = controller.Update()
+		g.Expect(err).ToNot(HaveOccurred())
+
+		files, err = ioutil.ReadDir(directory)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(files).To(HaveLen(1))
+		g.Expect(files[0].Name()).To(Equal("test_product_B.yml"))
+	})
+
+	t.Run("leaves documents in output directory if registry returns error", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		registryClient := &mockRegistryClient{
+			Documents: []registry.APIV0Document{{
+				APIVersion: "v0",
+				Product: registry.APIV0Product{
+					Name:    "test_product_A",
+					Version: "v1.2.3",
+				},
+				Indicators: []registry.APIV0Indicator{{
+					Name:   "test_indicator",
+					PromQL: `test_query{deployment="test_deployment"}`,
+					Thresholds: []registry.APIV0Threshold{{
+						Level:    "critical",
+						Operator: "lt",
+						Value:    5,
+					}},
+				}},
+			}},
+		}
+
+		directory, err := ioutil.TempDir("", "test")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		c := prometheus_alerts.ControllerConfig{
+			RegistryAPIClient:   registryClient,
+			PrometheusAPIClient: &mockPrometheusClient{},
+			OutputDirectory:     directory,
+		}
+
+		controller := prometheus_alerts.NewController(c)
+		err = controller.Update()
+		g.Expect(err).ToNot(HaveOccurred())
+
+		files, err := ioutil.ReadDir(directory)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(files).To(HaveLen(1))
+		g.Expect(files[0].Name()).To(Equal("test_product_A.yml"))
+
+		errorRegistry := &mockRegistryClient{
+			Error: fmt.Errorf("registry error response test"),
+		}
+
+		c = prometheus_alerts.ControllerConfig{
+			RegistryAPIClient:   errorRegistry,
+			PrometheusAPIClient: &mockPrometheusClient{},
+			OutputDirectory:     directory,
+		}
+
+		controller = prometheus_alerts.NewController(c)
+		err = controller.Update()
+		g.Expect(err).To(MatchError(ContainSubstring("registry error response test")))
+
+		files, err = ioutil.ReadDir(directory)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(files).To(HaveLen(1))
+		g.Expect(files[0].Name()).To(Equal("test_product_A.yml"))
 	})
 }
 
@@ -179,7 +313,7 @@ func TestPrometheusClientIntegration(t *testing.T) {
 		g.Expect(prometheusClient.Calls).To(Equal(1))
 	})
 
-	t.Run("it doesn't post to reload if there is an error getting documents", func(t *testing.T) {
+	t.Run("does not post to reload if there is an error getting documents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
@@ -243,13 +377,7 @@ func TestPrometheusClient(t *testing.T) {
 		prometheusServer := ghttp.NewServer()
 		defer prometheusServer.Close()
 
-		prometheusServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			g.Expect(r.Method).To(Equal("POST"))
-			g.Expect(r.URL.Path).To(Equal("/-/reload"))
-
-			w.WriteHeader(http.StatusOK)
-		})
+		prometheusServer.AppendHandlers(fakePrometheusReload(g, http.StatusOK))
 
 		client := prometheus_alerts.NewPrometheusClient(prometheusServer.URL(), &http.Client{})
 		err := client.Reload()
@@ -264,18 +392,25 @@ func TestPrometheusClient(t *testing.T) {
 		prometheusServer := ghttp.NewServer()
 		defer prometheusServer.Close()
 
-		prometheusServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			g.Expect(r.Method).To(Equal("POST"))
-			g.Expect(r.URL.Path).To(Equal("/-/reload"))
-
-			w.WriteHeader(http.StatusInternalServerError)
-		})
+		prometheusServer.AppendHandlers(fakePrometheusReload(g, http.StatusInternalServerError))
 
 		client := prometheus_alerts.NewPrometheusClient(prometheusServer.URL(), &http.Client{})
 		err := client.Reload()
 		g.Expect(err).To(HaveOccurred())
 	})
+}
+
+func fakePrometheusReload(g *GomegaWithT, response int) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			err := r.Body.Close()
+			g.Expect(err).ToNot(HaveOccurred())
+		}()
+		g.Expect(r.Method).To(Equal("POST"))
+		g.Expect(r.URL.Path).To(Equal("/-/reload"))
+
+		w.WriteHeader(response)
+	}
 }
 
 func getFileNames(g *GomegaWithT, directory string) []string {
