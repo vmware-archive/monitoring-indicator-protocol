@@ -1,19 +1,20 @@
 package main_test
 
 import (
-	"testing"
-
 	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
+	"testing"
 	"time"
 
-	"github.com/pivotal/indicator-protocol/pkg/go_test"
-	"github.com/pivotal/indicator-protocol/pkg/mtls"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/pivotal/indicator-protocol/pkg/configuration"
+	"github.com/pivotal/indicator-protocol/pkg/go_test"
+	"github.com/pivotal/indicator-protocol/pkg/mtls"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -39,9 +40,28 @@ func TestIndicatorRegistry(t *testing.T) {
 
 	t.Run("it patches indicator documents when received", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-
 		buffer := bytes.NewBuffer(nil)
-		withConfigServer("10567", "test_fixtures/git_config.yml", buffer, g, func(serverUrl string) {
+
+		repoPath := go_test.CreateTempRepo("../../example_patch.yml", "../../example_indicators.yml")
+
+		config := configuration.SourcesFile{
+			Sources: []configuration.Source{{
+				Type:       "git",
+				Repository: repoPath,
+				Glob:       "example_*.yml",
+			}},
+		}
+
+		configBytes, err := yaml.Marshal(config)
+
+		f, err := ioutil.TempFile("", "test_config.yml")
+		_, err = f.Write(configBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		err = f.Close()
+		g.Expect(err).ToNot(HaveOccurred())
+
+		withConfigServer("10567", f.Name(), buffer, g, func(serverUrl string) {
 			file, err := os.Open("test_fixtures/moar_indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 

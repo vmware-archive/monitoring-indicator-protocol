@@ -2,20 +2,13 @@ package configuration_test
 
 import (
 	"bytes"
-	"fmt"
-	"gopkg.in/src-d/go-billy.v4/memfs"
-	"gopkg.in/src-d/go-billy.v4/util"
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
-	"gopkg.in/src-d/go-git.v4/storage/memory"
-	"io/ioutil"
 	"log"
 	"testing"
-	"time"
 
 	. "github.com/onsi/gomega"
-
 	"github.com/pivotal/indicator-protocol/pkg/configuration"
+	"github.com/pivotal/indicator-protocol/pkg/go_test"
+	"gopkg.in/src-d/go-git.v4"
 )
 
 func TestReadLocalConfigurationFile(t *testing.T) {
@@ -38,7 +31,10 @@ func TestReadLocalConfigurationFile(t *testing.T) {
 func TestReadGitConfigurationFile(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	fakeRepository := createTestingRepo(
+	buffer := bytes.NewBuffer(nil)
+	log.SetOutput(buffer)
+
+	fakeRepository := go_test.CreateMemoryRepo(
 		"test_fixtures/patch1.yml",
 		"test_fixtures/patch2.yml",
 		"test_fixtures/indicators1.yml",
@@ -63,6 +59,7 @@ func TestReadGitConfigurationFile(t *testing.T) {
 	g.Expect(documents[0].Product.Name).To(Equal("my-component"))
 	g.Expect(documents[1].Product.Name).To(Equal("someone-elses-component"))
 
+	g.Expect(buffer.String()).To(ContainSubstring("Parsed 2 documents and 2 patches from https://fakegit.nope/slowens/test-repo.git git source"))
 }
 
 func TestGlobMatching(t *testing.T) {
@@ -71,7 +68,7 @@ func TestGlobMatching(t *testing.T) {
 	buffer := bytes.NewBuffer(nil)
 	log.SetOutput(buffer)
 
-	fakeRepository := createTestingRepo(
+	fakeRepository := go_test.CreateMemoryRepo(
 		"test_fixtures/patch1.yml",
 		"test_fixtures/patch2.yml",
 		"test_fixtures/indicators1.yml",
@@ -85,7 +82,7 @@ func TestGlobMatching(t *testing.T) {
 	_, _, err := configuration.Read([]configuration.Source{{
 		Type:       "git",
 		Repository: "fake/fake/fake",
-		Glob:       "test_fixtures/patch*.yml",
+		Glob:       "patch*.yml",
 	}}, fakeGetter)
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -172,43 +169,4 @@ func TestFailToParseConfigurationFile(t *testing.T) {
 
 		g.Expect(buffer.String()).To(ContainSubstring("failed to read local patch badpath/nothing_here.yml"))
 	})
-}
-
-func createTestingRepo(files ...string) *git.Repository {
-	storage := memory.NewStorage()
-	fs := memfs.New()
-
-	repo, err := git.Init(storage, fs)
-	if err != nil {
-		panic(fmt.Sprintf("could not create repo: %s", err))
-	}
-
-	w, _ := repo.Worktree()
-
-	for _, f := range files {
-		data, err := ioutil.ReadFile(f)
-		if err != nil {
-			panic(fmt.Errorf("could not read file '%s': %s", f, err))
-		}
-
-		_ = util.WriteFile(fs, f, data, 0644)
-
-		_, err = w.Add(f)
-		if err != nil {
-			panic(fmt.Errorf("could not add file '%s' to test repository: %s", f, err))
-		}
-	}
-
-	_, err = w.Commit("good commit", &git.CommitOptions{
-		Author: &object.Signature{
-			Name:  "John Doe",
-			Email: "john@pivotal.io",
-			When:  time.Now(),
-		},
-	})
-	if err != nil {
-		panic(fmt.Errorf("could not create commit: %s", err))
-	}
-
-	return repo
 }
