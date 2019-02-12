@@ -86,7 +86,7 @@ func TestPrometheusAlertControllerBinary(t *testing.T) {
 		session := run(g, directory, prometheusServer.URL())
 		defer session.Kill()
 
-		g.Eventually(session).Should(gexec.Exit(0))
+		time.Sleep(50 * time.Millisecond)
 
 		files, err := ioutil.ReadDir(directory)
 		g.Expect(err).ToNot(HaveOccurred())

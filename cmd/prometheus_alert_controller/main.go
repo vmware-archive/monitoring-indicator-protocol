@@ -44,11 +44,9 @@ func main() {
 		RegistryAPIClient:   apiClient,
 		PrometheusAPIClient: prometheusClient,
 		OutputDirectory:     *outputDirectory,
+		UpdateFrequency:     time.Minute,
 	}
 
 	controller := prometheus_alerts.NewController(c)
-	err = controller.Update()
-	if err != nil {
-		log.Fatalf("failed to update prometheus alerts:, %s", err)
-	}
+	controller.Start()
 }

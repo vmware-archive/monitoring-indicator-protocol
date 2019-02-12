@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"github.com/pivotal/indicator-protocol/pkg/registry"
@@ -17,6 +18,7 @@ type ControllerConfig struct {
 	RegistryAPIClient   registry.APIClient
 	PrometheusAPIClient PrometheusClient
 	OutputDirectory     string
+	UpdateFrequency     time.Duration
 }
 
 type PrometheusClient interface {
@@ -51,6 +53,7 @@ func NewPrometheusClient(prometheusURI string, client *http.Client) PrometheusCl
 
 type Controller interface {
 	Update() error
+	Start()
 }
 
 func NewController(c ControllerConfig) Controller {
@@ -59,6 +62,20 @@ func NewController(c ControllerConfig) Controller {
 
 type controller struct {
 	ControllerConfig
+}
+
+func (c controller) Start() {
+	err := c.Update()
+	log.Printf("failed to update prometheus alerts: %s", err)
+
+	interval := time.NewTicker(c.UpdateFrequency)
+	for {
+		select {
+		case <-interval.C:
+			err := c.Update()
+			log.Printf("failed to update prometheus alerts: %s", err)
+		}
+	}
 }
 
 func (c controller) Update() error {

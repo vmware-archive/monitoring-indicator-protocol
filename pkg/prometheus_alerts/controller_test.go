@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"testing"
+	"time"
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
@@ -17,6 +18,45 @@ import (
 func TestAlertController(t *testing.T) {
 	buffer := bytes.NewBuffer(nil)
 	log.SetOutput(buffer)
+
+	t.Run("runs on an interval until stopped", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		registryClient := &mockRegistryClient{
+			Documents: createTestDocuments(1),
+		}
+
+		prometheusClient := &mockPrometheusClient{}
+
+		directory, err := ioutil.TempDir("", "test")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		c := prometheus_alerts.ControllerConfig{
+			RegistryAPIClient:   registryClient,
+			PrometheusAPIClient: prometheusClient,
+			OutputDirectory:     directory,
+			UpdateFrequency:     50 * time.Millisecond,
+		}
+
+		controller := prometheus_alerts.NewController(c)
+		go controller.Start()
+
+		time.Sleep(10 * time.Millisecond)
+		g.Expect(registryClient.Calls).To(Equal(1))
+		g.Expect(prometheusClient.Calls).To(Equal(1))
+
+		time.Sleep(50 * time.Millisecond)
+		g.Expect(registryClient.Calls).To(Equal(2))
+		g.Expect(prometheusClient.Calls).To(Equal(2))
+
+		time.Sleep(50 * time.Millisecond)
+		g.Expect(registryClient.Calls).To(Equal(3))
+		g.Expect(prometheusClient.Calls).To(Equal(3))
+
+		time.Sleep(50 * time.Millisecond)
+		g.Expect(registryClient.Calls).To(Equal(4))
+		g.Expect(prometheusClient.Calls).To(Equal(4))
+	})
 
 	t.Run("reads and writes multiple documents to output directory", func(t *testing.T) {
 		g := NewGomegaWithT(t)
@@ -456,9 +496,11 @@ func createTestDocuments(count int) []registry.APIV0Document {
 type mockRegistryClient struct {
 	Documents []registry.APIV0Document
 	Error     error
+	Calls     int
 }
 
-func (a mockRegistryClient) IndicatorDocuments() ([]registry.APIV0Document, error) {
+func (a *mockRegistryClient) IndicatorDocuments() ([]registry.APIV0Document, error) {
+	a.Calls = a.Calls + 1
 	return a.Documents, a.Error
 }
 
