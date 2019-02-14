@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/sha1"
 	"flag"
 	"fmt"
@@ -10,11 +9,10 @@ import (
 	"time"
 
 	"github.com/pivotal/indicator-protocol/pkg/exporter"
+	"github.com/pivotal/indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"github.com/pivotal/indicator-protocol/pkg/mtls"
-	"github.com/pivotal/indicator-protocol/pkg/prometheus_alerts"
 	"github.com/pivotal/indicator-protocol/pkg/registry"
-	"gopkg.in/yaml.v2"
 )
 
 func main() {
@@ -24,7 +22,6 @@ func main() {
 	clientKey := flag.String("tls-key-path", "", "Server TLS private key path which can connect to the server (indicator-registry)")
 	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs")
 	serverCommonName := flag.String("tls-server-cn", "indicator-registry", "server (indicator-registry) common name")
-	prometheusURI := flag.String("prometheus", "", "URI of a Prometheus server instance")
 
 	flag.Parse()
 
@@ -42,50 +39,25 @@ func main() {
 	}
 
 	apiClient := registry.NewAPIClient(*registryURI, registryHttpClient)
-	prometheusClient := &prometheusClient{
-		prometheusURI: *prometheusURI,
-		httpClient:    &http.Client{},
-	}
 
-	controller := exporter.NewController(exporter.ControllerConfig{
+	exporterController := exporter.NewController(exporter.ControllerConfig{
 		RegistryAPIClient: apiClient,
 		OutputDirectory:   *outputDirectory,
 		UpdateFrequency:   time.Minute,
-		DocType:           "prometheus alert",
+		DocType:           "grafana dashboard",
 		Converter:         Convert,
-		Reloader:          prometheusClient.Reload,
 	})
 
-	controller.Start()
-}
-
-type prometheusClient struct {
-	prometheusURI string
-	httpClient    *http.Client
-}
-
-func (p *prometheusClient) Reload() error {
-	buffer := bytes.NewBuffer(nil)
-	resp, err := p.httpClient.Post(fmt.Sprintf("%s/-/reload", p.prometheusURI), "", buffer)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("received %v response from prometheus: %s", resp.StatusCode, resp.Status)
-	}
-
-	return nil
+	exporterController.Start()
 }
 
 func Convert(document indicator.Document) (*exporter.File, error) {
-	documentBytes, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(document))
+	documentString, err := grafana_dashboard.DocumentToDashboard(document)
 	if err != nil {
 		return nil, err
 	}
-
 	return &exporter.File{
-		Name:     fmt.Sprintf("%s_%x.yml", document.Product.Name, sha1.Sum(documentBytes)),
-		Contents: documentBytes,
+		Name:     fmt.Sprintf("%s_%x.json", document.Product.Name, sha1.Sum([]byte(documentString))),
+		Contents: []byte(documentString),
 	}, nil
 }

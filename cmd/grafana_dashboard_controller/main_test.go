@@ -3,7 +3,6 @@ package main_test
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"testing"
@@ -11,11 +10,9 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal/indicator-protocol/pkg/go_test"
 	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"github.com/pivotal/indicator-protocol/pkg/registry"
-	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
 var (
@@ -27,8 +24,8 @@ var (
 	clientCert = "../../test_fixtures/client.pem"
 )
 
-func TestPrometheusAlertControllerBinary(t *testing.T) {
-	t.Run("reads documents from registry and outputs to output-directory", func(t *testing.T) {
+func TestGrafanaDashboardControllerBinary(t *testing.T) {
+	t.Run("reads documents from registry and outputs graph files to output-directory", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		store := registry.NewDocumentStore(5 * time.Second)
@@ -55,7 +52,7 @@ func TestPrometheusAlertControllerBinary(t *testing.T) {
 			}},
 		})
 
-		registryAddress := "localhost:12345"
+		registryAddress := "localhost:12346"
 		config := registry.WebServerConfig{
 			Address:       registryAddress,
 			ServerPEMPath: serverCert,
@@ -67,65 +64,41 @@ func TestPrometheusAlertControllerBinary(t *testing.T) {
 		start, stop, err := registry.NewWebServer(config)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		defer func() { _ = stop() }()
+		defer func() {_ = stop()}()
 		go func() {
 			err := start()
 			g.Expect(err).ToNot(HaveOccurred())
 		}()
 
-		prometheusServer := ghttp.NewServer()
-		defer prometheusServer.Close()
-
-		prometheusServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
-			g.Expect(r.Method).To(Equal("POST"))
-			g.Expect(r.URL.Path).To(Equal("/-/reload"))
-
-			w.WriteHeader(http.StatusOK)
-		})
-
-		directory, err := ioutil.TempDir("", "test-alerts")
+		directory, err := ioutil.TempDir("", "test-dashboards")
 		g.Expect(err).ToNot(HaveOccurred())
 
-		session := run(g, directory, fmt.Sprintf("https://%s", registryAddress), prometheusServer.URL())
+		session := run(g, fmt.Sprintf("https://%s", registryAddress), directory)
 		defer session.Kill()
 
 		err = go_test.WaitForFiles(directory, 1)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		fs := osfs.New("/")
-		files, err := fs.ReadDir(directory)
+		files, err := ioutil.ReadDir(directory)
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(files).To(HaveLen(1))
 
-		file, err := fs.Open(fmt.Sprintf("%s/test_product_5482021faf855c4956467ffa12adef6cd9c559b2.yml", directory))
-		g.Expect(err).ToNot(HaveOccurred())
-		data, err := ioutil.ReadAll(file)
+		data, err := ioutil.ReadFile(fmt.Sprintf("%s/test_product_f3eb510a2597b4a81945dd616fbce2dbcb941c5e.json", directory))
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(string(data)).To(MatchYAML(`groups:
-                - name: test_product
-                  rules:
-                  - alert: test_indicator
-                    expr: test_query{deployment="test_deployment"} < 5
-                    labels:
-                      level: critical
-                      product: test_product
-                      version: v1.2.3
-                    annotations:
-                      test1: a
-                      test2: b`))
+		fileBytes, err := ioutil.ReadFile("test_fixtures/expected_dashboard.json")
+		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(prometheusServer.ReceivedRequests(), 5*time.Second, 50*time.Millisecond).Should(HaveLen(1))
+		g.Expect(string(data)).To(MatchJSON(fileBytes))
 	})
 }
 
-func run(g *GomegaWithT, outputDirectory, registryURL, prometheusURL string) *gexec.Session {
+func run(g *GomegaWithT, registryURL, outputDirectory string) *gexec.Session {
 	binPath, err := go_test.Build("./")
 	g.Expect(err).ToNot(HaveOccurred())
 	cmd := exec.Command(
 		binPath,
 		"--registry", registryURL,
-		"--prometheus", prometheusURL,
 		"--tls-pem-path", clientCert,
 		"--tls-key-path", clientKey,
 		"--tls-root-ca-pem", rootCACert,
