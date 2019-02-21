@@ -55,7 +55,7 @@ func TestPrometheusAlertControllerBinary(t *testing.T) {
 			}},
 		})
 
-		registryAddress := "localhost:12345"
+		registryAddress := "localhost:13245"
 		config := registry.WebServerConfig{
 			Address:       registryAddress,
 			ServerPEMPath: serverCert,

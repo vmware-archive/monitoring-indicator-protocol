@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -52,7 +53,7 @@ func main() {
 }
 
 func Convert(document indicator.Document) (*exporter.File, error) {
-	documentString, err := grafana_dashboard.DocumentToDashboard(document)
+	documentString, err := json.Marshal(grafana_dashboard.DocumentToDashboard(document))
 	if err != nil {
 		return nil, err
 	}

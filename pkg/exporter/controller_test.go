@@ -4,15 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/pivotal/indicator-protocol/pkg/exporter"
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"log"
 	"testing"
 	"time"
 
 	. "github.com/onsi/gomega"
+	"github.com/pivotal/indicator-protocol/pkg/exporter"
 	"github.com/pivotal/indicator-protocol/pkg/go_test"
-	"github.com/pivotal/indicator-protocol/pkg/registry"
+	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"gopkg.in/src-d/go-billy.v4/memfs"
 )
 
@@ -97,18 +96,18 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: []registry.APIV0Document{{
+			Documents: []indicator.Document{{
 				APIVersion: "v0",
-				Product: registry.APIV0Product{
+				Product: indicator.Product{
 					Name:    "test_product_A",
 					Version: "v1.2.3",
 				},
-				Indicators: []registry.APIV0Indicator{{
+				Indicators: []indicator.Indicator{{
 					Name:   "test_indicator",
 					PromQL: `test_query{deployment="test_deployment"}`,
-					Thresholds: []registry.APIV0Threshold{{
+					Thresholds: []indicator.Threshold{{
 						Level:    "critical",
-						Operator: "lt",
+						Operator: indicator.LessThan,
 						Value:    5,
 					}},
 				}},
@@ -137,18 +136,18 @@ func TestController(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(fileNames).To(ConsistOf("test_product_A.yml"))
 
-		registryClient.Documents = []registry.APIV0Document{{
+		registryClient.Documents = []indicator.Document{{
 			APIVersion: "v0",
-			Product: registry.APIV0Product{
+			Product: indicator.Product{
 				Name:    "test_product_B",
 				Version: "v1.2.3",
 			},
-			Indicators: []registry.APIV0Indicator{{
+			Indicators: []indicator.Indicator{{
 				Name:   "test_indicator",
 				PromQL: `test_query{deployment="test_deployment"}`,
-				Thresholds: []registry.APIV0Threshold{{
+				Thresholds: []indicator.Threshold{{
 					Level:    "critical",
-					Operator: "lt",
+					Operator: indicator.LessThan,
 					Value:    5,
 				}},
 			}},
@@ -166,18 +165,18 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: []registry.APIV0Document{{
+			Documents: []indicator.Document{{
 				APIVersion: "v0",
-				Product: registry.APIV0Product{
+				Product: indicator.Product{
 					Name:    "test_product_A",
 					Version: "v1.2.3",
 				},
-				Indicators: []registry.APIV0Indicator{{
+				Indicators: []indicator.Indicator{{
 					Name:   "test_indicator",
 					PromQL: `test_query{deployment="test_deployment"}`,
-					Thresholds: []registry.APIV0Threshold{{
+					Thresholds: []indicator.Threshold{{
 						Level:    "critical",
-						Operator: "lt",
+						Operator: indicator.LessThan,
 						Value:    5,
 					}},
 				}},
@@ -300,22 +299,29 @@ func TestReloading(t *testing.T) {
 	})
 }
 
-var testComparators = []string{"lt", "lte", "eq", "neq", "gte", "gt"}
+var testComparators = []indicator.OperatorType{
+	indicator.LessThan,
+	indicator.LessThanOrEqualTo,
+	indicator.EqualTo,
+	indicator.NotEqualTo,
+	indicator.GreaterThanOrEqualTo,
+	indicator.GreaterThan,
+}
 
-func createTestDocuments(count int) []registry.APIV0Document {
-	docs := make([]registry.APIV0Document, count)
+func createTestDocuments(count int) []indicator.Document {
+	docs := make([]indicator.Document, count)
 	for i := 0; i < count; i++ {
-		docs[i] = registry.APIV0Document{
+		docs[i] = indicator.Document{
 			APIVersion: "v0",
-			Product: registry.APIV0Product{
+			Product: indicator.Product{
 				Name:    fmt.Sprintf("test_product_%d", i),
 				Version: "v1.2.3",
 			},
 			Metadata: map[string]string{"deployment": "test_deployment"},
-			Indicators: []registry.APIV0Indicator{{
+			Indicators: []indicator.Indicator{{
 				Name:   fmt.Sprintf("test_indicator_%d", i),
 				PromQL: `test_query{deployment="test_deployment"}`,
-				Thresholds: []registry.APIV0Threshold{{
+				Thresholds: []indicator.Threshold{{
 					Level:    "critical",
 					Operator: testComparators[i],
 					Value:    5,
@@ -331,12 +337,12 @@ func createTestDocuments(count int) []registry.APIV0Document {
 }
 
 type mockRegistryClient struct {
-	Documents []registry.APIV0Document
+	Documents []indicator.Document
 	Error     error
 	Calls     int
 }
 
-func (a *mockRegistryClient) IndicatorDocuments() ([]registry.APIV0Document, error) {
+func (a *mockRegistryClient) IndicatorDocuments() ([]indicator.Document, error) {
 	a.Calls = a.Calls + 1
 	return a.Documents, a.Error
 }

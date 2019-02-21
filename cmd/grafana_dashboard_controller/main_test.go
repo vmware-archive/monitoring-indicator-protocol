@@ -1,6 +1,8 @@
 package main_test
 
 import (
+	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal/indicator-protocol/pkg/go_test"
+	"github.com/pivotal/indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/indicator-protocol/pkg/indicator"
 	"github.com/pivotal/indicator-protocol/pkg/registry"
 )
@@ -30,7 +33,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 
 		store := registry.NewDocumentStore(5 * time.Second)
 
-		store.UpsertDocument(indicator.Document{
+		document := indicator.Document{
 			APIVersion: "v0",
 			Product: indicator.Product{
 				Name:    "test_product",
@@ -45,12 +48,14 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 					Operator: indicator.LessThan,
 					Value:    5,
 				}},
-				Documentation: map[string]string{
-					"test1": "a",
-					"test2": "b",
-				},
+				Documentation: map[string]string{"title": "Test Indicator Title"},
 			}},
-		})
+			Layout: indicator.Layout{
+				Title: "Test Dashboard",
+			},
+		}
+
+		store.UpsertDocument(document)
 
 		registryAddress := "localhost:12346"
 		config := registry.WebServerConfig{
@@ -64,7 +69,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 		start, stop, err := registry.NewWebServer(config)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		defer func() {_ = stop()}()
+		defer func() { _ = stop() }()
 		go func() {
 			err := start()
 			g.Expect(err).ToNot(HaveOccurred())
@@ -83,7 +88,13 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(files).To(HaveLen(1))
 
-		data, err := ioutil.ReadFile(fmt.Sprintf("%s/test_product_f3eb510a2597b4a81945dd616fbce2dbcb941c5e.json", directory))
+		dashboardString, err := json.Marshal(grafana_dashboard.DocumentToDashboard(document))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		filePath := fmt.Sprintf("%s/%s_%x.json", directory, document.Product.Name, sha1.Sum([]byte(dashboardString)))
+		g.Expect(filePath).To(ContainSubstring(files[0].Name()))
+
+		data, err := ioutil.ReadFile(filePath)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		fileBytes, err := ioutil.ReadFile("test_fixtures/expected_dashboard.json")

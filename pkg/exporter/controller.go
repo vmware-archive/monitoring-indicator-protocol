@@ -74,7 +74,7 @@ func (c *Controller) Update() error {
 	}
 
 	clearDirectory(c.Config.Filesystem, c.Config.OutputDirectory)
-	writeDocuments(formatDocuments(documents), c.Config)
+	writeDocuments(documents, c.Config)
 
 	return c.Config.Reloader()
 }
@@ -90,52 +90,6 @@ func clearDirectory(fs billy.Filesystem, d string) {
 		if err != nil {
 			log.Printf("failed to delete document %s: %s\n", f.Name(), err)
 		}
-	}
-}
-
-func formatDocuments(documents []registry.APIV0Document) []indicator.Document {
-	formattedDocuments := make([]indicator.Document, 0)
-	for _, d := range documents {
-		formattedDocuments = append(formattedDocuments, convertDocument(d))
-	}
-
-	return formattedDocuments
-}
-
-func convertDocument(d registry.APIV0Document) indicator.Document {
-	indicators := make([]indicator.Indicator, 0)
-	for _, i := range d.Indicators {
-		indicators = append(indicators, convertIndicator(i))
-	}
-
-	return indicator.Document{
-		Product: indicator.Product{
-			Name:    d.Product.Name,
-			Version: d.Product.Version,
-		},
-		Indicators: indicators,
-	}
-}
-
-func convertIndicator(i registry.APIV0Indicator) indicator.Indicator {
-	thresholds := make([]indicator.Threshold, 0)
-	for _, t := range i.Thresholds {
-		thresholds = append(thresholds, convertThreshold(t))
-	}
-
-	return indicator.Indicator{
-		Name:          i.Name,
-		PromQL:        i.PromQL,
-		Thresholds:    thresholds,
-		Documentation: i.Documentation,
-	}
-}
-
-func convertThreshold(t registry.APIV0Threshold) indicator.Threshold {
-	return indicator.Threshold{
-		Level:    t.Level,
-		Operator: indicator.GetComparatorFromString(t.Operator),
-		Value:    t.Value,
 	}
 }
 

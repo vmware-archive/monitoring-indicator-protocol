@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"gopkg.in/yaml.v2"
@@ -39,8 +40,9 @@ func parseDocument(format string, metadata string, filePath string) (string, err
 	case "html":
 		return docs.DocumentToHTML(getDocument(filePath, indicator.SkipMetadataInterpolation))
 	case "grafana":
-		return grafana_dashboard.DocumentToDashboard(getDocument(filePath,
-			indicator.OverrideMetadata(indicator.ParseMetadata(metadata))))
+		yamlOutput, err := json.Marshal(grafana_dashboard.DocumentToDashboard(getDocument(filePath,
+			indicator.OverrideMetadata(indicator.ParseMetadata(metadata)))))
+		return string(yamlOutput), err
 	case "prometheus-alerts":
 		yamlOutput, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(getDocument(filePath,
 			indicator.OverrideMetadata(indicator.ParseMetadata(metadata)))))
