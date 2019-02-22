@@ -303,6 +303,7 @@ type yamlPresentation struct {
 	ChartType    ChartType     `yaml:"chartType"`
 	CurrentValue bool          `yaml:"currentValue"`
 	Frequency    time.Duration `yaml:"frequency"`
+	Labels       []string      `yaml:"labels"`
 }
 
 type yamlPatch struct {
@@ -370,11 +371,12 @@ func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
 
 func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 	defaultValue := yamlPresentation{}
-	if p == defaultValue {
+	if reflect.DeepEqual(p, defaultValue) {
 		return &Presentation{
-			ChartType: StepChart,
+			ChartType:    StepChart,
 			CurrentValue: false,
-			Frequency: 0,
+			Frequency:    0,
+			Labels:       []string{},
 		}, nil
 	}
 
@@ -391,6 +393,7 @@ func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 		ChartType:    p.ChartType,
 		CurrentValue: p.CurrentValue,
 		Frequency:    p.Frequency,
+		Labels:       p.Labels,
 	}, nil
 }
 

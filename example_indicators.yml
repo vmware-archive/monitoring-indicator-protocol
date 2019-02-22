@@ -23,6 +23,10 @@ indicators:
     chartType: step
     currentValue: false
     frequency: 1m
+    labels:
+    - job
+    - ip
+    - index
   documentation:
     title: Doc Performance Indicator
     measurement: Average latency over last 5 minutes per instance

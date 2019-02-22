@@ -60,6 +60,7 @@ indicators:
 							CurrentValue: false,
 							ChartType: "step",
 							Frequency: 0,
+							Labels: []string{},
 						},
 						Thresholds: []indicator.Threshold{
 							{
@@ -78,6 +79,7 @@ indicators:
 					CurrentValue: false,
 					ChartType: "step",
 					Frequency: 0,
+					Labels: []string{},
 				},
 				Thresholds: []indicator.Threshold{
 					{

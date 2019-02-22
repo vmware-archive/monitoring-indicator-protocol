@@ -22,9 +22,10 @@ type apiV0Threshold struct {
 }
 
 type apiV0Presentation struct {
-	ChartType    string  `json:"chartType"`
-	CurrentValue bool    `json:"currentValue"`
-	Frequency    float64 `json:"frequency"`
+	ChartType    string   `json:"chartType"`
+	CurrentValue bool     `json:"currentValue"`
+	Frequency    float64  `json:"frequency"`
+	Labels       []string `json:"labels"`
 }
 
 type apiV0Indicator struct {
@@ -115,7 +116,7 @@ func convertLayoutSection(s apiV0Section, indicators []indicator.Indicator) indi
 			}
 		}
 	}
-	
+
 	return indicator.Section{
 		Title:       s.Title,
 		Description: s.Description,
@@ -135,13 +136,17 @@ func toAPIV0Document(doc indicator.Document) apiV0Document {
 				Value:    t.Value,
 			})
 		}
-
 		var presentation *apiV0Presentation
 		if i.Presentation != nil {
+			labels := make([]string, 0)
+			for _, l := range i.Presentation.Labels {
+				labels = append(labels, l)
+			}
 			presentation = &apiV0Presentation{
 				ChartType:    string(i.Presentation.ChartType),
 				CurrentValue: i.Presentation.CurrentValue,
 				Frequency:    i.Presentation.Frequency.Seconds(),
+				Labels:       labels,
 			}
 		}
 

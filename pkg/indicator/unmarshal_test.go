@@ -32,6 +32,9 @@ indicators:
     currentValue: false
     chartType: step
     frequency: 5s
+    labels:
+    - job
+    - ip
   thresholds:
   - level: warning
     gte: 50
@@ -66,6 +69,7 @@ layout:
 						CurrentValue: false,
 						ChartType:    indicator.StepChart,
 						Frequency:    time.Duration(5 * time.Second),
+						Labels:       []string{"job", "ip"},
 					},
 					Documentation: map[string]string{
 						"title":                "Test Performance Indicator",
@@ -92,9 +96,9 @@ layout:
 							},
 						},
 						Presentation: &indicator.Presentation{
-							CurrentValue: false,
-							ChartType:    indicator.StepChart,
-							Frequency:    time.Duration(5 * time.Second),
+							ChartType: indicator.StepChart,
+							Frequency: time.Duration(5 * time.Second),
+							Labels:    []string{"job", "ip"},
 						},
 						Documentation: map[string]string{
 							"title":                "Test Performance Indicator",
@@ -140,9 +144,10 @@ layout:
 					Name:   "test_performance_indicator",
 					PromQL: `prom{deployment="test_deployment"}`,
 					Presentation: &indicator.Presentation{
-						CurrentValue: false,
 						ChartType:    "step",
+						CurrentValue: false,
 						Frequency:    0,
+						Labels:       []string{},
 					},
 				},
 			},
@@ -156,6 +161,7 @@ layout:
 							CurrentValue: false,
 							ChartType:    "step",
 							Frequency:    0,
+							Labels:       []string{},
 						},
 					}},
 				}},
@@ -200,6 +206,7 @@ layout:
 						CurrentValue: false,
 						ChartType:    "step",
 						Frequency:    0,
+						Labels:       []string{},
 					},
 				},
 			},
@@ -213,6 +220,7 @@ layout:
 							CurrentValue: false,
 							ChartType:    "step",
 							Frequency:    0,
+							Labels:       []string{},
 						},
 					}},
 				}},
@@ -293,6 +301,7 @@ indicators:
 			CurrentValue: false,
 			ChartType:    "step",
 			Frequency:    0,
+			Labels: []string{},
 		},
 	}}))
 }
@@ -406,6 +415,7 @@ indicators:
 					CurrentValue: false,
 					ChartType:    "step",
 					Frequency:    0,
+					Labels:       []string{},
 				},
 			},
 		},
@@ -420,6 +430,7 @@ indicators:
 							CurrentValue: false,
 							ChartType:    "step",
 							Frequency:    0,
+							Labels:       []string{},
 						},
 					},
 				},
@@ -696,16 +707,18 @@ indicators:
 				PromQL: "test_expr",
 				Presentation: &indicator.Presentation{
 					CurrentValue: false,
-					ChartType: "step",
-					Frequency: 0,
+					ChartType:    "step",
+					Frequency:    0,
+					Labels: []string{},
 				},
 			}, {
-				Name:          "inserted_indicator",
-				PromQL:        `inserted_indicator_promql{source_id="origin"}`,
+				Name:   "inserted_indicator",
+				PromQL: `inserted_indicator_promql{source_id="origin"}`,
 				Presentation: &indicator.Presentation{
 					CurrentValue: false,
-					ChartType: "step",
-					Frequency: 0,
+					ChartType:    "step",
+					Frequency:    0,
+					Labels: []string{},
 				},
 				Documentation: map[string]string{"title": "Success Percentage"},
 			}},
@@ -718,16 +731,18 @@ indicators:
 						PromQL: "test_expr",
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
-							ChartType: "step",
-							Frequency: 0,
+							ChartType:    "step",
+							Frequency:    0,
+							Labels: []string{},
 						},
 					}, {
-						Name:          "inserted_indicator",
-						PromQL:        `inserted_indicator_promql{source_id="origin"}`,
+						Name:   "inserted_indicator",
+						PromQL: `inserted_indicator_promql{source_id="origin"}`,
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
-							ChartType: "step",
-							Frequency: 0,
+							ChartType:    "step",
+							Frequency:    0,
+							Labels: []string{},
 						},
 						Documentation: map[string]string{"title": "Success Percentage"},
 					}},
@@ -758,8 +773,9 @@ indicators:
 				PromQL: "test_expr",
 				Presentation: &indicator.Presentation{
 					CurrentValue: false,
-					ChartType: "step",
-					Frequency: 0,
+					ChartType:    "step",
+					Frequency:    0,
+					Labels: []string{},
 				},
 			}},
 			Layout: indicator.Layout{
@@ -771,8 +787,9 @@ indicators:
 						PromQL: "test_expr",
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
-							ChartType: "step",
-							Frequency: 0,
+							ChartType:    "step",
+							Frequency:    0,
+							Labels: []string{},
 						},
 					}},
 				}},

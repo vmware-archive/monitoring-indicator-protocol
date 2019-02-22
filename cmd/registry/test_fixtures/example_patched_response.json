@@ -16,7 +16,8 @@
         "presentation": {
           "chartType": "step",
           "frequency": 0,
-          "currentValue": false
+          "currentValue": false,
+          "labels": []
         }
       },
       {
@@ -44,7 +45,8 @@
         "presentation": {
           "chartType": "step",
           "frequency": 60,
-          "currentValue": false
+          "currentValue": false,
+          "labels": ["job", "ip", "index"]
         }
       }
     ],
@@ -80,7 +82,8 @@
         "presentation": {
           "chartType": "step",
           "currentValue": false,
-          "frequency": 0
+          "frequency": 0,
+          "labels": []
         }
       },
       {
@@ -89,7 +92,8 @@
         "presentation": {
           "chartType": "step",
           "frequency": 0,
-          "currentValue": false
+          "currentValue": false,
+          "labels": []
         },
         "documentation": {
           "title": "Success Percentage"
