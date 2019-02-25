@@ -37,8 +37,8 @@ indicators:
 
       **Type**: Gauge
       **Frequency**: 60 s
-    recommended_response: Panic! Run around in circles flailing your arms.
-    threshold_note: These are environment specific
+    recommendedResponse: Panic! Run around in circles flailing your arms.
+    thresholdNote: These are environment specific
 
 layout:
   owner: Example Team

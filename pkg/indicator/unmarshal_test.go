@@ -25,8 +25,8 @@ indicators:
   documentation:
     title: Test Performance Indicator
     description: This is a valid markdown description.
-    recommended_response: Panic!
-    threshold_note: Threshold Note Text
+    recommendedResponse: Panic!
+    thresholdNote: Threshold Note Text
   promql: prom{deployment="$deployment"}
   presentation:
     currentValue: false
@@ -74,8 +74,8 @@ layout:
 					Documentation: map[string]string{
 						"title":                "Test Performance Indicator",
 						"description":          "This is a valid markdown description.",
-						"recommended_response": "Panic!",
-						"threshold_note":       "Threshold Note Text",
+						"recommendedResponse": "Panic!",
+						"thresholdNote":       "Threshold Note Text",
 					},
 				},
 			},
@@ -103,8 +103,8 @@ layout:
 						Documentation: map[string]string{
 							"title":                "Test Performance Indicator",
 							"description":          "This is a valid markdown description.",
-							"recommended_response": "Panic!",
-							"threshold_note":       "Threshold Note Text",
+							"recommendedResponse": "Panic!",
+							"thresholdNote":       "Threshold Note Text",
 						},
 					}},
 				}},
