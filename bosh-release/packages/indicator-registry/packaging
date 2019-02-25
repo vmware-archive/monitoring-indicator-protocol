@@ -16,7 +16,7 @@ export GO111MODULE=on
 pushd github.com/pivotal/indicator-protocol
     go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/registry cmd/registry/main.go
     go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/registry_agent cmd/registry_agent/main.go
-    go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/prometheus_rules_controller cmd/prometheus_alert_controller/main.go
+    go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/prometheus_rules_controller cmd/prometheus_rules_controller/main.go
     go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/grafana_dashboard_controller cmd/grafana_dashboard_controller/main.go
 popd
 

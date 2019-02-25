@@ -6,7 +6,7 @@ export REGISTRY_PORT=8091
 export REGISTRY_HOST="https://localhost:8091"
 
 echo "Running prometheus agent"
-go run cmd/prometheus_alert_controller/main.go \
+go run cmd/prometheus_rules_controller/main.go \
   -registry ${REGISTRY_HOST} \
   -output-directory /tmp/alerts \
   -tls-pem-path ${CERTS}/client.pem \

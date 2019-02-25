@@ -27,7 +27,7 @@ var (
 	clientCert = "../../test_fixtures/client.pem"
 )
 
-func TestPrometheusAlertControllerBinary(t *testing.T) {
+func TestPrometheusRulesControllerBinary(t *testing.T) {
 	t.Run("reads documents from registry and outputs to output-directory", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
