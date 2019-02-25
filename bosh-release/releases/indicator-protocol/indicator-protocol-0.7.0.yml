@@ -1,0 +1,33 @@
+name: indicator-protocol
+version: 0.7.0
+commit_hash: 08b7836
+uncommitted_changes: false
+jobs:
+- name: grafana-dashboard-controller
+  version: c2db4ea0fe9735da3ef762294c9f9c04288b8068d0471a0134cc78d992776e17
+  fingerprint: c2db4ea0fe9735da3ef762294c9f9c04288b8068d0471a0134cc78d992776e17
+  sha1: sha256:704af21137fea9aa0ca622d324af7ab234f1680146f09520c826ae53aa530725
+- name: indicator-registration-agent
+  version: c090f4126705f754f06dc149a4281b65bbc2bd5eea6b420a67fcd889507c9c49
+  fingerprint: c090f4126705f754f06dc149a4281b65bbc2bd5eea6b420a67fcd889507c9c49
+  sha1: sha256:47c42a8c613ac16aaf5bf62f93bdd994f0cb72b9daf8ec99c70b09d8e30427b4
+- name: indicator-registry
+  version: 8f4447db765589b1ce4308fa9041c8920fac94cdf9f2dd532300a5b6bcaf4d63
+  fingerprint: 8f4447db765589b1ce4308fa9041c8920fac94cdf9f2dd532300a5b6bcaf4d63
+  sha1: sha256:bc660f777bce9c5cd7b486115119ce394a42811feecf7da806dc0efda46e1964
+- name: prometheus-rules-controller
+  version: a6c386becf8a02682f0a7df945e9853487cc7d50cf9e53d7e55f44fdf94e5ad4
+  fingerprint: a6c386becf8a02682f0a7df945e9853487cc7d50cf9e53d7e55f44fdf94e5ad4
+  sha1: sha256:7f595202d1d94a59d91fe38fa461a720b1cbc50473855a5a888c6f86a735bace
+packages:
+- name: golang-1.11-linux
+  version: bb9ab510b4b82a163137540402017207b9fc7e06
+  fingerprint: bb9ab510b4b82a163137540402017207b9fc7e06
+  sha1: f76df378af8cfd97e8fd60cdbc5b00ee952d5caf
+  dependencies: []
+- name: indicator-registry
+  version: a3e02439cd91ebf74788fd1f83cb7471a8588e3f57297c94a2081be97dc8fb8b
+  fingerprint: a3e02439cd91ebf74788fd1f83cb7471a8588e3f57297c94a2081be97dc8fb8b
+  sha1: sha256:c124bc56d086aef7fc0da5fe65d53c6d1242e06eff993fcf8877ecc654fcc79c
+  dependencies:
+  - golang-1.11-linux
