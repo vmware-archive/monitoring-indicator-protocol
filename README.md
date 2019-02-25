@@ -14,6 +14,11 @@ See [the wiki](https://github.com/pivotal/indicator-protocol/wiki) for more deta
 This project currently requires only the Go programming language to develop.
 Install go using `brew install go`, then proceed to the next steps.
 
+Goland Setup:
+1. Preferences -> Go -> Build Tags & Vendoring -> Custom tags: `-mod=vendor`
+1. Preferences -> Go -> Go Modules (vgo) -> Enable Go Modules (vgo) integration
+* If the vendored import statements are still red: option + enter -> `Sync packages`
+
 ### Running tests
 
 Use the provided script to run tests: `./scripts/test.sh`
