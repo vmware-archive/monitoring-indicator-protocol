@@ -1,0 +1,31 @@
+---
+processes:
+- name: prometheus-rules-controller
+  executable: /var/vcap/packages/indicator-registry/prometheus_rules_controller
+  args:
+  - --prometheus
+  - <%= p('prometheus_uri') %>
+  - --output-directory
+  - <%= p('output_directory') %>
+  - --tls-pem-path
+  - /var/vcap/jobs/prometheus-rules-controller/certs/client.crt
+  - --tls-key-path
+  - /var/vcap/jobs/prometheus-rules-controller/certs/client.key
+  - --tls-root-ca-pem
+  - /var/vcap/jobs/prometheus-rules-controller/certs/indicator_protocol_ca.crt
+<% if_link('indicator-registry') do |ir| %>
+  - --registry
+  - https://<%= ir.address %>:<%= ir.p('port') %>
+  - --tls-server-cn
+  - <%= ir.p('tls.server_common_name') %>
+<% end.else do %>
+  - --registry
+  - none
+  - --tls-server-cn
+  - none
+<% end %>
+  unsafe:
+    unrestricted_volumes:
+    - path: <%= p('output_directory') %>
+      mount_only: true
+      writable: true

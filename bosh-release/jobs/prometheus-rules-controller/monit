@@ -1,0 +1,5 @@
+check process prometheus-rules-controller
+  with pidfile /var/vcap/sys/run/bpm/prometheus-rules-controller/prometheus-rules-controller.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start prometheus-rules-controller"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop prometheus-rules-controller" with timeout 60 seconds
+  group vcap

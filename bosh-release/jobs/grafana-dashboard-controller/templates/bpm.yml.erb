@@ -1,0 +1,29 @@
+---
+processes:
+- name: grafana-dashboard-controller
+  executable: /var/vcap/packages/indicator-registry/grafana_dashboard_controller
+  args:
+  - --output-directory
+  - <%= p('output_directory') %>
+  - --tls-pem-path
+  - /var/vcap/jobs/grafana-dashboard-controller/certs/client.crt
+  - --tls-key-path
+  - /var/vcap/jobs/grafana-dashboard-controller/certs/client.key
+  - --tls-root-ca-pem
+  - /var/vcap/jobs/grafana-dashboard-controller/certs/indicator_protocol_ca.crt
+<% if_link('indicator-registry') do |ir| %>
+  - --registry
+  - https://<%= ir.address %>:<%= ir.p('port') %>
+  - --tls-server-cn
+  - <%= ir.p('tls.server_common_name') %>
+<% end.else do %>
+  - --registry
+  - none
+  - --tls-server-cn
+  - none
+<% end %>
+  unsafe:
+    unrestricted_volumes:
+    - path: <%= p('output_directory') %>
+      mount_only: true
+      writable: true

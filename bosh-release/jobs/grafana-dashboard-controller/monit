@@ -1,0 +1,5 @@
+check process grafana-dashboard-controller
+  with pidfile /var/vcap/sys/run/bpm/grafana-dashboard-controller/grafana-dashboard-controller.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start grafana-dashboard-controller"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop grafana-dashboard-controller" with timeout 60 seconds
+  group vcap

@@ -1,0 +1,22 @@
+---
+name: prometheus-rules-controller
+
+templates:
+  bpm.yml.erb: config/bpm.yml
+  client.crt.erb: certs/client.crt
+  client.key.erb: certs/client.key
+  indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
+
+packages:
+  - indicator-registry
+
+consumes:
+  - name: indicator-registry
+    type: indicator-registry
+    optional: true
+
+properties:
+  output_directory:
+    description: "The output directory for the prometheus alerting rules"
+  prometheus_uri:
+    description: "URI to hit to reload configuration"
