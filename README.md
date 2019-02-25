@@ -64,15 +64,14 @@ Use the provided script to run tests: `./scripts/test.sh`
            "documentation": {
              "description": "This is a valid markdown description.\n\n**Use**: This indicates nothing. It is placeholder text.\n\n**Type**: Gauge\n**Frequency**: 60 s\n",
              "measurement": "Average latency over last 5 minutes per instance",
-             "recommendedResponse": "Panic! Run around in circles flailing your arms.",
-             "thresholdNote": "These are environment specific",
+             "recommended_response": "Panic! Run around in circles flailing your arms.",
+             "threshold_note": "These are environment specific",
              "title": "Doc Performance Indicator"
            },
            "presentation": {
-             "chartType": "step",
+             "chartType": "line",
              "currentValue": false,
-             "interval": "1m0s",
-             "labels": []
+             "interval": "1m0s"
            }
          },
          {

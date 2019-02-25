@@ -44,6 +44,7 @@ var indicatorTmpl = template.Must(template.New("Indicator").Parse(`
 	{{- end}}
 </table>`))
 
+
 type indicatorPresenter struct {
 	indicator.Indicator
 }
@@ -51,6 +52,7 @@ type indicatorPresenter struct {
 func NewIndicatorPresenter(i indicator.Indicator) indicatorPresenter {
 	return indicatorPresenter{i}
 }
+
 
 func (p *indicatorPresenter) HTML() template.HTML {
 	buffer := bytes.NewBuffer(nil)
@@ -81,7 +83,7 @@ func (p indicatorPresenter) Description() template.HTML {
 }
 
 func (p indicatorPresenter) ThresholdNote() template.HTML {
-	return p.markdownDocumentationField("thresholdNote")
+	return p.markdownDocumentationField("threshold_note")
 }
 
 func (p indicatorPresenter) OtherDocumentationFields() map[string]template.HTML {
@@ -89,7 +91,7 @@ func (p indicatorPresenter) OtherDocumentationFields() map[string]template.HTML 
 
 	for k, v := range p.Documentation {
 		if isUnusedDocumentationField(k) {
-			title := strings.Title(getHumanReadableTitle(k))
+			title := strings.Title(strings.Replace(k, "_", " ", -1))
 			fields[title] = template.HTML(blackfriday.Run([]byte(v)))
 		}
 	}
@@ -97,17 +99,8 @@ func (p indicatorPresenter) OtherDocumentationFields() map[string]template.HTML 
 	return fields
 }
 
-func getHumanReadableTitle(titleKey string) string {
-	switch titleKey {
-	case "recommendedResponse":
-		return "Recommended Response"
-	default:
-		return titleKey
-	}
-}
-
 func isUnusedDocumentationField(fieldName string) bool {
-	return fieldName != "title" && fieldName != "description" && fieldName != "thresholdNote"
+	return fieldName != "title" && fieldName != "description" && fieldName != "threshold_note"
 }
 
 func (p indicatorPresenter) markdownDocumentationField(field string) template.HTML {
@@ -141,6 +134,7 @@ func (t thresholdPresenter) Level() string {
 		return t.threshold.Level
 	}
 }
+
 
 func (t thresholdPresenter) Operator() string {
 	return t.threshold.GetComparator()
