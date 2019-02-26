@@ -68,7 +68,8 @@ func (c *Controller) Start() {
 }
 
 func (c *Controller) Update() error {
-	documents, err := c.Config.RegistryAPIClient.IndicatorDocuments()
+	apiDocuments, err := c.Config.RegistryAPIClient.IndicatorDocuments()
+	documents := formatDocuments(apiDocuments)
 	if err != nil {
 		return fmt.Errorf("failed to fetch indicator documents, %s", err)
 	}
@@ -77,6 +78,15 @@ func (c *Controller) Update() error {
 	writeDocuments(documents, c.Config)
 
 	return c.Config.Reloader()
+}
+
+func formatDocuments(documents []registry.APIV0Document) []indicator.Document {
+	formattedDocuments := make([]indicator.Document, 0)
+	for _, d := range documents {
+		formattedDocuments = append(formattedDocuments, registry.ToIndicatorDocument(d))
+	}
+
+	return formattedDocuments
 }
 
 func clearDirectory(fs billy.Filesystem, d string) {

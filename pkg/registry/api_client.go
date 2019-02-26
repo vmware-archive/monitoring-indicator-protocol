@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
 )
 
 type APIClient interface {
-	IndicatorDocuments() ([]indicator.Document, error)
+	IndicatorDocuments() ([]APIV0Document, error)
 }
 
 type apiClient struct {
@@ -35,23 +33,14 @@ func (c *apiClient) indicatorResponse() ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
-func (c *apiClient) IndicatorDocuments() ([]indicator.Document, error) {
+func (c *apiClient) IndicatorDocuments() ([]APIV0Document, error) {
 	payload, e := c.indicatorResponse()
 	if e != nil {
 		return nil, fmt.Errorf("failed to get indicator documents: %s\n", e)
 	}
 
-	var d []apiV0Document
+	var d []APIV0Document
 	err := json.Unmarshal(payload, &d)
 
-	return formatDocuments(d), err
-}
-
-func formatDocuments(documents []apiV0Document) []indicator.Document {
-	formattedDocuments := make([]indicator.Document, 0)
-	for _, d := range documents {
-		formattedDocuments = append(formattedDocuments, toIndicatorDocument(d))
-	}
-
-	return formattedDocuments
+	return d, err
 }

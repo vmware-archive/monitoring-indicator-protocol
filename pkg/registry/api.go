@@ -47,9 +47,9 @@ type errorResponse struct {
 }
 
 func marshal(docs []indicator.Document) ([]byte, error) {
-	data := make([]apiV0Document, 0)
+	data := make([]APIV0Document, 0)
 	for _, doc := range docs {
-		data = append(data, toAPIV0Document(doc))
+		data = append(data, ToAPIV0Document(doc))
 	}
 
 	return json.Marshal(data)

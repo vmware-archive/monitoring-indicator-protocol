@@ -2,54 +2,54 @@ package registry
 
 import "github.com/pivotal/indicator-protocol/pkg/indicator"
 
-type apiV0Document struct {
+type APIV0Document struct {
 	APIVersion string            `json:"apiVersion"`
-	Product    apiV0Product      `json:"product"`
+	Product    APIV0Product      `json:"product"`
 	Metadata   map[string]string `json:"metadata"`
-	Indicators []apiV0Indicator  `json:"indicators"`
-	Layout     apiV0Layout       `json:"layout"`
+	Indicators []APIV0Indicator  `json:"indicators"`
+	Layout     APIV0Layout       `json:"layout"`
 }
 
-type apiV0Product struct {
+type APIV0Product struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
 }
 
-type apiV0Threshold struct {
+type APIV0Threshold struct {
 	Level    string  `json:"level"`
 	Operator string  `json:"operator"`
 	Value    float64 `json:"value"`
 }
 
-type apiV0Presentation struct {
+type APIV0Presentation struct {
 	ChartType    string   `json:"chartType"`
 	CurrentValue bool     `json:"currentValue"`
 	Frequency    float64  `json:"frequency"`
 	Labels       []string `json:"labels"`
 }
 
-type apiV0Indicator struct {
+type APIV0Indicator struct {
 	Name          string             `json:"name"`
 	PromQL        string             `json:"promql"`
-	Thresholds    []apiV0Threshold   `json:"thresholds,omitempty"`
+	Thresholds    []APIV0Threshold   `json:"thresholds,omitempty"`
 	Documentation map[string]string  `json:"documentation,omitempty"`
-	Presentation  *apiV0Presentation `json:"presentation,omitempty"`
+	Presentation  *APIV0Presentation `json:"presentation,omitempty"`
 }
 
-type apiV0Layout struct {
+type APIV0Layout struct {
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
-	Sections    []apiV0Section `json:"sections,omitempty"`
+	Sections    []APIV0Section `json:"sections,omitempty"`
 	Owner       string         `json:"owner"`
 }
 
-type apiV0Section struct {
+type APIV0Section struct {
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Indicators  []string `json:"indicators,omitempty"`
 }
 
-func toIndicatorDocument(d apiV0Document) indicator.Document {
+func ToIndicatorDocument(d APIV0Document) indicator.Document {
 	indicators := make([]indicator.Indicator, 0)
 	for _, i := range d.Indicators {
 		indicators = append(indicators, convertIndicator(i))
@@ -65,7 +65,7 @@ func toIndicatorDocument(d apiV0Document) indicator.Document {
 	}
 }
 
-func convertIndicator(i apiV0Indicator) indicator.Indicator {
+func convertIndicator(i APIV0Indicator) indicator.Indicator {
 	thresholds := make([]indicator.Threshold, 0)
 	for _, t := range i.Thresholds {
 		thresholds = append(thresholds, convertThreshold(t))
@@ -79,7 +79,7 @@ func convertIndicator(i apiV0Indicator) indicator.Indicator {
 	}
 }
 
-func convertThreshold(t apiV0Threshold) indicator.Threshold {
+func convertThreshold(t APIV0Threshold) indicator.Threshold {
 	return indicator.Threshold{
 		Level:    t.Level,
 		Operator: indicator.GetComparatorFromString(t.Operator),
@@ -87,7 +87,7 @@ func convertThreshold(t apiV0Threshold) indicator.Threshold {
 	}
 }
 
-func convertLayout(l apiV0Layout, indicators []indicator.Indicator) indicator.Layout {
+func convertLayout(l APIV0Layout, indicators []indicator.Indicator) indicator.Layout {
 	return indicator.Layout{
 		Title:       l.Title,
 		Description: l.Description,
@@ -96,7 +96,7 @@ func convertLayout(l apiV0Layout, indicators []indicator.Indicator) indicator.La
 	}
 }
 
-func convertLayoutSections(sections []apiV0Section, indicators []indicator.Indicator) []indicator.Section {
+func convertLayoutSections(sections []APIV0Section, indicators []indicator.Indicator) []indicator.Section {
 	apiSections := make([]indicator.Section, 0)
 
 	for _, s := range sections {
@@ -106,7 +106,7 @@ func convertLayoutSections(sections []apiV0Section, indicators []indicator.Indic
 	return apiSections
 }
 
-func convertLayoutSection(s apiV0Section, indicators []indicator.Indicator) indicator.Section {
+func convertLayoutSection(s APIV0Section, indicators []indicator.Indicator) indicator.Section {
 	sectionIndicators := make([]indicator.Indicator, 0)
 
 	for _, name := range s.Indicators {
@@ -124,25 +124,25 @@ func convertLayoutSection(s apiV0Section, indicators []indicator.Indicator) indi
 	}
 }
 
-func toAPIV0Document(doc indicator.Document) apiV0Document {
-	indicators := make([]apiV0Indicator, 0)
+func ToAPIV0Document(doc indicator.Document) APIV0Document {
+	indicators := make([]APIV0Indicator, 0)
 
 	for _, i := range doc.Indicators {
-		thresholds := make([]apiV0Threshold, 0)
+		thresholds := make([]APIV0Threshold, 0)
 		for _, t := range i.Thresholds {
-			thresholds = append(thresholds, apiV0Threshold{
+			thresholds = append(thresholds, APIV0Threshold{
 				Level:    t.Level,
 				Operator: t.GetComparatorAbbrev(),
 				Value:    t.Value,
 			})
 		}
-		var presentation *apiV0Presentation
+		var presentation *APIV0Presentation
 		if i.Presentation != nil {
 			labels := make([]string, 0)
 			for _, l := range i.Presentation.Labels {
 				labels = append(labels, l)
 			}
-			presentation = &apiV0Presentation{
+			presentation = &APIV0Presentation{
 				ChartType:    string(i.Presentation.ChartType),
 				CurrentValue: i.Presentation.CurrentValue,
 				Frequency:    i.Presentation.Frequency.Seconds(),
@@ -150,7 +150,7 @@ func toAPIV0Document(doc indicator.Document) apiV0Document {
 			}
 		}
 
-		indicators = append(indicators, apiV0Indicator{
+		indicators = append(indicators, APIV0Indicator{
 			Name:          i.Name,
 			PromQL:        i.PromQL,
 			Thresholds:    thresholds,
@@ -159,7 +159,7 @@ func toAPIV0Document(doc indicator.Document) apiV0Document {
 		})
 	}
 
-	sections := make([]apiV0Section, 0)
+	sections := make([]APIV0Section, 0)
 
 	for _, s := range doc.Layout.Sections {
 		indicatorNames := make([]string, 0)
@@ -167,22 +167,22 @@ func toAPIV0Document(doc indicator.Document) apiV0Document {
 			indicatorNames = append(indicatorNames, i.Name)
 		}
 
-		sections = append(sections, apiV0Section{
+		sections = append(sections, APIV0Section{
 			Title:       s.Title,
 			Description: s.Description,
 			Indicators:  indicatorNames,
 		})
 	}
 
-	return apiV0Document{
+	return APIV0Document{
 		APIVersion: doc.APIVersion,
-		Product: apiV0Product{
+		Product: APIV0Product{
 			Name:    doc.Product.Name,
 			Version: doc.Product.Version,
 		},
 		Metadata:   doc.Metadata,
 		Indicators: indicators,
-		Layout: apiV0Layout{
+		Layout: APIV0Layout{
 			Title:       doc.Layout.Title,
 			Description: doc.Layout.Description,
 			Sections:    sections,
