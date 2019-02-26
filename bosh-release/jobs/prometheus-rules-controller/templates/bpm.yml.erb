@@ -2,6 +2,7 @@
 processes:
 - name: prometheus-rules-controller
   executable: /var/vcap/packages/indicator-registry/prometheus_rules_controller
+  ephemeral_disk: true
   args:
   - --prometheus
   - <%= p('prometheus_uri') %>
@@ -24,8 +25,3 @@ processes:
   - --tls-server-cn
   - none
 <% end %>
-  unsafe:
-    unrestricted_volumes:
-    - path: <%= p('output_directory') %>
-      mount_only: true
-      writable: true

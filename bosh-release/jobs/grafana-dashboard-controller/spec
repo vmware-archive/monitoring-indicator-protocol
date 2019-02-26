@@ -18,3 +18,4 @@ consumes:
 properties:
   output_directory:
     description: "The output directory for the grafana dashboards"
+    default: "/var/vcap/data/grafana-dashboard-controller/dashboards"

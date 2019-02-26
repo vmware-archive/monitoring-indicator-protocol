@@ -2,6 +2,7 @@
 processes:
 - name: grafana-dashboard-controller
   executable: /var/vcap/packages/indicator-registry/grafana_dashboard_controller
+  ephemeral_disk: true
   args:
   - --output-directory
   - <%= p('output_directory') %>
@@ -22,8 +23,3 @@ processes:
   - --tls-server-cn
   - none
 <% end %>
-  unsafe:
-    unrestricted_volumes:
-    - path: <%= p('output_directory') %>
-      mount_only: true
-      writable: true

@@ -18,5 +18,6 @@ consumes:
 properties:
   output_directory:
     description: "The output directory for the prometheus alerting rules"
+    default: "/var/vcap/data/prometheus-rules-controller/rules"
   prometheus_uri:
     description: "URI to hit to reload configuration"
