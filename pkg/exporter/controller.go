@@ -3,6 +3,7 @@ package exporter
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/pivotal/indicator-protocol/pkg/indicator"
@@ -90,6 +91,11 @@ func formatDocuments(documents []registry.APIV0Document) []indicator.Document {
 }
 
 func clearDirectory(fs billy.Filesystem, d string) {
+	err := fs.MkdirAll(d, os.ModeDir)
+	if err != nil {
+		log.Printf("failed to create directory %s: %s\n", d, err)
+	}
+
 	files, err := fs.ReadDir(d)
 	if err != nil {
 		log.Printf("failed to read directory %s: %s\n", d, err)
