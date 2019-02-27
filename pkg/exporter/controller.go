@@ -69,13 +69,24 @@ func (c *Controller) Start() {
 }
 
 func (c *Controller) Update() error {
+	outputDir := c.Config.OutputDirectory
+	fs := c.Config.Filesystem
+
+	err := fs.MkdirAll(outputDir, os.ModeDir)
+	if err != nil {
+		return fmt.Errorf("failed to create directory %s: %s\n", outputDir, err)
+	}
+
 	apiDocuments, err := c.Config.RegistryAPIClient.IndicatorDocuments()
 	documents := formatDocuments(apiDocuments)
 	if err != nil {
 		return fmt.Errorf("failed to fetch indicator documents, %s", err)
 	}
 
-	clearDirectory(c.Config.Filesystem, c.Config.OutputDirectory)
+	err = clearDirectory(fs, outputDir)
+	if err != nil {
+		return fmt.Errorf("failed to read directory %s: %s\n", outputDir, err)
+	}
 	writeDocuments(documents, c.Config)
 
 	return c.Config.Reloader()
@@ -90,15 +101,10 @@ func formatDocuments(documents []registry.APIV0Document) []indicator.Document {
 	return formattedDocuments
 }
 
-func clearDirectory(fs billy.Filesystem, d string) {
-	err := fs.MkdirAll(d, os.ModeDir)
-	if err != nil {
-		log.Printf("failed to create directory %s: %s\n", d, err)
-	}
-
+func clearDirectory(fs billy.Filesystem, d string) error {
 	files, err := fs.ReadDir(d)
 	if err != nil {
-		log.Printf("failed to read directory %s: %s\n", d, err)
+		return err
 	}
 
 	for _, f := range files {
@@ -107,6 +113,8 @@ func clearDirectory(fs billy.Filesystem, d string) {
 			log.Printf("failed to delete document %s: %s\n", f.Name(), err)
 		}
 	}
+
+	return nil
 }
 
 func writeDocuments(documents []indicator.Document, config ControllerConfig) {
