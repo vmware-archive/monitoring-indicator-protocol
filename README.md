@@ -7,7 +7,7 @@ The indicator definition ideally lives in the same repository as the code and is
 There are 3 main uses cases for this project: Generating documentation, validating against an actual deployment's data,
 and keeping a registry of indicators for use in monitoring tools such as prometheus alert manager and grafana.
 
-See [the wiki](https://github.com/pivotal/indicator-protocol/wiki) for more detailed information and documentation.
+See [the wiki](https://github.com/pivotal/monitoring-indicator-protocol/wiki) for more detailed information and documentation.
 
 ## Developing Locally
 

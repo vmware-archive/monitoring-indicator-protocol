@@ -41,5 +41,5 @@ properties:
     description: "TLS Client private key"
 
   sources:
-    description: "An array of sources matching the format described at https://github.com/pivotal/indicator-protocol/wiki/Configuration-and-Patches"
+    description: "An array of sources matching the format described at https://github.com/pivotal/monitoring-indicator-protocol/wiki/Configuration-and-Patches"
     default: []

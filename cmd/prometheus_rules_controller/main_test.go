@@ -12,9 +12,9 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/onsi/gomega/ghttp"
-	"github.com/pivotal/indicator-protocol/pkg/go_test"
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
-	"github.com/pivotal/indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 

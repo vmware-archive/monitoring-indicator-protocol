@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	glob2 "github.com/gobwas/glob"
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
-	"github.com/pivotal/indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/yaml.v2"

@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {

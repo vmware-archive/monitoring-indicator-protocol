@@ -10,8 +10,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/pivotal/indicator-protocol/pkg/configuration"
-	"github.com/pivotal/indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/configuration"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
 func main() {

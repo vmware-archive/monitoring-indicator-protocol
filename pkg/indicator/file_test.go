@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/gomega"
 	"testing"
 
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 func TestUpdateMetadata(t *testing.T) {

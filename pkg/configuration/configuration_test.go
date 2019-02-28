@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/indicator-protocol/pkg/configuration"
-	"github.com/pivotal/indicator-protocol/pkg/go_test"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/configuration"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"gopkg.in/src-d/go-git.v4"
 )
 

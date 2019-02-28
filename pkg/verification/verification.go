@@ -7,7 +7,7 @@ import (
 
 	"github.com/prometheus/common/model"
 
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 type Result struct {

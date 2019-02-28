@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pivotal/indicator-protocol/pkg/go_test"
-	"github.com/pivotal/indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
 func TestAPIClient_IndicatorDocuments(t *testing.T) {

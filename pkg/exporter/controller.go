@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
-	"github.com/pivotal/indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )

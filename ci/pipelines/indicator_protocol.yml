@@ -1,9 +1,9 @@
 ---
 resources:
-- name: indicator-protocol
+- name: monitoring-indicator-protocol
   type: git
   source:
-    uri: https://github.com/pivotal/indicator-protocol
+    uri: https://github.com/pivotal/monitoring-indicator-protocol
     branch: master
     username: git
     password: {{indicator-protocol-access-token}}
@@ -32,14 +32,14 @@ resources:
   type: github-release
   source:
     user: pivotal
-    repository: indicator-protocol
+    repository: monitoring-indicator-protocol
     access_token: {{indicator-protocol-access-token}}
     drafts: true
 jobs:
 - name: build-and-test
   plan:
   - aggregate:
-    - get: indicator-protocol
+    - get: monitoring-indicator-protocol
       trigger: true
   - task: build-and-test
     config:
@@ -49,7 +49,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicator-protocol
+      - name: monitoring-indicator-protocol
       run:
         path: bash
         args:
@@ -59,14 +59,14 @@ jobs:
 
             set -exu
 
-            pushd indicator-protocol
+            pushd monitoring-indicator-protocol
               scripts/test.sh
             popd
 
 - name: indicator-docs
   plan:
   - aggregate:
-    - get: indicator-protocol
+    - get: monitoring-indicator-protocol
       passed: [build-and-test]
       trigger: true
   - task: generate-docs
@@ -77,7 +77,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicator-protocol
+      - name: monitoring-indicator-protocol
       run:
         path: bash
         args:
@@ -89,14 +89,14 @@ jobs:
 
           export GO111MODULE=on
 
-          pushd indicator-protocol/
+          pushd monitoring-indicator-protocol/
             go run -mod=vendor cmd/format/main.go -format bookbinder -indicators example_indicators.yml
           popd
 
 - name: indicator-verification
   plan:
   - aggregate:
-    - get: indicator-protocol
+    - get: monitoring-indicator-protocol
       passed: [build-and-test]
       trigger: true
     - get: env-state
@@ -108,7 +108,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicator-protocol
+      - name: monitoring-indicator-protocol
       - name: env-state
       params:
         ENVIRONMENT: sunstorm
@@ -131,7 +131,7 @@ jobs:
 
           export GO111MODULE=on
 
-          pushd indicator-protocol/
+          pushd monitoring-indicator-protocol/
 
             cat << EOF > indicators.yml
           ---
@@ -158,7 +158,7 @@ jobs:
   plan:
   - aggregate:
     - get: env-state
-    - get: indicator-protocol
+    - get: monitoring-indicator-protocol
       trigger: true
       passed: [build-and-test]
   - task: deploy
@@ -173,7 +173,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicator-protocol
+      - name: monitoring-indicator-protocol
       - name: env-state
       run:
         path: bash
@@ -189,10 +189,10 @@ jobs:
           popd
           set -x
 
-          mkdir -p indicator-protocol/bosh-release/src/github.com/pivotal/
-          rsync -Rr ./indicator-protocol/ ./indicator-protocol/bosh-release/src/github.com/pivotal/
+          mkdir -p monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
+          rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
 
-          pushd indicator-protocol/bosh-release
+          pushd monitoring-indicator-protocol/bosh-release
 
             cat << EOF > config/private.yml
           ---
@@ -213,12 +213,12 @@ jobs:
 
 
           bosh -n -d indicator-registry deploy \
-            indicator-protocol/bosh-release/manifests/manifest.yml
+            monitoring-indicator-protocol/bosh-release/manifests/manifest.yml
 
 - name: publish-release
   plan:
   - aggregate:
-    - get: indicator-protocol
+    - get: monitoring-indicator-protocol
       passed: [indicator-verification,indicator-docs,deploy-indicator-registry]
       trigger: false
     - get: release-version
@@ -232,7 +232,7 @@ jobs:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
       - name: release-version
-      - name: indicator-protocol
+      - name: monitoring-indicator-protocol
       outputs:
       - name: final-release
       - name: github-release
@@ -257,10 +257,10 @@ jobs:
           echo $tag_name > github-release/tag
           echo "TBD" > github-release/body
 
-          mkdir -p indicator-protocol/bosh-release/src/github.com/pivotal
-          rsync -Rr ./indicator-protocol/ ./indicator-protocol/bosh-release/src/github.com/pivotal/
+          mkdir -p monitoring-indicator-protocol/bosh-release/src/github.com/pivotal
+          rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
 
-          pushd indicator-protocol/bosh-release
+          pushd monitoring-indicator-protocol/bosh-release
             cat << EOF > config/private.yml
           ---
           blobstore:
@@ -293,7 +293,7 @@ jobs:
         source:
           repository: pcfmetrics/indicators-build-and-test
       inputs:
-      - name: indicator-protocol
+      - name: monitoring-indicator-protocol
       - name: release-version
       - name: github-release
       outputs:
@@ -311,7 +311,7 @@ jobs:
 
           BUILD_NUMBER=$(cat release-version/number)
 
-          pushd indicator-protocol
+          pushd monitoring-indicator-protocol
             echo "Building darwin cli-plugin binary"
             GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-format-macosx64-${BUILD_NUMBER} cmd/format/main.go
             GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-verification-macosx64-${BUILD_NUMBER} cmd/verification/main.go
@@ -320,13 +320,13 @@ jobs:
             GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-format-linux64-${BUILD_NUMBER} cmd/format/main.go
             GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-verification-linux64-${BUILD_NUMBER} cmd/verification/main.go
           popd
-  - put: indicator-protocol
+  - put: monitoring-indicator-protocol
     params:
-      repository: indicator-protocol
+      repository: monitoring-indicator-protocol
       rebase: true
       tag: release-version/version
       tag_prefix: v
-  - put: indicator-protocol
+  - put: monitoring-indicator-protocol
     params:
       repository: final-release
       rebase: true

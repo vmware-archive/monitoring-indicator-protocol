@@ -5,4 +5,4 @@ dependencies:
 - golang-1.11-linux
 
 files:
-- github.com/pivotal/indicator-protocol/**/*
+- github.com/pivotal/monitoring-indicator-protocol/**/*

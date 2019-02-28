@@ -5,8 +5,8 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"github.com/pivotal/indicator-protocol/pkg/docs"
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/docs"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 func TestRenderIndicatorHTML(t *testing.T) {

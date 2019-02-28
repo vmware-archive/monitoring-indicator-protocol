@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/krishicks/yaml-patch"
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 func TestReturnsCompleteDocument(t *testing.T) {

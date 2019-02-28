@@ -1,6 +1,6 @@
 package registry
 
-import "github.com/pivotal/indicator-protocol/pkg/indicator"
+import "github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 
 type APIV0Document struct {
 	APIVersion string            `json:"apiVersion"`

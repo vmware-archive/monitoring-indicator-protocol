@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
-	"github.com/pivotal/indicator-protocol/pkg/prometheus_uaa_client"
-	"github.com/pivotal/indicator-protocol/pkg/verification"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_uaa_client"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/verification"
 	"flag"
 	"log"
 	"os"

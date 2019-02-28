@@ -7,10 +7,10 @@ import (
 	"gopkg.in/yaml.v2"
 	"log"
 
-	"github.com/pivotal/indicator-protocol/pkg/docs"
-	"github.com/pivotal/indicator-protocol/pkg/grafana_dashboard"
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
-	"github.com/pivotal/indicator-protocol/pkg/prometheus_alerts"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/docs"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 )
 
 func main() {

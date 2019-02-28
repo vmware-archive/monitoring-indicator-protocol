@@ -3,7 +3,7 @@ package grafana_dashboard
 import (
 	"log"
 
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 func DocumentToDashboard(document indicator.Document) GrafanaDashboard {

@@ -13,7 +13,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"github.com/onsi/gomega/ghttp"
 
-	"github.com/pivotal/indicator-protocol/pkg/go_test"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"github.com/prometheus/common/model"
 )
 

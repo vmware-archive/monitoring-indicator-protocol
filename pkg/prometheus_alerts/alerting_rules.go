@@ -1,7 +1,7 @@
 package prometheus_alerts
 
 import (
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"fmt"
 )
 

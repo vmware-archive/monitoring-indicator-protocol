@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/pivotal/indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 	"flag"
 	"fmt"
 	"log"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/pivotal/indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
 func main() {

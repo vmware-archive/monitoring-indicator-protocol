@@ -3,6 +3,6 @@ sources:
   - type: local
     path: example_patch.yml
   - type: git
-    repository: https://github.com/pivotal/indicator-protocol.git
+    repository: https://github.com/pivotal/monitoring-indicator-protocol.git
     token: "some-key"
     glob: "**/*.y*ml"

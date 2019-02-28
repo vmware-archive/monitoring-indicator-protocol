@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
-	"github.com/pivotal/indicator-protocol/pkg/go_test"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 )
 
 func TestFormatBinary(t *testing.T) {

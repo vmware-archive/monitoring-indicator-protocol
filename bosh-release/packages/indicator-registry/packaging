@@ -13,7 +13,7 @@ export GOCACHE=$GOPATH/cache
 
 export GO111MODULE=on
 
-pushd github.com/pivotal/indicator-protocol
+pushd github.com/pivotal/monitoring-indicator-protocol
     go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/registry cmd/registry/main.go
     go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/registry_agent cmd/registry_agent/main.go
     go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/prometheus_rules_controller cmd/prometheus_rules_controller/main.go

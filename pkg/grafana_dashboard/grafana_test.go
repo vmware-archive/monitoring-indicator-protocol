@@ -7,8 +7,8 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"github.com/pivotal/indicator-protocol/pkg/grafana_dashboard"
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 func TestDocumentToDashboard(t *testing.T) {

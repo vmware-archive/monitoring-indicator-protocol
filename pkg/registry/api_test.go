@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
-	"github.com/pivotal/indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
 func TestRegisterHandler(t *testing.T) {

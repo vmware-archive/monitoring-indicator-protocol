@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"gopkg.in/russross/blackfriday.v2"
 )
 

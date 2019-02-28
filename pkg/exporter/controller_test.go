@@ -9,10 +9,10 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/indicator-protocol/pkg/exporter"
-	"github.com/pivotal/indicator-protocol/pkg/go_test"
-	"github.com/pivotal/indicator-protocol/pkg/indicator"
-	"github.com/pivotal/indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"gopkg.in/src-d/go-billy.v4/memfs"
 )
 
