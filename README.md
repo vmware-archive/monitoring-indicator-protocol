@@ -1,4 +1,4 @@
-# Indicator Protocol
+# Monitoring Indicator Protocol
 
 This is an **observability as code** project which allows developers to define and expose performance, scaling,
 and service level indicators for monitoring, alerting, and documentation.
