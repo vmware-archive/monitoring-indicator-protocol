@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 	"testing"
 	"time"
 
@@ -42,21 +43,13 @@ func TestController(t *testing.T) {
 		controller := exporter.NewController(c)
 		go controller.Start()
 
-		time.Sleep(5 * time.Millisecond)
-		g.Expect(registryClient.Calls).To(Equal(1))
-		g.Expect(mockReloader.Calls).To(Equal(1))
-
-		time.Sleep(50 * time.Millisecond)
-		g.Expect(registryClient.Calls).To(Equal(2))
-		g.Expect(mockReloader.Calls).To(Equal(2))
-
-		time.Sleep(50 * time.Millisecond)
-		g.Expect(registryClient.Calls).To(Equal(3))
-		g.Expect(mockReloader.Calls).To(Equal(3))
-
-		time.Sleep(50 * time.Millisecond)
-		g.Expect(registryClient.Calls).To(Equal(4))
-		g.Expect(mockReloader.Calls).To(Equal(4))
+		var rcCalls, mrCalls int
+		g.Eventually(func() int {
+			rcCalls = registryClient.calls()
+			mrCalls = mockReloader.calls()
+			return mrCalls
+		}).Should(BeNumerically(">", 4))
+		g.Expect(mrCalls).To(Equal(rcCalls))
 	})
 
 	t.Run("saves multiple documents with expected file names", func(t *testing.T) {
@@ -242,7 +235,7 @@ func TestReloading(t *testing.T) {
 		err := controller.Update()
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(mockReloader.Calls).To(Equal(1))
+		g.Expect(mockReloader.calls()).To(Equal(1))
 	})
 
 	t.Run("does not reload if there is an error getting documents", func(t *testing.T) {
@@ -267,7 +260,7 @@ func TestReloading(t *testing.T) {
 		err := controller.Update()
 		g.Expect(err).To(HaveOccurred())
 
-		g.Expect(mockReloader.Calls).To(Equal(0))
+		g.Expect(mockReloader.calls()).To(Equal(0))
 	})
 
 	t.Run("returns an error if reload fails", func(t *testing.T) {
@@ -296,7 +289,7 @@ func TestReloading(t *testing.T) {
 		err := controller.Update()
 		g.Expect(err).To(HaveOccurred())
 
-		g.Expect(mockReloader.Calls).To(Equal(1))
+		g.Expect(mockReloader.calls()).To(Equal(1))
 	})
 }
 
@@ -333,25 +326,45 @@ func createTestDocuments(count int) []registry.APIV0Document {
 type mockRegistryClient struct {
 	Documents []registry.APIV0Document
 	Error     error
-	Calls     int
+
+	mu sync.Mutex
+	calls_     int
 }
 
 func (a *mockRegistryClient) IndicatorDocuments() ([]registry.APIV0Document, error) {
-	a.Calls = a.Calls + 1
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.calls_ = a.calls_ + 1
 	return a.Documents, a.Error
 }
 
+func (a *mockRegistryClient) calls() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.calls_
+}
+
 type mockReloader struct {
-	Calls int
 	fail  bool
+
+	mu sync.Mutex
+	calls_ int
 }
 
 func (a *mockReloader) Reload() error {
-	a.Calls = a.Calls + 1
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.calls_ = a.calls_ + 1
 
 	if a.fail {
 		return errors.New("")
 	}
 
 	return nil
+}
+
+func (a *mockReloader) calls() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.calls_
 }
