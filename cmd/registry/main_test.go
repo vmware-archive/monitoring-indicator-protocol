@@ -88,7 +88,7 @@ func TestIndicatorRegistry(t *testing.T) {
 }
 
 func withConfigServer(port, configPath string, buffer *bytes.Buffer, g *GomegaWithT, testFun func(string)) {
-	binPath, err := go_test.Build("./")
+	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	cmd := exec.Command(binPath,

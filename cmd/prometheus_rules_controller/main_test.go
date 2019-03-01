@@ -67,10 +67,14 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 		start, stop, err := registry.NewWebServer(config)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		defer func() { _ = stop() }()
+		done := make(chan struct{})
+		defer func() {
+			_ = stop()
+			<-done
+			}()
 		go func() {
-			err := start()
-			g.Expect(err).ToNot(HaveOccurred())
+			defer close(done)
+			_ = start()
 		}()
 
 		prometheusServer := ghttp.NewServer()
@@ -115,12 +119,12 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
                       test1: a
                       test2: b`))
 
-		g.Eventually(prometheusServer.ReceivedRequests(), 5*time.Second, 50*time.Millisecond).Should(HaveLen(1))
+		g.Eventually(prometheusServer.ReceivedRequests, 5*time.Second, 50*time.Millisecond).Should(HaveLen(1))
 	})
 }
 
 func run(g *GomegaWithT, outputDirectory, registryURL, prometheusURL string) *gexec.Session {
-	binPath, err := go_test.Build("./")
+	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 	cmd := exec.Command(
 		binPath,

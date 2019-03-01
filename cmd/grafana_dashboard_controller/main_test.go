@@ -105,7 +105,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 }
 
 func run(g *GomegaWithT, registryURL, outputDirectory string) *gexec.Session {
-	binPath, err := go_test.Build("./")
+	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 	cmd := exec.Command(
 		binPath,

@@ -28,7 +28,7 @@ var (
 func TestIndicatorRegistryAgent(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := go_test.Build("./")
+	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("it sends indicator documents to the registry on an interval", func(t *testing.T) {
@@ -65,12 +65,15 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 		start := func() error { return server.ListenAndServeTLS(serverCert, serverKey) }
 		stop := func() error { return server.Close() }
 
-		go func() {
-			err = start()
-			g.Expect(err).NotTo(HaveOccurred())
+		done := make(chan struct{})
+		defer func() {
+			_ = stop()
+			<-done
 		}()
-
-		defer stop()
+		go func() {
+			defer close(done)
+			_ = start()
+		}()
 
 		cmd := exec.Command(
 			binPath,

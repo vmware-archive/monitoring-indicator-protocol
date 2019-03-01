@@ -15,7 +15,7 @@ import (
 func TestFormatBinary(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := go_test.Build("./")
+	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("complains if no indicators file path specified", func(t *testing.T) {
@@ -25,8 +25,8 @@ func TestFormatBinary(t *testing.T) {
 
 		buffer := bytes.NewBuffer(nil)
 
-		sess, _ := gexec.Start(cmd, buffer, buffer)
-		g.Eventually(sess).Should(gexec.Exit(1))
+		session, _ := gexec.Start(cmd, buffer, buffer)
+		g.Eventually(session, 5).Should(gexec.Exit(1))
 		g.Expect(buffer.String()).To(ContainSubstring("-indicators flag is required"))
 	})
 
@@ -40,10 +40,10 @@ func TestFormatBinary(t *testing.T) {
 
 		buffer := bytes.NewBuffer(nil)
 
-		sess, err := gexec.Start(cmd, buffer, buffer)
+		session, err := gexec.Start(cmd, buffer, buffer)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(sess).Should(gexec.Exit(0))
+		g.Eventually(session, 5).Should(gexec.Exit(0))
 
 		html := buffer.String()
 
@@ -81,10 +81,10 @@ func TestFormatBinary(t *testing.T) {
 
 		buffer := bytes.NewBuffer(nil)
 
-		sess, err := gexec.Start(cmd, buffer, buffer)
+		session, err := gexec.Start(cmd, buffer, buffer)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(sess).Should(gexec.Exit(0))
+		g.Eventually(session, 5).Should(gexec.Exit(0))
 
 		html := buffer.String()
 
@@ -121,10 +121,10 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			sess, err := gexec.Start(cmd, buffer, buffer)
+			session, err := gexec.Start(cmd, buffer, buffer)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			g.Eventually(sess).Should(gexec.Exit(0))
+			g.Eventually(session, 5).Should(gexec.Exit(0))
 
 			prometheusAlertConfigurationYML := buffer.String()
 
@@ -144,10 +144,10 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			sess, err := gexec.Start(cmd, buffer, buffer)
+			session, err := gexec.Start(cmd, buffer, buffer)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			g.Eventually(sess).Should(gexec.Exit(0))
+			g.Eventually(session, 5).Should(gexec.Exit(0))
 
 			prometheusAlertConfigurationYML := buffer.String()
 
@@ -165,10 +165,10 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			sess, err := gexec.Start(cmd, buffer, buffer)
+			session, err := gexec.Start(cmd, buffer, buffer)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			g.Eventually(sess).Should(gexec.Exit(0))
+			g.Eventually(session, 5).Should(gexec.Exit(0))
 
 			text := buffer.String()
 
@@ -189,10 +189,10 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			sess, err := gexec.Start(cmd, buffer, buffer)
+			session, err := gexec.Start(cmd, buffer, buffer)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			g.Eventually(sess).Should(gexec.Exit(0))
+			g.Eventually(session, 5).Should(gexec.Exit(0))
 
 			text := buffer.String()
 

@@ -20,7 +20,7 @@ import (
 func TestValidateIndicators(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	binPath, err := go_test.Build("./")
+	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	t.Run("returns 0 when all indicators return data", func(t *testing.T) {
@@ -72,7 +72,7 @@ func TestValidateIndicators(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))
-		g.Eventually(session).Should(gexec.Exit(0))
+		g.Eventually(session, 5).Should(gexec.Exit(0))
 	})
 
 	t.Run("returns 1 when not all indicators return data", func(t *testing.T) {
@@ -116,7 +116,7 @@ func TestValidateIndicators(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))
-		g.Eventually(session).Should(gexec.Exit(1))
+		g.Eventually(session, 5).Should(gexec.Exit(1))
 	})
 }
 
