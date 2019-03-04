@@ -23,11 +23,8 @@ func TestFormatBinary(t *testing.T) {
 
 		cmd := exec.Command(binPath)
 
-		buffer := bytes.NewBuffer(nil)
-
-		session, _ := gexec.Start(cmd, buffer, buffer)
+		session, _ := gexec.Start(cmd, nil, nil)
 		g.Eventually(session, 5).Should(gexec.Exit(1))
-		g.Expect(buffer.String()).To(ContainSubstring("-indicators flag is required"))
 	})
 
 	t.Run("outputs formatted HTML", func(t *testing.T) {
@@ -40,7 +37,7 @@ func TestFormatBinary(t *testing.T) {
 
 		buffer := bytes.NewBuffer(nil)
 
-		session, err := gexec.Start(cmd, buffer, buffer)
+		session, err := gexec.Start(cmd, buffer, nil)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(session, 5).Should(gexec.Exit(0))
@@ -81,7 +78,7 @@ func TestFormatBinary(t *testing.T) {
 
 		buffer := bytes.NewBuffer(nil)
 
-		session, err := gexec.Start(cmd, buffer, buffer)
+		session, err := gexec.Start(cmd, buffer, nil)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(session, 5).Should(gexec.Exit(0))
@@ -121,7 +118,7 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			session, err := gexec.Start(cmd, buffer, buffer)
+			session, err := gexec.Start(cmd, buffer, nil)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Eventually(session, 5).Should(gexec.Exit(0))
@@ -144,7 +141,7 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			session, err := gexec.Start(cmd, buffer, buffer)
+			session, err := gexec.Start(cmd, buffer, nil)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Eventually(session, 5).Should(gexec.Exit(0))
@@ -165,7 +162,7 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			session, err := gexec.Start(cmd, buffer, buffer)
+			session, err := gexec.Start(cmd, buffer, nil)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Eventually(session, 5).Should(gexec.Exit(0))
@@ -189,7 +186,7 @@ func TestFormatBinary(t *testing.T) {
 
 			buffer := bytes.NewBuffer(nil)
 
-			session, err := gexec.Start(cmd, buffer, buffer)
+			session, err := gexec.Start(cmd, buffer, nil)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Eventually(session, 5).Should(gexec.Exit(0))

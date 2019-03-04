@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -67,8 +66,7 @@ func TestValidateIndicators(t *testing.T) {
 			"-k",
 		)
 
-		buffer := bytes.NewBuffer(nil)
-		session, err := gexec.Start(cmd, buffer, buffer)
+		session, err := gexec.Start(cmd, nil, nil)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))
@@ -111,8 +109,7 @@ func TestValidateIndicators(t *testing.T) {
 			"-k",
 		)
 
-		buffer := bytes.NewBuffer(nil)
-		session, err := gexec.Start(cmd, buffer, buffer)
+		session, err := gexec.Start(cmd, nil, nil)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))

@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os/exec"
@@ -86,8 +85,7 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 			"--interval", "50ms",
 		)
 
-		buffer := bytes.NewBuffer(nil)
-		session, err := gexec.Start(cmd, buffer, buffer)
+		session, err := gexec.Start(cmd, nil, nil)
 
 		g.Expect(err).ToNot(HaveOccurred())
 		defer session.Kill()

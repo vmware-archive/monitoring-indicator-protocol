@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -40,7 +39,6 @@ func TestIndicatorRegistry(t *testing.T) {
 
 	t.Run("it patches indicator documents when received", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		buffer := bytes.NewBuffer(nil)
 
 		repoPath := go_test.CreateTempRepo("../../example_patch.yml", "../../example_indicators.yml")
 
@@ -61,7 +59,7 @@ func TestIndicatorRegistry(t *testing.T) {
 		err = f.Close()
 		g.Expect(err).ToNot(HaveOccurred())
 
-		withConfigServer("10567", f.Name(), buffer, g, func(serverUrl string) {
+		withConfigServer("10567", f.Name(), g, func(serverUrl string) {
 			file, err := os.Open("test_fixtures/moar_indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
@@ -77,8 +75,6 @@ func TestIndicatorRegistry(t *testing.T) {
 			responseBytes, err := ioutil.ReadAll(resp.Body)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(buffer.String()).To(ContainSubstring("registered patch for name: my-other-component version: 1.2.3"))
-
 			json, err := ioutil.ReadFile("test_fixtures/example_patched_response.json")
 			g.Expect(err).ToNot(HaveOccurred())
 
@@ -87,7 +83,7 @@ func TestIndicatorRegistry(t *testing.T) {
 	})
 }
 
-func withConfigServer(port, configPath string, buffer *bytes.Buffer, g *GomegaWithT, testFun func(string)) {
+func withConfigServer(port, configPath string, g *GomegaWithT, testFun func(string)) {
 	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -99,7 +95,7 @@ func withConfigServer(port, configPath string, buffer *bytes.Buffer, g *GomegaWi
 		"--config", configPath,
 	)
 
-	session, err := gexec.Start(cmd, buffer, buffer)
+	session, err := gexec.Start(cmd, nil, nil)
 	g.Expect(err).ToNot(HaveOccurred())
 	defer session.Kill()
 	serverHost := "localhost:" + port
