@@ -31,7 +31,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 	t.Run("reads documents from registry and outputs graph files to output-directory", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		store := registry.NewDocumentStore(5 * time.Second)
+		store := registry.NewDocumentStore(time.Hour)
 
 		document := indicator.Document{
 			APIVersion: "v0",
@@ -69,10 +69,14 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 		start, stop, err := registry.NewWebServer(config)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		defer func() { _ = stop() }()
+		done := make(chan struct{})
+		defer func() {
+			_ = stop()
+			<-done
+		}()
 		go func() {
-			err := start()
-			g.Expect(err).ToNot(HaveOccurred())
+			defer close(done)
+			_ = start()
 		}()
 
 		directory, err := ioutil.TempDir("", "test-dashboards")

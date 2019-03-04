@@ -78,7 +78,6 @@ func (c *Controller) Update() error {
 	}
 
 	apiDocuments, err := c.Config.RegistryAPIClient.IndicatorDocuments()
-	documents := formatDocuments(apiDocuments)
 	if err != nil {
 		return fmt.Errorf("failed to fetch indicator documents, %s", err)
 	}
@@ -87,7 +86,7 @@ func (c *Controller) Update() error {
 	if err != nil {
 		return fmt.Errorf("failed to read directory %s: %s\n", outputDir, err)
 	}
-	writeDocuments(documents, c.Config)
+	writeDocuments(formatDocuments(apiDocuments), c.Config)
 
 	return c.Config.Reloader()
 }

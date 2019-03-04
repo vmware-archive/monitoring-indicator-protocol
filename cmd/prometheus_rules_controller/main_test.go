@@ -31,7 +31,7 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 	t.Run("reads documents from registry and outputs to output-directory", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		store := registry.NewDocumentStore(5 * time.Second)
+		store := registry.NewDocumentStore(time.Hour)
 
 		store.UpsertDocument(indicator.Document{
 			APIVersion: "v0",
@@ -71,7 +71,7 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 		defer func() {
 			_ = stop()
 			<-done
-			}()
+		}()
 		go func() {
 			defer close(done)
 			_ = start()

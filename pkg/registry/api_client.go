@@ -23,16 +23,6 @@ func NewAPIClient(serverURL string, client *http.Client) APIClient {
 	}
 }
 
-func (c *apiClient) indicatorResponse() ([]byte, error) {
-	resp, err := c.client.Get(c.serverURL + "/v1/indicator-documents")
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	return ioutil.ReadAll(resp.Body)
-}
-
 func (c *apiClient) IndicatorDocuments() ([]APIV0Document, error) {
 	payload, e := c.indicatorResponse()
 	if e != nil {
@@ -43,4 +33,14 @@ func (c *apiClient) IndicatorDocuments() ([]APIV0Document, error) {
 	err := json.Unmarshal(payload, &d)
 
 	return d, err
+}
+
+func (c *apiClient) indicatorResponse() ([]byte, error) {
+	resp, err := c.client.Get(c.serverURL + "/v1/indicator-documents")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
 }
