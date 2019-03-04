@@ -4,6 +4,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"log"
 	"strings"
+	"unicode"
 
 	"bytes"
 	"fmt"
@@ -83,7 +84,16 @@ func (p indicatorPresenter) Description() template.HTML {
 }
 
 func (p indicatorPresenter) ThresholdNote() template.HTML {
-	return p.markdownDocumentationField("threshold_note")
+	field := p.markdownDocumentationField("threshold_note")
+	if field != "" {
+		return field
+	}
+	field = p.markdownDocumentationField("thresholdNote")
+	return field
+}
+
+func (p indicatorPresenter) RecommendedResponse() template.HTML {
+	return p.markdownDocumentationField("")
 }
 
 func (p indicatorPresenter) OtherDocumentationFields() map[string]template.HTML {
@@ -91,7 +101,8 @@ func (p indicatorPresenter) OtherDocumentationFields() map[string]template.HTML 
 
 	for k, v := range p.Documentation {
 		if isUnusedDocumentationField(k) {
-			title := strings.Title(strings.Replace(k, "_", " ", -1))
+			words := splitOnUppercase(k)
+			title := strings.Title(strings.Replace(strings.Join(words, " "), "_", " ", -1))
 			fields[title] = template.HTML(blackfriday.Run([]byte(v)))
 		}
 	}
@@ -99,8 +110,21 @@ func (p indicatorPresenter) OtherDocumentationFields() map[string]template.HTML 
 	return fields
 }
 
+func splitOnUppercase(s string) []string {
+	var words []string
+	index := 0
+	for string := s; string != ""; string = string[index:] {
+		index = strings.IndexFunc(string[1:], unicode.IsUpper) + 1
+		if index <= 0 {
+			index = len(string)
+		}
+		words = append(words, string[:index])
+	}
+	return words
+}
+
 func isUnusedDocumentationField(fieldName string) bool {
-	return fieldName != "title" && fieldName != "description" && fieldName != "threshold_note"
+	return fieldName != "title" && fieldName != "description" && fieldName != "thresholdNote" && fieldName != "threshold_note"
 }
 
 func (p indicatorPresenter) markdownDocumentationField(field string) template.HTML {

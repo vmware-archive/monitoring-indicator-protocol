@@ -20,8 +20,8 @@ groups:
 
         **Type**: Gauge
         **Frequency**: 60 s
-      recommended_response: Panic! Run around in circles flailing your arms.
-      threshold_note: These are environment specific
+      recommendedResponse: Panic! Run around in circles flailing your arms.
+      thresholdNote: These are environment specific
 
   - alert: doc_performance_indicator
     expr: avg_over_time(demo_latency{source_id="my-metric-source",deployment="my-service-deployment"}[5m]) > 100
@@ -41,5 +41,5 @@ groups:
 
         **Type**: Gauge
         **Frequency**: 60 s
-      recommended_response: Panic! Run around in circles flailing your arms.
-      threshold_note: These are environment specific
+      recommendedResponse: Panic! Run around in circles flailing your arms.
+      thresholdNote: These are environment specific
