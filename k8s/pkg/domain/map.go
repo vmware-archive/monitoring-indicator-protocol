@@ -18,8 +18,41 @@ func Map(i *v1alpha1.IndicatorDocument) indicator.Document {
 		// TODO: add layouts correctly
 		Layout: indicator.Layout{
 			Title:       i.Spec.Layout.Title,
+			Sections:    mapToDomainSections(i.Spec.Layout.Sections, indicators),
 		},
 	}
+}
+
+func mapToDomainSections(sections []v1alpha1.Section, indicators []indicator.Indicator) []indicator.Section {
+	domainSections := make([]indicator.Section, 0, len(sections))
+
+	for _, i := range sections {
+		domainSections = append(domainSections, indicator.Section{
+			Title:       i.Name,
+			Description: i.Description,
+			Indicators:  findAndMapToDomainIndicators(i.Indicators, indicators),
+		})
+	}
+
+	return domainSections
+}
+
+func findAndMapToDomainIndicators(strings []string, indicators []indicator.Indicator) []indicator.Indicator {
+	var matchedIndicators []indicator.Indicator
+
+	for _, i := range indicators {
+		matched := false
+		for _, j := range strings {
+			if i.Name == j {
+				matched = true
+			}
+		}
+		if matched {
+			matchedIndicators = append(matchedIndicators, i)
+		}
+	}
+
+	return matchedIndicators
 }
 
 func mapToDomainIndicators(ids []v1alpha1.Indicator) []indicator.Indicator {

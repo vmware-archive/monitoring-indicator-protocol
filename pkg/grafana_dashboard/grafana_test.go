@@ -42,6 +42,32 @@ func TestDocumentToDashboard(t *testing.T) {
 			},
 			Layout: indicator.Layout{
 				Title: "Indicator Test Dashboard",
+				Sections: []indicator.Section{
+					indicator.Section{
+						Title: "Test Section Title",
+						Indicators: []indicator.Indicator{
+							{
+								Name:          "test_indicator",
+								PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
+								Documentation: map[string]string{"title": "Test Indicator Title"},
+								Thresholds: []indicator.Threshold{{
+									Level:    "critical",
+									Operator: indicator.GreaterThan,
+									Value:    1000,
+								}, {
+									Level:    "warning",
+									Operator: indicator.LessThanOrEqualTo,
+									Value:    700,
+								}},
+							},
+							{
+								Name:       "second_test_indicator",
+								PromQL:     `rate(gorouter_requests[1m])`,
+								Thresholds: []indicator.Threshold{},
+							},
+						},
+					},
+				},
 			},
 		}
 
@@ -50,7 +76,7 @@ func TestDocumentToDashboard(t *testing.T) {
 		g.Expect(dashboard).To(BeEquivalentTo(grafana_dashboard.GrafanaDashboard{
 			Title: "Indicator Test Dashboard",
 			Rows: []grafana_dashboard.GrafanaRow{{
-				Title: "Test Indicator Title",
+				Title: "Test Section Title",
 				Panels: []grafana_dashboard.GrafanaPanel{{
 					Title: "Test Indicator Title",
 					Type:  "graph",
@@ -72,16 +98,14 @@ func TestDocumentToDashboard(t *testing.T) {
 						Line:      true,
 						Yaxis:     "left",
 					}},
-				}},
-			}, {
-				Title: "second_test_indicator",
-				Panels: []grafana_dashboard.GrafanaPanel{{
-					Title: "second_test_indicator",
-					Type:  "graph",
-					Targets: []grafana_dashboard.GrafanaTarget{{
-						Expression: `rate(gorouter_requests[1m])`,
+				},
+					{
+						Title: "second_test_indicator",
+						Type:  "graph",
+						Targets: []grafana_dashboard.GrafanaTarget{{
+							Expression: `rate(gorouter_requests[1m])`,
+						}},
 					}},
-				}},
 			}},
 		}))
 	})
@@ -95,8 +119,8 @@ func TestDocumentToDashboard(t *testing.T) {
 		document := indicator.Document{
 			Indicators: []indicator.Indicator{
 				{
-					Name:   "test_indicator",
-					PromQL: `sum_over_time(gorouter_latency_ms[30m])`,
+					Name:          "test_indicator",
+					PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
 					Documentation: map[string]string{"title": "Test Indicator Title"},
 				},
 				{
@@ -120,8 +144,8 @@ func TestDocumentToDashboard(t *testing.T) {
 						Title: "bar",
 						Indicators: []indicator.Indicator{
 							{
-								Name:   "test_indicator",
-								PromQL: `sum_over_time(gorouter_latency_ms[30m])`,
+								Name:          "test_indicator",
+								PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
 								Documentation: map[string]string{"title": "Test Indicator Title"},
 							},
 						},
@@ -149,10 +173,17 @@ func TestDocumentToDashboard(t *testing.T) {
 				Name:    "test product",
 				Version: "v0.9",
 			},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: `sum_over_time(gorouter_latency_ms[30m])`,
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{
+					{
+						Title: "test section",
+						Indicators: []indicator.Indicator{
+							{
+								Name:   "test_indicator",
+								PromQL: `sum_over_time(gorouter_latency_ms[30m])`,
+							},
+						},
+					},
 				},
 			},
 		}
@@ -162,7 +193,7 @@ func TestDocumentToDashboard(t *testing.T) {
 		g.Expect(dashboard).To(BeEquivalentTo(grafana_dashboard.GrafanaDashboard{
 			Title: "test product - v0.9",
 			Rows: []grafana_dashboard.GrafanaRow{{
-				Title: "test_indicator",
+				Title: "test section",
 				Panels: []grafana_dashboard.GrafanaPanel{{
 					Title: "test_indicator",
 					Type:  "graph",

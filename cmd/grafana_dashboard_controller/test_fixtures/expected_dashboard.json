@@ -2,7 +2,7 @@
   "title": "Test Dashboard",
   "rows": [
     {
-      "title": "Test Indicator Title",
+      "title": "Test Section Title",
       "panels": [
         {
           "title": "Test Indicator Title",

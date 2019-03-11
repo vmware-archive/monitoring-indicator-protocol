@@ -33,7 +33,7 @@ func TestController(t *testing.T) {
 					  "title": "rabbit-mq-layout-title",
 					  "rows": [
 					    {
-					      "title": "qps",
+					      "title": "qps section",
 					      "panels": [
 					        {
 					          "title": "qps",
@@ -77,7 +77,7 @@ func TestController(t *testing.T) {
 					  "title": "rabbit-mq-layout-title",
 					  "rows": [
 					    {
-					      "title": "qps",
+					      "title": "qps section",
 					      "panels": [
 					        {
 					          "title": "qps",
@@ -129,7 +129,7 @@ func TestController(t *testing.T) {
 					  "title": "rabbit-mq-layout-title",
 					  "rows": [
 					    {
-					      "title": "qps",
+					      "title": "qps section",
 					      "panels": [
 					        {
 					          "title": "qps",
@@ -302,6 +302,13 @@ func indicatorDocument() *v1alpha1.IndicatorDocument {
 			},
 			Layout: v1alpha1.Layout{
 				Title: "rabbit-mq-layout-title",
+				Sections: []v1alpha1.Section{
+					v1alpha1.Section{
+						Name: "qps section",
+						Description: "",
+						Indicators: []string{"qps"},
+					},
+				},
 			},
 		},
 	}

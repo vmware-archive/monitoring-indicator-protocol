@@ -14,7 +14,7 @@ func DocumentToDashboard(document indicator.Document) GrafanaDashboard {
 func toGrafanaDashboard(d indicator.Document) GrafanaDashboard {
 	return GrafanaDashboard{
 		Title: getDashboardTitle(d),
-		Rows:  toGrafanaRows(d.Indicators, d.Layout.Sections),
+		Rows:  toGrafanaRows(d.Layout.Sections),
 	}
 }
 
@@ -25,31 +25,17 @@ func getDashboardTitle(d indicator.Document) string {
 	return d.Layout.Title
 }
 
-func toGrafanaRows(indicators []indicator.Indicator, sections []indicator.Section) []GrafanaRow {
+func toGrafanaRows(sections []indicator.Section) []GrafanaRow {
 	var rows []GrafanaRow
-	if sections == nil {
-		for _, i := range indicators {
-			rows = append(rows, toGrafanaRow(i))
-		}
-	} else {
-		for _, i := range sections {
-			rows = append(rows, sectionToGrafanaRow(i))
-		}
+
+	for _, i := range sections {
+		rows = append(rows, sectionToGrafanaRow(i))
 	}
 
 	return rows
 }
 
-func toGrafanaRow(i indicator.Indicator) GrafanaRow {
-	title := GetIndicatorTitle(i)
-
-	return GrafanaRow{
-		Title: title,
-		Panels: []GrafanaPanel{ToGrafanaPanel(i, title)},
-	}
-}
-
-func GetIndicatorTitle(i indicator.Indicator) string {
+func getIndicatorTitle(i indicator.Indicator) string {
 	title := i.Name
 	if t, ok := i.Documentation["title"]; ok {
 		title = t
@@ -57,7 +43,7 @@ func GetIndicatorTitle(i indicator.Indicator) string {
 	return title
 }
 
-func ToGrafanaPanel(i indicator.Indicator, title string) GrafanaPanel {
+func toGrafanaPanel(i indicator.Indicator, title string) GrafanaPanel {
 	return GrafanaPanel{
 		Title: title,
 		Type:  "graph",
@@ -74,11 +60,11 @@ func sectionToGrafanaRow(s indicator.Section) GrafanaRow {
 	var panels []GrafanaPanel
 
 	for _, s := range s.Indicators {
-		panels = append(panels, ToGrafanaPanel(s, GetIndicatorTitle(s)))
+		panels = append(panels, toGrafanaPanel(s, getIndicatorTitle(s)))
 	}
 
 	return GrafanaRow{
-		Title: title,
+		Title:  title,
 		Panels: panels,
 	}
 }
