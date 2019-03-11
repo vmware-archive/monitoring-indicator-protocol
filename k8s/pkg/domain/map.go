@@ -30,19 +30,19 @@ func mapToDomainSections(sections []v1alpha1.Section, indicators []indicator.Ind
 		domainSections = append(domainSections, indicator.Section{
 			Title:       i.Name,
 			Description: i.Description,
-			Indicators:  findAndMapToDomainIndicators(i.Indicators, indicators),
+			Indicators:  findIndicators(i.Indicators, indicators),
 		})
 	}
 
 	return domainSections
 }
 
-func findAndMapToDomainIndicators(strings []string, indicators []indicator.Indicator) []indicator.Indicator {
-	var matchedIndicators []indicator.Indicator
+func findIndicators(names []string, indicators []indicator.Indicator) []indicator.Indicator {
+	matchedIndicators := make([]indicator.Indicator, 0)
 
 	for _, i := range indicators {
 		matched := false
-		for _, j := range strings {
+		for _, j := range names {
 			if i.Name == j {
 				matched = true
 			}
