@@ -8,7 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/krishicks/yaml-patch"
+	"github.com/cppforlife/go-patch/patch"
+
 	"gopkg.in/yaml.v2"
 )
 
@@ -50,25 +51,29 @@ func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 	if err != nil {
 		return []byte{}, fmt.Errorf("could not read document metadata: %s", err)
 	}
-	var node yamlpatch.Node
-	err = yaml.Unmarshal(documentBytes, &node)
+	var document interface{}
+	err = yaml.Unmarshal(documentBytes, &document)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to unmarshal document for patching: %s\n", err)
+		return []byte{}, fmt.Errorf("failed to unmarshal document for patching: %s", err)
 	}
 
-	var patched []byte
 	for _, p := range patches {
 		if MatchDocument(p.Match, documentBytes) {
-			for _, o := range p.Operations {
-				err = o.Perform(node.Container())
+			ops, err := patch.NewOpsFromDefinitions(p.Operations)
+			if err != nil {
+				return []byte{}, fmt.Errorf("failed to parse patch operations: %s", err)
+			}
+			for i, o := range ops {
+				od := p.Operations[i]
+				document, err = o.Apply(document)
 				if err != nil {
-					return []byte{}, fmt.Errorf("failed to apply operation %s %s: %s\n", o.Op, o.Path, err)
+					return []byte{}, fmt.Errorf("failed to apply operation %s %s: %s", od.Type, *od.Path, err)
 				}
 			}
 		}
 	}
 
-	patched, err = yaml.Marshal(node.Container())
+	patched, err := yaml.Marshal(document)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -307,9 +312,9 @@ type yamlPresentation struct {
 }
 
 type yamlPatch struct {
-	APIVersion string                `yaml:"apiVersion"`
-	Match      yamlMatch             `yaml:"match"`
-	Operations []yamlpatch.Operation `yaml:"operations"`
+	APIVersion string               `yaml:"apiVersion"`
+	Match      yamlMatch            `yaml:"match"`
+	Operations []patch.OpDefinition `yaml:"operations"`
 }
 
 type yamlMatch struct {

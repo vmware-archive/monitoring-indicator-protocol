@@ -4,6 +4,7 @@ require (
 	code.cloudfoundry.org/go-envstruct v1.4.0
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
+	github.com/cppforlife/go-patch v0.2.0
 	github.com/evanphx/json-patch v4.1.0+incompatible // indirect
 	github.com/go-kit/kit v0.8.0 // indirect
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
@@ -17,7 +18,6 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190203031600-7a902570cb17 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
-	github.com/krishicks/yaml-patch v0.0.10
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect

@@ -1,8 +1,9 @@
 package indicator
 
 import (
-	"github.com/krishicks/yaml-patch"
 	"time"
+
+	"github.com/cppforlife/go-patch/patch"
 )
 
 type OperatorType int
@@ -27,7 +28,7 @@ type Document struct {
 type Patch struct {
 	APIVersion string
 	Match      Match
-	Operations []yamlpatch.Operation
+	Operations []patch.OpDefinition
 }
 
 type Match struct {
@@ -65,8 +66,8 @@ type Presentation struct {
 type ChartType string
 
 const (
-	StepChart   ChartType = "step"
-	BarChart    ChartType = "bar"
+	StepChart ChartType = "step"
+	BarChart  ChartType = "bar"
 )
 
 var ChartTypes = []ChartType{StepChart, BarChart}

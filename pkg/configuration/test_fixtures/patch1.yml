@@ -7,7 +7,7 @@ match:
     version: 1.2.3
 
 operations:
-  - op: add
+  - type: replace
     path: /indicators/-
     value:
       name: success_percentage

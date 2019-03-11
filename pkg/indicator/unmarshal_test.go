@@ -1,11 +1,12 @@
 package indicator_test
 
 import (
-	. "github.com/onsi/gomega"
 	"testing"
 	"time"
 
-	"github.com/krishicks/yaml-patch"
+	"github.com/cppforlife/go-patch/patch"
+	. "github.com/onsi/gomega"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
@@ -72,8 +73,8 @@ layout:
 						Labels:       []string{"job", "ip"},
 					},
 					Documentation: map[string]string{
-						"title":                "Test Performance Indicator",
-						"description":          "This is a valid markdown description.",
+						"title":               "Test Performance Indicator",
+						"description":         "This is a valid markdown description.",
 						"recommendedResponse": "Panic!",
 						"thresholdNote":       "Threshold Note Text",
 					},
@@ -101,8 +102,8 @@ layout:
 							Labels:    []string{"job", "ip"},
 						},
 						Documentation: map[string]string{
-							"title":                "Test Performance Indicator",
-							"description":          "This is a valid markdown description.",
+							"title":               "Test Performance Indicator",
+							"description":         "This is a valid markdown description.",
 							"recommendedResponse": "Panic!",
 							"thresholdNote":       "Threshold Note Text",
 						},
@@ -301,7 +302,7 @@ indicators:
 			CurrentValue: false,
 			ChartType:    "step",
 			Frequency:    0,
-			Labels: []string{},
+			Labels:       []string{},
 		},
 	}}))
 }
@@ -451,16 +452,16 @@ func TestReturnsACompletePatchDocument(t *testing.T) {
 
 	name := "my-component"
 	version := "1.2.3"
-	patch := indicator.Patch{
+	indicatorPatch := indicator.Patch{
 		APIVersion: "test-apiversion",
 		Match: indicator.Match{
 			Name:    &name,
 			Version: &version,
 		},
-		Operations: []yamlpatch.Operation{{
-			Op:    "add",
-			Path:  "/indicators/name=success_percentage",
-			Value: yamlpatch.NewNode(&val),
+		Operations: []patch.OpDefinition{{
+			Type:  "replace",
+			Path:  strPtr("/indicators/name=success_percentage"),
+			Value: &val,
 		}},
 	}
 
@@ -473,7 +474,7 @@ match:
     version: 1.2.3
 
 operations:
-- op: add
+- type: replace
   path: /indicators/name=success_percentage
   value:
     promql: success_percentage_promql{source_id="origin"}
@@ -484,7 +485,7 @@ operations:
 	p, err := indicator.ReadPatchBytes(documentBytes)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	g.Expect(p).To(BeEquivalentTo(patch))
+	g.Expect(p).To(BeEquivalentTo(indicatorPatch))
 }
 
 func TestReturnsPatchDocumentWithBlankVersion(t *testing.T) {
@@ -497,7 +498,7 @@ func TestReturnsPatchDocumentWithBlankVersion(t *testing.T) {
 			"title": "Success Percentage",
 		}}
 
-	patch := indicator.Patch{
+	indicatorPatch := indicator.Patch{
 		APIVersion: "test-apiversion",
 		Match: indicator.Match{
 			Name:    nil,
@@ -506,10 +507,10 @@ func TestReturnsPatchDocumentWithBlankVersion(t *testing.T) {
 				"deployment": "test-deployment",
 			},
 		},
-		Operations: []yamlpatch.Operation{{
-			Op:    "add",
-			Path:  "/indicators/name=success_percentage",
-			Value: yamlpatch.NewNode(&val),
+		Operations: []patch.OpDefinition{{
+			Type:  "replace",
+			Path:  strPtr("/indicators/name=success_percentage"),
+			Value: &val,
 		}},
 	}
 
@@ -521,7 +522,7 @@ match:
     deployment: test-deployment
 
 operations:
-- op: add
+- type: replace
   path: /indicators/name=success_percentage
   value:
     promql: success_percentage_promql{source_id="origin"}
@@ -532,7 +533,7 @@ operations:
 	p, err := indicator.ReadPatchBytes(documentBytes)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	g.Expect(p).To(BeEquivalentTo(patch))
+	g.Expect(p).To(BeEquivalentTo(indicatorPatch))
 }
 
 func TestDocumentMatching(t *testing.T) {
@@ -632,29 +633,10 @@ indicators:
 }
 
 func TestPatching(t *testing.T) {
-	var val interface{}
-	val = map[interface{}]interface{}{
-		"name":   "inserted_indicator",
-		"promql": `inserted_indicator_promql{source_id="origin"}`,
-		"documentation": map[interface{}]interface{}{
-			"title": "Success Percentage",
-		}}
+	t.Run("patches files that match", func(t *testing.T) {
+		g := NewGomegaWithT(t)
 
-	patch := []indicator.Patch{{
-		APIVersion: "test-apiversion/patch",
-		Match: indicator.Match{
-			Metadata: map[string]string{
-				"deployment": "test-deployment",
-			},
-		},
-		Operations: []yamlpatch.Operation{{
-			Op:    "add",
-			Path:  "/indicators/-",
-			Value: yamlpatch.NewNode(&val),
-		}},
-	}}
-
-	matchingDocument := []byte(`---
+		matchingDocument := []byte(`---
 apiVersion: test-apiversion/document
 
 product:
@@ -668,26 +650,24 @@ indicators:
 - name: test_indicator
   promql: test_expr
 `)
+		var val interface{} = "patched_promql"
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/0/promql"),
+					Value: &val,
+				},
+			},
+		}}
 
-	nonMatchingDocument := []byte(`---
-apiVersion: test-apiversion/document
-
-product:
-  name: testing
-  version: 123
-
-metadata:
-  deployment: non-matching-test-deployment
-
-indicators:
-- name: test_indicator
-  promql: test_expr
-`)
-
-	t.Run("patches files that match", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		patchedBytes, err := indicator.ApplyPatches(patch, matchingDocument)
+		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, matchingDocument)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		d, err := indicator.ReadIndicatorDocument(patchedBytes)
@@ -702,50 +682,33 @@ indicators:
 			Metadata: map[string]string{
 				"deployment": "test-deployment",
 			},
-			Indicators: []indicator.Indicator{{
-				Name:   "test_indicator",
-				PromQL: "test_expr",
-				Presentation: &indicator.Presentation{
-					CurrentValue: false,
-					ChartType:    "step",
-					Frequency:    0,
-					Labels: []string{},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: `patched_promql`,
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
 				},
-			}, {
-				Name:   "inserted_indicator",
-				PromQL: `inserted_indicator_promql{source_id="origin"}`,
-				Presentation: &indicator.Presentation{
-					CurrentValue: false,
-					ChartType:    "step",
-					Frequency:    0,
-					Labels: []string{},
-				},
-				Documentation: map[string]string{"title": "Success Percentage"},
-			}},
+			},
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{{
 					Title:       "Metrics",
 					Description: "",
-					Indicators: []indicator.Indicator{{
-						Name:   "test_indicator",
-						PromQL: "test_expr",
-						Presentation: &indicator.Presentation{
-							CurrentValue: false,
-							ChartType:    "step",
-							Frequency:    0,
-							Labels: []string{},
-						},
-					}, {
-						Name:   "inserted_indicator",
-						PromQL: `inserted_indicator_promql{source_id="origin"}`,
-						Presentation: &indicator.Presentation{
-							CurrentValue: false,
-							ChartType:    "step",
-							Frequency:    0,
-							Labels: []string{},
-						},
-						Documentation: map[string]string{"title": "Success Percentage"},
-					}},
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_indicator",
+							PromQL: `patched_promql`,
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
+							},
+						}},
 				}},
 			},
 		}))
@@ -753,7 +716,39 @@ indicators:
 
 	t.Run("does not patch files that do not match", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		unpatchedBytes, err := indicator.ApplyPatches(patch, nonMatchingDocument)
+
+		nonMatchingDocument := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: not-test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+		var val interface{} = "patched_promql"
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/0/promql"),
+					Value: &val,
+				},
+			},
+		}}
+
+		unpatchedBytes, err := indicator.ApplyPatches(indicatorPatch, nonMatchingDocument)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		d, err := indicator.ReadIndicatorDocument(unpatchedBytes)
@@ -766,7 +761,7 @@ indicators:
 				Version: "123",
 			},
 			Metadata: map[string]string{
-				"deployment": "non-matching-test-deployment",
+				"deployment": "not-test-deployment",
 			},
 			Indicators: []indicator.Indicator{{
 				Name:   "test_indicator",
@@ -775,7 +770,7 @@ indicators:
 					CurrentValue: false,
 					ChartType:    "step",
 					Frequency:    0,
-					Labels: []string{},
+					Labels:       []string{},
 				},
 			}},
 			Layout: indicator.Layout{
@@ -789,11 +784,558 @@ indicators:
 							CurrentValue: false,
 							ChartType:    "step",
 							Frequency:    0,
-							Labels: []string{},
+							Labels:       []string{},
 						},
 					}},
 				}},
 			},
 		}))
 	})
+
+	t.Run("replaces by index", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		var patchedThreshold interface{} = map[interface{}]interface{}{
+			"level": "warning",
+			"gt":    "1000",
+		}
+
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/0/thresholds/0"),
+					Value: &patchedThreshold,
+				},
+			},
+		}}
+		doc := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+  thresholds:
+  - level: critical
+    gt: 500
+    
+`)
+
+		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		d, err := indicator.ReadIndicatorDocument(patchedBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "test-apiversion/document",
+			Product: indicator.Product{
+				Name:    "testing",
+				Version: "123",
+			},
+			Metadata: map[string]string{
+				"deployment": "test-deployment",
+			},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: "test_expr",
+					Thresholds: []indicator.Threshold{{
+						Level:    "warning",
+						Operator: indicator.GreaterThan,
+						Value:    1000,
+					}},
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title:       "Metrics",
+					Description: "",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_indicator",
+							PromQL: "test_expr",
+							Thresholds: []indicator.Threshold{{
+								Level:    "warning",
+								Operator: indicator.GreaterThan,
+								Value:    1000,
+							}},
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
+							},
+						},
+					},
+				}},
+			},
+		}))
+	})
+
+	t.Run("replaces by attribute value", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		var patchedThreshold interface{} = map[interface{}]interface{}{
+			"level": "warning",
+			"gt":    "800",
+		}
+
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/name=test_indicator/thresholds/level=warning"),
+					Value: &patchedThreshold,
+				},
+			},
+		}}
+		doc := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+  thresholds:
+  - level: warning
+    gt: 500    
+  - level: critical
+    gt: 1000
+`)
+
+		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		d, err := indicator.ReadIndicatorDocument(patchedBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "test-apiversion/document",
+			Product: indicator.Product{
+				Name:    "testing",
+				Version: "123",
+			},
+			Metadata: map[string]string{
+				"deployment": "test-deployment",
+			},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: "test_expr",
+					Thresholds: []indicator.Threshold{
+						{
+							Level:    "warning",
+							Operator: indicator.GreaterThan,
+							Value:    800,
+						},
+						{
+							Level:    "critical",
+							Operator: indicator.GreaterThan,
+							Value:    1000,
+						},
+					},
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title:       "Metrics",
+					Description: "",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_indicator",
+							PromQL: "test_expr",
+							Thresholds: []indicator.Threshold{
+								{
+									Level:    "warning",
+									Operator: indicator.GreaterThan,
+									Value:    800,
+								},
+								{
+									Level:    "critical",
+									Operator: indicator.GreaterThan,
+									Value:    1000,
+								},
+							},
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
+							},
+						},
+					},
+				}},
+			},
+		}))
+	})
+
+	t.Run("removes", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "remove",
+					Path:  strPtr("/indicators/0/thresholds/level=warning"),
+					Value: nil,
+				},
+			},
+		}}
+		doc := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+  thresholds:
+  - level: warning
+    gt: 500
+  - level: critical
+    gt: 1000
+`)
+
+		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		d, err := indicator.ReadIndicatorDocument(patchedBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "test-apiversion/document",
+			Product: indicator.Product{
+				Name:    "testing",
+				Version: "123",
+			},
+			Metadata: map[string]string{
+				"deployment": "test-deployment",
+			},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: "test_expr",
+					Thresholds: []indicator.Threshold{{
+						Level:    "critical",
+						Operator: indicator.GreaterThan,
+						Value:    1000,
+					}},
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title:       "Metrics",
+					Description: "",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_indicator",
+							PromQL: "test_expr",
+							Thresholds: []indicator.Threshold{{
+								Level:    "critical",
+								Operator: indicator.GreaterThan,
+								Value:    1000,
+							}},
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
+							},
+						},
+					},
+				}},
+			},
+		}))
+	})
+
+	t.Run("applies patches where test passes", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		var testVal interface{} = "test_indicator"
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "test",
+					Path:  strPtr("/indicators/0/name"),
+					Value: &testVal,
+				},
+				{
+					Type:  "remove",
+					Path:  strPtr("/indicators/0/thresholds/level=warning"),
+					Value: nil,
+				},
+			},
+		}}
+		doc := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+  thresholds:
+  - level: warning
+    gt: 500
+`)
+
+		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		d, err := indicator.ReadIndicatorDocument(patchedBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "test-apiversion/document",
+			Product: indicator.Product{
+				Name:    "testing",
+				Version: "123",
+			},
+			Metadata: map[string]string{
+				"deployment": "test-deployment",
+			},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: "test_expr",
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title:       "Metrics",
+					Description: "",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_indicator",
+							PromQL: "test_expr",
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
+							},
+						},
+					},
+				}},
+			},
+		}))
+	})
+
+	t.Run("does not apply patches where test fails", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		var testVal interface{} = "not_test_indicator"
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "test",
+					Path:  strPtr("/indicators/0/name"),
+					Value: &testVal,
+				},
+				{
+					Type:  "remove",
+					Path:  strPtr("/indicators/0/thresholds/level=warning"),
+					Value: nil,
+				},
+			},
+		}}
+		doc := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+  thresholds:
+  - level: warning
+    gt: 500
+`)
+
+		_, err := indicator.ApplyPatches(indicatorPatch, doc)
+		g.Expect(err).To(HaveOccurred())
+	})
+
+	t.Run("adds by replacing", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		var newThresholds interface{} = map[interface{}]interface{}{
+			"level": "warning",
+			"gt":    "10",
+		}
+
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/name=test_indicator/thresholds?/-"),
+					Value: &newThresholds,
+				},
+			},
+		}}
+		doc := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+
+		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		d, err := indicator.ReadIndicatorDocument(patchedBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(BeEquivalentTo(indicator.Document{
+			APIVersion: "test-apiversion/document",
+			Product: indicator.Product{
+				Name:    "testing",
+				Version: "123",
+			},
+			Metadata: map[string]string{
+				"deployment": "test-deployment",
+			},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: "test_expr",
+					Thresholds: []indicator.Threshold{{
+						Level:    "warning",
+						Operator: indicator.GreaterThan,
+						Value:    10,
+					}},
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title:       "Metrics",
+					Description: "",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_indicator",
+							PromQL: "test_expr",
+							Thresholds: []indicator.Threshold{{
+								Level:    "warning",
+								Operator: indicator.GreaterThan,
+								Value:    10,
+							}},
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
+							},
+						},
+					},
+				}},
+			},
+		}))
+	})
+}
+
+func strPtr(s string) *string {
+	return &s
 }

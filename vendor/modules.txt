@@ -4,6 +4,8 @@ code.cloudfoundry.org/go-envstruct
 github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash v1.1.0
 github.com/cespare/xxhash
+# github.com/cppforlife/go-patch v0.2.0
+github.com/cppforlife/go-patch/patch
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/emirpasic/gods v1.9.0
@@ -62,8 +64,6 @@ github.com/json-iterator/go
 github.com/kevinburke/ssh_config
 # github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515
 github.com/kr/logfmt
-# github.com/krishicks/yaml-patch v0.0.10
-github.com/krishicks/yaml-patch
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mitchellh/go-homedir v1.0.0

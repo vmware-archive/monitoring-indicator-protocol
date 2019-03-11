@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/gomega"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
-	"github.com/krishicks/yaml-patch"
 )
 
 func TestInsertDocument(t *testing.T) {
@@ -27,10 +27,10 @@ func TestInsertDocument(t *testing.T) {
 			Name:    &productName,
 			Version: &productVersion,
 		},
-		Operations: []yamlpatch.Operation{{
-			Op:    "replace",
-			Path:  "indicators/name=success_percentage",
-			Value: yamlpatch.NewNode(&val),
+		Operations: []patch.OpDefinition{{
+			Type:  "replace",
+			Path:  strPtr("indicators/name=success_percentage"),
+			Value: &val,
 		}},
 	}
 
@@ -39,10 +39,10 @@ func TestInsertDocument(t *testing.T) {
 			Name:    &productName,
 			Version: &productVersion,
 		},
-		Operations: []yamlpatch.Operation{{
-			Op:    "replace",
-			Path:  "indicators/name=success_percentage",
-			Value: yamlpatch.NewNode(&val),
+		Operations: []patch.OpDefinition{{
+			Type:  "replace",
+			Path:  strPtr("indicators/name=success_percentage"),
+			Value: &val,
 		}},
 	}
 
@@ -56,10 +56,10 @@ func TestInsertDocument(t *testing.T) {
 			Name:    &productName,
 			Version: &productVersion,
 		},
-		Operations: []yamlpatch.Operation{{
-			Op:    "add",
-			Path:  "indicators/-",
-			Value: yamlpatch.NewNode(&newIndicator),
+		Operations: []patch.OpDefinition{{
+			Type:  "add",
+			Path:  strPtr("indicators/-"),
+			Value: &newIndicator,
 		}},
 	}
 
@@ -149,4 +149,8 @@ func TestInsertDocument(t *testing.T) {
 
 		g.Expect(store.AllDocuments()).To(HaveLen(0))
 	})
+}
+
+func strPtr(s string) *string {
+	return &s
 }
