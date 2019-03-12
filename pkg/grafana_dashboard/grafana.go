@@ -3,6 +3,7 @@ package grafana_dashboard
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
@@ -48,7 +49,7 @@ func toGrafanaPanel(i indicator.Indicator, title string) GrafanaPanel {
 		Title: title,
 		Type:  "graph",
 		Targets: []GrafanaTarget{{
-			Expression: i.PromQL,
+			Expression: strings.Replace(i.PromQL, "$step", "$__interval", -1),
 		}},
 		Thresholds: toGrafanaThresholds(i.Thresholds),
 	}

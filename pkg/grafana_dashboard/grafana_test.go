@@ -43,7 +43,7 @@ func TestDocumentToDashboard(t *testing.T) {
 			Layout: indicator.Layout{
 				Title: "Indicator Test Dashboard",
 				Sections: []indicator.Section{
-					indicator.Section{
+					{
 						Title: "Test Section Title",
 						Indicators: []indicator.Indicator{
 							{
@@ -110,7 +110,7 @@ func TestDocumentToDashboard(t *testing.T) {
 		}))
 	})
 
-	t.Run("Uses the IP layout information to create distinct rows", func(t *testing.T) {
+	t.Run("uses the IP layout information to create distinct rows", func(t *testing.T) {
 		buffer := bytes.NewBuffer(nil)
 		log.SetOutput(buffer)
 
@@ -201,6 +201,54 @@ func TestDocumentToDashboard(t *testing.T) {
 						Expression: `sum_over_time(gorouter_latency_ms[30m])`,
 					}},
 				}},
+			}},
+		}))
+	})
+
+	t.Run("replaces $step with $__interval", func(t *testing.T) {
+		buffer := bytes.NewBuffer(nil)
+		log.SetOutput(buffer)
+
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: `sum_over_time(gorouter_latency_ms[$step])`,
+				},
+			},
+			Layout: indicator.Layout{
+				Title: "Indicator Test Dashboard",
+				Sections: []indicator.Section{
+					{
+						Title: "Test Section Title",
+						Indicators: []indicator.Indicator{
+							{
+								Name:   "test_indicator",
+								PromQL: `rate(sum_over_time(gorouter_latency_ms[$step])[$step])`,
+							},
+						},
+					},
+				},
+			},
+		}
+
+		dashboard := grafana_dashboard.DocumentToDashboard(document)
+
+		g.Expect(dashboard).To(BeEquivalentTo(grafana_dashboard.GrafanaDashboard{
+			Title: "Indicator Test Dashboard",
+			Rows: []grafana_dashboard.GrafanaRow{{
+				Title: "Test Section Title",
+				Panels: []grafana_dashboard.GrafanaPanel{
+					{
+						Title: "test_indicator",
+						Type:  "graph",
+						Targets: []grafana_dashboard.GrafanaTarget{{
+							Expression: `rate(sum_over_time(gorouter_latency_ms[$__interval])[$__interval])`,
+						}},
+					},
+				},
 			}},
 		}))
 	})
