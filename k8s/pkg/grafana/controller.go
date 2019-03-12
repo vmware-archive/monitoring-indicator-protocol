@@ -91,11 +91,7 @@ func (c *Controller) OnDelete(obj interface{}) {
 		log.Printf("Failed to generate ConfigMap: %s", err)
 		return
 	}
-	err = c.cmEditor.Delete(configMap.Name, &metav1.DeleteOptions{
-		Preconditions: &metav1.Preconditions{
-			UID: &configMap.ObjectMeta.UID,
-		},
-	})
+	err = c.cmEditor.Delete(configMap.Name, nil)
 	if err != nil {
 		log.Printf("Failed to delete ConfigMap: %s", err)
 		return

@@ -43,7 +43,6 @@ func ConfigMap(doc *v1alpha1.IndicatorDocument, m mapper) (*v1.ConfigMap, error)
 	cm := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cmName,
-			UID:       doc.UID,
 			Labels: map[string]string{
 				"grafana_dashboard": "true",
 			},

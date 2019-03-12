@@ -181,15 +181,9 @@ func TestController(t *testing.T) {
 
 		p.OnDelete(indicatorDocument())
 
-		uid := types.UID("some-uid")
 		spyConfigMapEditor.expectDeleted([]deleteCall{
 			{
 				name: "rabbit-mq-resource-name-620771403",
-				do: &metav1.DeleteOptions{
-					Preconditions: &metav1.Preconditions{
-						UID: &uid,
-					},
-				},
 			},
 		})
 	})
