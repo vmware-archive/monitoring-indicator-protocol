@@ -4,7 +4,7 @@ metadata:
   name: grafana-indicator-controller
   namespace: grafana
 rules:
-  # The grafana-indicator-controller needs to create, update, and delete configmaps for grafana
+  # The grafana-indicator-controller needs to get, create, update, and delete configmaps for grafana
   - apiGroups: [""] # "" indicates the core API group
     resources: ["configmaps"]
     verbs: ["get", "create", "update", "delete"]
