@@ -151,6 +151,7 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 			Name:          yamlIndicator.Name,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
+			Alert:         alertFromYAML(yamlIndicator.Alert),
 			Presentation:  p,
 			Documentation: yamlIndicator.Documentation,
 		})
@@ -290,8 +291,14 @@ type yamlIndicator struct {
 	Name          string            `yaml:"name"`
 	Promql        string            `yaml:"promql"`
 	Thresholds    []yamlThreshold   `yaml:"thresholds"`
+	Alert         yamlAlert         `yaml:"alert"`
 	Documentation map[string]string `yaml:"documentation"`
 	Presentation  yamlPresentation  `yaml:"presentation"`
+}
+
+type yamlAlert struct {
+	For  string
+	Step string
 }
 
 type yamlThreshold struct {
@@ -400,6 +407,21 @@ func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 		Frequency:    p.Frequency,
 		Labels:       p.Labels,
 	}, nil
+}
+
+func alertFromYAML(a yamlAlert) Alert {
+	alertFor, alertStep := a.For, a.Step
+	if alertFor == "" {
+		alertFor = "1m"
+	}
+	if alertStep == "" {
+		alertStep = "1m"
+	}
+
+	return Alert{
+		For:  alertFor,
+		Step: alertStep,
+	}
 }
 
 func getChartTypesList() string {

@@ -46,8 +46,14 @@ type Indicator struct {
 	Name          string
 	PromQL        string
 	Thresholds    []Threshold
+	Alert         Alert
 	Documentation map[string]string
 	Presentation  *Presentation
+}
+
+type Alert struct {
+	For  string
+	Step string
 }
 
 type Threshold struct {

@@ -32,8 +32,14 @@ type APIV0Indicator struct {
 	Name          string             `json:"name"`
 	PromQL        string             `json:"promql"`
 	Thresholds    []APIV0Threshold   `json:"thresholds,omitempty"`
+	Alert         APIV0Alert         `json:"alert,omitempty"`
 	Documentation map[string]string  `json:"documentation,omitempty"`
 	Presentation  *APIV0Presentation `json:"presentation,omitempty"`
+}
+
+type APIV0Alert struct {
+	For  string `json:"for"`
+	Step string `json:"step"`
 }
 
 type APIV0Layout struct {
@@ -150,10 +156,16 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 			}
 		}
 
+		alert := APIV0Alert{
+			For:  i.Alert.For,
+			Step: i.Alert.Step,
+		}
+
 		indicators = append(indicators, APIV0Indicator{
 			Name:          i.Name,
 			PromQL:        i.PromQL,
 			Thresholds:    thresholds,
+			Alert:         alert,
 			Documentation: i.Documentation,
 			Presentation:  presentation,
 		})

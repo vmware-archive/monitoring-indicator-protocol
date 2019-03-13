@@ -56,6 +56,10 @@ indicators:
 					Indicators: []indicator.Indicator{{
 						Name:   "test_performance_indicator",
 						PromQL: "prom",
+						Alert: indicator.Alert{
+							For:  "1m",
+							Step: "1m",
+						},
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
 							ChartType: "step",
@@ -75,6 +79,10 @@ indicators:
 			Indicators: []indicator.Indicator{{
 				Name:   "test_performance_indicator",
 				PromQL: "prom",
+				Alert: indicator.Alert{
+					For:  "1m",
+					Step: "1m",
+				},
 				Presentation: &indicator.Presentation{
 					CurrentValue: false,
 					ChartType: "step",
@@ -158,8 +166,16 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 			},
 			Indicators: []indicator.Indicator{{
 				Name: "test_errors1",
+				Alert: indicator.Alert{
+					For:  "5m",
+					Step: "10s",
+				},
 			}, {
 				Name: "test_errors2",
+				Alert: indicator.Alert{
+					For:  "5m",
+					Step: "10s",
+				},
 			}},
 		})
 
@@ -186,11 +202,19 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
                     "indicators": [
                       {
                         "name": "test_errors1",
-                        "promql": ""
+                        "promql": "",
+						"alert": {
+							"for": "5m",
+							"step": "10s"
+						}
                       },
                       {
                         "name": "test_errors2",
-                        "promql": ""
+                        "promql": "",
+						"alert": {
+							"for": "5m",
+							"step": "10s"
+						}
                       }
                     ],
                     "layout": {

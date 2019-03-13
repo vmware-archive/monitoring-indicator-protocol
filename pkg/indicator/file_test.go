@@ -34,6 +34,10 @@ indicators:
 				{
 					Name:   "test_performance_indicator",
 					PromQL: `query_metric{source_id="well-performing-deployment"}`,
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
 						ChartType: "step",
@@ -49,6 +53,10 @@ indicators:
 						{
 							Name:   "test_performance_indicator",
 							PromQL: `query_metric{source_id="well-performing-deployment"}`,
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "1m",
+							},
 							Presentation: &indicator.Presentation{
 								CurrentValue: false,
 								ChartType: "step",
@@ -75,6 +83,10 @@ indicators:
 				{
 					Name:   "test_performance_indicator",
 					PromQL: `query_metric{source_id="$deployment"}`,
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
 						ChartType: "step",
@@ -90,6 +102,10 @@ indicators:
 						{
 							Name:   "test_performance_indicator",
 							PromQL: `query_metric{source_id="$deployment"}`,
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "1m",
+							},
 							Presentation: &indicator.Presentation{
 								CurrentValue: false,
 								ChartType: "step",

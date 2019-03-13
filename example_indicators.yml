@@ -19,6 +19,9 @@ indicators:
     gte: 50
   - level: critical
     gt: 100
+  alert:
+    for: 5m
+    step: 10s
   presentation:
     chartType: step
     currentValue: false

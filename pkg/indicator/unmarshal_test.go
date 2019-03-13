@@ -59,6 +59,10 @@ layout:
 				{
 					Name:   "test_performance_indicator",
 					PromQL: `prom{deployment="$deployment"}`,
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Thresholds: []indicator.Threshold{
 						{
 							Level:    "warning",
@@ -89,6 +93,10 @@ layout:
 					Indicators: []indicator.Indicator{{
 						Name:   "test_performance_indicator",
 						PromQL: `prom{deployment="$deployment"}`,
+						Alert: indicator.Alert{
+							For:  "1m",
+							Step: "1m",
+						},
 						Thresholds: []indicator.Threshold{
 							{
 								Level:    "warning",
@@ -144,6 +152,10 @@ layout:
 				{
 					Name:   "test_performance_indicator",
 					PromQL: `prom{deployment="test_deployment"}`,
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Presentation: &indicator.Presentation{
 						ChartType:    "step",
 						CurrentValue: false,
@@ -158,6 +170,10 @@ layout:
 					Indicators: []indicator.Indicator{{
 						Name:   "test_performance_indicator",
 						PromQL: `prom{deployment="test_deployment"}`,
+						Alert: indicator.Alert{
+							For:  "1m",
+							Step: "1m",
+						},
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
@@ -203,6 +219,10 @@ layout:
 				{
 					Name:   "test_performance_indicator",
 					PromQL: `prom{deployment="test_deployment"}`,
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
 						ChartType:    "step",
@@ -217,6 +237,10 @@ layout:
 					Indicators: []indicator.Indicator{{
 						Name:   "test_performance_indicator",
 						PromQL: `prom{deployment="test_deployment"}`,
+						Alert: indicator.Alert{
+							For:  "1m",
+							Step: "1m",
+						},
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
@@ -266,6 +290,10 @@ indicators:
 	g.Expect(d.Indicators).To(Equal([]indicator.Indicator{{
 		Name:   "test-kpi",
 		PromQL: "prom",
+		Alert: indicator.Alert{
+			For:  "1m",
+			Step: "1m",
+		},
 		Thresholds: []indicator.Threshold{
 			{
 				Level:    "warning",
@@ -412,6 +440,10 @@ indicators:
 			{
 				Name:   "test_performance_indicator",
 				PromQL: "promql_test_expr",
+				Alert: indicator.Alert{
+					For:  "1m",
+					Step: "1m",
+				},
 				Presentation: &indicator.Presentation{
 					CurrentValue: false,
 					ChartType:    "step",
@@ -427,6 +459,10 @@ indicators:
 					{
 						Name:   "test_performance_indicator",
 						PromQL: "promql_test_expr",
+						Alert: indicator.Alert{
+							For:  "1m",
+							Step: "1m",
+						},
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
@@ -686,6 +722,10 @@ indicators:
 				{
 					Name:   "test_indicator",
 					PromQL: `patched_promql`,
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
 						ChartType:    "step",
@@ -702,6 +742,10 @@ indicators:
 						{
 							Name:   "test_indicator",
 							PromQL: `patched_promql`,
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "1m",
+							},
 							Presentation: &indicator.Presentation{
 								CurrentValue: false,
 								ChartType:    "step",
@@ -766,6 +810,10 @@ indicators:
 			Indicators: []indicator.Indicator{{
 				Name:   "test_indicator",
 				PromQL: "test_expr",
+				Alert: indicator.Alert{
+					For:  "1m",
+					Step: "1m",
+				},
 				Presentation: &indicator.Presentation{
 					CurrentValue: false,
 					ChartType:    "step",
@@ -780,6 +828,10 @@ indicators:
 					Indicators: []indicator.Indicator{{
 						Name:   "test_indicator",
 						PromQL: "test_expr",
+						Alert: indicator.Alert{
+							For:  "1m",
+							Step: "1m",
+						},
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
@@ -853,6 +905,10 @@ indicators:
 				{
 					Name:   "test_indicator",
 					PromQL: "test_expr",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Thresholds: []indicator.Threshold{{
 						Level:    "warning",
 						Operator: indicator.GreaterThan,
@@ -874,6 +930,10 @@ indicators:
 						{
 							Name:   "test_indicator",
 							PromQL: "test_expr",
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "1m",
+							},
 							Thresholds: []indicator.Threshold{{
 								Level:    "warning",
 								Operator: indicator.GreaterThan,
@@ -954,6 +1014,10 @@ indicators:
 				{
 					Name:   "test_indicator",
 					PromQL: "test_expr",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Thresholds: []indicator.Threshold{
 						{
 							Level:    "warning",
@@ -982,6 +1046,10 @@ indicators:
 						{
 							Name:   "test_indicator",
 							PromQL: "test_expr",
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "1m",
+							},
 							Thresholds: []indicator.Threshold{
 								{
 									Level:    "warning",
@@ -1064,6 +1132,10 @@ indicators:
 				{
 					Name:   "test_indicator",
 					PromQL: "test_expr",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Thresholds: []indicator.Threshold{{
 						Level:    "critical",
 						Operator: indicator.GreaterThan,
@@ -1085,6 +1157,10 @@ indicators:
 						{
 							Name:   "test_indicator",
 							PromQL: "test_expr",
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "1m",
+							},
 							Thresholds: []indicator.Threshold{{
 								Level:    "critical",
 								Operator: indicator.GreaterThan,
@@ -1164,6 +1240,10 @@ indicators:
 				{
 					Name:   "test_indicator",
 					PromQL: "test_expr",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
 						ChartType:    "step",
@@ -1180,6 +1260,10 @@ indicators:
 						{
 							Name:   "test_indicator",
 							PromQL: "test_expr",
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "1m",
+							},
 							Presentation: &indicator.Presentation{
 								CurrentValue: false,
 								ChartType:    "step",
@@ -1296,6 +1380,10 @@ indicators:
 				{
 					Name:   "test_indicator",
 					PromQL: "test_expr",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 					Thresholds: []indicator.Threshold{{
 						Level:    "warning",
 						Operator: indicator.GreaterThan,
@@ -1317,11 +1405,201 @@ indicators:
 						{
 							Name:   "test_indicator",
 							PromQL: "test_expr",
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "1m",
+							},
 							Thresholds: []indicator.Threshold{{
 								Level:    "warning",
 								Operator: indicator.GreaterThan,
 								Value:    10,
 							}},
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
+							},
+						},
+					},
+				}},
+			},
+		}))
+	})
+}
+
+func TestDefaultAlertConfig(t *testing.T) {
+	t.Run("populates default alert config when no alert given", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_indicator
+  promql: promql_query
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(Equal(indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+			Metadata:   map[string]string{"deployment": "valid-deployment"},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: "promql_query",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title: "Metrics",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_indicator",
+							PromQL: "promql_query",
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "1m",
+							},
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
+							},
+						},
+					},
+				}},
+			},
+		}))
+	})
+
+	t.Run("populates default alert for when no alert for given", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_indicator
+  promql: promql_query
+  alert:
+    step: 5m
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(Equal(indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+			Metadata:   map[string]string{"deployment": "valid-deployment"},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: "promql_query",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "5m",
+					},
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title: "Metrics",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_indicator",
+							PromQL: "promql_query",
+							Alert: indicator.Alert{
+								For:  "1m",
+								Step: "5m",
+							},
+							Presentation: &indicator.Presentation{
+								CurrentValue: false,
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
+							},
+						},
+					},
+				}},
+			},
+		}))
+	})
+
+	t.Run("populates default alert step when no alert step given", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_indicator
+  promql: promql_query
+  alert:
+    for: 5m
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d).To(Equal(indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+			Metadata:   map[string]string{"deployment": "valid-deployment"},
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_indicator",
+					PromQL: "promql_query",
+					Alert: indicator.Alert{
+						For:  "5m",
+						Step: "1m",
+					},
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+				},
+			},
+			Layout: indicator.Layout{
+				Sections: []indicator.Section{{
+					Title: "Metrics",
+					Indicators: []indicator.Indicator{
+						{
+							Name:   "test_indicator",
+							PromQL: "promql_query",
+							Alert: indicator.Alert{
+								For:  "5m",
+								Step: "1m",
+							},
 							Presentation: &indicator.Presentation{
 								CurrentValue: false,
 								ChartType:    "step",

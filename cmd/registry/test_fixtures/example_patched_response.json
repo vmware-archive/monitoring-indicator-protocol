@@ -13,6 +13,10 @@
       {
         "name": "only_in_example_yml",
         "promql": "test_query",
+        "alert": {
+          "for": "1m",
+          "step": "1m"
+        },
         "presentation": {
           "chartType": "step",
           "frequency": 0,
@@ -35,6 +39,10 @@
             "value": 100
           }
         ],
+        "alert": {
+          "for": "5m",
+          "step": "10s"
+        },
         "documentation": {
           "description": "This is a valid markdown description.\n\n**Use**: This indicates nothing. It is placeholder text.\n\n**Type**: Gauge\n**Frequency**: 60 s\n",
           "measurement": "Average latency over last 5 minutes per instance",
@@ -46,7 +54,11 @@
           "chartType": "step",
           "frequency": 60,
           "currentValue": false,
-          "labels": ["job", "ip", "index"]
+          "labels": [
+            "job",
+            "ip",
+            "index"
+          ]
         }
       }
     ],
@@ -79,6 +91,10 @@
       {
         "name": "very_good_indicator",
         "promql": "test_query",
+        "alert": {
+          "for": "1m",
+          "step": "1m"
+        },
         "presentation": {
           "chartType": "step",
           "currentValue": false,
@@ -89,6 +105,10 @@
       {
         "name": "success_percentage",
         "promql": "success_percentage_promql{source_id=\"origin\"}",
+        "alert": {
+          "for": "1m",
+          "step": "1m"
+        },
         "presentation": {
           "chartType": "step",
           "frequency": 0,
