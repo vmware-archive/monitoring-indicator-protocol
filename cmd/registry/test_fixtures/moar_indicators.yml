@@ -12,3 +12,6 @@ metadata:
 indicators:
 - name: very_good_indicator
   promql: test_query
+  alert:
+    for: 50m
+    step: 10s

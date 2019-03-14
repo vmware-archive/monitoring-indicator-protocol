@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/sha1"
 	"flag"
 	"fmt"
 	"log"
@@ -85,7 +84,7 @@ func Convert(document indicator.Document) (*exporter.File, error) {
 	}
 
 	return &exporter.File{
-		Name:     fmt.Sprintf("%s_%x.yml", document.Product.Name, sha1.Sum(documentBytes)),
+		Name:     prometheus_alerts.AlertDocumentFilename(documentBytes, document.Product.Name),
 		Contents: documentBytes,
 	}, nil
 }

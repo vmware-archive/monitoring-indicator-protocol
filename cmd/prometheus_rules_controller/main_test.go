@@ -15,6 +15,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
@@ -33,7 +34,7 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 
 		store := registry.NewDocumentStore(time.Hour)
 
-		store.UpsertDocument(indicator.Document{
+		doc := indicator.Document{
 			APIVersion: "v0",
 			Product: indicator.Product{
 				Name:    "test_product",
@@ -42,18 +43,25 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 			Metadata: map[string]string{"deployment": "test_deployment"},
 			Indicators: []indicator.Indicator{{
 				Name:   "test_indicator",
-				PromQL: `test_query{deployment="test_deployment"}`,
+				PromQL: `test_query{deployment="test_deployment"[$step]}`,
 				Thresholds: []indicator.Threshold{{
 					Level:    "critical",
 					Operator: indicator.LessThan,
 					Value:    5,
 				}},
+				Alert: indicator.Alert{
+					For:  "10m",
+					Step: "5m",
+				},
 				Documentation: map[string]string{
 					"test1": "a",
 					"test2": "b",
 				},
+				Presentation: test_fixtures.DefaultPresentation(),
 			}},
-		})
+		}
+		doc.Layout = test_fixtures.DefaultLayout(doc.Indicators)
+		store.UpsertDocument(doc)
 
 		registryAddress := "localhost:13245"
 		config := registry.WebServerConfig{
@@ -101,7 +109,7 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(files).To(HaveLen(1))
 
-		file, err := fs.Open(fmt.Sprintf("%s/test_product_5482021faf855c4956467ffa12adef6cd9c559b2.yml", directory))
+		file, err := fs.Open(fmt.Sprintf("%s/%s", directory, files[0].Name()))
 		g.Expect(err).ToNot(HaveOccurred())
 		data, err := ioutil.ReadAll(file)
 		g.Expect(err).ToNot(HaveOccurred())
@@ -110,11 +118,13 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
                 - name: test_product
                   rules:
                   - alert: test_indicator
-                    expr: test_query{deployment="test_deployment"} < 5
+                    expr: test_query{deployment="test_deployment"[5m]} < 5
+                    for: 10m
                     labels:
                       level: critical
                       product: test_product
                       version: v1.2.3
+                      deployment: test_deployment
                     annotations:
                       test1: a
                       test2: b`))

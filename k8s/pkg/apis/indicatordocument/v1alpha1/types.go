@@ -16,44 +16,50 @@ type IndicatorDocument struct {
 
 // IndicatorDocumentSpec is the spec for a IndicatorDocument resource
 type IndicatorDocumentSpec struct {
-	Product Product `json:"product"`
+	Product    Product     `json:"product"`
 	Indicators []Indicator `json:"indicators"`
-	Layout Layout `json:"layout"`
+	Layout     Layout      `json:"layout"`
 }
 
 type Product struct {
-	Name string `json:"name"`
+	Name    string `json:"name"`
 	Version string `json:"version"`
 }
 
 type Indicator struct {
-	Name          string `json:"name"`
-	Promql        string `json:"promql"`
-	Thresholds    []Threshold `json:"thresholds"`
+	Name          string            `json:"name"`
+	Promql        string            `json:"promql"`
+	Alert         Alert             `json:"alert"`
+	Thresholds    []Threshold       `json:"thresholds"`
 	Documentation map[string]string `json:"documentation"`
 }
 
+type Alert struct {
+	For  string `json:"for"`
+	Step string `json:"step"`
+}
+
 type Threshold struct {
-	Level string `json:"level"`
-	Lt *float64 `json:"lt"`
-	Lte *float64 `json:"lte"`
-	Eq *float64 `json:"eq"`
-	Neq *float64 `json:"neq"`
-	Gte *float64 `json:"gte"`
-	Gt *float64 `json:"gt"`
+	Level string   `json:"level"`
+	Lt    *float64 `json:"lt"`
+	Lte   *float64 `json:"lte"`
+	Eq    *float64 `json:"eq"`
+	Neq   *float64 `json:"neq"`
+	Gte   *float64 `json:"gte"`
+	Gt    *float64 `json:"gt"`
 }
 
 type Layout struct {
-	Owner string `json:"owner"`
-	Title string `json:"title"`
-	Description string `json:"description"`
-	Sections []Section `json:"sections"`
+	Owner       string    `json:"owner"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Sections    []Section `json:"sections"`
 }
 
 type Section struct {
-	Name string `json:"name"`
-	Description string `json:"description"`
-	Indicators []string `json:"indicators"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Indicators  []string `json:"indicators"`
 }
 
 // IndicatorDocumentStatus is the status for a IndicatorDocument resource

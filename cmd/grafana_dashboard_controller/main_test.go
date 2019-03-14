@@ -13,6 +13,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
 var (
@@ -40,32 +41,25 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 			Indicators: []indicator.Indicator{{
 				Name:   "test_indicator",
 				PromQL: `test_query{deployment="test_deployment"}`,
+				Alert:  test_fixtures.DefaultAlert(),
 				Thresholds: []indicator.Threshold{{
 					Level:    "critical",
 					Operator: indicator.LessThan,
 					Value:    5,
 				}},
+				Presentation:  test_fixtures.DefaultPresentation(),
 				Documentation: map[string]string{"title": "Test Indicator Title"},
 			}},
 			Layout: indicator.Layout{
 				Title: "Test Dashboard",
 				Sections: []indicator.Section{
 					{
-						Title:       "Test Section Title",
-						Indicators: []indicator.Indicator{{
-							Name:   "test_indicator",
-							PromQL: `test_query{deployment="test_deployment"}`,
-							Thresholds: []indicator.Threshold{{
-								Level:    "critical",
-								Operator: indicator.LessThan,
-								Value:    5,
-							}},
-							Documentation: map[string]string{"title": "Test Indicator Title"},
-						}},
+						Title: "Test Section Title",
 					},
 				},
 			},
 		}
+		document.Layout.Sections[0].Indicators = document.Indicators
 
 		store.UpsertDocument(document)
 
@@ -103,12 +97,6 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 		files, err := ioutil.ReadDir(directory)
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(files).To(HaveLen(1))
-
-		//dashboardString, err := json.Marshal(grafana_dashboard.DocumentToDashboard(document))
-		//g.Expect(err).ToNot(HaveOccurred())
-
-		//filePath := fmt.Sprintf("%s/%s_%x.json", directory, document.Product.Name, sha1.Sum([]byte(dashboardString)))
-		//g.Expect(filePath).To(ContainSubstring(files[0].Name()))
 
 		data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", directory, files[0].Name()))
 		g.Expect(err).ToNot(HaveOccurred())

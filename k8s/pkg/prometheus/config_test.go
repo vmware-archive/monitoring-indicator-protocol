@@ -1,11 +1,12 @@
 package prometheus_test
 
 import (
+	"testing"
+
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/prometheus"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 var indicators = []*v1alpha1.IndicatorDocument{
@@ -26,6 +27,10 @@ var indicators = []*v1alpha1.IndicatorDocument{
 				{
 					Name:   "latency",
 					Promql: "histogram_quantile(0.9, latency)",
+					Alert: v1alpha1.Alert{
+						For:  "5m",
+						Step: "10s",
+					},
 					Thresholds: []v1alpha1.Threshold{
 						{
 							Level: "critical",
@@ -57,6 +62,10 @@ var indicators = []*v1alpha1.IndicatorDocument{
 				{
 					Name:   "average_latency",
 					Promql: "average(latency)",
+					Alert: v1alpha1.Alert{
+						For:  "10m",
+						Step: "10s",
+					},
 					Thresholds: []v1alpha1.Threshold{
 						{
 							Level: "warning",
@@ -94,6 +103,7 @@ func TestConfig(t *testing.T) {
                       rules:
                       - alert: latency
                         expr: histogram_quantile(0.9, latency) >= 100.2
+                        for: 5m
                         labels:
                           product: my_app
                           version: 1.0.1
@@ -113,6 +123,7 @@ func TestConfig(t *testing.T) {
                         annotations:
                           title: 90th Percentile Latency
                         expr: histogram_quantile(0.9, latency) >= 100.2
+                        for: 5m
                         labels:
                           environment: staging
                           level: critical
@@ -124,6 +135,7 @@ func TestConfig(t *testing.T) {
                         annotations:
                           title: Average Latency
                         expr: average(latency) != 0
+                        for: 10m
                         labels:
                           environment: production
                           level: warning
@@ -165,6 +177,7 @@ func TestConfig(t *testing.T) {
                 annotations:
                   title: Average Latency
                 expr: average(latency) != 0
+                for: 10m
                 labels:
                   environment: production
                   level: warning

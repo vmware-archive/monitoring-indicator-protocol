@@ -1,10 +1,8 @@
 package main
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -53,12 +51,12 @@ func main() {
 }
 
 func Convert(document indicator.Document) (*exporter.File, error) {
-	documentString, err := json.Marshal(grafana_dashboard.DocumentToDashboard(document))
+	documentBytes, err := json.Marshal(grafana_dashboard.DocumentToDashboard(document))
 	if err != nil {
 		return nil, err
 	}
 	return &exporter.File{
-		Name:     fmt.Sprintf("%s_%x.json", document.Product.Name, sha1.Sum([]byte(documentString))),
-		Contents: []byte(documentString),
+		Name:     grafana_dashboard.DashboardFilename(documentBytes, document.Product.Name),
+		Contents: documentBytes,
 	}, nil
 }

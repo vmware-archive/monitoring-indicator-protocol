@@ -1,12 +1,17 @@
 package grafana_dashboard
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"log"
 	"strings"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
+
+func DashboardFilename(documentBytes []byte, productName string) string {
+	return fmt.Sprintf("%s_%x.json", productName, sha1.Sum(documentBytes))
+}
 
 func DocumentToDashboard(document indicator.Document) GrafanaDashboard {
 	return toGrafanaDashboard(document)

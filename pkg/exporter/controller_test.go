@@ -14,6 +14,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 	"gopkg.in/src-d/go-billy.v4/memfs"
 )
 
@@ -97,14 +98,17 @@ func TestController(t *testing.T) {
 					Version: "v1.2.3",
 				},
 				Indicators: []registry.APIV0Indicator{{
-					Name:   "test_indicator",
-					PromQL: `test_query{deployment="test_deployment"}`,
+					Name:         "test_indicator",
+					PromQL:       `test_query{deployment="test_deployment"}`,
+					Alert:        test_fixtures.DefaultAPIV0Alert(),
+					Presentation: test_fixtures.DefaultAPIV0Presentation(),
 					Thresholds: []registry.APIV0Threshold{{
 						Level:    "critical",
 						Operator: "lt",
 						Value:    5,
 					}},
 				}},
+				Layout: test_fixtures.DefaultAPIV0Layout([]string{"test_indicator"}),
 			}},
 		}
 
@@ -137,14 +141,17 @@ func TestController(t *testing.T) {
 				Version: "v1.2.3",
 			},
 			Indicators: []registry.APIV0Indicator{{
-				Name:   "test_indicator",
-				PromQL: `test_query{deployment="test_deployment"}`,
+				Name:         "test_indicator",
+				PromQL:       `test_query{deployment="test_deployment"}`,
+				Alert:        test_fixtures.DefaultAPIV0Alert(),
+				Presentation: test_fixtures.DefaultAPIV0Presentation(),
 				Thresholds: []registry.APIV0Threshold{{
 					Level:    "critical",
 					Operator: "lt",
 					Value:    5,
 				}},
 			}},
+			Layout: test_fixtures.DefaultAPIV0Layout([]string{"test_indicator"}),
 		}}
 
 		err = controller.Update()
@@ -166,14 +173,17 @@ func TestController(t *testing.T) {
 					Version: "v1.2.3",
 				},
 				Indicators: []registry.APIV0Indicator{{
-					Name:   "test_indicator",
-					PromQL: `test_query{deployment="test_deployment"}`,
+					Name:         "test_indicator",
+					PromQL:       `test_query{deployment="test_deployment"}`,
+					Alert:        test_fixtures.DefaultAPIV0Alert(),
+					Presentation: test_fixtures.DefaultAPIV0Presentation(),
 					Thresholds: []registry.APIV0Threshold{{
 						Level:    "critical",
 						Operator: "lt",
 						Value:    5,
 					}},
 				}},
+				Layout: test_fixtures.DefaultAPIV0Layout([]string{"test_indicator"}),
 			}},
 		}
 
@@ -298,6 +308,7 @@ var testComparators = []string{"lt", "lte", "eq", "neq", "gte", "gt"}
 func createTestDocuments(count int) []registry.APIV0Document {
 	docs := make([]registry.APIV0Document, count)
 	for i := 0; i < count; i++ {
+		indicatorName := fmt.Sprintf("test_indicator_%d", i)
 		docs[i] = registry.APIV0Document{
 			APIVersion: "v0",
 			Product: registry.APIV0Product{
@@ -306,18 +317,21 @@ func createTestDocuments(count int) []registry.APIV0Document {
 			},
 			Metadata: map[string]string{"deployment": "test_deployment"},
 			Indicators: []registry.APIV0Indicator{{
-				Name:   fmt.Sprintf("test_indicator_%d", i),
+				Name:   indicatorName,
 				PromQL: `test_query{deployment="test_deployment"}`,
+				Alert:  test_fixtures.DefaultAPIV0Alert(),
 				Thresholds: []registry.APIV0Threshold{{
 					Level:    "critical",
 					Operator: testComparators[i],
 					Value:    5,
 				}},
+				Presentation: test_fixtures.DefaultAPIV0Presentation(),
 				Documentation: map[string]string{
 					"test1": "a",
 					"test2": "b",
 				},
 			}},
+			Layout: test_fixtures.DefaultAPIV0Layout([]string{indicatorName}),
 		}
 	}
 	return docs
@@ -327,8 +341,8 @@ type mockRegistryClient struct {
 	Documents []registry.APIV0Document
 	Error     error
 
-	mu sync.Mutex
-	calls_     int
+	mu     sync.Mutex
+	calls_ int
 }
 
 func (a *mockRegistryClient) IndicatorDocuments() ([]registry.APIV0Document, error) {
@@ -345,9 +359,9 @@ func (a *mockRegistryClient) calls() int {
 }
 
 type mockReloader struct {
-	fail  bool
+	fail bool
 
-	mu sync.Mutex
+	mu     sync.Mutex
 	calls_ int
 }
 

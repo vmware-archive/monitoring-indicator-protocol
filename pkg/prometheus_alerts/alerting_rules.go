@@ -1,13 +1,17 @@
 package prometheus_alerts
 
 import (
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"crypto/sha1"
 	"fmt"
+	"strings"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 type Rule struct {
 	Alert       string
 	Expr        string
+	For         string
 	Labels      map[string]string
 	Annotations map[string]string
 }
@@ -19,6 +23,10 @@ type Document struct {
 type Group struct {
 	Name  string
 	Rules []Rule
+}
+
+func AlertDocumentFilename(documentBytes []byte, productName string) string {
+	return fmt.Sprintf("%s_%x.yml", productName, sha1.Sum(documentBytes))
 }
 
 func AlertDocumentFrom(document indicator.Document) Document {
@@ -49,9 +57,12 @@ func ruleFrom(document indicator.Document, indicator indicator.Indicator, thresh
 		labels[k] = v
 	}
 
+	interpolatedPromQl := strings.Replace(indicator.PromQL, "$step", indicator.Alert.Step, -1)
+
 	return Rule{
 		Alert:       indicator.Name,
-		Expr:        fmt.Sprintf("%s %s %+v", indicator.PromQL, threshold.GetComparator(), threshold.Value),
+		Expr:        fmt.Sprintf("%s %s %+v", interpolatedPromQl, threshold.GetComparator(), threshold.Value),
+		For:         indicator.Alert.For,
 		Labels:      labels,
 		Annotations: indicator.Documentation,
 	}

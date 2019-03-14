@@ -92,8 +92,8 @@
         "name": "very_good_indicator",
         "promql": "test_query",
         "alert": {
-          "for": "1m",
-          "step": "1m"
+          "for": "50m",
+          "step": "10s"
         },
         "presentation": {
           "chartType": "step",

@@ -1,10 +1,13 @@
 package prometheus_alerts_test
 
 import (
+	"encoding/json"
+	"testing"
+
+	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
-	. "github.com/onsi/gomega"
-	"testing"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
 func TestAlertGeneration(t *testing.T) {
@@ -74,7 +77,7 @@ func TestAlertGeneration(t *testing.T) {
 			Product:  indicator.Product{Name: "product-lol", Version: "beta.9"},
 			Metadata: map[string]string{"meta-lol": "data-lol"},
 			Indicators: []indicator.Indicator{{
-				Name:         "indicator_lol",
+				Name: "indicator_lol",
 				Thresholds: []indicator.Threshold{{
 					Level: "warning",
 				}},
@@ -82,10 +85,10 @@ func TestAlertGeneration(t *testing.T) {
 		}
 
 		g.Expect(getFirstRule(doc).Labels).To(Equal(map[string]string{
-			"product":                 "product-lol",
-			"version":                 "beta.9",
-			"level":                   "warning",
-			"meta-lol":                "data-lol",
+			"product":  "product-lol",
+			"version":  "beta.9",
+			"level":    "warning",
+			"meta-lol": "data-lol",
 		}))
 	})
 
@@ -102,6 +105,81 @@ func TestAlertGeneration(t *testing.T) {
 		g.Expect(getFirstRule(doc).Annotations).To(Equal(map[string]string{
 			"title-lol": "Indicator LOL",
 		}))
+	})
+
+	t.Run("sets the alert for", func(t *testing.T) {
+		g = NewGomegaWithT(t)
+
+		doc := indicator.Document{
+			Product:  indicator.Product{Name: "product-lol", Version: "beta.9"},
+			Metadata: map[string]string{"meta-lol": "data-lol"},
+			Indicators: []indicator.Indicator{{
+				Name:       "indicator_lol",
+				PromQL:     "promql_expression",
+				Thresholds: []indicator.Threshold{{}},
+				Alert: indicator.Alert{
+					For: "40h",
+				},
+			}},
+		}
+
+		g.Expect(getFirstRule(doc).For).To(Equal("40h"))
+	})
+
+	t.Run("interpolates $step", func(t *testing.T) {
+		g = NewGomegaWithT(t)
+
+		doc := indicator.Document{
+			Product:  indicator.Product{Name: "product-lol", Version: "beta.9"},
+			Metadata: map[string]string{"meta-lol": "data-lol"},
+			Indicators: []indicator.Indicator{{
+				Name:       "indicator_lol",
+				PromQL:     "super_query(promql_expression[$step])[$step]",
+				Thresholds: []indicator.Threshold{{}},
+				Alert: indicator.Alert{
+					Step: "12m",
+				},
+			}},
+		}
+
+		g.Expect(getFirstRule(doc).Expr).To(Equal("super_query(promql_expression[12m])[12m] < 0"))
+	})
+
+	t.Run("creates a filename based on product name and contents", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product: indicator.Product{
+				Name:    "test_product",
+				Version: "v1.2.3",
+			},
+			Metadata: map[string]string{"deployment": "test_deployment"},
+			Indicators: []indicator.Indicator{{
+				Name:   "test_indicator",
+				PromQL: `test_query{deployment="test_deployment"}`,
+				Alert:  test_fixtures.DefaultAlert(),
+				Thresholds: []indicator.Threshold{{
+					Level:    "critical",
+					Operator: indicator.LessThan,
+					Value:    5,
+				}},
+				Presentation:  test_fixtures.DefaultPresentation(),
+				Documentation: map[string]string{"title": "Test Indicator Title"},
+			}},
+			Layout: indicator.Layout{
+				Title: "Test Dashboard",
+				Sections: []indicator.Section{
+					{
+						Title: "Test Section Title",
+					},
+				},
+			},
+		}
+		document.Layout.Sections[0].Indicators = document.Indicators
+
+		docBytes, err := json.Marshal(document)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(prometheus_alerts.AlertDocumentFilename(docBytes, "test_product")).To(Equal("test_product_0aba849c8be91534b1b7bf3f53a94d325d7a2817.yml"))
 	})
 }
 

@@ -1,6 +1,10 @@
 package registry
 
-import "github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+import (
+	"time"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+)
 
 type APIV0Document struct {
 	APIVersion string            `json:"apiVersion"`
@@ -62,10 +66,12 @@ func ToIndicatorDocument(d APIV0Document) indicator.Document {
 	}
 
 	return indicator.Document{
+		APIVersion: d.APIVersion,
 		Product: indicator.Product{
 			Name:    d.Product.Name,
 			Version: d.Product.Version,
 		},
+		Metadata:   d.Metadata,
 		Indicators: indicators,
 		Layout:     convertLayout(d.Layout, indicators),
 	}
@@ -78,10 +84,20 @@ func convertIndicator(i APIV0Indicator) indicator.Indicator {
 	}
 
 	return indicator.Indicator{
-		Name:          i.Name,
-		PromQL:        i.PromQL,
-		Thresholds:    thresholds,
+		Name:       i.Name,
+		PromQL:     i.PromQL,
+		Thresholds: thresholds,
+		Alert: indicator.Alert{
+			For:  i.Alert.For,
+			Step: i.Alert.Step,
+		},
 		Documentation: i.Documentation,
+		Presentation: &indicator.Presentation{
+			ChartType:    indicator.ChartType(i.Presentation.ChartType),
+			CurrentValue: i.Presentation.CurrentValue,
+			Frequency:    time.Duration(i.Presentation.Frequency),
+			Labels:       i.Presentation.Labels,
+		},
 	}
 }
 

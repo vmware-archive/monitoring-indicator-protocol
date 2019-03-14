@@ -2,10 +2,12 @@ package grafana_dashboard_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"log"
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
@@ -251,5 +253,42 @@ func TestDocumentToDashboard(t *testing.T) {
 				},
 			}},
 		}))
+	})
+
+	t.Run("creates a filename based on product name and contents", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product: indicator.Product{
+				Name:    "test_product",
+				Version: "v1.2.3",
+			},
+			Metadata: map[string]string{"deployment": "test_deployment"},
+			Indicators: []indicator.Indicator{{
+				Name:   "test_indicator",
+				PromQL: `test_query{deployment="test_deployment"}`,
+				Alert:  test_fixtures.DefaultAlert(),
+				Thresholds: []indicator.Threshold{{
+					Level:    "critical",
+					Operator: indicator.LessThan,
+					Value:    5,
+				}},
+				Presentation:  test_fixtures.DefaultPresentation(),
+				Documentation: map[string]string{"title": "Test Indicator Title"},
+			}},
+			Layout: indicator.Layout{
+				Title: "Test Dashboard",
+				Sections: []indicator.Section{
+					{
+						Title: "Test Section Title",
+					},
+				},
+			},
+		}
+		document.Layout.Sections[0].Indicators = document.Indicators
+
+		docBytes, err := json.Marshal(document)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(grafana_dashboard.DashboardFilename(docBytes, "test_product")).To(Equal("test_product_0aba849c8be91534b1b7bf3f53a94d325d7a2817.json"))
 	})
 }
