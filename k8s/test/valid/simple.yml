@@ -12,3 +12,9 @@ spec:
     thresholds:
     - level: critical
       gt: 375
+  layout:
+    title: layout
+    sections:
+    - title: section
+      indicators:
+      - doc_performance_indicator

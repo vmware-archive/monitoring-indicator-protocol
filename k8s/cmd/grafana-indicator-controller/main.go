@@ -13,6 +13,7 @@ import (
 
 	coreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/klog"
 
 	"code.cloudfoundry.org/go-envstruct"
 	informers "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/informers/externalversions"
@@ -20,6 +21,10 @@ import (
 
 type config struct {
 	Namespace string `env:"NAMESPACE,required,report"`
+}
+
+func init() {
+	klog.SetOutput(os.Stderr)
 }
 
 func main() {
