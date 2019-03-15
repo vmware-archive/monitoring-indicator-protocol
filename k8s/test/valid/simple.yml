@@ -1,20 +1,20 @@
 apiVersion: apps.pivotal.io/v1alpha1
 kind: IndicatorDocument
 metadata:
-  name: simple
+  name: api-server
 spec:
   product:
     name: my-component
     version: 1.2.3
   indicators:
   - name: doc_performance_indicator
-    promql: avg_over_time(demo_latency{source_id="doc",deployment="$deployment"}[5m])
+    promql: rate(apiserver_request_count{resource="pods"}[5m]) * 60
     thresholds:
     - level: critical
       gt: 375
   layout:
-    title: layout
+    title: API server
     sections:
-    - title: section
+    - title: Request rate
       indicators:
       - doc_performance_indicator
