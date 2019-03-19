@@ -21,7 +21,30 @@ func toGrafanaDashboard(d indicator.Document) GrafanaDashboard {
 	return GrafanaDashboard{
 		Title: getDashboardTitle(d),
 		Rows:  toGrafanaRows(d.Layout.Sections),
+		Annotations: toGrafanaAnnotations(d.Product, d.Metadata),
 	}
+}
+
+func toGrafanaAnnotations(product indicator.Product, metadata map[string]string) GrafanaAnnotations {
+	return GrafanaAnnotations{
+		List: []GrafanaAnnotation{
+			{
+				Enable: true,
+				Expr:   fmt.Sprintf("ALERTS{product=\"%s\"%s}", product.Name, metadataToLabelSelector(metadata)),
+				TagKeys: "level",
+				TitleFormat: "{{alertname}} is {{alertstate}} in the {{level}} threshold",
+				IconColor: "#1f78c1",
+			},
+		},
+	}
+}
+
+func metadataToLabelSelector(metadata map[string]string) interface{} {
+	var selector string
+	for k, v := range metadata {
+		selector = fmt.Sprintf("%s,%s=\"%s\"", selector, k, v)
+	}
+	return selector
 }
 
 func getDashboardTitle(d indicator.Document) string {

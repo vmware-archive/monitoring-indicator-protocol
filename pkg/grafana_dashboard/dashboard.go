@@ -1,8 +1,21 @@
 package grafana_dashboard
 
 type GrafanaDashboard struct {
-	Title string       `json:"title"`
-	Rows  []GrafanaRow `json:"rows"`
+	Title       string             `json:"title"`
+	Rows        []GrafanaRow       `json:"rows"`
+	Annotations GrafanaAnnotations `json:"annotations"`
+}
+
+type GrafanaAnnotations struct {
+	List []GrafanaAnnotation `json:"list"`
+}
+
+type GrafanaAnnotation struct {
+	Enable      bool   `json:"enable"`
+	Expr        string `json:"expr"`
+	TagKeys     string `json:"tagKeys"`
+	TitleFormat string `json:"titleFormat"`
+	IconColor   string `json:"iconColor"`
 }
 
 type GrafanaRow struct {

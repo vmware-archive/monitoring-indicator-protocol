@@ -79,36 +79,49 @@ func TestDocumentToDashboard(t *testing.T) {
 			Title: "Indicator Test Dashboard",
 			Rows: []grafana_dashboard.GrafanaRow{{
 				Title: "Test Section Title",
-				Panels: []grafana_dashboard.GrafanaPanel{{
-					Title: "Test Indicator Title",
-					Type:  "graph",
-					Targets: []grafana_dashboard.GrafanaTarget{{
-						Expression: `sum_over_time(gorouter_latency_ms[30m])`,
-					}},
-					Thresholds: []grafana_dashboard.GrafanaThreshold{{
-						Value:     1000,
-						ColorMode: "critical",
-						Op:        "gt",
-						Fill:      true,
-						Line:      true,
-						Yaxis:     "left",
-					}, {
-						Value:     700,
-						ColorMode: "warning",
-						Op:        "lt",
-						Fill:      true,
-						Line:      true,
-						Yaxis:     "left",
-					}},
-				},
+				Panels: []grafana_dashboard.GrafanaPanel{
+					{
+						Title: "Test Indicator Title",
+						Type:  "graph",
+						Targets: []grafana_dashboard.GrafanaTarget{{
+							Expression: `sum_over_time(gorouter_latency_ms[30m])`,
+						}},
+						Thresholds: []grafana_dashboard.GrafanaThreshold{{
+							Value:     1000,
+							ColorMode: "critical",
+							Op:        "gt",
+							Fill:      true,
+							Line:      true,
+							Yaxis:     "left",
+						}, {
+							Value:     700,
+							ColorMode: "warning",
+							Op:        "lt",
+							Fill:      true,
+							Line:      true,
+							Yaxis:     "left",
+						}},
+					},
 					{
 						Title: "second_test_indicator",
 						Type:  "graph",
 						Targets: []grafana_dashboard.GrafanaTarget{{
 							Expression: `rate(gorouter_requests[1m])`,
 						}},
-					}},
+					},
+				},
 			}},
+			Annotations: grafana_dashboard.GrafanaAnnotations{
+				List: []grafana_dashboard.GrafanaAnnotation{
+					{
+						Enable:      true,
+						Expr:        "ALERTS{product=\"\"}",
+						TagKeys:     "level",
+						TitleFormat: "{{alertname}} is {{alertstate}} in the {{level}} threshold",
+						IconColor:   "#1f78c1",
+					},
+				},
+			},
 		}))
 	})
 
@@ -192,19 +205,7 @@ func TestDocumentToDashboard(t *testing.T) {
 
 		dashboard := grafana_dashboard.DocumentToDashboard(document)
 
-		g.Expect(dashboard).To(BeEquivalentTo(grafana_dashboard.GrafanaDashboard{
-			Title: "test product - v0.9",
-			Rows: []grafana_dashboard.GrafanaRow{{
-				Title: "test section",
-				Panels: []grafana_dashboard.GrafanaPanel{{
-					Title: "test_indicator",
-					Type:  "graph",
-					Targets: []grafana_dashboard.GrafanaTarget{{
-						Expression: `sum_over_time(gorouter_latency_ms[30m])`,
-					}},
-				}},
-			}},
-		}))
+		g.Expect(dashboard.Title).To(BeEquivalentTo("test product - v0.9"))
 	})
 
 	t.Run("replaces $step with $__interval", func(t *testing.T) {
@@ -238,21 +239,7 @@ func TestDocumentToDashboard(t *testing.T) {
 
 		dashboard := grafana_dashboard.DocumentToDashboard(document)
 
-		g.Expect(dashboard).To(BeEquivalentTo(grafana_dashboard.GrafanaDashboard{
-			Title: "Indicator Test Dashboard",
-			Rows: []grafana_dashboard.GrafanaRow{{
-				Title: "Test Section Title",
-				Panels: []grafana_dashboard.GrafanaPanel{
-					{
-						Title: "test_indicator",
-						Type:  "graph",
-						Targets: []grafana_dashboard.GrafanaTarget{{
-							Expression: `rate(sum_over_time(gorouter_latency_ms[$__interval])[$__interval])`,
-						}},
-					},
-				},
-			}},
-		}))
+		g.Expect(dashboard.Rows[0].Panels[0].Targets[0].Expression).To(BeEquivalentTo(`rate(sum_over_time(gorouter_latency_ms[$__interval])[$__interval])`))
 	})
 
 	t.Run("creates a filename based on product name and contents", func(t *testing.T) {
@@ -290,5 +277,59 @@ func TestDocumentToDashboard(t *testing.T) {
 		docBytes, err := json.Marshal(document)
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(grafana_dashboard.DashboardFilename(docBytes, "test_product")).To(Equal("test_product_0aba849c8be91534b1b7bf3f53a94d325d7a2817.json"))
+	})
+
+	t.Run("includes annotations based on product & metadata alerts", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product: indicator.Product{
+				Name:    "test_product",
+				Version: "v1.2.3",
+			},
+			Metadata: map[string]string{"deployment": "test_deployment"},
+			Indicators: []indicator.Indicator{{
+				Name:   "test_indicator",
+				PromQL: `test_query{deployment="test_deployment"}`,
+				Alert:  test_fixtures.DefaultAlert(),
+				Thresholds: []indicator.Threshold{{
+					Level:    "critical",
+					Operator: indicator.LessThan,
+					Value:    5,
+				}},
+				Presentation:  test_fixtures.DefaultPresentation(),
+				Documentation: map[string]string{"title": "Test Indicator Title"},
+			}, {
+				Name:   "second_test_indicator",
+				PromQL: "second_test_query",
+				Alert:  test_fixtures.DefaultAlert(),
+				Thresholds: []indicator.Threshold{{
+					Level:    "critical",
+					Operator: indicator.GreaterThan,
+					Value:    10,
+				}},
+				Presentation:  test_fixtures.DefaultPresentation(),
+				Documentation: map[string]string{"title": "Second Test Indicator Title"},
+			}},
+			Layout: indicator.Layout{
+				Title: "Test Dashboard",
+				Sections: []indicator.Section{
+					{
+						Title: "Test Section Title",
+					},
+				},
+			},
+		}
+		document.Layout.Sections[0].Indicators = document.Indicators
+
+		dashboard := grafana_dashboard.DocumentToDashboard(document)
+
+		g.Expect(dashboard.Annotations.List).To(ConsistOf(grafana_dashboard.GrafanaAnnotation{
+			Enable:      true,
+			Expr:        "ALERTS{product=\"test_product\",deployment=\"test_deployment\"}",
+			TagKeys:     "level",
+			TitleFormat: "{{alertname}} is {{alertstate}} in the {{level}} threshold",
+			IconColor:   "#1f78c1",
+		}))
 	})
 }

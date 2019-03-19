@@ -1,10 +1,10 @@
 package grafana
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/domain"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
@@ -37,18 +37,17 @@ func ConfigMap(doc *v1alpha1.IndicatorDocument, m mapper) (*v1.ConfigMap, error)
 		return nil, err
 	}
 
-	fileName := fmt.Sprintf("%s_%x.json", document.Product.Name, sha1.Sum([]byte(jsonVal)))
+	name := fmt.Sprintf("indicator-protocol-grafana-dashboard.%s.%s", doc.ObjectMeta.Namespace, doc.ObjectMeta.Name)
 
-	cmName := doc.Name + "-" + fmt.Sprintf("%x", sha1.Sum([]byte(doc.Name)))[:9]
 	cm := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cmName,
+			Name: name,
 			Labels: map[string]string{
 				"grafana_dashboard": "true",
 			},
 		},
 		Data: map[string]string{
-			fileName: string(jsonVal),
+			fmt.Sprintf("%s.json",name): string(jsonVal),
 		},
 	}
 

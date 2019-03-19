@@ -58,8 +58,8 @@ func TestNoLayoutGeneratesDefaultDashboard(t *testing.T) {
 	})
 
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(cm.Name).To(Equal("test-name-77c8855f6"))
-	g.Expect(cm.Data["my_app_3557e2a48e894b31ff24c4a09bf861a13001fa02.json"]).To(Equal("the-expected-json"))
+	g.Expect(cm.Name).To(Equal("indicator-protocol-grafana-dashboard.test-namespace.test-name"))
+	g.Expect(cm.Data["indicator-protocol-grafana-dashboard.test-namespace.test-name.json"]).To(Equal("the-expected-json"))
 	g.Expect(cm.Labels["grafana_dashboard"]).To(Equal("true"))
 }
 

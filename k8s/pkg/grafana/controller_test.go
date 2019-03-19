@@ -23,32 +23,10 @@ func TestController(t *testing.T) {
 		spyConfigMapEditor.expectCreated([]*v1.ConfigMap{
 			{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "rabbit-mq-resource-name-620771403",
+					Name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
 					Labels: map[string]string{
 						"grafana_dashboard": "true",
 					},
-				},
-				Data: map[string]string{
-					"dashboard.json": `{
-					  "title": "rabbit-mq-layout-title",
-					  "rows": [
-					    {
-					      "title": "qps section",
-					      "panels": [
-					        {
-					          "title": "qps",
-					          "type": "graph",
-					          "targets": [
-					            {
-					              "expr": "rate(qps)"
-					            }
-					          ],
-					          "thresholds": null
-					        }
-					      ]
-					    }
-					  ]
-					}`,
 				},
 			},
 		})
@@ -67,32 +45,10 @@ func TestController(t *testing.T) {
 		spyConfigMapEditor.expectUpdated([]*v1.ConfigMap{
 			{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "rabbit-mq-resource-name-620771403",
+					Name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
 					Labels: map[string]string{
 						"grafana_dashboard": "true",
 					},
-				},
-				Data: map[string]string{
-					"dashboard.json": `{
-					  "title": "rabbit-mq-layout-title",
-					  "rows": [
-					    {
-					      "title": "qps section",
-					      "panels": [
-					        {
-					          "title": "qps",
-					          "type": "graph",
-					          "targets": [
-					            {
-					              "expr": "rate(qps)"
-					            }
-					          ],
-					          "thresholds": null
-					        }
-					      ]
-					    }
-					  ]
-					}`,
 				},
 			},
 		})
@@ -119,32 +75,10 @@ func TestController(t *testing.T) {
 		spyConfigMapEditor.expectUpdated([]*v1.ConfigMap{
 			{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "rabbit-mq-resource-name-620771403",
+					Name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
 					Labels: map[string]string{
 						"grafana_dashboard": "true",
 					},
-				},
-				Data: map[string]string{
-					"dashboard.json": `{
-					  "title": "rabbit-mq-layout-title",
-					  "rows": [
-					    {
-					      "title": "qps section",
-					      "panels": [
-					        {
-					          "title": "qps",
-					          "type": "graph",
-					          "targets": [
-					            {
-					              "expr": "rate(qps)"
-					            }
-					          ],
-					          "thresholds": null
-					        }
-					      ]
-					    }
-					  ]
-					}`,
 				},
 			},
 		})
@@ -183,7 +117,7 @@ func TestController(t *testing.T) {
 
 		spyConfigMapEditor.expectDeleted([]deleteCall{
 			{
-				name: "rabbit-mq-resource-name-620771403",
+				name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
 			},
 		})
 	})
@@ -248,7 +182,7 @@ func (s *spyConfigMapEditor) expectCreated(cms []*v1.ConfigMap) {
 		s.g.Expect(s.createCalls[i].Labels).To(Equal(cm.Labels))
 
 		dashboardFilename := reflect.ValueOf(s.createCalls[i].Data).MapKeys()[0].String()
-		s.g.Expect(s.createCalls[i].Data[dashboardFilename]).To(MatchJSON(cm.Data["dashboard.json"]))
+		s.g.Expect(s.createCalls[i].Data[dashboardFilename]).ToNot(BeEmpty())
 	}
 }
 
@@ -259,7 +193,7 @@ func (s *spyConfigMapEditor) expectUpdated(cms []*v1.ConfigMap) {
 		s.g.Expect(s.updateCalls[i].Labels).To(Equal(cm.Labels))
 
 		dashboardFilename := reflect.ValueOf(s.updateCalls[i].Data).MapKeys()[0].String()
-		s.g.Expect(s.updateCalls[i].Data[dashboardFilename]).To(MatchJSON(cm.Data["dashboard.json"]))
+		s.g.Expect(s.updateCalls[i].Data[dashboardFilename]).ToNot(BeEmpty())
 	}
 }
 
@@ -281,6 +215,7 @@ func indicatorDocument() *v1alpha1.IndicatorDocument {
 	return &v1alpha1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "rabbit-mq-resource-name",
+			Namespace: "default",
 			UID:  types.UID("some-uid"),
 		},
 		Spec: v1alpha1.IndicatorDocumentSpec{
@@ -297,10 +232,10 @@ func indicatorDocument() *v1alpha1.IndicatorDocument {
 			Layout: v1alpha1.Layout{
 				Title: "rabbit-mq-layout-title",
 				Sections: []v1alpha1.Section{
-					v1alpha1.Section{
-						Name: "qps section",
+					{
+						Name:        "qps section",
 						Description: "",
-						Indicators: []string{"qps"},
+						Indicators:  []string{"qps"},
 					},
 				},
 			},
