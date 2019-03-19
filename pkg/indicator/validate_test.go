@@ -14,8 +14,9 @@ func TestValidDocument(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion:     "v0",
-			Product: indicator.Product{Name: "valid", Version: "0.1.1"},
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "valid", Version: "0.1.1"},
+			Metadata: map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
 			Indicators: []indicator.Indicator{{
 				Name:   "test_performance_indicator",
 				PromQL: "prom",
@@ -168,6 +169,24 @@ func TestIndicatorValidation(t *testing.T) {
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
+		))
+	})
+}
+
+func TestMetadataValidation(t *testing.T) {
+	t.Run("validation returns errors if metadata key is step", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+			Metadata:   map[string]string{"step": "my-step"},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
 		))
 	})
 }

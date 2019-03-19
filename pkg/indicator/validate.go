@@ -24,6 +24,12 @@ func Validate(document Document) []error {
 		es = append(es, fmt.Errorf("product version is required"))
 	}
 
+	for k := range document.Metadata {
+		if k == "step" {
+			es = append(es, fmt.Errorf("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"))
+		}
+	}
+
 	for idx, i := range document.Indicators {
 		if strings.TrimSpace(i.Name) == "" {
 			es = append(es, fmt.Errorf("indicators[%d] name is required", idx))
