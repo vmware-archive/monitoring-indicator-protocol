@@ -283,7 +283,7 @@ jobs:
             [ci skip]"
           popd
 
-          cp -r "${RELEASE_NAME}/." "final-release/"
+          cp -r "monitoring-indicator-protocol/." "final-release/"
 
   - task: publish-github-release
     config:
