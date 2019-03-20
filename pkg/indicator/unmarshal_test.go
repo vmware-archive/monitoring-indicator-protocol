@@ -144,45 +144,11 @@ layout:
 `))
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "v0",
-			Product:    indicator.Product{Name: "test_product", Version: "0.0.1"},
-			Metadata:   map[string]string{"deployment": "test_deployment"},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_performance_indicator",
-					PromQL: `prom{deployment="test_deployment"}`,
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Presentation: &indicator.Presentation{
-						ChartType:    "step",
-						CurrentValue: false,
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title: "Metrics",
-					Indicators: []indicator.Indicator{{
-						Name:   "test_performance_indicator",
-						PromQL: `prom{deployment="test_deployment"}`,
-						Alert: indicator.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
-						Presentation: &indicator.Presentation{
-							CurrentValue: false,
-							ChartType:    "step",
-							Frequency:    0,
-							Labels:       []string{},
-						},
-					}},
-				}},
-			},
+		g.Expect(*d.Indicators[0].Presentation).To(BeEquivalentTo(indicator.Presentation{
+			ChartType:    "step",
+			CurrentValue: false,
+			Frequency:    0,
+			Labels:       []string{},
 		}))
 	})
 
@@ -211,46 +177,7 @@ layout:
 `))
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "v0",
-			Product:    indicator.Product{Name: "test_product", Version: "0.0.1"},
-			Metadata:   map[string]string{"deployment": "test_deployment"},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_performance_indicator",
-					PromQL: `prom{deployment="test_deployment"}`,
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title: "Metrics",
-					Indicators: []indicator.Indicator{{
-						Name:   "test_performance_indicator",
-						PromQL: `prom{deployment="test_deployment"}`,
-						Alert: indicator.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
-						Presentation: &indicator.Presentation{
-							CurrentValue: false,
-							ChartType:    "step",
-							Frequency:    0,
-							Labels:       []string{},
-						},
-					}},
-				}},
-			},
-		}))
+		g.Expect(d.Indicators[0].Presentation.ChartType).To(BeEquivalentTo("step"))
 	})
 }
 
@@ -264,7 +191,7 @@ indicators: []`))
 	g.Expect(d.Indicators).To(HaveLen(0))
 }
 
-func TestReturnsAConvertedIndicator(t *testing.T) {
+func TestConvertsThresholdsProperly(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	d, err := indicator.ReadIndicatorDocument([]byte(`---
@@ -287,52 +214,38 @@ indicators:
 
 	g.Expect(err).ToNot(HaveOccurred())
 
-	g.Expect(d.Indicators).To(Equal([]indicator.Indicator{{
-		Name:   "test-kpi",
-		PromQL: "prom",
-		Alert: indicator.Alert{
-			For:  "1m",
-			Step: "1m",
+	g.Expect(d.Indicators[0].Thresholds).To(Equal([]indicator.Threshold{
+		{
+			Level:    "warning",
+			Operator: indicator.LessThan,
+			Value:    0,
 		},
-		Thresholds: []indicator.Threshold{
-			{
-				Level:    "warning",
-				Operator: indicator.LessThan,
-				Value:    0,
-			},
-			{
-				Level:    "warning",
-				Operator: indicator.LessThanOrEqualTo,
-				Value:    1.2,
-			},
-			{
-				Level:    "warning",
-				Operator: indicator.EqualTo,
-				Value:    0.2,
-			},
-			{
-				Level:    "warning",
-				Operator: indicator.NotEqualTo,
-				Value:    123,
-			},
-			{
-				Level:    "warning",
-				Operator: indicator.GreaterThanOrEqualTo,
-				Value:    642,
-			},
-			{
-				Level:    "warning",
-				Operator: indicator.GreaterThan,
-				Value:    1.222225,
-			},
+		{
+			Level:    "warning",
+			Operator: indicator.LessThanOrEqualTo,
+			Value:    1.2,
 		},
-		Presentation: &indicator.Presentation{
-			CurrentValue: false,
-			ChartType:    "step",
-			Frequency:    0,
-			Labels:       []string{},
+		{
+			Level:    "warning",
+			Operator: indicator.EqualTo,
+			Value:    0.2,
 		},
-	}}))
+		{
+			Level:    "warning",
+			Operator: indicator.NotEqualTo,
+			Value:    123,
+		},
+		{
+			Level:    "warning",
+			Operator: indicator.GreaterThanOrEqualTo,
+			Value:    642,
+		},
+		{
+			Level:    "warning",
+			Operator: indicator.GreaterThan,
+			Value:    1.222225,
+		},
+	}))
 }
 
 func TestReturnsAnErrorIfTheYAMLIsUnparsable(t *testing.T) {
@@ -394,7 +307,7 @@ indicators:
 }
 
 func TestReturnsErrors(t *testing.T) {
-	t.Run("if section references non-existent indicator", func(t *testing.T) {
+	t.Run("if layout section references non-existent indicator", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		_, err := indicator.ReadIndicatorDocument([]byte(`---
@@ -432,47 +345,26 @@ indicators:
 `))
 	g.Expect(err).ToNot(HaveOccurred())
 
-	g.Expect(d).To(Equal(indicator.Document{
-		APIVersion: "v0",
-		Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
-		Metadata:   map[string]string{"deployment": "valid-deployment"},
-		Indicators: []indicator.Indicator{
-			{
-				Name:   "test_performance_indicator",
-				PromQL: "promql_test_expr",
-				Alert: indicator.Alert{
-					For:  "1m",
-					Step: "1m",
-				},
-				Presentation: &indicator.Presentation{
-					CurrentValue: false,
-					ChartType:    "step",
-					Frequency:    0,
-					Labels:       []string{},
-				},
-			},
-		},
-		Layout: indicator.Layout{
-			Sections: []indicator.Section{{
-				Title: "Metrics",
-				Indicators: []indicator.Indicator{
-					{
-						Name:   "test_performance_indicator",
-						PromQL: "promql_test_expr",
-						Alert: indicator.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
-						Presentation: &indicator.Presentation{
-							CurrentValue: false,
-							ChartType:    "step",
-							Frequency:    0,
-							Labels:       []string{},
-						},
+	g.Expect(d.Layout).To(Equal(indicator.Layout{
+		Sections: []indicator.Section{{
+			Title: "Metrics",
+			Indicators: []indicator.Indicator{
+				{
+					Name:   "test_performance_indicator",
+					PromQL: "promql_test_expr",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
+					Presentation: &indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
 					},
 				},
-			}},
-		},
+			},
+		}},
 	}))
 }
 
@@ -524,31 +416,8 @@ operations:
 	g.Expect(p).To(BeEquivalentTo(indicatorPatch))
 }
 
-func TestReturnsPatchDocumentWithBlankVersion(t *testing.T) {
+func TestReturnsPatchDocumentWithBlankMatchNameAndVersion(t *testing.T) {
 	g := NewGomegaWithT(t)
-
-	var val interface{}
-	val = map[interface{}]interface{}{
-		"promql": `success_percentage_promql{source_id="origin"}`,
-		"documentation": map[interface{}]interface{}{
-			"title": "Success Percentage",
-		}}
-
-	indicatorPatch := indicator.Patch{
-		APIVersion: "test-apiversion",
-		Match: indicator.Match{
-			Name:    nil,
-			Version: nil,
-			Metadata: map[string]string{
-				"deployment": "test-deployment",
-			},
-		},
-		Operations: []patch.OpDefinition{{
-			Type:  "replace",
-			Path:  strPtr("/indicators/name=success_percentage"),
-			Value: &val,
-		}},
-	}
 
 	documentBytes := []byte(`---
 apiVersion: test-apiversion
@@ -569,7 +438,8 @@ operations:
 	p, err := indicator.ReadPatchBytes(documentBytes)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	g.Expect(p).To(BeEquivalentTo(indicatorPatch))
+	g.Expect(p.Match.Name).To(BeNil())
+	g.Expect(p.Match.Version).To(BeNil())
 }
 
 func TestDocumentMatching(t *testing.T) {
@@ -709,53 +579,7 @@ indicators:
 		d, err := indicator.ReadIndicatorDocument(patchedBytes)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "test-apiversion/document",
-			Product: indicator.Product{
-				Name:    "testing",
-				Version: "123",
-			},
-			Metadata: map[string]string{
-				"deployment": "test-deployment",
-			},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: `patched_promql`,
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title:       "Metrics",
-					Description: "",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_indicator",
-							PromQL: `patched_promql`,
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "1m",
-							},
-							Presentation: &indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						}},
-				}},
-			},
-		}))
+		g.Expect(d.Indicators[0].PromQL).To(BeEquivalentTo("patched_promql"))
 	})
 
 	t.Run("does not patch files that do not match", func(t *testing.T) {
@@ -798,50 +622,7 @@ indicators:
 		d, err := indicator.ReadIndicatorDocument(unpatchedBytes)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "test-apiversion/document",
-			Product: indicator.Product{
-				Name:    "testing",
-				Version: "123",
-			},
-			Metadata: map[string]string{
-				"deployment": "not-test-deployment",
-			},
-			Indicators: []indicator.Indicator{{
-				Name:   "test_indicator",
-				PromQL: "test_expr",
-				Alert: indicator.Alert{
-					For:  "1m",
-					Step: "1m",
-				},
-				Presentation: &indicator.Presentation{
-					CurrentValue: false,
-					ChartType:    "step",
-					Frequency:    0,
-					Labels:       []string{},
-				},
-			}},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title:       "Metrics",
-					Description: "",
-					Indicators: []indicator.Indicator{{
-						Name:   "test_indicator",
-						PromQL: "test_expr",
-						Alert: indicator.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
-						Presentation: &indicator.Presentation{
-							CurrentValue: false,
-							ChartType:    "step",
-							Frequency:    0,
-							Labels:       []string{},
-						},
-					}},
-				}},
-			},
-		}))
+		g.Expect(d.Indicators[0].PromQL).To(BeEquivalentTo("test_expr"))
 	})
 
 	t.Run("replaces by index", func(t *testing.T) {
@@ -862,7 +643,7 @@ indicators:
 			Operations: []patch.OpDefinition{
 				{
 					Type:  "replace",
-					Path:  strPtr("/indicators/0/thresholds/0"),
+					Path:  strPtr("/indicators/1/thresholds/1"),
 					Value: &patchedThreshold,
 				},
 			},
@@ -880,10 +661,13 @@ metadata:
 indicators:
 - name: test_indicator
   promql: test_expr
-  thresholds:
+- name: test_indicator_2
+  promql: test_expr
+  thresholds: 
   - level: critical
+    gt: 1500
+  - level: warning
     gt: 500
-    
 `)
 
 		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
@@ -892,63 +676,10 @@ indicators:
 		d, err := indicator.ReadIndicatorDocument(patchedBytes)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "test-apiversion/document",
-			Product: indicator.Product{
-				Name:    "testing",
-				Version: "123",
-			},
-			Metadata: map[string]string{
-				"deployment": "test-deployment",
-			},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: "test_expr",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Thresholds: []indicator.Threshold{{
-						Level:    "warning",
-						Operator: indicator.GreaterThan,
-						Value:    1000,
-					}},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title:       "Metrics",
-					Description: "",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_indicator",
-							PromQL: "test_expr",
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "1m",
-							},
-							Thresholds: []indicator.Threshold{{
-								Level:    "warning",
-								Operator: indicator.GreaterThan,
-								Value:    1000,
-							}},
-							Presentation: &indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
-				}},
-			},
+		g.Expect(d.Indicators[1].Thresholds[1]).To(BeEquivalentTo(indicator.Threshold{
+			Level:    "warning",
+			Operator: indicator.GreaterThan,
+			Value:    1000,
 		}))
 	})
 
@@ -1001,77 +732,10 @@ indicators:
 		d, err := indicator.ReadIndicatorDocument(patchedBytes)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "test-apiversion/document",
-			Product: indicator.Product{
-				Name:    "testing",
-				Version: "123",
-			},
-			Metadata: map[string]string{
-				"deployment": "test-deployment",
-			},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: "test_expr",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Thresholds: []indicator.Threshold{
-						{
-							Level:    "warning",
-							Operator: indicator.GreaterThan,
-							Value:    800,
-						},
-						{
-							Level:    "critical",
-							Operator: indicator.GreaterThan,
-							Value:    1000,
-						},
-					},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title:       "Metrics",
-					Description: "",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_indicator",
-							PromQL: "test_expr",
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "1m",
-							},
-							Thresholds: []indicator.Threshold{
-								{
-									Level:    "warning",
-									Operator: indicator.GreaterThan,
-									Value:    800,
-								},
-								{
-									Level:    "critical",
-									Operator: indicator.GreaterThan,
-									Value:    1000,
-								},
-							},
-							Presentation: &indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
-				}},
-			},
+		g.Expect(d.Indicators[0].Thresholds[0]).To(BeEquivalentTo(indicator.Threshold{
+			Level:    "warning",
+			Operator: indicator.GreaterThan,
+			Value:    800,
 		}))
 	})
 
@@ -1119,64 +783,7 @@ indicators:
 		d, err := indicator.ReadIndicatorDocument(patchedBytes)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "test-apiversion/document",
-			Product: indicator.Product{
-				Name:    "testing",
-				Version: "123",
-			},
-			Metadata: map[string]string{
-				"deployment": "test-deployment",
-			},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: "test_expr",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Thresholds: []indicator.Threshold{{
-						Level:    "critical",
-						Operator: indicator.GreaterThan,
-						Value:    1000,
-					}},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title:       "Metrics",
-					Description: "",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_indicator",
-							PromQL: "test_expr",
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "1m",
-							},
-							Thresholds: []indicator.Threshold{{
-								Level:    "critical",
-								Operator: indicator.GreaterThan,
-								Value:    1000,
-							}},
-							Presentation: &indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
-				}},
-			},
-		}))
+		g.Expect(d.Indicators[0].Thresholds).To(HaveLen(1))
 	})
 
 	t.Run("applies patches where test passes", func(t *testing.T) {
@@ -1227,54 +834,7 @@ indicators:
 		d, err := indicator.ReadIndicatorDocument(patchedBytes)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "test-apiversion/document",
-			Product: indicator.Product{
-				Name:    "testing",
-				Version: "123",
-			},
-			Metadata: map[string]string{
-				"deployment": "test-deployment",
-			},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: "test_expr",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title:       "Metrics",
-					Description: "",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_indicator",
-							PromQL: "test_expr",
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "1m",
-							},
-							Presentation: &indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
-				}},
-			},
-		}))
+		g.Expect(d.Indicators[0].Thresholds).To(HaveLen(0))
 	})
 
 	t.Run("does not apply patches where test fails", func(t *testing.T) {
@@ -1367,64 +927,7 @@ indicators:
 		d, err := indicator.ReadIndicatorDocument(patchedBytes)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "test-apiversion/document",
-			Product: indicator.Product{
-				Name:    "testing",
-				Version: "123",
-			},
-			Metadata: map[string]string{
-				"deployment": "test-deployment",
-			},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: "test_expr",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Thresholds: []indicator.Threshold{{
-						Level:    "warning",
-						Operator: indicator.GreaterThan,
-						Value:    10,
-					}},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title:       "Metrics",
-					Description: "",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_indicator",
-							PromQL: "test_expr",
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "1m",
-							},
-							Thresholds: []indicator.Threshold{{
-								Level:    "warning",
-								Operator: indicator.GreaterThan,
-								Value:    10,
-							}},
-							Presentation: &indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
-				}},
-			},
-		}))
+		g.Expect(d.Indicators[0].Thresholds).To(HaveLen(1))
 	})
 }
 
@@ -1445,51 +948,13 @@ indicators:
 `))
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(Equal(indicator.Document{
-			APIVersion: "v0",
-			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
-			Metadata:   map[string]string{"deployment": "valid-deployment"},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: "promql_query",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title: "Metrics",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_indicator",
-							PromQL: "promql_query",
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "1m",
-							},
-							Presentation: &indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
-				}},
-			},
+		g.Expect(d.Indicators[0].Alert).To(Equal(indicator.Alert{
+			For:  "1m",
+			Step: "1m",
 		}))
 	})
 
-	t.Run("populates default alert for when no alert for given", func(t *testing.T) {
+	t.Run("populates default alert 'for' k/v when no alert for given", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		d, err := indicator.ReadIndicatorDocument([]byte(`---
 apiVersion: v0
@@ -1507,51 +972,14 @@ indicators:
 `))
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(Equal(indicator.Document{
-			APIVersion: "v0",
-			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
-			Metadata:   map[string]string{"deployment": "valid-deployment"},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: "promql_query",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "5m",
-					},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title: "Metrics",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_indicator",
-							PromQL: "promql_query",
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "5m",
-							},
-							Presentation: &indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
-				}},
-			},
-		}))
+		g.Expect(d.Indicators[0].Alert).To(Equal(
+			indicator.Alert{
+				For:  "1m",
+				Step: "5m",
+			}))
 	})
 
-	t.Run("populates default alert step when no alert step given", func(t *testing.T) {
+	t.Run("populates default alert 'step' k/v when no alert step given", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		d, err := indicator.ReadIndicatorDocument([]byte(`---
 apiVersion: v0
@@ -1569,49 +997,11 @@ indicators:
 `))
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(Equal(indicator.Document{
-			APIVersion: "v0",
-			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
-			Metadata:   map[string]string{"deployment": "valid-deployment"},
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: "promql_query",
-					Alert: indicator.Alert{
-						For:  "5m",
-						Step: "1m",
-					},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title: "Metrics",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_indicator",
-							PromQL: "promql_query",
-							Alert: indicator.Alert{
-								For:  "5m",
-								Step: "1m",
-							},
-							Presentation: &indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
-				}},
-			},
+		g.Expect(d.Indicators[0].Alert).To(Equal(indicator.Alert{
+			For:  "5m",
+			Step: "1m",
 		}))
-	})
+})
 }
 
 func strPtr(s string) *string {
