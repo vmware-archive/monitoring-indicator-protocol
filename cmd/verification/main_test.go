@@ -25,10 +25,10 @@ func TestValidateIndicators(t *testing.T) {
 	t.Run("returns 0 when all indicators return data", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		logCacheServer := ghttp.NewServer()
-		defer logCacheServer.Close()
+		prometheusCompliantServer := ghttp.NewServer()
+		defer prometheusCompliantServer.Close()
 
-		logCacheServer.AppendHandlers(
+		prometheusCompliantServer.AppendHandlers(
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 
@@ -38,7 +38,7 @@ func TestValidateIndicators(t *testing.T) {
 					return
 				}
 
-				body := logCachePromQLResponse(3, 4)
+				body := promQLResponse(3, 4)
 				w.Write(body)
 				w.Header().Set("Content-Type", "application/json")
 			},
@@ -51,7 +51,7 @@ func TestValidateIndicators(t *testing.T) {
 					return
 				}
 
-				body := logCachePromQLResponse(1, 1)
+				body := promQLResponse(1, 1)
 				w.Write(body)
 				w.Header().Set("Content-Type", "application/json")
 			},
@@ -61,7 +61,7 @@ func TestValidateIndicators(t *testing.T) {
 			binPath,
 			"--indicators", "./test_fixtures/indicators.yml",
 			"--metadata", "deployment=fake-deploy",
-			"--query-endpoint", "http://"+logCacheServer.Addr(),
+			"--query-endpoint", "http://"+prometheusCompliantServer.Addr(),
 			"--authorization", "bearer test-token",
 			"-k",
 		)
@@ -69,23 +69,23 @@ func TestValidateIndicators(t *testing.T) {
 		session, err := gexec.Start(cmd, nil, nil)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))
+		g.Eventually(prometheusCompliantServer.ReceivedRequests).Should(HaveLen(2))
 		g.Eventually(session, 5).Should(gexec.Exit(0))
 	})
 
 	t.Run("returns 1 when not all indicators return data", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		logCacheServer := ghttp.NewServer()
-		defer logCacheServer.Close()
+		prometheusCompliantServer := ghttp.NewServer()
+		defer prometheusCompliantServer.Close()
 
-		logCacheServer.AppendHandlers(
+		prometheusCompliantServer.AppendHandlers(
 			func(w http.ResponseWriter, req *http.Request) {
 				req.ParseForm()
 				q := req.Form.Get("query")
 				g.Expect(q).To(Equal(`avg_over_time(demo_latency{source_id="demo_component",deployment="my-demo-deployment"}[5m])`))
 
-				body := logCachePromQLResponse(3, 4)
+				body := promQLResponse(3, 4)
 				w.Write(body)
 				w.Header().Set("Content-Type", "application/json")
 			},
@@ -94,7 +94,7 @@ func TestValidateIndicators(t *testing.T) {
 				q := req.Form.Get("query")
 				g.Expect(q).To(Equal(`saturation{source_id="demo_component",deployment="my-demo-deployment"}`))
 
-				body := logCachePromQLResponse(0, 0)
+				body := promQLResponse(0, 0)
 				w.Write(body)
 				w.Header().Set("Content-Type", "application/json")
 			},
@@ -104,7 +104,7 @@ func TestValidateIndicators(t *testing.T) {
 			binPath,
 			"--indicators", "./test_fixtures/indicators.yml",
 			"--metadata", "deployment=my-demo-deployment",
-			"--query-endpoint", "http://"+logCacheServer.Addr(),
+			"--query-endpoint", "http://"+prometheusCompliantServer.Addr(),
 			"--authorization", "bearer test-token",
 			"-k",
 		)
@@ -112,12 +112,12 @@ func TestValidateIndicators(t *testing.T) {
 		session, err := gexec.Start(cmd, nil, nil)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(logCacheServer.ReceivedRequests).Should(HaveLen(2))
+		g.Eventually(prometheusCompliantServer.ReceivedRequests).Should(HaveLen(2))
 		g.Eventually(session, 5).Should(gexec.Exit(1))
 	})
 }
 
-func logCachePromQLResponse(numSeries, numPoints int) []byte {
+func promQLResponse(numSeries, numPoints int) []byte {
 	var series *model.SampleStream
 	var seriesList model.Matrix
 	for i := 0; i < numSeries; i++ {

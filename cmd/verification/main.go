@@ -16,7 +16,7 @@ func main() {
 	flagSet := flag.NewFlagSet("validator", flag.ErrorHandling(0))
 	indicatorsFilePath := flagSet.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/indicators)")
 	metadata := flagSet.String("metadata", "", "metadata to overide (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
-	prometheusURL := flagSet.String("query-endpoint", "", "the prometheus compatible url (e.g. https://log-cache.system.cfapp.com")
+	prometheusURL := flagSet.String("query-endpoint", "", "the query url of a Prometheus compliant store (e.g. https://log-cache.system.cfapp.com")
 	authorization := flagSet.String("authorization", "", "the authorization header sent to prometheus (e.g. 'bearer abc-123')")
 	insecure := flagSet.Bool("k", false, "skips ssl verification (insecure)")
 	flagSet.Parse(os.Args[1:])
@@ -34,7 +34,7 @@ func main() {
 	}
 
 	stdOut.Println("---------------------------------------------------------------------------------------------")
-	stdOut.Printf("Querying current value for %d indicators in log-cache \n", len(document.Indicators))
+	stdOut.Printf("Querying current value for %d indicators in Prometheus compliant store \n", len(document.Indicators))
 	stdOut.Println("---------------------------------------------------------------------------------------------")
 
 	failedIndicators := make([]indicator.Indicator, 0)
