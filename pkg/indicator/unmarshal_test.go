@@ -842,7 +842,7 @@ indicators:
 
 		var testVal interface{} = "not_test_indicator"
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "test-apiversion/patch",
+			APIVersion: "v0",
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -862,7 +862,7 @@ indicators:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: test-apiversion/document
+apiVersion: v0
 
 product:
   name: testing
@@ -879,8 +879,11 @@ indicators:
     gt: 500
 `)
 
-		_, err := indicator.ApplyPatches(indicatorPatch, doc)
-		g.Expect(err).To(HaveOccurred())
+		document, err := indicator.ProcessDocument(indicatorPatch, doc)
+		g.Expect(err).To(BeEmpty())
+		indicatorDocument, err2 := indicator.ReadIndicatorDocument(doc)
+		g.Expect(err2).NotTo(HaveOccurred())
+		g.Expect(document).To(Equal(indicatorDocument))
 	})
 
 	t.Run("adds by replacing", func(t *testing.T) {
@@ -928,6 +931,93 @@ indicators:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d.Indicators[0].Thresholds).To(HaveLen(1))
+	})
+
+	t.Run("does not error when patch fails from invalid OpDefinition", func(t *testing.T){
+		g := NewGomegaWithT(t)
+
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "v0",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/name=test_indicator/thresholds?/-"),
+				},
+			},
+		}}
+		//^ OpDefinition does not contain value
+
+		doc := []byte(`---
+apiVersion: v0
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+
+		patchedBytes, err := indicator.ProcessDocument(indicatorPatch, doc)
+		g.Expect(err).To(BeEmpty())
+
+		d, err2 := indicator.ReadIndicatorDocument(doc)
+		g.Expect(patchedBytes).To(Equal(d))
+		g.Expect(err2).ToNot(HaveOccurred())
+	})
+
+	t.Run("does not error when patch fails from invalid OpDefinition", func(t *testing.T){
+		g := NewGomegaWithT(t)
+
+
+		var val interface{} = "patched_promql"
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "v0",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/35/thresholds/0"),
+					Value: &val,
+				},
+			},
+		}}
+		//^ OpDefinition does not contain value
+
+		doc := []byte(`---
+apiVersion: v0
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+
+		patchedBytes, err := indicator.ProcessDocument(indicatorPatch, doc)
+		g.Expect(err).To(BeEmpty())
+
+		d, err2 := indicator.ReadIndicatorDocument(doc)
+		g.Expect(patchedBytes).To(Equal(d))
+		g.Expect(err2).ToNot(HaveOccurred())
 	})
 }
 

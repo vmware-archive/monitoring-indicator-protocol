@@ -3,13 +3,13 @@ package indicator
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/cppforlife/go-patch/patch"
-
 	"gopkg.in/yaml.v2"
 )
 
@@ -61,14 +61,22 @@ func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 		if MatchDocument(p.Match, documentBytes) {
 			ops, err := patch.NewOpsFromDefinitions(p.Operations)
 			if err != nil {
-				return []byte{}, fmt.Errorf("failed to parse patch operations: %s", err)
+				log.Print(fmt.Errorf("failed to parse patch operations: %s", err))
+				continue
 			}
+			var tempDocument interface{}
+			success := true
 			for i, o := range ops {
 				od := p.Operations[i]
-				document, err = o.Apply(document)
+				tempDocument, err = o.Apply(document)
 				if err != nil {
-					return []byte{}, fmt.Errorf("failed to apply operation %s %s: %s", od.Type, *od.Path, err)
+					log.Print(fmt.Errorf("failed to apply operation %s %s: %s", od.Type, *od.Path, err))
+					success = false
+					break
 				}
+			}
+			if success {
+				document = tempDocument
 			}
 		}
 	}
