@@ -6,6 +6,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/prometheus"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
+	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -150,11 +152,17 @@ func TestConfig(t *testing.T) {
 				g := NewGomegaWithT(t)
 				p := prometheus.NewConfig()
 
+				expectedAlerts := prometheus_alerts.Document{}
+				err := yaml.Unmarshal([]byte(tc.Expected), &expectedAlerts)
+				g.Expect(err).NotTo(HaveOccurred())
 				for _, i := range tc.Indicators {
 					p.Upsert(i)
 				}
 
-				g.Expect(p.String()).To(MatchYAML(tc.Expected))
+				alerts := prometheus_alerts.Document{}
+				err = yaml.Unmarshal([]byte(p.String()), &alerts)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(alerts.Groups).To(ConsistOf(expectedAlerts.Groups))
 			})
 		}
 	})

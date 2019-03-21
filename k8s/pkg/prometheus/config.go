@@ -44,8 +44,8 @@ func (c *Config) String() string {
 	defer c.mu.Unlock()
 
 	groups := make([]prometheus_alerts.Group, 0, len(c.indicatorDocuments))
-	for k, i := range c.indicatorDocuments {
-		doc := domain.Map(i)
+	for k, v := range c.indicatorDocuments {
+		doc := domain.Map(v)
 		alertDocument := prometheus_alerts.AlertDocumentFrom(doc)
 		alertDocument.Groups[0].Name = k
 		groups = append(groups, alertDocument.Groups[0])
