@@ -374,7 +374,8 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: buildpack-deps
+          tag: stretch-scm
       inputs:
       - name: release-version
       outputs:
@@ -410,7 +411,8 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: buildpack-deps
+          tag: stretch-scm
       inputs:
       - name: release-version
       outputs:
@@ -443,7 +445,8 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: buildpack-deps
+          tag: stretch-scm
       inputs:
       - name: monitoring-indicator-protocol
       outputs:
@@ -479,7 +482,8 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: buildpack-deps
+          tag: stretch-scm
       inputs:
       - name: monitoring-indicator-protocol
       outputs:
