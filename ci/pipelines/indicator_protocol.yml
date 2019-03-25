@@ -231,10 +231,16 @@ jobs:
   plan:
   - aggregate:
     - get: monitoring-indicator-protocol
-      passed: [indicator-verification,indicator-docs,deploy-indicator-registry]
+      passed: [indicator-verification,indicator-docs,deploy-indicator-registry,create-grafana-controller-docker-image,create-prometheus-controller-docker-image]
       trigger: false
     - get: release-version
       params: {}
+    - get: grafana-controller-docker-repo
+      params: {save: true}
+      passed: [create-grafana-controller-docker-image]
+    - get: prometheus-controller-docker-repo
+      params: {save: true}
+      passed: [create-prometheus-controller-docker-image]
   - task: create-final-release
     config:
       platform: linux
@@ -349,25 +355,6 @@ jobs:
       body: github-release/body
       globs:
       - github-release/indicator-*
-
-- name: bump-release-version
-  plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [publish-grafana-controller-docker-image, publish-grafana-controller-docker-image]
-      trigger: true
-  - put: release-version
-    params:
-      bump: patch
-
-- name: publish-grafana-controller-docker-image
-  plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [publish-release]
-      trigger: true
-    - get: release-version
-      params: {}
   - task: prefix-version-number
     config:
       platform: linux
@@ -393,47 +380,24 @@ jobs:
     params:
       additional_tags: prefixed-release-version/version
       tag_as_latest: true
-      build: monitoring-indicator-protocol
-      dockerfile: monitoring-indicator-protocol/k8s/cmd/grafana-indicator-controller/Dockerfile
+      import_file: grafana-controller-docker-repo/image
+  - put: prometheus-controller-docker-repo
+    params:
+      additional_tags: prefixed-release-version/version
+      tag_as_latest: true
+      import_file: prometheus-controller-docker-repo/image
 
-
-- name: publish-prometheus-controller-docker-image
+- name: bump-release-version
   plan:
   - aggregate:
     - get: monitoring-indicator-protocol
       passed: [publish-release]
       trigger: true
-    - get: release-version
-      params: {}
-  - task: prefix-version-number
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: buildpack-deps
-          tag: stretch-scm
-      inputs:
-      - name: release-version
-      outputs:
-      - name: prefixed-release-version
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -ex
-          number=$(cat "./release-version/number")
-          echo v${number} > prefixed-release-version/version
-  - put: prometheus-controller-docker-repo
+  - put: release-version
     params:
-      additional_tags: prefixed-release-version/version
-      tag_as_latest: true
-      build: monitoring-indicator-protocol
-      dockerfile: monitoring-indicator-protocol/k8s/cmd/prometheus-indicator-controller/Dockerfile
+      bump: patch
 
-- name: create-temp-grafana-controller-docker-image
+- name: create-grafana-controller-docker-image
   plan:
   - aggregate:
     - get: monitoring-indicator-protocol
@@ -470,7 +434,7 @@ jobs:
       dockerfile: monitoring-indicator-protocol/k8s/cmd/grafana-indicator-controller/Dockerfile
 
 
-- name: create-temp-prometheus-controller-docker-image
+- name: create-prometheus-controller-docker-image
   plan:
   - aggregate:
     - get: monitoring-indicator-protocol
