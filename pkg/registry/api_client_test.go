@@ -1,8 +1,9 @@
 package registry_test
 
 import (
-	. "github.com/onsi/gomega"
 	"testing"
+
+	. "github.com/onsi/gomega"
 
 	"io/ioutil"
 	"net/http"

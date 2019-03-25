@@ -1,16 +1,17 @@
 package prometheus
 
 import (
+	"log"
+	"sync"
+
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/domain"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 	"gopkg.in/yaml.v2"
-	"log"
-	"sync"
 )
 
 type Config struct {
-	mu sync.Mutex
+	mu                 sync.Mutex
 	indicatorDocuments map[string]*v1alpha1.IndicatorDocument
 }
 

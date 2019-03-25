@@ -2,9 +2,10 @@ package go_test
 
 import (
 	"fmt"
-	"gopkg.in/src-d/go-billy.v4"
 	"io/ioutil"
 	"time"
+
+	"gopkg.in/src-d/go-billy.v4"
 )
 
 func WaitForFiles(directory string, count int) error {

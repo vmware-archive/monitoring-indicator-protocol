@@ -8,7 +8,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/prometheus"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 	"gopkg.in/yaml.v2"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var indicators = []*v1alpha1.IndicatorDocument{

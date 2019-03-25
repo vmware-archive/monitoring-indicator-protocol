@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"log"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/docs"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"

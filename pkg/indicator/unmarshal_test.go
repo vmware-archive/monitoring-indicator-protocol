@@ -933,7 +933,7 @@ indicators:
 		g.Expect(d.Indicators[0].Thresholds).To(HaveLen(1))
 	})
 
-	t.Run("does not error when patch fails from invalid OpDefinition", func(t *testing.T){
+	t.Run("does not error when patch fails from invalid OpDefinition", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		indicatorPatch := []indicator.Patch{{
@@ -945,8 +945,8 @@ indicators:
 			},
 			Operations: []patch.OpDefinition{
 				{
-					Type:  "replace",
-					Path:  strPtr("/indicators/name=test_indicator/thresholds?/-"),
+					Type: "replace",
+					Path: strPtr("/indicators/name=test_indicator/thresholds?/-"),
 				},
 			},
 		}}
@@ -975,9 +975,8 @@ indicators:
 		g.Expect(err2).ToNot(HaveOccurred())
 	})
 
-	t.Run("does not error when patch fails from invalid OpDefinition", func(t *testing.T){
+	t.Run("does not error when patch fails from invalid OpDefinition", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-
 
 		var val interface{} = "patched_promql"
 		indicatorPatch := []indicator.Patch{{
@@ -1091,7 +1090,7 @@ indicators:
 			For:  "5m",
 			Step: "1m",
 		}))
-})
+	})
 }
 
 func strPtr(s string) *string {

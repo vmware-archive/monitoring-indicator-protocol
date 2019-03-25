@@ -2,10 +2,11 @@ package grafana_test
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"testing"
 
 	. "github.com/onsi/gomega"
 

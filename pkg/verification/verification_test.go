@@ -1,8 +1,9 @@
 package verification_test
 
 import (
-	. "github.com/onsi/gomega"
 	"testing"
+
+	. "github.com/onsi/gomega"
 
 	"context"
 	"fmt"

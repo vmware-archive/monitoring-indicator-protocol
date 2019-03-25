@@ -1,8 +1,9 @@
 package indicator_test
 
 import (
-	. "github.com/onsi/gomega"
 	"testing"
+
+	. "github.com/onsi/gomega"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
@@ -40,9 +41,9 @@ indicators:
 					},
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
-						ChartType: "step",
-						Frequency: 0,
-						Labels: []string{},
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
 					},
 				},
 			},
@@ -59,9 +60,9 @@ indicators:
 							},
 							Presentation: &indicator.Presentation{
 								CurrentValue: false,
-								ChartType: "step",
-								Frequency: 0,
-								Labels: []string{},
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
 							},
 						},
 					},
@@ -89,9 +90,9 @@ indicators:
 					},
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
-						ChartType: "step",
-						Frequency: 0,
-						Labels: []string{},
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
 					},
 				},
 			},
@@ -108,9 +109,9 @@ indicators:
 							},
 							Presentation: &indicator.Presentation{
 								CurrentValue: false,
-								ChartType: "step",
-								Frequency: 0,
-								Labels: []string{},
+								ChartType:    "step",
+								Frequency:    0,
+								Labels:       []string{},
 							},
 						},
 					},

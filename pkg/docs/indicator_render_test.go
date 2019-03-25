@@ -67,8 +67,8 @@ func TestRenderIndicatorHTML(t *testing.T) {
 		indicator := indicator.Indicator{
 			Name: "test_indicator",
 			Documentation: map[string]string{
-				"title":                "Test Indicator",
-				"description":          "*test description* of kpi",
+				"title":               "Test Indicator",
+				"description":         "*test description* of kpi",
 				"recommendedResponse": "*test response* of kpi",
 				"thresholdNote":       "dynamic!",
 			},
@@ -110,10 +110,10 @@ func TestRenderIndicatorHTML(t *testing.T) {
 		indicator := indicator.Indicator{
 			Name: "test_indicator",
 			Documentation: map[string]string{
-				"title":                "Test Indicator",
-				"description":          "*test description* of kpi",
+				"title":               "Test Indicator",
+				"description":         "*test description* of kpi",
 				"recommendedResponse": "*test response* of kpi",
-				"measurement":          "Average over 100 minutes",
+				"measurement":         "Average over 100 minutes",
 			},
 			PromQL: `avg_over_time(test_latency{source_id="test"}[100m])`,
 

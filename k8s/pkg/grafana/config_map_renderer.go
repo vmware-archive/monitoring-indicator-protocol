@@ -9,7 +9,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/domain"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -47,7 +47,7 @@ func ConfigMap(doc *v1alpha1.IndicatorDocument, m mapper) (*v1.ConfigMap, error)
 			},
 		},
 		Data: map[string]string{
-			fmt.Sprintf("%s.json",name): string(jsonVal),
+			fmt.Sprintf("%s.json", name): string(jsonVal),
 		},
 	}
 

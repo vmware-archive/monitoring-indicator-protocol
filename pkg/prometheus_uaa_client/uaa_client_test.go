@@ -1,10 +1,11 @@
 package prometheus_uaa_client_test
 
 import (
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
 	"testing"
 	"time"
+
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_uaa_client"
 )

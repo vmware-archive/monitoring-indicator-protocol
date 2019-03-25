@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"time"
+
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
-	"log"
-	"time"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/configuration"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"

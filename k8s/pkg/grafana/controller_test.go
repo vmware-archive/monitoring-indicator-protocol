@@ -2,14 +2,15 @@ package grafana_test
 
 import (
 	"errors"
+	"reflect"
+	"testing"
+
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/grafana"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
-	"testing"
 )
 
 func TestController(t *testing.T) {
@@ -143,7 +144,7 @@ type deleteCall struct {
 type spyConfigMapEditor struct {
 	g *GomegaWithT
 
-	getExists bool
+	getExists   bool
 	createCalls []*v1.ConfigMap
 	updateCalls []*v1.ConfigMap
 	deleteCalls []deleteCall
@@ -214,9 +215,9 @@ func (s *spyConfigMapEditor) expectThatNothingWasDeleted() {
 func indicatorDocument() *v1alpha1.IndicatorDocument {
 	return &v1alpha1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "rabbit-mq-resource-name",
+			Name:      "rabbit-mq-resource-name",
 			Namespace: "default",
-			UID:  types.UID("some-uid"),
+			UID:       types.UID("some-uid"),
 		},
 		Spec: v1alpha1.IndicatorDocumentSpec{
 			Product: v1alpha1.Product{

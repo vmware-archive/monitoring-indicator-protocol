@@ -1,8 +1,9 @@
 package docs
 
 import (
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"html/template"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 const htmlDocumentTemplate = `
@@ -32,6 +33,7 @@ const htmlDocumentTemplate = `
 `
 
 var htmlDocumatationTmpl = template.Must(template.New("html_document").Parse(htmlDocumentTemplate))
+
 func DocumentToHTML(d indicator.Document) (string, error) {
 	return docToTemplate(d, htmlDocumatationTmpl)
 }

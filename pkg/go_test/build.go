@@ -12,7 +12,7 @@ func Build(packagePath string, args ...string) (compiledPath string, err error) 
 		return "", err
 	}
 
-	cmdArgs := append(append([]string{"build", "-mod=vendor", "-o", tmpDir+"/build"}, args...), packagePath)
+	cmdArgs := append(append([]string{"build", "-mod=vendor", "-o", tmpDir + "/build"}, args...), packagePath)
 	build := exec.Command("go", cmdArgs...)
 
 	output, err := build.CombinedOutput()

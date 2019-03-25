@@ -27,8 +27,8 @@ func NewWebServer(c WebServerConfig) (func() error, func() error, error) {
 	}
 
 	server := &http.Server{
-		Addr:    c.Address,
-		Handler: newRouter(c.DocumentStore),
+		Addr:      c.Address,
+		Handler:   newRouter(c.DocumentStore),
 		TLSConfig: tlsConfig,
 	}
 

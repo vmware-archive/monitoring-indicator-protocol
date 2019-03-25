@@ -8,6 +8,8 @@ go test -mod=vendor -race ./... -v
 
 exit_status=$?
 
+goimports -w pkg cmd k8s/cmd k8s/pkg k8s/test
+
 if [ $exit_status -ne 0 ]; then
     echo "~~~~~~~~~~~~~~~~~~~"
     echo "   TESTS FAILED!"

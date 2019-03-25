@@ -16,7 +16,7 @@ func TestValidDocument(t *testing.T) {
 		document := indicator.Document{
 			APIVersion: "v0",
 			Product:    indicator.Product{Name: "valid", Version: "0.1.1"},
-			Metadata: map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
+			Metadata:   map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
 			Indicators: []indicator.Indicator{{
 				Name:   "test_performance_indicator",
 				PromQL: "prom",

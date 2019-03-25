@@ -3,18 +3,19 @@ package prometheus
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
-	"k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"log"
 	"reflect"
+
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type ConfigMapPatcher interface {
 	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1.ConfigMap, err error)
 }
 
-type ConfigRenderer interface  {
+type ConfigRenderer interface {
 	Upsert(i *v1alpha1.IndicatorDocument)
 	Delete(i *v1alpha1.IndicatorDocument)
 
@@ -28,7 +29,7 @@ type Controller struct {
 
 func NewController(configMap ConfigMapPatcher, cr ConfigRenderer) *Controller {
 	return &Controller{
-		patcher: configMap,
+		patcher:  configMap,
 		renderer: cr,
 	}
 }
@@ -49,7 +50,7 @@ func (c *Controller) OnAdd(obj interface{}) {
 }
 
 func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
-	if !reflect.DeepEqual(oldObj, newObj){
+	if !reflect.DeepEqual(oldObj, newObj) {
 		c.OnAdd(newObj)
 	}
 }

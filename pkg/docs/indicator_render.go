@@ -1,15 +1,17 @@
 package docs
 
 import (
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"log"
 	"strings"
 	"unicode"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+
 	"bytes"
 	"fmt"
-	"gopkg.in/russross/blackfriday.v2"
 	"html/template"
+
+	"gopkg.in/russross/blackfriday.v2"
 )
 
 var indicatorTmpl = template.Must(template.New("Indicator").Parse(`
@@ -45,7 +47,6 @@ var indicatorTmpl = template.Must(template.New("Indicator").Parse(`
 	{{- end}}
 </table>`))
 
-
 type indicatorPresenter struct {
 	indicator.Indicator
 }
@@ -53,7 +54,6 @@ type indicatorPresenter struct {
 func NewIndicatorPresenter(i indicator.Indicator) indicatorPresenter {
 	return indicatorPresenter{i}
 }
-
 
 func (p *indicatorPresenter) HTML() template.HTML {
 	buffer := bytes.NewBuffer(nil)
@@ -158,7 +158,6 @@ func (t thresholdPresenter) Level() string {
 		return t.threshold.Level
 	}
 }
-
 
 func (t thresholdPresenter) Operator() string {
 	return t.threshold.GetComparator()

@@ -3,10 +3,11 @@ package prometheus_uaa_client
 import (
 	"context"
 	"crypto/tls"
-	"github.com/prometheus/client_golang/api"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
 	"net/http"
 	"net/url"
+
+	"github.com/prometheus/client_golang/api"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 type wrappedClient struct {

@@ -2,8 +2,9 @@ package indicator
 
 import (
 	"fmt"
-	"github.com/prometheus/prometheus/promql"
 	"strings"
+
+	"github.com/prometheus/prometheus/promql"
 )
 
 func Validate(document Document) []error {

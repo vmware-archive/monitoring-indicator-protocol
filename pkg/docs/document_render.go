@@ -9,7 +9,7 @@ import (
 	"gopkg.in/russross/blackfriday.v2"
 )
 
-func docToTemplate(d indicator.Document, t * template.Template) (string, error) {
+func docToTemplate(d indicator.Document, t *template.Template) (string, error) {
 	buffer := bytes.NewBuffer(nil)
 	err := t.Execute(buffer, documentPresenter{d.Layout})
 

@@ -1,9 +1,10 @@
 package registry_test
 
 import (
-	. "github.com/onsi/gomega"
 	"net/http/httptest"
 	"testing"
+
+	. "github.com/onsi/gomega"
 
 	"bytes"
 	"io/ioutil"
@@ -62,9 +63,9 @@ indicators:
 						},
 						Presentation: &indicator.Presentation{
 							CurrentValue: false,
-							ChartType: "step",
-							Frequency: 0,
-							Labels: []string{},
+							ChartType:    "step",
+							Frequency:    0,
+							Labels:       []string{},
 						},
 						Thresholds: []indicator.Threshold{
 							{
@@ -85,9 +86,9 @@ indicators:
 				},
 				Presentation: &indicator.Presentation{
 					CurrentValue: false,
-					ChartType: "step",
-					Frequency: 0,
-					Labels: []string{},
+					ChartType:    "step",
+					Frequency:    0,
+					Labels:       []string{},
 				},
 				Thresholds: []indicator.Threshold{
 					{

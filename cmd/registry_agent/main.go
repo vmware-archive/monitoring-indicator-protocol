@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -36,7 +37,7 @@ func main() {
 		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
 			DisableKeepAlives: true,
-			TLSClientConfig: tlsConfig,
+			TLSClientConfig:   tlsConfig,
 		},
 	}
 

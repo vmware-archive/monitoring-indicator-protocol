@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/prometheus"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned"
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/prometheus"
 
 	coreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
