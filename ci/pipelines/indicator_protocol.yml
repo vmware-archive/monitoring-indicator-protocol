@@ -59,7 +59,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: indicatorprotocol/test-base
       inputs:
       - name: monitoring-indicator-protocol
       run:
@@ -87,7 +87,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: indicatorprotocol/test-base
       inputs:
       - name: monitoring-indicator-protocol
       run:
@@ -118,7 +118,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: indicatorprotocol/test-base
       inputs:
       - name: monitoring-indicator-protocol
       - name: env-state
@@ -183,7 +183,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: indicatorprotocol/test-base
       inputs:
       - name: monitoring-indicator-protocol
       - name: env-state
@@ -247,7 +247,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: indicatorprotocol/test-base
       inputs:
       - name: release-version
       - name: monitoring-indicator-protocol
@@ -309,7 +309,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfmetrics/indicators-build-and-test
+          repository: indicatorprotocol/test-base
       inputs:
       - name: monitoring-indicator-protocol
       - name: release-version
