@@ -3,7 +3,7 @@ package indicator
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	"strings"
 )
 
 func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
@@ -19,12 +19,15 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
 
 	validationErrors := Validate(indicatorDocument)
 	if len(validationErrors) > 0 {
-
+		var errorS strings.Builder
+		errorS.WriteString("validation for indicator file failed:\n")
 		for _, e := range validationErrors {
-			log.Printf("- %s \n", e.Error())
+			_, err = fmt.Fprintf(&errorS, "- %v\n", e)
+			if err != nil {
+				errorS.WriteString("failed to parse error\n")
+			}
 		}
-
-		return Document{}, fmt.Errorf("validation for indicator file failed - [%+v]", validationErrors)
+		return Document{}, fmt.Errorf(errorS.String())
 	}
 
 	return indicatorDocument, nil

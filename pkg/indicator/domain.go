@@ -15,6 +15,7 @@ const (
 	NotEqualTo
 	GreaterThanOrEqualTo
 	GreaterThan
+	Undefined
 )
 
 type Document struct {

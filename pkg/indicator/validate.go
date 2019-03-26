@@ -32,18 +32,42 @@ func Validate(document Document) []error {
 	}
 
 	for idx, i := range document.Indicators {
-		if strings.TrimSpace(i.Name) == "" {
-			es = append(es, fmt.Errorf("indicators[%d] name is required", idx))
-		}
+		es = validateIndicator(i, es, idx)
+	}
 
-		labels, err := promql.ParseMetric(i.Name)
-		if err != nil || labels.Len() > 1 {
-			es = append(es, fmt.Errorf("indicators[%d] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)", idx))
-		}
+	return es
+}
 
-		if strings.TrimSpace(i.PromQL) == "" {
-			es = append(es, fmt.Errorf("indicators[%d] promql is required", idx))
+func validateIndicator(i Indicator, es []error, idx int) []error {
+	if strings.TrimSpace(i.Name) == "" {
+		es = append(es, fmt.Errorf("indicators[%d] name is required", idx))
+	}
+	labels, err := promql.ParseMetric(i.Name)
+	if err != nil || labels.Len() > 1 {
+		es = append(es, fmt.Errorf("indicators[%d] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)", idx))
+	}
+	if strings.TrimSpace(i.PromQL) == "" {
+		es = append(es, fmt.Errorf("indicators[%d] promql is required", idx))
+	}
+	for tdx, threshold := range i.Thresholds {
+		if threshold.Operator == Undefined {
+			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float", idx, tdx))
 		}
+	}
+
+	es = validateChartType(i.Presentation.ChartType, es, idx)
+
+	return es
+}
+func validateChartType(chartType ChartType, es []error, idx int) []error {
+	valid := false
+	for _, validChartType := range ChartTypes {
+		if chartType == validChartType {
+			valid = true
+		}
+	}
+	if !valid {
+		es = append(es, fmt.Errorf("indicators[%d] invalid chartType provided: '%s' - valid chart types are %v", idx, chartType, ChartTypes))
 	}
 
 	return es

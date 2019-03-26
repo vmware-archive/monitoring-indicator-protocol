@@ -2,6 +2,7 @@ package indicator_test
 
 import (
 	"errors"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -20,6 +21,12 @@ func TestValidDocument(t *testing.T) {
 			Indicators: []indicator.Indicator{{
 				Name:   "test_performance_indicator",
 				PromQL: "prom",
+				Thresholds: []indicator.Threshold{{
+					Level:    "critical",
+					Operator: indicator.GreaterThan,
+					Value:    0,
+				}},
+				Presentation:test_fixtures.DefaultPresentation(),
 			}},
 			Layout: indicator.Layout{
 				Title:       "Monitoring Test Product",
@@ -104,7 +111,7 @@ func TestAPIVersion(t *testing.T) {
 	})
 }
 
-func TestIndicatorValidation(t *testing.T) {
+func TestIndicator(t *testing.T) {
 
 	t.Run("validation returns errors if any indicator field is blank", func(t *testing.T) {
 		g := NewGomegaWithT(t)
@@ -114,8 +121,9 @@ func TestIndicatorValidation(t *testing.T) {
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{
 				{
-					Name:   " ",
-					PromQL: " ",
+					Name:         " ",
+					PromQL:       " ",
+					Presentation: test_fixtures.DefaultPresentation(),
 				},
 			},
 		}
@@ -137,8 +145,9 @@ func TestIndicatorValidation(t *testing.T) {
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{
 				{
-					Name:   "not.valid",
-					PromQL: " ",
+					Name:         "not.valid",
+					PromQL:       " ",
+					Presentation: test_fixtures.DefaultPresentation(),
 				},
 			},
 		}
@@ -161,6 +170,7 @@ func TestIndicatorValidation(t *testing.T) {
 				{
 					Name:   `valid{labels="nope"}`,
 					PromQL: `valid{labels="yep"}`,
+					Presentation:test_fixtures.DefaultPresentation(),
 				},
 			},
 		}
@@ -173,7 +183,7 @@ func TestIndicatorValidation(t *testing.T) {
 	})
 }
 
-func TestMetadataValidation(t *testing.T) {
+func TestMetadata(t *testing.T) {
 	t.Run("validation returns errors if metadata key is step", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
@@ -187,6 +197,57 @@ func TestMetadataValidation(t *testing.T) {
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
+		))
+	})
+}
+
+func TestThreshold(t *testing.T) {
+	t.Run("validation returns errors if threshold value is missing", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+			Indicators: []indicator.Indicator{{
+				Name:   "my_fair_indicator",
+				PromQL: "rate(speech)",
+				Thresholds: []indicator.Threshold{{
+					Level:    "warning",
+					Operator: indicator.Undefined,
+					Value:    0,
+				}},
+				Presentation:test_fixtures.DefaultPresentation(),
+			}},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"),
+		))
+	})
+}
+
+func TestChartType(t *testing.T) {
+	t.Run("validation returns errors if chart type is invalid", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+			Indicators: []indicator.Indicator{{
+				Name:   "my_fair_indicator",
+				PromQL: "rate(speech)",
+				Presentation: &indicator.Presentation{
+					ChartType: "fakey-fake",
+				},
+			}},
+		}
+
+		es := indicator.Validate(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("indicators[0] invalid chartType provided: 'fakey-fake' - valid chart types are [step bar]"),
 		))
 	})
 }

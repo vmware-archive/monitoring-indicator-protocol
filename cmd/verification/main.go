@@ -13,6 +13,7 @@ import (
 func main() {
 	stdOut := log.New(os.Stdout, "", 0)
 	stdErr := log.New(os.Stderr, "", 0)
+	l := log.New(os.Stderr, "", 0)
 
 	flagSet := flag.NewFlagSet("validator", flag.ErrorHandling(0))
 	indicatorsFilePath := flagSet.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/indicators)")
@@ -24,14 +25,14 @@ func main() {
 
 	document, err := indicator.ReadFile(*indicatorsFilePath, indicator.OverrideMetadata(indicator.ParseMetadata(*metadata)))
 	if err != nil {
-		log.Fatalf("could not read indicators document: %s\n", err)
+		l.Fatal(err)
 	}
 
 	tokenFetcher := func() (string, error) { return *authorization, nil }
 
 	prometheusClient, err := prometheus_uaa_client.Build(*prometheusURL, tokenFetcher, *insecure)
 	if err != nil {
-		log.Fatalf("could not create prometheus client: %s\n", err)
+		l.Fatalf("could not create prometheus client: %s\n", err)
 	}
 
 	stdOut.Println("---------------------------------------------------------------------------------------------")

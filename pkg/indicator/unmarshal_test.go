@@ -255,32 +255,12 @@ func TestReturnsAnErrorIfTheYAMLIsUnparsable(t *testing.T) {
 		_, err := indicator.ReadIndicatorDocument([]byte(`--`))
 		g.Expect(err).To(HaveOccurred())
 	})
-
-	t.Run("bad chart type", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		_, err := indicator.ReadIndicatorDocument([]byte(`---
-apiVersion: v0
-product:
-  name: test_product
-  version: 0.0.1
-metadata:
-  deployment: test_deployment
-
-indicators:
-- name: test_performance_indicator
-  promql: prom{deployment="$deployment"}
-  presentation:
-    chartType: bad-fake-no-good-chart`))
-
-		g.Expect(err).To(MatchError(ContainSubstring("'bad-fake-no-good-chart' - valid chart types are step, bar")))
-	})
 }
 
-func TestReturnsAnErrorIfAThresholdHasNoValue(t *testing.T) {
+func TestReturnsUndefinedOperatorIfThresholdHasNoValue(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	_, err := indicator.ReadIndicatorDocument([]byte(`---
+	d, err := indicator.ReadIndicatorDocument([]byte(`---
 indicators:
 - name: test-kpi
   description: desc
@@ -288,7 +268,9 @@ indicators:
   thresholds:
   - level: warning
   `))
-	g.Expect(err).To(HaveOccurred())
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(d.Indicators[0].Thresholds[0].Operator).To(Equal(indicator.Undefined))
+	g.Expect(d.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
 }
 
 func TestReturnsAnErrorIfAThresholdHasABadFloatValue(t *testing.T) {

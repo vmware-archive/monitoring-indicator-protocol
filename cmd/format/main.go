@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"gopkg.in/yaml.v2"
 
@@ -15,6 +16,7 @@ import (
 )
 
 func main() {
+	l := log.New(os.Stderr, "", 0)
 	outputFormat := flag.String("format", "bookbinder", "output format [bookbinder,prometheus-alerts,grafana]")
 	metadata := flag.String("metadata", "", "metadata to override (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
 	indicatorsFilePath := flag.String("indicators", "", "indicators YAML file path")
@@ -22,12 +24,12 @@ func main() {
 	flag.Parse()
 
 	if len(*indicatorsFilePath) == 0 {
-		log.Fatalf("-indicators flag is required")
+		l.Fatalf("-indicators flag is required")
 	}
 
 	output, err := parseDocument(*outputFormat, *metadata, *indicatorsFilePath)
 	if err != nil {
-		log.Fatal(err)
+		l.Fatal(err)
 	}
 
 	fmt.Print(output)
@@ -55,9 +57,10 @@ func parseDocument(format string, metadata string, filePath string) (string, err
 }
 
 func getDocument(docPath string, opts ...indicator.ReadOpt) indicator.Document {
+	l := log.New(os.Stderr, "", 0)
 	document, err := indicator.ReadFile(docPath, opts...)
 	if err != nil {
-		log.Fatalf("could not read indicators document: %s\n", err)
+		l.Fatal(err)
 	}
 
 	return document

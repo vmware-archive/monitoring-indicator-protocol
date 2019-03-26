@@ -70,7 +70,7 @@ func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 				od := p.Operations[i]
 				tempDocument, err = o.Apply(document)
 				if err != nil {
-					log.Print(fmt.Errorf("failed to apply operation %s %s: %s", od.Type, *od.Path, err))
+					log.Print(fmt.Errorf("failed to apply patch operation %s %s: %s", od.Type, *od.Path, err))
 					success = false
 					break
 				}
@@ -375,7 +375,7 @@ func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
 		operator = GreaterThan
 		value, err = strconv.ParseFloat(threshold.GT, 64)
 	default:
-		return Threshold{}, fmt.Errorf("could not find threshold value: one of [lt, lte, eq, neq, gte, gt] must be provided as a float")
+		operator = Undefined
 	}
 
 	if err != nil {
@@ -400,17 +400,13 @@ func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 		}, nil
 	}
 
-	switch p.ChartType {
-	case StepChart:
-	case BarChart:
-	case "":
-		p.ChartType = StepChart
-	default:
-		return nil, fmt.Errorf("invalid chartType provided: '%s' - valid chart types are %s", p.ChartType, getChartTypesList())
+	chartType := p.ChartType
+	if chartType == "" {
+		chartType = StepChart
 	}
 
 	return &Presentation{
-		ChartType:    p.ChartType,
+		ChartType:    chartType,
 		CurrentValue: p.CurrentValue,
 		Frequency:    p.Frequency,
 		Labels:       p.Labels,
@@ -430,18 +426,6 @@ func alertFromYAML(a yamlAlert) Alert {
 		For:  alertFor,
 		Step: alertStep,
 	}
-}
-
-func getChartTypesList() string {
-	var chartTypes = ""
-	for i, chartType := range ChartTypes {
-		if i == 0 {
-			chartTypes = string(chartType)
-		} else {
-			chartTypes = fmt.Sprintf("%s, %s", chartTypes, chartType)
-		}
-	}
-	return chartTypes
 }
 
 func readMetadata(document []byte) (map[string]string, error) {
