@@ -246,7 +246,8 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: indicatorprotocol/test-base
+          repository: google/cloud-sdk
+          tag: 240.0.0-slim
       inputs:
         - name: monitoring-indicator-protocol
         - name: grafana-controller-docker-repo
@@ -281,7 +282,7 @@ jobs:
             }
 
             function main {
-              login_to_cluster_as_admin
+              login
               apply_manifests
             }
 
