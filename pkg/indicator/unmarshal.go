@@ -64,18 +64,14 @@ func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 				log.Print(fmt.Errorf("failed to parse patch operations: %s", err))
 				continue
 			}
-			var tempDocument interface{}
-			success := true
 			for i, o := range ops {
-				od := p.Operations[i]
+				var tempDocument interface{}
 				tempDocument, err = o.Apply(document)
 				if err != nil {
+					od := p.Operations[i]
 					log.Print(fmt.Errorf("failed to apply patch operation %s %s: %s", od.Type, *od.Path, err))
-					success = false
-					break
+					continue
 				}
-			}
-			if success {
 				document = tempDocument
 			}
 		}

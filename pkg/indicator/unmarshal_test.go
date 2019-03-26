@@ -768,58 +768,7 @@ indicators:
 		g.Expect(d.Indicators[0].Thresholds).To(HaveLen(1))
 	})
 
-	t.Run("applies patches where test passes", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		var testVal interface{} = "test_indicator"
-		indicatorPatch := []indicator.Patch{{
-			APIVersion: "test-apiversion/patch",
-			Match: indicator.Match{
-				Metadata: map[string]string{
-					"deployment": "test-deployment",
-				},
-			},
-			Operations: []patch.OpDefinition{
-				{
-					Type:  "test",
-					Path:  strPtr("/indicators/0/name"),
-					Value: &testVal,
-				},
-				{
-					Type:  "remove",
-					Path:  strPtr("/indicators/0/thresholds/level=warning"),
-					Value: nil,
-				},
-			},
-		}}
-		doc := []byte(`---
-apiVersion: test-apiversion/document
-
-product:
-  name: testing
-  version: 123
-
-metadata:
-  deployment: test-deployment
-
-indicators:
-- name: test_indicator
-  promql: test_expr
-  thresholds:
-  - level: warning
-    gt: 500
-`)
-
-		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		d, err := indicator.ReadIndicatorDocument(patchedBytes)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		g.Expect(d.Indicators[0].Thresholds).To(HaveLen(0))
-	})
-
-	t.Run("does not apply patches where test fails", func(t *testing.T) {
+	t.Run("ignores `test` operation", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		var testVal interface{} = "not_test_indicator"
@@ -861,11 +810,13 @@ indicators:
     gt: 500
 `)
 
-		document, err := indicator.ProcessDocument(indicatorPatch, doc)
-		g.Expect(err).To(BeEmpty())
-		indicatorDocument, err2 := indicator.ReadIndicatorDocument(doc)
-		g.Expect(err2).NotTo(HaveOccurred())
-		g.Expect(document).To(Equal(indicatorDocument))
+		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		d, err := indicator.ReadIndicatorDocument(patchedBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].Thresholds).To(HaveLen(0))
 	})
 
 	t.Run("adds by replacing", func(t *testing.T) {
@@ -915,7 +866,7 @@ indicators:
 		g.Expect(d.Indicators[0].Thresholds).To(HaveLen(1))
 	})
 
-	t.Run("does not error when patch fails from invalid OpDefinition", func(t *testing.T) {
+	t.Run("does not error when patch fails due to invalid operation", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		indicatorPatch := []indicator.Patch{{
@@ -932,7 +883,6 @@ indicators:
 				},
 			},
 		}}
-		//^ OpDefinition does not contain value
 
 		doc := []byte(`---
 apiVersion: v0
@@ -957,10 +907,10 @@ indicators:
 		g.Expect(err2).ToNot(HaveOccurred())
 	})
 
-	t.Run("does not error when patch fails from invalid OpDefinition", func(t *testing.T) {
+	t.Run("does not error when patch fails due to invalid path", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		var val interface{} = "patched_promql"
+		var val interface{} = "patched_threshold"
 		indicatorPatch := []indicator.Patch{{
 			APIVersion: "v0",
 			Match: indicator.Match{
@@ -999,6 +949,85 @@ indicators:
 		d, err2 := indicator.ReadIndicatorDocument(doc)
 		g.Expect(patchedBytes).To(Equal(d))
 		g.Expect(err2).ToNot(HaveOccurred())
+	})
+
+	t.Run("applies partially successful patches", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		var patchedWarningThreshold interface{} = map[interface{}]interface{}{
+			"level": "warning",
+			"gt":    "800",
+		}
+		var patchedCriticalThreshold interface{} = map[interface{}]interface{}{
+			"level": "critical",
+			"gt":    "5000",
+		}
+		var patchedPromql interface{} = "foo"
+
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/0/thresholds/level=warning"),
+					Value: &patchedWarningThreshold,
+				},
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/1/promql"),
+					Value: &patchedPromql,
+				},
+				{
+					Type:  "replace",
+					Path:  strPtr("/indicators/0/thresholds/level=critical"),
+					Value: &patchedCriticalThreshold,
+				},
+			},
+		}}
+		doc := []byte(`---
+apiVersion: test-apiversion/document
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+  thresholds:
+  - level: warning
+    gt: 500    
+  - level: critical
+    gt: 1000
+`)
+
+		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		d, err := indicator.ReadIndicatorDocument(patchedBytes)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].PromQL).To(Equal("test_expr"))
+		g.Expect(d.Indicators[0].Thresholds).To(BeEquivalentTo([]indicator.Threshold{
+			{
+				Level:    "warning",
+				Operator: indicator.GreaterThan,
+				Value:    800,
+			},
+			{
+				Level:    "critical",
+				Operator: indicator.GreaterThan,
+				Value:    5000,
+			},
+		}))
 	})
 }
 
