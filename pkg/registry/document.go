@@ -35,10 +35,10 @@ type APIV0Presentation struct {
 type APIV0Indicator struct {
 	Name          string             `json:"name"`
 	PromQL        string             `json:"promql"`
-	Thresholds    []APIV0Threshold   `json:"thresholds,omitempty"`
-	Alert         APIV0Alert         `json:"alert,omitempty"`
+	Thresholds    []APIV0Threshold   `json:"thresholds"`
+	Alert         APIV0Alert         `json:"alert"`
 	Documentation map[string]string  `json:"documentation,omitempty"`
-	Presentation  *APIV0Presentation `json:"presentation,omitempty"`
+	Presentation  *APIV0Presentation `json:"presentation"`
 }
 
 type APIV0Alert struct {
@@ -49,14 +49,14 @@ type APIV0Alert struct {
 type APIV0Layout struct {
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
-	Sections    []APIV0Section `json:"sections,omitempty"`
+	Sections    []APIV0Section `json:"sections"`
 	Owner       string         `json:"owner"`
 }
 
 type APIV0Section struct {
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
-	Indicators  []string `json:"indicators,omitempty"`
+	Indicators  []string `json:"indicators"`
 }
 
 func ToIndicatorDocument(d APIV0Document) indicator.Document {

@@ -13,6 +13,7 @@
       {
         "name": "only_in_example_yml",
         "promql": "test_query",
+        "thresholds": [],
         "alert": {
           "for": "1m",
           "step": "1m"
@@ -91,6 +92,7 @@
       {
         "name": "very_good_indicator",
         "promql": "test_query",
+        "thresholds": [],
         "alert": {
           "for": "50m",
           "step": "10s"
@@ -105,6 +107,7 @@
       {
         "name": "success_percentage",
         "promql": "success_percentage_promql{source_id=\"origin\"}",
+        "thresholds": [],
         "alert": {
           "for": "1m",
           "step": "1m"

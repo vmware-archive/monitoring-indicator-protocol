@@ -204,23 +204,28 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
                       {
                         "name": "test_errors1",
                         "promql": "",
+                        "thresholds": [],
 						"alert": {
 							"for": "5m",
 							"step": "10s"
-						}
+						},
+                        "presentation": null
                       },
                       {
                         "name": "test_errors2",
                         "promql": "",
+                        "thresholds": [],
 						"alert": {
 							"for": "5m",
 							"step": "10s"
-						}
+						},
+                        "presentation": null
                       }
                     ],
                     "layout": {
                       "title": "",
                       "description": "",
+					  "sections": [],
                       "owner": ""
                     }
                   }
