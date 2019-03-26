@@ -73,7 +73,7 @@ layout:
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
 						ChartType:    indicator.StepChart,
-						Frequency:    time.Duration(5 * time.Second),
+						Frequency:    5 * time.Second,
 						Labels:       []string{"job", "ip"},
 					},
 					Documentation: map[string]string{
@@ -106,7 +106,7 @@ layout:
 						},
 						Presentation: &indicator.Presentation{
 							ChartType: indicator.StepChart,
-							Frequency: time.Duration(5 * time.Second),
+							Frequency: 5 * time.Second,
 							Labels:    []string{"job", "ip"},
 						},
 						Documentation: map[string]string{

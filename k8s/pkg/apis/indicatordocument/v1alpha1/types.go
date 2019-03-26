@@ -31,7 +31,7 @@ type Indicator struct {
 	Promql        string            `json:"promql"`
 	Alert         Alert             `json:"alert"`
 	Thresholds    []Threshold       `json:"thresholds"`
-	Documentation map[string]string `json:"documentation"`
+	Documentation map[string]string `json:"documentation,omitempty"`
 }
 
 type Alert struct {
@@ -40,13 +40,13 @@ type Alert struct {
 }
 
 type Threshold struct {
-	Level string   `json:"level"`
-	Lt    *float64 `json:"lt"`
-	Lte   *float64 `json:"lte"`
-	Eq    *float64 `json:"eq"`
-	Neq   *float64 `json:"neq"`
-	Gte   *float64 `json:"gte"`
-	Gt    *float64 `json:"gt"`
+	Level string   `json:"level,omitempty"`
+	Lt    *float64 `json:"lt,omitempty"`
+	Lte   *float64 `json:"lte,omitempty"`
+	Eq    *float64 `json:"eq,omitempty"`
+	Neq   *float64 `json:"neq,omitempty"`
+	Gte   *float64 `json:"gte,omitempty"`
+	Gt    *float64 `json:"gt,omitempty"`
 }
 
 type Layout struct {
