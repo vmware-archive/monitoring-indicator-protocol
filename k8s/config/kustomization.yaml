@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- 200-grafana-indicator-controller-roles.yaml
+- 200-grafana-indicator-controller-service-account.yaml
+- 200-prometheus-indicator-controller-roles.yaml
+- 200-prometheus-indicator-controller-service-account.yaml
+- 201-grafana-indicator-controller-role-binding.yaml
+- 201-prometheus-indicator-controller-role-binding.yaml
+- 300-indicator-document.yaml
+- 500-grafana-indicator-controller.yaml
+- 500-prometheus-indicator-controller.yaml
