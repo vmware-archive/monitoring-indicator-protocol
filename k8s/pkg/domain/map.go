@@ -17,8 +17,10 @@ func Map(i *v1alpha1.IndicatorDocument) indicator.Document {
 
 		// TODO: add layouts correctly
 		Layout: indicator.Layout{
-			Title:    i.Spec.Layout.Title,
-			Sections: mapToDomainSections(i.Spec.Layout.Sections, indicators),
+			Title:       i.Spec.Layout.Title,
+			Description: i.Spec.Layout.Description,
+			Sections:    mapToDomainSections(i.Spec.Layout.Sections, indicators),
+			Owner:       i.Spec.Layout.Owner,
 		},
 	}
 }
@@ -40,15 +42,11 @@ func mapToDomainSections(sections []v1alpha1.Section, indicators []indicator.Ind
 func findIndicators(names []string, indicators []indicator.Indicator) []indicator.Indicator {
 	matchedIndicators := make([]indicator.Indicator, 0)
 
-	for _, i := range indicators {
-		matched := false
-		for _, j := range names {
-			if i.Name == j {
-				matched = true
+	for _, n := range names {
+		for _, i := range indicators {
+			if i.Name == n {
+				matchedIndicators = append(matchedIndicators, i)
 			}
-		}
-		if matched {
-			matchedIndicators = append(matchedIndicators, i)
 		}
 	}
 
