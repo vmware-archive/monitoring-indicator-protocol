@@ -36,7 +36,7 @@ func TestNoLayoutGeneratesDefaultDashboard(t *testing.T) {
 				Name:    "my_app",
 				Version: "1.0.1",
 			},
-			Indicators: []v1alpha1.Indicator{
+			Indicators: []v1alpha1.IndicatorSpec{
 				{
 					Name:   "latency",
 					Promql: "histogram_quantile(0.9, latency)",

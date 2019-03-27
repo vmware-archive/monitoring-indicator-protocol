@@ -53,7 +53,7 @@ func findIndicators(names []string, indicators []indicator.Indicator) []indicato
 	return matchedIndicators
 }
 
-func mapToDomainIndicators(ids []v1alpha1.Indicator) []indicator.Indicator {
+func mapToDomainIndicators(ids []v1alpha1.IndicatorSpec) []indicator.Indicator {
 	indicators := make([]indicator.Indicator, 0, len(ids))
 	for _, i := range ids {
 		indicators = append(indicators, indicator.Indicator{

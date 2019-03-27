@@ -1,0 +1,11 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: indicator-lifecycle-controller
+rules:
+- apiGroups: ["apps.pivotal.io"]
+  resources: ["indicators"]
+  verbs: ["get", "list", "create", "update", "delete"]
+- apiGroups: ["apps.pivotal.io"]
+  resources: ["indicatordocuments"]
+  verbs: ["get", "list", "watch"]

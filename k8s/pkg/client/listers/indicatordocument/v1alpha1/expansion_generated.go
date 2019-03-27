@@ -18,6 +18,14 @@ limitations under the License.
 
 package v1alpha1
 
+// IndicatorListerExpansion allows custom methods to be added to
+// IndicatorLister.
+type IndicatorListerExpansion interface{}
+
+// IndicatorNamespaceListerExpansion allows custom methods to be added to
+// IndicatorNamespaceLister.
+type IndicatorNamespaceListerExpansion interface{}
+
 // IndicatorDocumentListerExpansion allows custom methods to be added to
 // IndicatorDocumentLister.
 type IndicatorDocumentListerExpansion interface{}

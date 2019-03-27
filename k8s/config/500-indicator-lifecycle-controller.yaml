@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: indicator-lifecycle-controller
+  namespace: monitoring-indicator-protocol
+  labels:
+    app: indicator-lifecycle-controller
+spec:
+  selector:
+    matchLabels:
+      app: indicator-lifecycle-controller
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: indicator-lifecycle-controller
+    spec:
+      serviceAccountName: indicator-lifecycle-controller
+      containers:
+      - name: indicator-lifecycle-controller
+        image: indicatorprotocol/indicator-lifecycle-controller:latest
+        imagePullPolicy: Always
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace

@@ -1,0 +1,44 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: indicators.apps.pivotal.io
+spec:
+  group: apps.pivotal.io
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: indicators
+    singular: indicator
+    kind: Indicator
+  validation:
+    openAPIV3Schema:
+      properties:
+        spec:
+          required:
+          - name
+          - promql
+          properties:
+            documentation:
+              type: object
+            thresholds:
+              type: array
+              items:
+                required:
+                - level
+                properties:
+                  gte:
+                    type: number
+                  gt:
+                    type: number
+                  eq:
+                    type: number
+                  neq:
+                    type: number
+                  lt:
+                    type: number
+                  lte:
+                    type: number

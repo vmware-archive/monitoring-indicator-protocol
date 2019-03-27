@@ -36,7 +36,7 @@ func TestController(t *testing.T) {
 	t.Run("on add it updates existing config map", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		spyConfigMapEditor := &spyConfigMapEditor{g: g, getExists: true}
+		spyConfigMapEditor := &spyConfigMapEditor{g: g}
 		spyConfigMapEditor.alreadyCreated()
 		controller := grafana.NewController(spyConfigMapEditor)
 
@@ -224,7 +224,7 @@ func indicatorDocument() *v1alpha1.IndicatorDocument {
 				Name:    "rabbit-mq-product-name",
 				Version: "v1.0",
 			},
-			Indicators: []v1alpha1.Indicator{
+			Indicators: []v1alpha1.IndicatorSpec{
 				{
 					Name:   "qps",
 					Promql: "rate(qps)",

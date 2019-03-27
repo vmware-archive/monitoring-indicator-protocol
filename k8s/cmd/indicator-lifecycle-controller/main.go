@@ -10,9 +10,7 @@ import (
 	"time"
 
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/prometheus"
-
-	coreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/lifecycle"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
@@ -52,24 +50,22 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	coreV1Client, err := coreV1.NewForConfig(cfg)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	promConfig := prometheus.NewConfig()
-
-	controller := prometheus.NewController(
-		coreV1Client.ConfigMaps(conf.Namespace),
-		promConfig,
+	controller := lifecycle.NewController(
+		client.AppsV1alpha1(),
 	)
 
-	informerFactory := informers.NewSharedInformerFactory(client, time.Second*30)
+	informerFactory := informers.NewSharedInformerFactory(
+		client,
+		time.Second*30,
+	)
 
-	indicatorInformer := informerFactory.Apps().V1alpha1().IndicatorDocuments().Informer()
+	indicatorInformer := informerFactory.Apps().
+		V1alpha1().
+		IndicatorDocuments().
+		Informer()
 	indicatorInformer.AddEventHandler(controller)
 
-	// blocks (main goroutine to dispatch events to our controller)
+	log.Println("running informer...")
 	indicatorInformer.Run(ctx.Done())
 }
 

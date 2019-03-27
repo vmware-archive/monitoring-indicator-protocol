@@ -16,7 +16,6 @@ spec:
     kind: IndicatorDocument
     shortNames:
     - id
-    - indicator
   validation:
     openAPIV3Schema:
       properties:

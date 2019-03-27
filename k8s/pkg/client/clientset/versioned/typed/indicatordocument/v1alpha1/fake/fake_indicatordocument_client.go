@@ -28,6 +28,10 @@ type FakeAppsV1alpha1 struct {
 	*testing.Fake
 }
 
+func (c *FakeAppsV1alpha1) Indicators(namespace string) v1alpha1.IndicatorInterface {
+	return &FakeIndicators{c, namespace}
+}
+
 func (c *FakeAppsV1alpha1) IndicatorDocuments(namespace string) v1alpha1.IndicatorDocumentInterface {
 	return &FakeIndicatorDocuments{c, namespace}
 }

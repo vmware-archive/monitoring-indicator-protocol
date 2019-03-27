@@ -81,6 +81,7 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 }
 
 // TODO: evaluate edge case where object might not exist
+// TODO: implement OwnerReferences and have Kubernetes API garbage collect the references
 func (c *Controller) OnDelete(obj interface{}) {
 	doc, ok := obj.(*v1alpha1.IndicatorDocument)
 	if !ok {

@@ -24,6 +24,8 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
+	// Indicators returns a IndicatorInformer.
+	Indicators() IndicatorInformer
 	// IndicatorDocuments returns a IndicatorDocumentInformer.
 	IndicatorDocuments() IndicatorDocumentInformer
 }
@@ -37,6 +39,11 @@ type version struct {
 // New returns a new Interface.
 func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
+}
+
+// Indicators returns a IndicatorInformer.
+func (v *version) Indicators() IndicatorInformer {
+	return &indicatorInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // IndicatorDocuments returns a IndicatorDocumentInformer.

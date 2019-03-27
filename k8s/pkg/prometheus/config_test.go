@@ -25,7 +25,7 @@ var indicators = []*v1alpha1.IndicatorDocument{
 				Name:    "my_app",
 				Version: "1.0.1",
 			},
-			Indicators: []v1alpha1.Indicator{
+			Indicators: []v1alpha1.IndicatorSpec{
 				{
 					Name:   "latency",
 					Promql: "histogram_quantile(0.9, latency)",
@@ -60,7 +60,7 @@ var indicators = []*v1alpha1.IndicatorDocument{
 				Name:    "my_app",
 				Version: "1.0.1",
 			},
-			Indicators: []v1alpha1.Indicator{
+			Indicators: []v1alpha1.IndicatorSpec{
 				{
 					Name:   "average_latency",
 					Promql: "average(latency)",

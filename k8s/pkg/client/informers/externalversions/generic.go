@@ -53,6 +53,8 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=apps.pivotal.io, Version=v1alpha1
+	case v1alpha1.SchemeGroupVersion.WithResource("indicators"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Apps().V1alpha1().Indicators().Informer()}, nil
 	case v1alpha1.SchemeGroupVersion.WithResource("indicatordocuments"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Apps().V1alpha1().IndicatorDocuments().Informer()}, nil
 

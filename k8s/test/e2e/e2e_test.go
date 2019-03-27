@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -124,7 +124,7 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 	t.Log("Unmarshaling config map prometheus alerts yaml")
 	var (
 		cmAlerts map[string][]map[string]interface{}
-		cmAlert  interface{}
+		cmAlert interface{}
 	)
 	err = yaml.Unmarshal([]byte(cm.Data["alerts"]), &cmAlerts)
 	if err != nil {
@@ -178,7 +178,7 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 				Name:    "e2e-test-product",
 				Version: "v1.2.3-rc1",
 			},
-			Indicators: []v1alpha1.Indicator{
+			Indicators: []v1alpha1.IndicatorSpec{
 				{
 					Name:   "e2d-test-indicator",
 					Promql: "rate(some_metric[10m])",

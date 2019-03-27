@@ -16,9 +16,9 @@ type IndicatorDocument struct {
 
 // IndicatorDocumentSpec is the spec for a IndicatorDocument resource
 type IndicatorDocumentSpec struct {
-	Product    Product     `json:"product"`
-	Indicators []Indicator `json:"indicators"`
-	Layout     Layout      `json:"layout"`
+	Product    Product         `json:"product"`
+	Indicators []IndicatorSpec `json:"indicators"`
+	Layout     Layout          `json:"layout"`
 }
 
 type Product struct {
@@ -26,7 +26,17 @@ type Product struct {
 	Version string `json:"version"`
 }
 
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 type Indicator struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec IndicatorSpec
+}
+
+type IndicatorSpec struct {
 	Name          string            `json:"name"`
 	Promql        string            `json:"promql"`
 	Alert         Alert             `json:"alert"`
@@ -75,4 +85,14 @@ type IndicatorDocumentList struct {
 	metav1.ListMeta `json:"metadata"`
 
 	Items []IndicatorDocument `json:"items"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// IndicatorList is a list of Indicator resources
+type IndicatorList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata"`
+
+	Items []Indicator `json:"items"`
 }

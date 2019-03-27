@@ -1,12 +1,12 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: grafana-indicator-controller
+  name: indicator-lifecycle-controller
 subjects:
   - kind: ServiceAccount
-    name: grafana-indicator-controller
-    namespace: grafana # TODO: don't bind to grafana namespace
+    name: indicator-lifecycle-controller
+    namespace: monitoring-indicator-protocol
 roleRef:
   kind: ClusterRole
-  name: grafana-indicator-controller
+  name: indicator-lifecycle-controller
   apiGroup: rbac.authorization.k8s.io

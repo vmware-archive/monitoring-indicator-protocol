@@ -24,7 +24,7 @@ func TestMap(t *testing.T) {
 					Name:    "my-product",
 					Version: "my-version",
 				},
-				Indicators: []v1alpha1.Indicator{{
+				Indicators: []v1alpha1.IndicatorSpec{{
 					Name:   "my-indicator",
 					Promql: "my_promql",
 					Alert: v1alpha1.Alert{
@@ -95,7 +95,7 @@ func TestMap(t *testing.T) {
 					Name:    "my-product",
 					Version: "my-version",
 				},
-				Indicators: []v1alpha1.Indicator{{
+				Indicators: []v1alpha1.IndicatorSpec{{
 					Name:   "my-indicator",
 					Promql: "my_promql",
 				}},
