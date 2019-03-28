@@ -224,9 +224,18 @@ jobs:
               manifests/agent_runtime_config.yml
           popd
 
+          cat << EOF > add-examples-git-source.yml
+          ---
+          - type: replace
+            path: /instance_groups/name=cf-indicator-registry/jobs/name=indicator-registry/properties/sources?/-
+            value:
+              type: git
+              repository: https://github.com/joerodriguez/indicator-protocol-examples
+          EOF
 
           bosh -n -d indicator-registry deploy \
-            monitoring-indicator-protocol/bosh-release/manifests/manifest.yml
+            monitoring-indicator-protocol/bosh-release/manifests/manifest.yml \
+            -o add-examples-git-source.yml
 
 - name: deploy-k8s
   plan:
