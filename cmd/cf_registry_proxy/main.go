@@ -1,8 +1,9 @@
-package cf_registry_proxy
+package main
 
 import (
 	"flag"
 	"fmt"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/cf_registry_proxy"
 	"log"
 	"net/http"
 	"time"
@@ -38,7 +39,7 @@ func main() {
 	apiClient := registry.NewAPIClient(*registryURI, registryHttpClient)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/indicator-documents", handler(apiClient, *capiAddress)).Queries("service_instance_guid", "{service_instance_guid}")
+	router.HandleFunc("/indicator-documents", cf_registry_proxy.IndicatorDocumentsHandler(apiClient, *capiAddress)).Queries("service_instance_guid", "{service_instance_guid}")
 	http.ListenAndServe(fmt.Sprintf(":%d", port), router)
 
 	_, err = apiClient.IndicatorDocuments()
@@ -53,7 +54,4 @@ func main() {
 
 }
 
-func handler(registryClient registry.APIClient, capiAddress string) func(http.ResponseWriter, *http.Request) {
-
-}
 
