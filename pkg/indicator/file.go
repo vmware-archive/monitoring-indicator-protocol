@@ -20,7 +20,7 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
 	validationErrors := Validate(indicatorDocument)
 	if len(validationErrors) > 0 {
 		var errorS strings.Builder
-		errorS.WriteString("validation for indicator file failed:\n")
+		errorS.WriteString("validation for indicator document failed:\n")
 		for _, e := range validationErrors {
 			_, err = fmt.Fprintf(&errorS, "- %v\n", e)
 			if err != nil {
