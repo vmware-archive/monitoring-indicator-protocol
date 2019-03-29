@@ -39,12 +39,14 @@ resources:
   type: docker-image
   source:
     repository: indicatorprotocol/grafana-indicator-controller
+    tag: release-candidate
     username: {{dockerhub-username}}
     password: {{dockerhub-password}}
 - name: prometheus-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/prometheus-indicator-controller
+    tag: release-candidate
     username: {{dockerhub-username}}
     password: {{dockerhub-password}}
 
@@ -497,10 +499,11 @@ jobs:
           SHA=$(git rev-parse HEAD)
           cd ..
           echo ${SHA} > tag/tag
+          echo release-candidate >> tag/tag
   - put: grafana-controller-docker-repo
     params:
       additional_tags: tag/tag
-      tag_as_latest: true
+      tag_as_latest: false
       build: monitoring-indicator-protocol
       dockerfile: monitoring-indicator-protocol/k8s/cmd/grafana-indicator-controller/Dockerfile
 
@@ -533,9 +536,10 @@ jobs:
           SHA=$(git rev-parse HEAD)
           cd ..
           echo ${SHA} > tag/tag
+          echo release-candidate >> tag/tag
   - put: prometheus-controller-docker-repo
     params:
       additional_tags: tag/tag
-      tag_as_latest: true
+      tag_as_latest: false
       build: monitoring-indicator-protocol
       dockerfile: monitoring-indicator-protocol/k8s/cmd/prometheus-indicator-controller/Dockerfile
