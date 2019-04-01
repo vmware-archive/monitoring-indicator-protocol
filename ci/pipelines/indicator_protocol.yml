@@ -257,7 +257,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: indicatorprotocol/deploy-k8s
+          repository: indicatorprotocol/test-base
       inputs:
         - name: monitoring-indicator-protocol
         - name: grafana-controller-docker-repo
@@ -300,20 +300,73 @@ jobs:
 
             main
 
+- name: test-k8s
+  plan:
+  - aggregate:
+    - get: grafana-controller-docker-repo
+      params: {skip_download: true}
+      passed: [deploy-k8s]
+    - get: prometheus-controller-docker-repo
+      params: {skip_download: true}
+      passed: [deploy-k8s]
+    - get: monitoring-indicator-protocol
+      passed: [deploy-k8s]
+      trigger: true
+  - task: run-tests
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: indicatorprotocol/test-base
+      inputs:
+        - name: monitoring-indicator-protocol
+      params:
+        SERVICE_ACCOUNT: {{gcp-service-account}}
+        CLUSTER_NAME: mip-test
+        PROJECT_NAME: cf-denver
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            #!/usr/bin/env bash
+            set -ex
+
+            function login {
+              echo "$SERVICE_ACCOUNT" > sa.json
+              gcloud auth activate-service-account --key-file sa.json
+              rm sa.json
+              gcloud config set project $PROJECT_NAME
+              gcloud container clusters get-credentials "$CLUSTER_NAME" --zone us-central1-a
+            }
+
+            function test {
+                cd monitoring-indicator-protocol
+                ./scripts/test.sh e2e
+            }
+
+            function main {
+              login
+              test
+            }
+
+            main
+
 - name: publish-release
   plan:
   - aggregate:
     - get: monitoring-indicator-protocol
-      passed: [indicator-verification,indicator-docs,deploy-indicator-registry,deploy-k8s]
+      passed: [indicator-verification,indicator-docs,deploy-indicator-registry,test-k8s]
       trigger: false
     - get: release-version
       params: {}
     - get: grafana-controller-docker-repo
       params: {save: true}
-      passed: [deploy-k8s]
+      passed: [test-k8s]
     - get: prometheus-controller-docker-repo
       params: {save: true}
-      passed: [deploy-k8s]
+      passed: [test-k8s]
   - task: create-final-release
     config:
       platform: linux
