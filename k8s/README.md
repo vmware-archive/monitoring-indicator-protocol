@@ -67,7 +67,7 @@ kubectl create ns prometheus
 helm install stable/prometheus --name prometheus --namespace prometheus
 
 # MIP components
-kubectl apply -f config
+kubectl apply -k config
 
 # Apply a simple indicatordocument
 kubectl apply -f test/valid/simple.yml
