@@ -75,9 +75,10 @@ type ChartType string
 const (
 	StepChart ChartType = "step"
 	BarChart  ChartType = "bar"
+	StatusChart  ChartType = "status"
 )
 
-var ChartTypes = []ChartType{StepChart, BarChart}
+var ChartTypes = []ChartType{StepChart, BarChart, StatusChart}
 
 func (e *Threshold) GetComparatorAbbrev() string {
 	switch e.Operator {
