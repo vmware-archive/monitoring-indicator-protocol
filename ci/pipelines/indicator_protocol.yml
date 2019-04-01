@@ -453,12 +453,12 @@ jobs:
     params:
       additional_tags: prefixed-release-version/version
       tag_as_latest: true
-      import_file: grafana-controller-docker-repo/image
+      load: grafana-controller-docker-repo
   - put: prometheus-controller-docker-repo
     params:
       additional_tags: prefixed-release-version/version
       tag_as_latest: true
-      import_file: prometheus-controller-docker-repo/image
+      load: prometheus-controller-docker-repo
 
 - name: bump-release-version
   plan:
