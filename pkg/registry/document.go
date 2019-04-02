@@ -30,6 +30,7 @@ type APIV0Presentation struct {
 	CurrentValue bool     `json:"currentValue"`
 	Frequency    float64  `json:"frequency"`
 	Labels       []string `json:"labels"`
+	Units        string   `json:"units"`
 }
 
 type APIV0Indicator struct {
@@ -169,6 +170,7 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 				CurrentValue: i.Presentation.CurrentValue,
 				Frequency:    i.Presentation.Frequency.Seconds(),
 				Labels:       labels,
+				Units:        i.Presentation.Units,
 			}
 		}
 

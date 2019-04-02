@@ -320,6 +320,7 @@ type yamlPresentation struct {
 	CurrentValue bool          `yaml:"currentValue"`
 	Frequency    time.Duration `yaml:"frequency"`
 	Labels       []string      `yaml:"labels"`
+	Units        string        `yaml:"units"`
 }
 
 type yamlPatch struct {
@@ -393,6 +394,7 @@ func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 			CurrentValue: false,
 			Frequency:    0,
 			Labels:       []string{},
+			Units:        "",
 		}, nil
 	}
 
@@ -406,6 +408,7 @@ func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 		CurrentValue: p.CurrentValue,
 		Frequency:    p.Frequency,
 		Labels:       p.Labels,
+		Units:        p.Units,
 	}, nil
 }
 

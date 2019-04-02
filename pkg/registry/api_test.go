@@ -1,15 +1,14 @@
 package registry_test
 
 import (
-	"net/http/httptest"
-	"testing"
-
-	. "github.com/onsi/gomega"
-
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
+	"testing"
 	"time"
+
+	. "github.com/onsi/gomega"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
@@ -177,6 +176,9 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 					For:  "5m",
 					Step: "10s",
 				},
+				Presentation: &indicator.Presentation{
+					Units: "nanoseconds",
+				},
 			}},
 		})
 
@@ -219,7 +221,13 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 							"for": "5m",
 							"step": "10s"
 						},
-                        "presentation": null
+                        "presentation": {
+                          "chartType": "",
+                          "currentValue": false,
+                          "frequency": 0,
+                          "labels": [],
+                          "units": "nanoseconds"
+                        }
                       }
                     ],
                     "layout": {

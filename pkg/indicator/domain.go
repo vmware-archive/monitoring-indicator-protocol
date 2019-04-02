@@ -68,6 +68,7 @@ type Presentation struct {
 	CurrentValue bool
 	Frequency    time.Duration
 	Labels       []string
+	Units        string
 }
 
 type ChartType string

@@ -32,6 +32,15 @@ func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 	}
 }
 
+func NewIndicatorDocumentsHandler(store *DocumentStore) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		bytes, _ := marshal(store.AllDocuments())
+		fmt.Fprintf(w, string(bytes))
+	}
+}
+
 func writeErrors(w http.ResponseWriter, statusCode int, errors ...error) {
 	errorStrings := make([]string, 0)
 	for _, e := range errors {
@@ -53,13 +62,4 @@ func marshal(docs []indicator.Document) ([]byte, error) {
 	}
 
 	return json.Marshal(data)
-}
-
-func NewIndicatorDocumentsHandler(store *DocumentStore) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		bytes, _ := marshal(store.AllDocuments())
-		fmt.Fprintf(w, string(bytes))
-	}
 }

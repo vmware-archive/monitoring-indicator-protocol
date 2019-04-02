@@ -36,6 +36,7 @@ indicators:
     labels:
     - job
     - ip
+    units: nanoseconds
   thresholds:
   - level: warning
     gte: 50
@@ -75,6 +76,7 @@ layout:
 						ChartType:    indicator.StepChart,
 						Frequency:    5 * time.Second,
 						Labels:       []string{"job", "ip"},
+						Units:        "nanoseconds",
 					},
 					Documentation: map[string]string{
 						"title":               "Test Performance Indicator",
@@ -108,6 +110,7 @@ layout:
 							ChartType: indicator.StepChart,
 							Frequency: 5 * time.Second,
 							Labels:    []string{"job", "ip"},
+							Units:     "nanoseconds",
 						},
 						Documentation: map[string]string{
 							"title":               "Test Performance Indicator",

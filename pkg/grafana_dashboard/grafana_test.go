@@ -276,7 +276,8 @@ func TestDocumentToDashboard(t *testing.T) {
 
 		docBytes, err := json.Marshal(document)
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(grafana_dashboard.DashboardFilename(docBytes, "test_product")).To(Equal("test_product_0aba849c8be91534b1b7bf3f53a94d325d7a2817.json"))
+		filename := grafana_dashboard.DashboardFilename(docBytes, "test_product")
+		g.Expect(filename).To(Equal("test_product_c47308287f60c776ba39f27aaa743bca7c6c6387.json"))
 	})
 
 	t.Run("includes annotations based on product & metadata alerts", func(t *testing.T) {

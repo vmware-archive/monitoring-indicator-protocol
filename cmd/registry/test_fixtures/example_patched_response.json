@@ -22,7 +22,8 @@
           "chartType": "step",
           "frequency": 0,
           "currentValue": false,
-          "labels": []
+          "labels": [],
+          "units": ""
         }
       },
       {
@@ -59,7 +60,8 @@
             "job",
             "ip",
             "index"
-          ]
+          ],
+          "units": ""
         }
       }
     ],
@@ -101,7 +103,8 @@
           "chartType": "step",
           "currentValue": false,
           "frequency": 0,
-          "labels": []
+          "labels": [],
+          "units": ""
         }
       },
       {
@@ -116,7 +119,8 @@
           "chartType": "step",
           "frequency": 0,
           "currentValue": false,
-          "labels": []
+          "labels": [],
+          "units": ""
         },
         "documentation": {
           "title": "Success Percentage"
