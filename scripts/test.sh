@@ -135,13 +135,10 @@ function clear_cache {
     GO111MODULE=off go clean -cache
 }
 
-function update_vendor {
-    go mod vendor
-}
-
 function main {
     clear_cache
-    update_vendor
+    go mod tidy
+    go mod vendor
 
     parse_argc $1
     shift

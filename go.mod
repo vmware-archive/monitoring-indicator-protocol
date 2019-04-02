@@ -22,7 +22,6 @@ require (
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
-	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
@@ -50,8 +49,6 @@ require (
 	k8s.io/api v0.0.0-20190202010521-49be0e3344fe
 	k8s.io/apimachinery v0.0.0-20190204010555-a98ff070d70e
 	k8s.io/client-go v2.0.0-alpha.0.0.20190201140354-7b99873e5521+incompatible
-	k8s.io/code-generator v0.0.0-20190311155051-e4c2b1329cf7 // indirect
-	k8s.io/gengo v0.0.0-20190319205223-bc9033e9ec9e // indirect
 	k8s.io/klog v0.1.0
 	k8s.io/kube-openapi v0.0.0-20190202092118-df6fb93e6113 // indirect
 	k8s.io/utils v0.0.0-20190131231213-4ae6e769426e // indirect

@@ -239,6 +239,78 @@ jobs:
             monitoring-indicator-protocol/bosh-release/manifests/manifest.yml \
             -o add-examples-git-source.yml
 
+- name: create-grafana-controller-docker-image
+  plan:
+  - aggregate:
+    - get: monitoring-indicator-protocol
+      passed: [build-and-test]
+      trigger: true
+  - task: create-tag
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: buildpack-deps
+          tag: stretch-scm
+      inputs:
+      - name: monitoring-indicator-protocol
+      outputs:
+      - name: tag
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+          set -ex
+          cd monitoring-indicator-protocol
+          SHA=$(git rev-parse HEAD)
+          cd ..
+          echo ${SHA} > tag/tag
+  - put: grafana-controller-docker-repo
+    params:
+      additional_tags: tag/tag
+      tag_as_latest: false
+      build: monitoring-indicator-protocol
+      dockerfile: monitoring-indicator-protocol/k8s/cmd/grafana-indicator-controller/Dockerfile
+
+- name: create-prometheus-controller-docker-image
+  plan:
+  - aggregate:
+    - get: monitoring-indicator-protocol
+      passed: [build-and-test]
+      trigger: true
+  - task: create-tag
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: buildpack-deps
+          tag: stretch-scm
+      inputs:
+      - name: monitoring-indicator-protocol
+      outputs:
+      - name: tag
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+          set -ex
+          cd monitoring-indicator-protocol
+          SHA=$(git rev-parse HEAD)
+          cd ..
+          echo ${SHA} > tag/tag
+  - put: prometheus-controller-docker-repo
+    params:
+      additional_tags: tag/tag
+      tag_as_latest: false
+      build: monitoring-indicator-protocol
+      dockerfile: monitoring-indicator-protocol/k8s/cmd/prometheus-indicator-controller/Dockerfile
+
 - name: deploy-k8s
   plan:
   - aggregate:
@@ -272,7 +344,7 @@ jobs:
           - -c
           - |
             #!/usr/bin/env bash
-            set -ex
+            set -e
 
             function login {
               echo "$SERVICE_ACCOUNT" > sa.json
@@ -331,7 +403,7 @@ jobs:
           - -c
           - |
             #!/usr/bin/env bash
-            set -ex
+            set -e
 
             function login {
               echo "$SERVICE_ACCOUNT" > sa.json
@@ -353,20 +425,60 @@ jobs:
 
             main
 
-- name: publish-release
+- name: promote-docker-images
   plan:
   - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [indicator-verification,indicator-docs,deploy-indicator-registry,test-k8s]
-      trigger: false
-    - get: release-version
-      params: {}
     - get: grafana-controller-docker-repo
       params: {save: true}
       passed: [test-k8s]
     - get: prometheus-controller-docker-repo
       params: {save: true}
       passed: [test-k8s]
+    - get: monitoring-indicator-protocol
+      passed: [test-k8s]
+      trigger: true
+  - task: create-tag-file
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: indicatorprotocol/test-base
+      outputs:
+      - name: tag
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+          set -ex
+          echo release-candidate > tag/tag
+  - put: grafana-controller-docker-repo
+    params:
+      additional_tags: tag/tag
+      tag_as_latest: false
+      load: grafana-controller-docker-repo
+  - put: prometheus-controller-docker-repo
+    params:
+      additional_tags: tag/tag
+      tag_as_latest: false
+      load: prometheus-controller-docker-repo
+
+- name: publish-release
+  plan:
+  - aggregate:
+    - get: monitoring-indicator-protocol
+      passed: [indicator-verification,indicator-docs,deploy-indicator-registry,promote-docker-images]
+      trigger: false
+    - get: release-version
+      params: {}
+    - get: grafana-controller-docker-repo
+      params: {save: true}
+      passed: [promote-docker-images]
+    - get: prometheus-controller-docker-repo
+      params: {save: true}
+      passed: [promote-docker-images]
   - task: create-final-release
     config:
       platform: linux
@@ -522,77 +634,3 @@ jobs:
   - put: release-version
     params:
       bump: patch
-
-- name: create-grafana-controller-docker-image
-  plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [build-and-test]
-      trigger: true
-  - task: create-tag
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: buildpack-deps
-          tag: stretch-scm
-      inputs:
-      - name: monitoring-indicator-protocol
-      outputs:
-      - name: tag
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -ex
-          cd monitoring-indicator-protocol
-          SHA=$(git rev-parse HEAD)
-          cd ..
-          echo ${SHA} > tag/tag
-          echo release-candidate >> tag/tag
-  - put: grafana-controller-docker-repo
-    params:
-      additional_tags: tag/tag
-      tag_as_latest: false
-      build: monitoring-indicator-protocol
-      dockerfile: monitoring-indicator-protocol/k8s/cmd/grafana-indicator-controller/Dockerfile
-
-- name: create-prometheus-controller-docker-image
-  plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [build-and-test]
-      trigger: true
-  - task: create-tag
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: buildpack-deps
-          tag: stretch-scm
-      inputs:
-      - name: monitoring-indicator-protocol
-      outputs:
-      - name: tag
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -ex
-          cd monitoring-indicator-protocol
-          SHA=$(git rev-parse HEAD)
-          cd ..
-          echo ${SHA} > tag/tag
-          echo release-candidate >> tag/tag
-  - put: prometheus-controller-docker-repo
-    params:
-      additional_tags: tag/tag
-      tag_as_latest: false
-      build: monitoring-indicator-protocol
-      dockerfile: monitoring-indicator-protocol/k8s/cmd/prometheus-indicator-controller/Dockerfile
