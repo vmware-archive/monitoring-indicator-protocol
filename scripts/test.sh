@@ -93,7 +93,16 @@ function run_unit {
 
 function run_e2e {
     print_checkpoint "Running End-To-End Tests"
-    go test -mod=vendor -race "$PKG/k8s/test/e2e"
+    PROMETHEUS_URI=$(kubectl get svc --namespace prometheus prometheus-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    GRAFANA_URI=$(kubectl get svc --namespace grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    GRAFANA_ADMIN_USER=$(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-user}" | base64 --decode ; echo)
+    GRAFANA_ADMIN_PW=$(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
+    go test -mod=vendor -race "$PKG/k8s/test/e2e" \
+        -grafana-uri=${GRAFANA_URI} \
+        -grafana-admin-user=${GRAFANA_ADMIN_USER} \
+        -grafana-admin-pw=${GRAFANA_ADMIN_PW} \
+        -prometheus-uri=${PROMETHEUS_URI} \
+        $@
     exit_code=$?
     return $exit_code
 }

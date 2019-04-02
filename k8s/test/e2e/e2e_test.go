@@ -2,10 +2,13 @@ package e2e_test
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
 	"math/rand"
+	"net/http"
 	"os/user"
 	"strings"
 	"testing"
@@ -32,10 +35,37 @@ type k8sClients struct {
 	idClient     *clientsetV1alpha1.AppsV1alpha1Client
 }
 
-var clients k8sClients
+var (
+	clients k8sClients
+	httpClient *http.Client
+	grafanaURI, grafanaAdminUser, grafanaAdminPw, prometheusURI *string
+)
 
 func init() {
+	httpClient = &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			DisableKeepAlives: true,
+		},
+	}
 	rand.Seed(time.Now().UnixNano())
+	grafanaURI = flag.String("grafana-uri", "", "")
+	grafanaAdminUser = flag.String("grafana-admin-user", "", "")
+	grafanaAdminPw = flag.String("grafana-admin-pw", "", "")
+	prometheusURI = flag.String("prometheus-uri", "", "")
+	flag.Parse()
+	if *grafanaURI == "" {
+		log.Panic("Oh no! Grafana URI not provided")
+	}
+	if *grafanaAdminUser == "" {
+		log.Panic("Oh no! Grafana user not provided")
+	}
+	if *grafanaAdminPw == "" {
+		log.Panic("Oh no! Grafana password not provided")
+	}
+	if *prometheusURI == "" {
+		log.Panic("Oh no! Prometheus URI not provided")
+	}
 	config, err := clientcmd.BuildConfigFromFlags("", expandHome("~/.kube/config"))
 	if err != nil {
 		log.Panic(err.Error())
@@ -52,7 +82,7 @@ func init() {
 	}
 }
 
-func TestConfigMaps(t *testing.T) {
+func TestControllers(t *testing.T) {
 	testCases := map[string]func(*v1alpha1.IndicatorDocument) func() bool{
 		"grafana": func(id *v1alpha1.IndicatorDocument) func() bool {
 			return func() bool {
@@ -60,10 +90,14 @@ func TestConfigMaps(t *testing.T) {
 					ConfigMaps("grafana").
 					Get(grafanaDashboardFilename(id), metav1.GetOptions{})
 				if err != nil {
-					t.Logf("Unable to get config map: %s", err)
+					t.Logf("Unable to get config map, retrying: %s", err)
 					return false
 				}
-				return grafanaConfigMapMatch(t, grafanaDashboardFilename(id)+".json", cm, id)
+				match := grafanaConfigMapMatch(t, grafanaDashboardFilename(id)+".json", cm, id)
+				if !match {
+					return false
+				}
+				return grafanaApiResponseMatch(t, id)
 			}
 		},
 		"prometheus": func(id *v1alpha1.IndicatorDocument) func() bool {
@@ -72,10 +106,14 @@ func TestConfigMaps(t *testing.T) {
 					ConfigMaps("prometheus").
 					Get("prometheus-server", metav1.GetOptions{})
 				if err != nil {
-					t.Logf("Unable to get config map: %s", err)
+					t.Logf("Unable to get config map, retrying: %s", err)
 					return false
 				}
-				return prometheusConfigMapMatch(t, cm, id)
+				match := prometheusConfigMapMatch(t, cm, id)
+				if !match {
+					return false
+				}
+				return prometheusApiResponseMatch(t, id)
 			}
 		},
 	}
@@ -87,12 +125,90 @@ func TestConfigMaps(t *testing.T) {
 			defer cleanup()
 			id := indicatorDocument(ns)
 
+			t.Logf("Creating indicator document in namespace: %s", ns)
 			_, err := clients.idClient.IndicatorDocuments(ns).Create(id)
 
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Eventually(tc(id), 5).Should(BeTrue())
+			// NOTE: We set this deadline to be 100s but this might not hold forever.
+			// If we see failures due to timing issues we should increase this.
+			g.Eventually(tc(id), 100).Should(BeTrue())
 		})
 	}
+}
+
+func grafanaApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocument) bool {
+	request, err := http.NewRequest("GET", fmt.Sprintf("http://%s/api/search?query=%s", *grafanaURI, document.Spec.Product.Name), nil)
+	if err != nil {
+		t.Logf("Unable to create request to get Grafana config through API, retrying: %s", err)
+		return false
+	}
+	request.SetBasicAuth(*grafanaAdminUser, *grafanaAdminPw)
+	response, err := httpClient.Do(request)
+	if err != nil {
+		t.Logf("Unable to retrieve config through Grafana API, retrying: %s", err)
+		return false
+	}
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		t.Logf("Unable to read Grafana config response body, retrying: %s", err)
+		return false
+	}
+	var results []grafanaSearchResult
+	err = json.Unmarshal(body, &results)
+	if err != nil {
+		t.Logf("Unable to unmarshal Grafana config response body, retrying: %s", err)
+		return false
+	}
+	return len(results) == 1
+}
+
+type grafanaSearchResult struct {
+	Title string `json:"title"`
+}
+
+func prometheusApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocument) bool {
+	request, err := http.NewRequest("GET", fmt.Sprintf("http://%s/api/v1/rules", *prometheusURI), nil)
+	if err != nil {
+		t.Logf("Unable to create request to get Prometheus config through API, retrying: %s", err)
+		return false
+	}
+	response, err := httpClient.Do(request)
+	if err != nil {
+		t.Logf("Unable to retrieve config through Prometheus API, retrying: %s", err)
+		return false
+	}
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		t.Logf("Unable to read Prometheus config response body, retrying: %s", err)
+		return false
+	}
+	var result promResult
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		t.Logf("Unable to unmarshal Prometheus config response body, retrying: %s", err)
+		return false
+	}
+
+	for _, g := range result.Data.Groups {
+		for _, r := range g.Rules {
+			if r.Name == document.Spec.Indicators[0].Name &&
+				strings.Contains(r.Query, document.Spec.Indicators[0].Promql) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+type promResult struct {
+	Data struct{
+		Groups []struct{
+			Rules []struct{
+				Name string `json:"name"`
+				Query string `json:"query"`
+			} `json:"rules"`
+		} `json:"groups"`
+	} `json:"data"`
 }
 
 func grafanaConfigMapMatch(t *testing.T, dashboardFilename string, cm *v1.ConfigMap, id *v1alpha1.IndicatorDocument) bool {
@@ -112,7 +228,6 @@ func grafanaConfigMapMatch(t *testing.T, dashboardFilename string, cm *v1.Config
 }
 
 func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.IndicatorDocument) bool {
-	t.Log("Converting indicator document to prometheus alerts yaml")
 	alerts := prometheus_alerts.AlertDocumentFrom(domain.Map(id))
 	alerts.Groups[0].Name = id.Namespace + "/" + id.Name
 	expected, err := yaml.Marshal(alerts)
@@ -121,7 +236,6 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 		return false
 	}
 
-	t.Log("Unmarshaling config map prometheus alerts yaml")
 	var (
 		cmAlerts map[string][]map[string]interface{}
 		cmAlert interface{}
@@ -132,7 +246,6 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 		return false
 	}
 
-	t.Log("Selecting the alerting rules we are concerned about")
 	for _, group := range cmAlerts["groups"] {
 		if group["name"] == alerts.Groups[0].Name {
 			cmAlert = group
@@ -143,7 +256,6 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 		return false
 	}
 
-	t.Log("Remarshaling the specific alert for asserting")
 	newCmAlerts := map[string][]interface{}{
 		"groups": {cmAlert},
 	}
@@ -165,7 +277,6 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 	return true
 }
 
-// TODO: generate random values for these:
 func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 	var threshold float64 = 500
 	return &v1alpha1.IndicatorDocument{
@@ -175,12 +286,12 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 		},
 		Spec: v1alpha1.IndicatorDocumentSpec{
 			Product: v1alpha1.Product{
-				Name:    "e2e-test-product",
+				Name:    fmt.Sprintf("e2e-test-product-%d", rand.Intn(math.MaxInt32)),
 				Version: "v1.2.3-rc1",
 			},
 			Indicators: []v1alpha1.IndicatorSpec{
 				{
-					Name:   "e2d-test-indicator",
+					Name:   fmt.Sprintf("e2e-test-indicator-%d", rand.Intn(math.MaxInt32)),
 					Promql: "rate(some_metric[10m])",
 					Alert: v1alpha1.Alert{
 						For:  "5m",
@@ -201,7 +312,7 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 func expandHome(s string) string {
 	usr, err := user.Current()
 	if err != nil {
-		log.Panicf("unable to expand user: %s", err)
+		log.Panicf("Enable to expand user: %s", err)
 	}
 	return strings.Replace(s, "~", usr.HomeDir, -1)
 }
@@ -213,18 +324,20 @@ func createNamespace(t *testing.T) (string, func()) {
 			Name: nsName,
 		},
 	}
+	t.Logf("Creating namespace: %s", nsName)
 	nsr, err := clients.k8sClientset.CoreV1().Namespaces().Create(ns)
 	if err != nil {
-		t.Errorf("unable to create namespace: %s", err)
+		t.Fatalf("Enable to create namespace: %s", err)
 	}
 	return nsName, func() {
+		t.Logf("Deleting namespace: %s", nsName)
 		err := clients.k8sClientset.CoreV1().Namespaces().Delete(nsName, &metav1.DeleteOptions{
 			Preconditions: &metav1.Preconditions{
 				UID: &nsr.UID,
 			},
 		})
 		if err != nil {
-			t.Errorf("unable to delete namespace: %s", err)
+			t.Fatalf("Enable to delete namespace: %s", err)
 		}
 	}
 }

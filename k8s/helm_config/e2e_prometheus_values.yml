@@ -1,0 +1,17 @@
+# Expose Prometheus service externally for e2e tests
+server:
+
+  service:
+#    annotations: {}
+#    labels: {}
+#    clusterIP: ""
+#
+    # List of IP addresses at which the Prometheus server service is available
+    # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+    #
+#    externalIPs: []
+#
+#    loadBalancerIP: ""
+#    loadBalancerSourceRanges: []
+#    servicePort: 80
+    type: LoadBalancer

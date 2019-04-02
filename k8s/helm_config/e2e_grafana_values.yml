@@ -13,3 +13,11 @@ datasources:
 sidecar:
   dashboards:
     enabled: true
+
+# Expose Grafana service externally for e2e tests
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3000
+  annotations: {}
+  labels: {}
