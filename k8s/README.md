@@ -31,13 +31,14 @@ You can deploy the SRE resources by:
 kubectl apply -Rf config
 ```
 
-# Cluster setup
+### Cluster setup
 
 ```bash
 # Create new cluster
 gcloud container clusters create $NAME --zone us-central1-a
 
 # Provide admin privileges to self
+#  - Please note that the role binding name must be unique for the cluster
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user $(gcloud config get-value account)
 
 # Ensure kubeconfig is pointing at the right cluster
@@ -73,4 +74,19 @@ kubectl apply -k config
 kubectl apply -f test/valid/simple.yml
 ```
 
+#### For test
 
+To set up a cluster for end to end tests,
+the grafana and prometheus servers must be available on the internet.
+To achieve this,
+modify the lines in the above script which install those services like so:
+
+```bash
+# Install Grafana helmchart
+helm install stable/grafana --values helm_config/e2e_grafana_values.yml --name grafana --namespace grafana
+```
+
+```bash
+# Install Prometheus helmchart
+helm install stable/prometheus --values helm_config/e2e_prometheus_values.yml --name prometheus --namespace prometheus
+```

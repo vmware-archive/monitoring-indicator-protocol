@@ -49,6 +49,20 @@ resources:
     tag: release-candidate
     username: {{dockerhub-username}}
     password: {{dockerhub-password}}
+- name: interim-grafana-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/grafana-indicator-controller
+    tag: last-build
+    username: {{dockerhub-username}}
+    password: {{dockerhub-password}}
+- name: interim-prometheus-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/prometheus-indicator-controller
+    tag: last-build
+    username: {{dockerhub-username}}
+    password: {{dockerhub-password}}
 
 jobs:
 - name: build-and-test
@@ -268,7 +282,7 @@ jobs:
           SHA=$(git rev-parse HEAD)
           cd ..
           echo ${SHA} > tag/tag
-  - put: grafana-controller-docker-repo
+  - put: interim-grafana-controller-docker-repo
     params:
       additional_tags: tag/tag
       tag_as_latest: false
@@ -304,7 +318,7 @@ jobs:
           SHA=$(git rev-parse HEAD)
           cd ..
           echo ${SHA} > tag/tag
-  - put: prometheus-controller-docker-repo
+  - put: interim-prometheus-controller-docker-repo
     params:
       additional_tags: tag/tag
       tag_as_latest: false
@@ -317,10 +331,10 @@ jobs:
     - get: monitoring-indicator-protocol
       passed: [create-grafana-controller-docker-image,create-prometheus-controller-docker-image]
       trigger: true
-    - get: grafana-controller-docker-repo
+    - get: interim-grafana-controller-docker-repo
       params: {skip_download: true}
       passed: [create-grafana-controller-docker-image]
-    - get: prometheus-controller-docker-repo
+    - get: interim-prometheus-controller-docker-repo
       params: {skip_download: true}
       passed: [create-prometheus-controller-docker-image]
   - task: deploy-to-gke
@@ -332,8 +346,8 @@ jobs:
           repository: indicatorprotocol/test-base
       inputs:
         - name: monitoring-indicator-protocol
-        - name: grafana-controller-docker-repo
-        - name: prometheus-controller-docker-repo
+        - name: interim-grafana-controller-docker-repo
+        - name: interim-prometheus-controller-docker-repo
       params:
         SERVICE_ACCOUNT: {{gcp-service-account}}
         CLUSTER_NAME: mip-test
@@ -355,8 +369,8 @@ jobs:
             }
 
             function apply_manifests {
-                grafana_digest="$(cat grafana-controller-docker-repo/digest)"
-                prometheus_digest="$(cat prometheus-controller-docker-repo/digest)"
+                grafana_digest="$(cat interim-grafana-controller-docker-repo/digest)"
+                prometheus_digest="$(cat interim-prometheus-controller-docker-repo/digest)"
                 pushd monitoring-indicator-protocol/k8s/config > /dev/null
                     kustomize edit set image "indicatorprotocol/grafana-indicator-controller@$grafana_digest"
                     kustomize edit set image "indicatorprotocol/prometheus-indicator-controller@$prometheus_digest"
@@ -375,10 +389,10 @@ jobs:
 - name: test-k8s
   plan:
   - aggregate:
-    - get: grafana-controller-docker-repo
+    - get: interim-grafana-controller-docker-repo
       params: {skip_download: true}
       passed: [deploy-k8s]
-    - get: prometheus-controller-docker-repo
+    - get: interim-prometheus-controller-docker-repo
       params: {skip_download: true}
       passed: [deploy-k8s]
     - get: monitoring-indicator-protocol
@@ -428,42 +442,23 @@ jobs:
 - name: promote-docker-images
   plan:
   - aggregate:
-    - get: grafana-controller-docker-repo
+    - get: interim-grafana-controller-docker-repo
       params: {save: true}
       passed: [test-k8s]
-    - get: prometheus-controller-docker-repo
+    - get: interim-prometheus-controller-docker-repo
       params: {save: true}
       passed: [test-k8s]
     - get: monitoring-indicator-protocol
       passed: [test-k8s]
       trigger: true
-  - task: create-tag-file
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: indicatorprotocol/test-base
-      outputs:
-      - name: tag
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -ex
-          echo release-candidate > tag/tag
   - put: grafana-controller-docker-repo
     params:
-      additional_tags: tag/tag
       tag_as_latest: false
-      load: grafana-controller-docker-repo
+      load: interim-grafana-controller-docker-repo
   - put: prometheus-controller-docker-repo
     params:
-      additional_tags: tag/tag
       tag_as_latest: false
-      load: prometheus-controller-docker-repo
+      load: interim-prometheus-controller-docker-repo
 
 - name: publish-release
   plan:
