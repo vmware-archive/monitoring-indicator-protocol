@@ -5,7 +5,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: grafana-indicator-controller
-    namespace: grafana # TODO: don't bind to grafana namespace
+    namespace: monitoring-indicator-protocol
 roleRef:
   kind: ClusterRole
   name: grafana-indicator-controller

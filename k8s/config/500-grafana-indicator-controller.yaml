@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana-indicator-controller
-  namespace: grafana
+  namespace: monitoring-indicator-protocol
   labels:
     app: grafana-indicator-controller
 spec:

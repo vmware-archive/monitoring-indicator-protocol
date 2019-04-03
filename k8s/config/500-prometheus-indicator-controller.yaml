@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus-indicator-controller
-  namespace: prometheus
+  namespace: monitoring-indicator-protocol
   labels:
     app: prometheus-indicator-controller
 spec:

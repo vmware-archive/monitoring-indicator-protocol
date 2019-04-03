@@ -5,7 +5,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: prometheus-indicator-controller
-    namespace: prometheus # TODO: don't bind to prometheus namespace
+    namespace: monitoring-indicator-protocol
 roleRef:
   kind: ClusterRole
   name: prometheus-indicator-controller
