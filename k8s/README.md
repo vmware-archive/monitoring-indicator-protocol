@@ -102,9 +102,13 @@ Prometheus.
 Use `helm status grafana` and `helm status prometheus` to get guidance on
 reaching the GUIs of these applications.
 
-#### For test
+### E2E Tests
 
-To set up a cluster for end to end tests,
+#### Cluster Setup
+
+The end to end tests communicate with the Grafana and Prometheus APIs directly
+to ensure the entire flow of functionality.
+Thus, to set up a cluster for end to end tests,
 the Grafana and Prometheus servers must be available on the internet.
 To achieve this,
 use the `e2e_*_values` files in `helm_config`,
@@ -117,3 +121,11 @@ helm install stable/grafana --values helm_config/e2e_grafana_values.yml --name g
 # Install Prometheus helmchart
 helm install stable/prometheus --values helm_config/e2e_prometheus_values.yml --name prometheus --namespace prometheus
 ```
+
+#### Running the tests
+
+The tests can be run with a shell script from the root directory of this
+repository: `./scripts/test.sh e2e`.
+The tests use the current Kubernetes auth context,
+so you must be logged into a cluster to run them.
+The cluster must be set up for E2E tests as detailed above.
