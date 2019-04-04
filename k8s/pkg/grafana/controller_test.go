@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/grafana"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -27,6 +27,7 @@ func TestController(t *testing.T) {
 					Name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
 					Labels: map[string]string{
 						"grafana_dashboard": "true",
+						"owner":             "rabbit-mq-resource-name-default",
 					},
 				},
 			},
@@ -49,6 +50,7 @@ func TestController(t *testing.T) {
 					Name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
 					Labels: map[string]string{
 						"grafana_dashboard": "true",
+						"owner":             "rabbit-mq-resource-name-default",
 					},
 				},
 			},
@@ -79,6 +81,7 @@ func TestController(t *testing.T) {
 					Name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
 					Labels: map[string]string{
 						"grafana_dashboard": "true",
+						"owner":             "rabbit-mq-resource-name-default",
 					},
 				},
 			},
@@ -108,37 +111,7 @@ func TestController(t *testing.T) {
 		spyConfigMapEditor.expectThatNothingWasUpdated()
 	})
 
-	t.Run("it deletes", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		spyConfigMapEditor := &spyConfigMapEditor{g: g}
-		p := grafana.NewController(spyConfigMapEditor)
-
-		p.OnDelete(indicatorDocument())
-
-		spyConfigMapEditor.expectDeleted([]deleteCall{
-			{
-				name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
-			},
-		})
-	})
-
-	t.Run("fails to delete a non-indicators", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		spyConfigMapEditor := &spyConfigMapEditor{g: g}
-		controller := grafana.NewController(spyConfigMapEditor)
-
-		controller.OnDelete("non-indicator")
-
-		spyConfigMapEditor.expectThatNothingWasDeleted()
-	})
-
 	// TODO: test that a namespace provided to the controller is set in the cm objects
-}
-
-type deleteCall struct {
-	name string
-	do   *metav1.DeleteOptions
 }
 
 type spyConfigMapEditor struct {
@@ -147,7 +120,6 @@ type spyConfigMapEditor struct {
 	getExists   bool
 	createCalls []*v1.ConfigMap
 	updateCalls []*v1.ConfigMap
-	deleteCalls []deleteCall
 }
 
 func (s *spyConfigMapEditor) Create(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
@@ -158,11 +130,6 @@ func (s *spyConfigMapEditor) Create(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
 func (s *spyConfigMapEditor) Update(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
 	s.updateCalls = append(s.updateCalls, cm)
 	return nil, nil
-}
-
-func (s *spyConfigMapEditor) Delete(name string, do *metav1.DeleteOptions) error {
-	s.deleteCalls = append(s.deleteCalls, deleteCall{name: name, do: do})
-	return nil
 }
 
 func (s *spyConfigMapEditor) Get(name string, options metav1.GetOptions) (*v1.ConfigMap, error) {
@@ -198,18 +165,11 @@ func (s *spyConfigMapEditor) expectUpdated(cms []*v1.ConfigMap) {
 	}
 }
 
-func (s *spyConfigMapEditor) expectDeleted(dcs []deleteCall) {
-	s.g.Expect(s.deleteCalls).To(Equal(dcs))
-}
-
 func (s *spyConfigMapEditor) expectThatNothingWasCreated() {
 	s.g.Expect(s.createCalls).To(BeNil())
 }
 func (s *spyConfigMapEditor) expectThatNothingWasUpdated() {
 	s.g.Expect(s.updateCalls).To(BeNil())
-}
-func (s *spyConfigMapEditor) expectThatNothingWasDeleted() {
-	s.g.Expect(s.deleteCalls).To(BeNil())
 }
 
 func indicatorDocument() *v1alpha1.IndicatorDocument {

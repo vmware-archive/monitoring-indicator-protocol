@@ -100,6 +100,7 @@ func createNewIndicator(newIndicator *types.Indicator, c Controller, oldDoc *typ
 	}
 }
 
+// TODO: do we need to handle non-indicatordocuments?
 func (c Controller) OnDelete(obj interface{}) {
 	doc, ok := obj.(*types.IndicatorDocument)
 	if !ok {

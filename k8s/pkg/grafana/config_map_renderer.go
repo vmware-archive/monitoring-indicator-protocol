@@ -9,11 +9,13 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/domain"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type mapper func(document indicator.Document) ([]byte, error)
+
+var trueVal = true
 
 func ConfigMap(doc *v1alpha1.IndicatorDocument, m mapper) (*v1.ConfigMap, error) {
 	if doc == nil {
@@ -44,7 +46,15 @@ func ConfigMap(doc *v1alpha1.IndicatorDocument, m mapper) (*v1.ConfigMap, error)
 			Name: name,
 			Labels: map[string]string{
 				"grafana_dashboard": "true",
+				"owner":             doc.Name + "-" + doc.Namespace,
 			},
+			OwnerReferences: []metav1.OwnerReference{{
+				APIVersion:         "apps.pivotal.io/v1alpha1",
+				Kind:               "IndicatorDocument",
+				Name:               doc.Name,
+				UID:                doc.UID,
+				Controller:         &trueVal,
+			}},
 		},
 		Data: map[string]string{
 			fmt.Sprintf("%s.json", name): string(jsonVal),

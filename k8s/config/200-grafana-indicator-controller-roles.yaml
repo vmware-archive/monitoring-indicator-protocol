@@ -3,11 +3,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: grafana-indicator-controller
 rules:
-  # The grafana-indicator-controller needs to get, create, update, and delete configmaps for grafana
   - apiGroups: [""] # "" indicates the core API group
     resources: ["configmaps"]
-    verbs: ["get", "create", "update", "delete"]
-  # The grafana-indicator-controller needs to be able to watch indicatordocuments
+    verbs: ["get", "create", "update"]
   - apiGroups: ["apps.pivotal.io"]
     resources: ["indicatordocuments"]
     verbs: ["get", "list", "watch"]

@@ -6,14 +6,13 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 
-	v1 "k8s.io/api/core/v1"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ConfigMapEditor interface {
 	Create(*v1.ConfigMap) (*v1.ConfigMap, error)
 	Update(*v1.ConfigMap) (*v1.ConfigMap, error)
-	Delete(name string, options *metav1.DeleteOptions) error
 	Get(name string, options metav1.GetOptions) (*v1.ConfigMap, error)
 }
 
@@ -81,23 +80,14 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 }
 
 // TODO: evaluate edge case where object might not exist
-// TODO: implement OwnerReferences and have Kubernetes API garbage collect the references
+// TODO: do we need to handle non-indicatordocuments?
 func (c *Controller) OnDelete(obj interface{}) {
 	doc, ok := obj.(*v1alpha1.IndicatorDocument)
 	if !ok {
 		log.Printf("OnDelete received a non-indicatordocument: %T", obj)
 		return
 	}
-	configMap, err := ConfigMap(doc, nil)
-	if err != nil {
-		log.Printf("Failed to generate ConfigMap: %s", err)
-		return
-	}
-	err = c.cmEditor.Delete(configMap.Name, nil)
-	if err != nil {
-		log.Printf("Failed to delete ConfigMap: %s", err)
-		return
-	}
+	log.Printf("Deleting Grafana config map for %s on namespace %s", doc.Name, doc.Namespace)
 }
 
 func (c *Controller) configMapAlreadyExists(configMap *v1.ConfigMap) bool {
