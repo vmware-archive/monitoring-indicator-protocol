@@ -49,6 +49,13 @@ resources:
     tag: release-candidate
     username: {{dockerhub-username}}
     password: {{dockerhub-password}}
+- name: indicator-lifecycle-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/indicator-lifecycle-controller
+    tag: release-candidate
+    username: {{dockerhub-username}}
+    password: {{dockerhub-password}}
 - name: interim-grafana-controller-docker-repo
   type: docker-image
   source:
@@ -60,6 +67,13 @@ resources:
   type: docker-image
   source:
     repository: indicatorprotocol/prometheus-indicator-controller
+    tag: last-build
+    username: {{dockerhub-username}}
+    password: {{dockerhub-password}}
+- name: interim-indicator-lifecycle-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/indicator-lifecycle-controller
     tag: last-build
     username: {{dockerhub-username}}
     password: {{dockerhub-password}}
@@ -325,6 +339,42 @@ jobs:
       build: monitoring-indicator-protocol
       dockerfile: monitoring-indicator-protocol/k8s/cmd/prometheus-indicator-controller/Dockerfile
 
+- name: create-indicator-lifecycle-controller-docker-image
+  plan:
+  - aggregate:
+    - get: monitoring-indicator-protocol
+      passed: [build-and-test]
+      trigger: true
+  - task: create-tag
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: buildpack-deps
+          tag: stretch-scm
+      inputs:
+      - name: monitoring-indicator-protocol
+      outputs:
+      - name: tag
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+          set -ex
+          cd monitoring-indicator-protocol
+          SHA=$(git rev-parse HEAD)
+          cd ..
+          echo ${SHA} > tag/tag
+  - put: interim-indicator-lifecycle-controller-docker-repo
+    params:
+      additional_tags: tag/tag
+      tag_as_latest: false
+      build: monitoring-indicator-protocol
+      dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-lifecycle-controller/Dockerfile
+
 - name: deploy-k8s
   plan:
   - aggregate:
@@ -337,6 +387,9 @@ jobs:
     - get: interim-prometheus-controller-docker-repo
       params: {skip_download: true}
       passed: [create-prometheus-controller-docker-image]
+    - get: interim-indicator-lifecycle-controller-docker-repo
+      params: {skip_download: true}
+      passed: [create-indicator-lifecycle-controller-docker-image]
   - task: deploy-to-gke
     config:
       platform: linux
@@ -348,6 +401,7 @@ jobs:
         - name: monitoring-indicator-protocol
         - name: interim-grafana-controller-docker-repo
         - name: interim-prometheus-controller-docker-repo
+        - name: interim-indicator-lifecycle-controller-docker-repo
       params:
         SERVICE_ACCOUNT: {{gcp-service-account}}
         CLUSTER_NAME: mip-test
@@ -371,9 +425,11 @@ jobs:
             function apply_manifests {
                 grafana_digest="$(cat interim-grafana-controller-docker-repo/digest)"
                 prometheus_digest="$(cat interim-prometheus-controller-docker-repo/digest)"
+                indicator_lifecycle_digest="$(cat interim-indicator-lifecycle-controller-docker-repo/digest)"
                 pushd monitoring-indicator-protocol/k8s/config > /dev/null
                     kustomize edit set image "indicatorprotocol/grafana-indicator-controller@$grafana_digest"
                     kustomize edit set image "indicatorprotocol/prometheus-indicator-controller@$prometheus_digest"
+                    kustomize edit set image "indicatorprotocol/indicator-lifecycle-controller@$indicator_lifecycle_digest"
                 popd > /dev/null
 
                 kustomize build monitoring-indicator-protocol/k8s/config | kubectl apply -f -
@@ -393,6 +449,9 @@ jobs:
       params: {skip_download: true}
       passed: [deploy-k8s]
     - get: interim-prometheus-controller-docker-repo
+      params: {skip_download: true}
+      passed: [deploy-k8s]
+    - get: interim-indicator-lifecycle-controller-docker-repo
       params: {skip_download: true}
       passed: [deploy-k8s]
     - get: monitoring-indicator-protocol
@@ -448,6 +507,9 @@ jobs:
     - get: interim-prometheus-controller-docker-repo
       params: {save: true}
       passed: [test-k8s]
+    - get: interim-indicator-lifecycle-controller-docker-repo
+      params: {save: true}
+      passed: [test-k8s]
     - get: monitoring-indicator-protocol
       passed: [test-k8s]
       trigger: true
@@ -459,6 +521,10 @@ jobs:
     params:
       tag_as_latest: false
       load: interim-prometheus-controller-docker-repo
+  - put: indicator-lifecycle-controller-docker-repo
+    params:
+      tag_as_latest: false
+      load: interim-indicator-lifecycle-controller-docker-repo
 
 - name: publish-release
   plan:
@@ -472,6 +538,9 @@ jobs:
       params: {save: true}
       passed: [promote-docker-images]
     - get: prometheus-controller-docker-repo
+      params: {save: true}
+      passed: [promote-docker-images]
+    - get: indicator-lifecycle-controller-docker-repo
       params: {save: true}
       passed: [promote-docker-images]
   - task: create-final-release
@@ -619,6 +688,11 @@ jobs:
       additional_tags: prefixed-release-version/version
       tag_as_latest: true
       load: prometheus-controller-docker-repo
+  - put: indicator-lifecycle-controller-docker-repo
+    params:
+      additional_tags: prefixed-release-version/version
+      tag_as_latest: true
+      load: indicator-lifecycle-controller-docker-repo
 
 - name: bump-release-version
   plan:
