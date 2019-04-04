@@ -116,6 +116,19 @@ func TestControllers(t *testing.T) {
 				return prometheusApiResponseMatch(t, id)
 			}
 		},
+		"lifecycle": func(id *v1alpha1.IndicatorDocument) func() bool {
+			return func() bool {
+				resources := clients.idClient.Indicators(id.Namespace)
+				resource, err := resources.Get(fmt.Sprintf("%s-%s", id.Name, id.Spec.Indicators[0].Name), metav1.GetOptions{})
+				indicatorList, _ := resources.List(metav1.ListOptions{})
+				log.Printf("Indicators found: %v", indicatorList)
+				if err != nil {
+					t.Logf("Unable to get new indicator, retrying: %s", err)
+					return false
+				}
+				return resource != nil
+			}
+		},
 	}
 
 	for tn, tc := range testCases {
