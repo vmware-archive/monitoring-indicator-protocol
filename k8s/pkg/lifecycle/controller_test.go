@@ -7,14 +7,14 @@ import (
 	. "github.com/onsi/gomega"
 	types "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned/typed/indicatordocument/v1alpha1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/lifecycle"
 )
 
 func TestController(t *testing.T) {
 	t.Run("OnAdd", func(t *testing.T) {
-		t.Run("create multiple indicators", func(t *testing.T) {
+		t.Run("creates multiple indicators", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			spyIndicatorsGetter := &spyIndicatorsGetter{g: g, t: t}
 			c := lifecycle.NewController(spyIndicatorsGetter)
@@ -41,7 +41,7 @@ func TestController(t *testing.T) {
 			spyIndicatorsGetter.expectCreated(id.Spec.Indicators)
 		})
 
-		t.Run("take no action if provided non-indicatordocument", func(t *testing.T) {
+		t.Run("takes no action if provided non-indicatordocument", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			spyIndicatorsGetter := &spyIndicatorsGetter{g: g, t: t}
 			c := lifecycle.NewController(spyIndicatorsGetter)
@@ -85,9 +85,9 @@ func TestController(t *testing.T) {
 			}))
 		})
 
-		t.Run("take no action if indicator already exists", func(t *testing.T) {
+		t.Run("takes no action if indicator already exists", func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			existingIndicatorSpec := types.IndicatorSpec{Name: "I1", Promql: "promql-query-1"}
+			existingIndicatorSpec := types.IndicatorSpec{Product: "rabbit v1.2.3", Name: "I1", Promql: "promql-query-1"}
 			existingIndicatorList := types.IndicatorList{
 				Items: []types.Indicator{{
 					ObjectMeta: v1.ObjectMeta{
@@ -174,10 +174,37 @@ func TestController(t *testing.T) {
 
 			g.Expect(spyIndicatorsGetter.createCalls[0].Name).To(Equal("test-I1-foo"))
 		})
+
+		t.Run("adds product info to indicator", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			spyIndicatorsGetter := &spyIndicatorsGetter{g: g, t: t}
+			c := lifecycle.NewController(spyIndicatorsGetter)
+
+			id := &types.IndicatorDocument{
+				ObjectMeta: v1.ObjectMeta{
+					Name:      "test",
+					Namespace: "test-namespace",
+					UID:       "test_uid",
+				},
+				Spec: types.IndicatorDocumentSpec{
+					Product: types.Product{
+						Name:    "rabbit",
+						Version: "v1.2.3",
+					},
+					Indicators: []types.IndicatorSpec{
+						{Name: "I1_foo", Promql: "promql-query-1"},
+					},
+				},
+			}
+
+			c.OnAdd(id)
+
+			g.Expect(spyIndicatorsGetter.createCalls[0].Spec.Product).To(Equal("rabbit v1.2.3"))
+		})
 	})
 
 	t.Run("OnUpdate", func(t *testing.T) {
-		t.Run("update indicator if it exists", func(t *testing.T) {
+		t.Run("updates indicator if it exists", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			existingIndicatorList := types.IndicatorList{
 				Items: []types.Indicator{{
@@ -185,14 +212,15 @@ func TestController(t *testing.T) {
 						ResourceVersion: "my-favorite-resource",
 					},
 					Spec: types.IndicatorSpec{
-						Name:   "I1",
-						Promql: "promql-query-4",
+						Product: "rabbit v1.2.3",
+						Name:    "I1",
+						Promql:  "promql-query-4",
 					},
 				}},
 			}
 			spyIndicatorsGetter := &spyIndicatorsGetter{g: g, t: t, indicatorList: &existingIndicatorList}
 			c := lifecycle.NewController(spyIndicatorsGetter)
-			id := &types.IndicatorDocument{
+			oldIndicatorDoc := &types.IndicatorDocument{
 				ObjectMeta: v1.ObjectMeta{
 					Name:      "test",
 					Namespace: "test-namespace",
@@ -207,7 +235,7 @@ func TestController(t *testing.T) {
 					},
 				},
 			}
-			updatedId := &types.IndicatorDocument{
+			newIndicatorDoc := &types.IndicatorDocument{
 				ObjectMeta: v1.ObjectMeta{
 					Name:      "test",
 					Namespace: "test-namespace",
@@ -223,12 +251,12 @@ func TestController(t *testing.T) {
 				},
 			}
 
-			c.OnUpdate(id, updatedId)
+			c.OnUpdate(oldIndicatorDoc, newIndicatorDoc)
 
 			g.Expect(spyIndicatorsGetter.updateCalls).To(HaveLen(1))
 			g.Expect(spyIndicatorsGetter.updateCalls[0].ResourceVersion).To(Equal("my-favorite-resource"))
-			g.Expect(spyIndicatorsGetter.updateCalls[0].Spec.Name).To(Equal(id.Spec.Indicators[0].Name))
-			g.Expect(spyIndicatorsGetter.updateCalls[0].Spec.Promql).To(Equal(updatedId.Spec.Indicators[0].Promql))
+			g.Expect(spyIndicatorsGetter.updateCalls[0].Spec.Name).To(Equal(oldIndicatorDoc.Spec.Indicators[0].Name))
+			g.Expect(spyIndicatorsGetter.updateCalls[0].Spec.Promql).To(Equal(newIndicatorDoc.Spec.Indicators[0].Promql))
 
 			g.Expect(spyIndicatorsGetter.createCalls).To(HaveLen(0))
 		})
@@ -238,14 +266,15 @@ func TestController(t *testing.T) {
 			existingIndicatorList := types.IndicatorList{
 				Items: []types.Indicator{{
 					Spec: types.IndicatorSpec{
-						Name:   "I1",
-						Promql: "promql-query-4",
+						Product: "rabbit v1.2.3",
+						Name:    "I1",
+						Promql:  "promql-query-4",
 					},
 				}},
 			}
 			spyIndicatorsGetter := &spyIndicatorsGetter{g: g, t: t, indicatorList: &existingIndicatorList}
 			c := lifecycle.NewController(spyIndicatorsGetter)
-			oldIndicator := &types.IndicatorDocument{
+			oldIndicatorDoc := &types.IndicatorDocument{
 				ObjectMeta: v1.ObjectMeta{
 					Name:      "test",
 					Namespace: "test-namespace",
@@ -260,7 +289,7 @@ func TestController(t *testing.T) {
 					},
 				},
 			}
-			newIndicator := &types.IndicatorDocument{
+			newIndicatorDoc := &types.IndicatorDocument{
 				ObjectMeta: v1.ObjectMeta{
 					Name:      "test",
 					Namespace: "test-namespace",
@@ -277,7 +306,7 @@ func TestController(t *testing.T) {
 				},
 			}
 
-			c.OnUpdate(oldIndicator, newIndicator)
+			c.OnUpdate(oldIndicatorDoc, newIndicatorDoc)
 
 			g.Expect(spyIndicatorsGetter.createCalls).To(HaveLen(1))
 			g.Expect(spyIndicatorsGetter.createCalls[0].Spec.Name).To(Equal("I2"))
@@ -292,20 +321,22 @@ func TestController(t *testing.T) {
 				Items: []types.Indicator{{
 					ObjectMeta: v1.ObjectMeta{Name: "test-I1"},
 					Spec: types.IndicatorSpec{
-						Name:   "I1",
-						Promql: "promql-query-1",
+						Product: "rabbit v1.2.3",
+						Name:    "I1",
+						Promql:  "promql-query-1",
 					},
 				}, {
 					ObjectMeta: v1.ObjectMeta{Name: "test-I2"},
 					Spec: types.IndicatorSpec{
-						Name:   "I2",
-						Promql: "promql-query-2",
+						Product: "rabbit v1.2.3",
+						Name:    "I2",
+						Promql:  "promql-query-2",
 					},
 				}},
 			}
 			spyIndicatorsGetter := &spyIndicatorsGetter{g: g, t: t, indicatorList: &existingIndicatorList}
 			c := lifecycle.NewController(spyIndicatorsGetter)
-			id := &types.IndicatorDocument{
+			oldIndicatorDoc := &types.IndicatorDocument{
 				ObjectMeta: v1.ObjectMeta{
 					Name:      "test",
 					Namespace: "test-namespace",
@@ -321,7 +352,7 @@ func TestController(t *testing.T) {
 					},
 				},
 			}
-			updatedId := &types.IndicatorDocument{
+			newIndicatorDoc := &types.IndicatorDocument{
 				ObjectMeta: v1.ObjectMeta{
 					Name:      "test",
 					Namespace: "test-namespace",
@@ -337,7 +368,7 @@ func TestController(t *testing.T) {
 				},
 			}
 
-			c.OnUpdate(id, updatedId)
+			c.OnUpdate(oldIndicatorDoc, newIndicatorDoc)
 
 			g.Expect(spyIndicatorsGetter.deleteCalls).To(HaveLen(1))
 			g.Expect(spyIndicatorsGetter.deleteCalls[0]).To(Equal("test-I2"))
@@ -351,14 +382,15 @@ func TestController(t *testing.T) {
 			existingIndicatorList := types.IndicatorList{
 				Items: []types.Indicator{{
 					Spec: types.IndicatorSpec{
-						Name:   "boo_I1_foo",
-						Promql: "promql-query-4",
+						Product: "rabbit v1.2.3",
+						Name:    "boo_I1_foo",
+						Promql:  "promql-query-4",
 					},
 				}},
 			}
 			spyIndicatorsGetter := &spyIndicatorsGetter{g: g, t: t, indicatorList: &existingIndicatorList}
 			c := lifecycle.NewController(spyIndicatorsGetter)
-			id := &types.IndicatorDocument{
+			oldIndicatorDoc := &types.IndicatorDocument{
 				ObjectMeta: v1.ObjectMeta{
 					Name:      "test",
 					Namespace: "test-namespace",
@@ -373,7 +405,7 @@ func TestController(t *testing.T) {
 					},
 				},
 			}
-			updatedId := &types.IndicatorDocument{
+			newIndicatorDoc := &types.IndicatorDocument{
 				ObjectMeta: v1.ObjectMeta{
 					Name:      "test",
 					Namespace: "test-namespace",
@@ -389,7 +421,7 @@ func TestController(t *testing.T) {
 				},
 			}
 
-			c.OnUpdate(id, updatedId)
+			c.OnUpdate(oldIndicatorDoc, newIndicatorDoc)
 
 			g.Expect(spyIndicatorsGetter.updateCalls).To(HaveLen(1))
 			g.Expect(spyIndicatorsGetter.updateCalls[0].Name).To(Equal("test-boo-I1-foo"))

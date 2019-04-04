@@ -111,6 +111,8 @@ func (c Controller) OnDelete(obj interface{}) {
 
 func toIndicator(is types.IndicatorSpec, parent *types.IndicatorDocument) *types.Indicator {
 	name := parent.Name + "-" + strings.Replace(is.Name, "_", "-", -1)
+	indicator := is.DeepCopy()
+	indicator.Product = fmt.Sprintf("%s %s", parent.Spec.Product.Name, parent.Spec.Product.Version)
 	return &types.Indicator{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -129,7 +131,7 @@ func toIndicator(is types.IndicatorSpec, parent *types.IndicatorDocument) *types
 				},
 			},
 		},
-		Spec: is,
+		Spec: *indicator,
 	}
 }
 

@@ -37,6 +37,7 @@ type Indicator struct {
 }
 
 type IndicatorSpec struct {
+	Product       string            `json:"product"`
 	Name          string            `json:"name"`
 	Promql        string            `json:"promql"`
 	Alert         Alert             `json:"alert"`
