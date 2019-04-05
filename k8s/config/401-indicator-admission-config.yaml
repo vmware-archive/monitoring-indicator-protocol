@@ -1,0 +1,43 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: indicator-admission
+  labels:
+    app: indicator-admission
+webhooks:
+- name: indicator-documents.indicator-admission.apps.pivotal.io
+  rules:
+  - apiGroups:
+    - "apps.pivotal.io"
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - indicatordocuments
+  failurePolicy: Fail
+  clientConfig:
+    service:
+      name: indicator-admission
+      namespace: monitoring-indicator-protocol
+      path: /indicatordocument
+    caBundle: ""
+- name: indicators.indicator-admission.apps.pivotal.io
+  rules:
+  - apiGroups:
+    - "apps.pivotal.io"
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - indicators
+  failurePolicy: Fail
+  clientConfig:
+    service:
+      name: indicator-admission
+      namespace: monitoring-indicator-protocol
+      path: /indicator
+    caBundle: ""

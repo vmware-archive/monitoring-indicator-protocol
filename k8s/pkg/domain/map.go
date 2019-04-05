@@ -30,7 +30,7 @@ func mapToDomainSections(sections []v1alpha1.Section, indicators []indicator.Ind
 
 	for _, i := range sections {
 		domainSections = append(domainSections, indicator.Section{
-			Title:       i.Name,
+			Title:       i.Title,
 			Description: i.Description,
 			Indicators:  findIndicators(i.Indicators, indicators),
 		})
@@ -56,15 +56,29 @@ func findIndicators(names []string, indicators []indicator.Indicator) []indicato
 func mapToDomainIndicators(ids []v1alpha1.IndicatorSpec) []indicator.Indicator {
 	indicators := make([]indicator.Indicator, 0, len(ids))
 	for _, i := range ids {
-		indicators = append(indicators, indicator.Indicator{
-			Name:          i.Name,
-			PromQL:        i.Promql,
-			Alert:         toDomainAlert(i.Alert),
-			Thresholds:    mapToDomainThreshold(i.Thresholds),
-			Documentation: i.Documentation,
-		})
+		indicators = append(indicators, toDomainIndicator(i))
 	}
 	return indicators
+}
+
+func toDomainIndicator(i v1alpha1.IndicatorSpec) indicator.Indicator {
+	return indicator.Indicator{
+		Name:          i.Name,
+		PromQL:        i.Promql,
+		Alert:         toDomainAlert(i.Alert),
+		Thresholds:    mapToDomainThreshold(i.Thresholds),
+		Documentation: i.Documentation,
+		Presentation:  toDomainPresentation(i.Presentation),
+	}
+}
+
+func toDomainPresentation(presentation v1alpha1.Presentation) *indicator.Presentation {
+	return &indicator.Presentation{
+		ChartType:    presentation.ChartType,
+		CurrentValue: presentation.CurrentValue,
+		Frequency:    presentation.Frequency,
+		Labels:       presentation.Labels,
+	}
 }
 
 func toDomainAlert(a v1alpha1.Alert) indicator.Alert {

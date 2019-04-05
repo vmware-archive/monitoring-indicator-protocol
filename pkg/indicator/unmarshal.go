@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/cppforlife/go-patch/patch"
 	"gopkg.in/yaml.v2"
@@ -318,7 +317,7 @@ type yamlThreshold struct {
 type yamlPresentation struct {
 	ChartType    ChartType     `yaml:"chartType"`
 	CurrentValue bool          `yaml:"currentValue"`
-	Frequency    time.Duration `yaml:"frequency"`
+	Frequency    int64		   `yaml:"frequency"`
 	Labels       []string      `yaml:"labels"`
 	Units        string        `yaml:"units"`
 }

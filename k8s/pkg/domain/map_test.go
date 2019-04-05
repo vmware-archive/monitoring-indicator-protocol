@@ -36,13 +36,19 @@ func TestMap(t *testing.T) {
 						Eq:    &threshold,
 					}},
 					Documentation: map[string]string{"docs": "explained"},
+					Presentation: v1alpha1.Presentation{
+						ChartType:    indicator.BarChart,
+						CurrentValue: false,
+						Frequency:    5,
+						Labels:       []string{"pod", "app"},
+					},
 				}},
 				Layout: v1alpha1.Layout{
 					Owner:       "me",
 					Title:       "my awesome indicators",
 					Description: "enough said",
 					Sections: []v1alpha1.Section{{
-						Name:        "my section",
+						Title:        "my section",
 						Description: "the only section",
 						Indicators:  []string{"my-indicator"},
 					}},
@@ -63,6 +69,12 @@ func TestMap(t *testing.T) {
 				Step: "1m",
 			},
 			Documentation: map[string]string{"docs": "explained"},
+			Presentation: &indicator.Presentation{
+				ChartType:    indicator.BarChart,
+				CurrentValue: false,
+				Frequency:    5,
+				Labels:       []string{"pod", "app"},
+			},
 		}
 
 		domainDoc := indicator.Document{
@@ -104,7 +116,7 @@ func TestMap(t *testing.T) {
 					Title:       "my awesome indicators",
 					Description: "enough said",
 					Sections: []v1alpha1.Section{{
-						Name:        "my section",
+						Title:        "my section",
 						Description: "the only section",
 						Indicators:  []string{"my-indicator", "my-indicator"},
 					}},
@@ -113,9 +125,10 @@ func TestMap(t *testing.T) {
 		}
 
 		i := indicator.Indicator{
-			Name:       "my-indicator",
-			PromQL:     "my_promql",
-			Thresholds: []indicator.Threshold{},
+			Name:         "my-indicator",
+			PromQL:       "my_promql",
+			Thresholds:   []indicator.Threshold{},
+			Presentation: &indicator.Presentation{},
 		}
 
 		domainDoc := indicator.Document{

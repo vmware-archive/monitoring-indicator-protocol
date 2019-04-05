@@ -32,13 +32,14 @@ func Validate(document Document) []error {
 	}
 
 	for idx, i := range document.Indicators {
-		es = validateIndicator(i, es, idx)
+		es = append(es, ValidateIndicator(i, idx)...)
 	}
 
 	return es
 }
 
-func validateIndicator(i Indicator, es []error, idx int) []error {
+func ValidateIndicator(i Indicator, idx int) []error {
+	var es []error
 	if strings.TrimSpace(i.Name) == "" {
 		es = append(es, fmt.Errorf("indicators[%d] name is required", idx))
 	}
@@ -59,6 +60,7 @@ func validateIndicator(i Indicator, es []error, idx int) []error {
 
 	return es
 }
+
 func validateChartType(chartType ChartType, es []error, idx int) []error {
 	valid := false
 	for _, validChartType := range ChartTypes {

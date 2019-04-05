@@ -24,6 +24,8 @@ spec:
     JSONPath: .metadata.creationTimestamp
   validation:
     openAPIV3Schema:
+      required:
+      - spec
       properties:
         spec:
           required:
@@ -34,6 +36,19 @@ spec:
               type: string
             documentation:
               type: object
+            presentation:
+              type: object
+              properties:
+                chartType:
+                  type: string
+                currentValue:
+                  type: boolean
+                frequency:
+                  type: number
+                labels:
+                  type: array
+                  items:
+                    type: string
             thresholds:
               type: array
               items:

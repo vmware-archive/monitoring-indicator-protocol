@@ -1,0 +1,28 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: indicator-admission
+  namespace: monitoring-indicator-protocol
+  labels:
+    app: indicator-admission
+rules:
+# This rule is for getting the CA from secrets
+- apiGroups:
+  - ""
+  resources:
+  - "secrets"
+  verbs: ["get"]
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: indicator-admission
+  labels:
+    app: indicator-admission
+rules:
+# This rule is for patching MutatingWebhookConfiguration
+- apiGroups:
+  - "admissionregistration.k8s.io"
+  resources:
+  - "mutatingwebhookconfigurations"
+  verbs: ["get", "patch"]

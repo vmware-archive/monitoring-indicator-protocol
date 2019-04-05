@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/cppforlife/go-patch/patch"
 )
@@ -88,7 +87,7 @@ type Threshold struct {
 type Presentation struct {
 	ChartType
 	CurrentValue bool
-	Frequency    time.Duration
+	Frequency    int64
 	Labels       []string
 	Units        string
 }

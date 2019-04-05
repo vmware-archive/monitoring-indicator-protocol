@@ -25,7 +25,7 @@ indicators:
   presentation:
     chartType: step
     currentValue: false
-    frequency: 1m
+    frequency: 60
     labels:
     - job
     - ip

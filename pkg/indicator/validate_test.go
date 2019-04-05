@@ -2,8 +2,9 @@ package indicator_test
 
 import (
 	"errors"
-	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 	"testing"
+
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
 	. "github.com/onsi/gomega"
 
@@ -25,8 +26,28 @@ func TestValidDocument(t *testing.T) {
 					Level:    "critical",
 					Operator: indicator.GreaterThan,
 					Value:    0,
+				}, {
+					Level:    "warning",
+					Operator: indicator.GreaterThanOrEqualTo,
+					Value:    10,
+				}, {
+					Level:    "warning",
+					Operator: indicator.LessThan,
+					Value:    70,
+				}, {
+					Level:    "critical",
+					Operator: indicator.LessThanOrEqualTo,
+					Value:    0,
+				}, {
+					Level:    "warning",
+					Operator: indicator.EqualTo,
+					Value:    0,
+				}, {
+					Level:    "critical",
+					Operator: indicator.NotEqualTo,
+					Value:    1000,
 				}},
-				Presentation:test_fixtures.DefaultPresentation(),
+				Presentation: test_fixtures.DefaultPresentation(),
 			}},
 			Layout: indicator.Layout{
 				Title:       "Monitoring Test Product",
@@ -168,9 +189,9 @@ func TestIndicator(t *testing.T) {
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{
 				{
-					Name:   `valid{labels="nope"}`,
-					PromQL: `valid{labels="yep"}`,
-					Presentation:test_fixtures.DefaultPresentation(),
+					Name:         `valid{labels="nope"}`,
+					PromQL:       `valid{labels="yep"}`,
+					Presentation: test_fixtures.DefaultPresentation(),
 				},
 			},
 		}
@@ -216,7 +237,7 @@ func TestThreshold(t *testing.T) {
 					Operator: indicator.Undefined,
 					Value:    0,
 				}},
-				Presentation:test_fixtures.DefaultPresentation(),
+				Presentation: test_fixtures.DefaultPresentation(),
 			}},
 		}
 

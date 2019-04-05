@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: indicator-admission
+  namespace: monitoring-indicator-protocol
+  labels:
+    app: indicator-admission
+spec:
+  type: ClusterIP
+  selector:
+    app: indicator-admission
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: webhook-port

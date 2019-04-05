@@ -1,6 +1,9 @@
 package v1alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -43,6 +46,14 @@ type IndicatorSpec struct {
 	Alert         Alert             `json:"alert"`
 	Thresholds    []Threshold       `json:"thresholds"`
 	Documentation map[string]string `json:"documentation,omitempty"`
+	Presentation  Presentation      `json:"presentation"`
+}
+
+type Presentation struct {
+	ChartType    indicator.ChartType `json:"chartType"`
+	CurrentValue bool                `json:"currentValue"`
+	Frequency    int64               `json:"frequency"`
+	Labels       []string            `json:"labels"`
 }
 
 type Alert struct {
@@ -68,7 +79,7 @@ type Layout struct {
 }
 
 type Section struct {
-	Name        string   `json:"name"`
+	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Indicators  []string `json:"indicators"`
 }

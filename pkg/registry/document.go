@@ -29,7 +29,7 @@ type APIV0Threshold struct {
 type APIV0Presentation struct {
 	ChartType    string   `json:"chartType"`
 	CurrentValue bool     `json:"currentValue"`
-	Frequency    float64  `json:"frequency"`
+	Frequency    int64	  `json:"frequency"`
 	Labels       []string `json:"labels"`
 	Units        string   `json:"units"`
 }
@@ -103,7 +103,7 @@ func convertIndicator(i APIV0Indicator) indicator.Indicator {
 		Presentation: &indicator.Presentation{
 			ChartType:    indicator.ChartType(i.Presentation.ChartType),
 			CurrentValue: i.Presentation.CurrentValue,
-			Frequency:    time.Duration(i.Presentation.Frequency),
+			Frequency:    i.Presentation.Frequency,
 			Labels:       i.Presentation.Labels,
 		},
 	}
@@ -175,7 +175,7 @@ func ToAPIV0Document(doc indicator.Document, getStatus func (string) *APIV0Indic
 			presentation = &APIV0Presentation{
 				ChartType:    string(i.Presentation.ChartType),
 				CurrentValue: i.Presentation.CurrentValue,
-				Frequency:    i.Presentation.Frequency.Seconds(),
+				Frequency:    i.Presentation.Frequency,
 				Labels:       labels,
 				Units:        i.Presentation.Units,
 			}

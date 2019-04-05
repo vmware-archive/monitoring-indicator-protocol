@@ -194,7 +194,7 @@ func indicatorDocument() *v1alpha1.IndicatorDocument {
 				Title: "rabbit-mq-layout-title",
 				Sections: []v1alpha1.Section{
 					{
-						Name:        "qps section",
+						Title:        "qps section",
 						Description: "",
 						Indicators:  []string{"qps"},
 					},

@@ -450,7 +450,7 @@ func (s *spyIndicatorsGetter) Indicators(string) v1alpha1.IndicatorInterface {
 func (s *spyIndicatorsGetter) Create(i *types.Indicator) (*types.Indicator, error) {
 	s.createCalls = append(s.createCalls, i)
 	return nil, nil
-	//	do we want indicator to be nil?
+	//TODO	do we want indicator to be nil?
 }
 
 func (s *spyIndicatorsGetter) Update(i *types.Indicator) (*types.Indicator, error) {

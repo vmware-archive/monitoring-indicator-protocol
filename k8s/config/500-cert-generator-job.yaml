@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cert-generator
+  namespace: monitoring-indicator-protocol
+  labels:
+    app: cert-generator
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: cert-generator
+    spec:
+      serviceAccountName: cert-generator
+      containers:
+      - name: cert-generator
+        image: oratos/cert-generator:latest
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CA_CERT_NAME
+          value: monitoring-indicator-protocol
+        - name: CERTS_TO_GENERATE
+          value: indicator-admission
+      restartPolicy: Never

@@ -16,41 +16,41 @@ spec:
     kind: IndicatorDocument
     shortNames:
     - id
-  validation:
-    openAPIV3Schema:
-      properties:
-        spec:
-          required:
-          - product
-          properties:
-            product:
-              required:
-              - name
-              - version
-            indicators:
-              type: array
-              items:
-                required:
-                - name
-                - promql
-                properties:
-                  documentation:
-                    type: object
-                  thresholds:
-                    type: array
-                    items:
-                      required:
-                      - level
-                      properties:
-                        gte:
-                          type: number
-                        gt:
-                          type: number
-                        eq:
-                          type: number
-                        neq:
-                          type: number
-                        lt:
-                          type: number
-                        lte:
-                          type: number
+#  validation:
+#    openAPIV3Schema:
+#      properties:
+#        spec:
+#          required:
+#          - product
+#          properties:
+#            product:
+#              required:
+#              - name
+#              - version
+#            indicators:
+#              type: array
+#              items:
+#                required:
+#                - name
+#                - promql
+#                properties:
+#                  documentation:
+#                    type: object
+#                  thresholds:
+#                    type: array
+#                    items:
+#                      required:
+#                      - level
+#                      properties:
+#                        gte:
+#                          type: number
+#                        gt:
+#                          type: number
+#                        eq:
+#                          type: number
+#                        neq:
+#                          type: number
+#                        lt:
+#                          type: number
+#                        lte:
+#                          type: number

@@ -2,7 +2,6 @@ package indicator_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/gomega"
@@ -32,7 +31,7 @@ indicators:
   presentation:
     currentValue: false
     chartType: step
-    frequency: 5s
+    frequency: 5
     labels:
     - job
     - ip
@@ -74,7 +73,7 @@ layout:
 					Presentation: &indicator.Presentation{
 						CurrentValue: false,
 						ChartType:    indicator.StepChart,
-						Frequency:    5 * time.Second,
+						Frequency:    5,
 						Labels:       []string{"job", "ip"},
 						Units:        "nanoseconds",
 					},
@@ -108,7 +107,7 @@ layout:
 						},
 						Presentation: &indicator.Presentation{
 							ChartType: indicator.StepChart,
-							Frequency: 5 * time.Second,
+							Frequency: 5,
 							Labels:    []string{"job", "ip"},
 							Units:     "nanoseconds",
 						},

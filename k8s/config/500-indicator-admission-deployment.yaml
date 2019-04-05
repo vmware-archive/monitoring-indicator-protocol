@@ -1,0 +1,69 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: indicator-admission
+  namespace: monitoring-indicator-protocol
+  labels:
+    app: indicator-admission
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: indicator-admission
+    spec:
+      serviceAccountName: indicator-admission
+      containers:
+      - name: patch-ca
+        image: oratos/cert-generator:latest
+        env:
+        - name: CA_SECRET
+          value: monitoring-indicator-protocol
+        - name: WEBHOOK_CONFIG
+          value: "indicator-admission"
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+
+          while true; do
+            ca_cert=$(kubectl get secrets "$CA_SECRET" -o json | jq '.data."tls.crt"' --raw-output)
+            kubectl patch \
+              mutatingwebhookconfiguration "$WEBHOOK_CONFIG" \
+              --type=json \
+              -p "[
+                    {\"op\": \"add\", \"path\": \"/webhooks/0/clientConfig/caBundle\", \"value\": \"$ca_cert\"},
+                    {\"op\": \"add\", \"path\": \"/webhooks/1/clientConfig/caBundle\", \"value\": \"$ca_cert\"},
+                  ]"
+            sleep 10
+          done
+      - name: indicator-admission
+        # This is the Go import path for the binary that is containerized
+        # and substituted here.
+        image: indicatorprotocol/indicator-admission:latest
+        ports:
+        - name: webhook-port
+          containerPort: 9000
+        readinessProbe:
+          httpGet:
+            scheme: HTTPS
+            port: webhook-port
+            path: /health
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        env:
+        - name: HTTP_ADDR
+          value: ":9000"
+        - name: INDICATOR_ADMISSION_CERT
+          value: /etc/indicator-admission-certs/tls.crt
+        - name: INDICATOR_ADMISSION_KEY
+          value: /etc/indicator-admission-certs/tls.key
+        volumeMounts:
+        - mountPath: /etc/indicator-admission-certs/
+          name: indicator-admission-certs
+          readOnly: true
+      volumes:
+      - name: indicator-admission-certs
+        secret:
+          secretName: indicator-admission

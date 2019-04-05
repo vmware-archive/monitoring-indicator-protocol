@@ -1,0 +1,12 @@
+apiVersion: apps.pivotal.io/v1alpha1
+kind: Indicator
+metadata:
+  name: valid-indicator
+spec:
+  name: valid_indicator
+  promql: rate(apiserver_request_count{resource="pods"}[5m]) * 60
+  alert:
+    for: 40m
+    step: 8m
+  presentation:
+    frequency: 8
