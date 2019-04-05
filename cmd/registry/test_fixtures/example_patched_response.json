@@ -1,6 +1,7 @@
 [
   {
     "apiVersion": "v0",
+    "uid": "my-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
     "product": {
       "name": "my-component",
       "version": "1.2.3"
@@ -82,6 +83,7 @@
   },
   {
     "apiVersion": "v0",
+    "uid": "my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
     "product": {
       "name": "my-other-component",
       "version": "1.2.3"

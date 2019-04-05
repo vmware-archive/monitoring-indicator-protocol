@@ -1,6 +1,9 @@
 package indicator
 
 import (
+	"crypto/sha1"
+	"fmt"
+	"sort"
 	"time"
 
 	"github.com/cppforlife/go-patch/patch"
@@ -24,6 +27,25 @@ type Document struct {
 	Metadata   map[string]string
 	Indicators []Indicator
 	Layout     Layout
+}
+
+func (document Document) UID() string {
+	return fmt.Sprintf("%s-%x", document.Product.Name, getMetadataSHA(document.Metadata))
+}
+
+func getMetadataSHA(metadata map[string]string) [20]byte {
+	var metadataKeys []string
+	for k := range metadata {
+		metadataKeys = append(metadataKeys, k)
+	}
+	sort.Strings(metadataKeys)
+
+	metadataKey := ""
+	for _, k := range metadataKeys {
+		metadataKey = fmt.Sprintf("%s:%s", k, metadata[k])
+	}
+
+	return sha1.Sum([]byte(metadataKey))
 }
 
 type Patch struct {

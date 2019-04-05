@@ -8,6 +8,7 @@ import (
 
 type APIV0Document struct {
 	APIVersion string            `json:"apiVersion"`
+	UID        string            `json:"uid"`
 	Product    APIV0Product      `json:"product"`
 	Metadata   map[string]string `json:"metadata"`
 	Indicators []APIV0Indicator  `json:"indicators"`
@@ -206,6 +207,7 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 
 	return APIV0Document{
 		APIVersion: doc.APIVersion,
+		UID:        doc.UID(),
 		Product: APIV0Product{
 			Name:    doc.Product.Name,
 			Version: doc.Product.Version,

@@ -3,7 +3,6 @@ package registry
 import (
 	"fmt"
 	"log"
-	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -109,7 +108,7 @@ func (d *DocumentStore) expireDocuments() {
 
 func (d *DocumentStore) getPosition(indicatorDocument indicator.Document) int {
 	for idx, doc := range d.documents {
-		if reflect.DeepEqual(doc.indicatorDocument.Metadata, indicatorDocument.Metadata) && doc.indicatorDocument.Product.Name == indicatorDocument.Product.Name {
+		if doc.indicatorDocument.UID() == indicatorDocument.UID() {
 			return idx
 		}
 	}

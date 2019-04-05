@@ -83,6 +83,16 @@ func TestInsertDocument(t *testing.T) {
 		}},
 	}
 
+	productADeployment2Document := indicator.Document{
+		Product: indicator.Product{Name: "my-product-a", Version: "2"},
+		Metadata: map[string]string{
+			"deployment": "def-456",
+		},
+		Indicators: []indicator.Indicator{{
+			Name: "test_error_ratio",
+		}},
+	}
+
 	productBDocument := indicator.Document{
 		Product: indicator.Product{Name: "my-product-b", Version: "1"},
 		Metadata: map[string]string{
@@ -126,7 +136,7 @@ func TestInsertDocument(t *testing.T) {
 		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion1Document))
 	})
 
-	t.Run("it upserts documents based on labels", func(t *testing.T) {
+	t.Run("it upserts documents based on product", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		store := registry.NewDocumentStore(10 * time.Millisecond)
 
@@ -138,6 +148,17 @@ func TestInsertDocument(t *testing.T) {
 
 		store.UpsertDocument(productAVersion2Document)
 		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion2Document, productBDocument))
+	})
+
+	t.Run("it upserts documents based on metadata", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		store := registry.NewDocumentStore(10 * time.Millisecond)
+
+		store.UpsertDocument(productAVersion1Document)
+		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion1Document))
+
+		store.UpsertDocument(productADeployment2Document)
+		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion1Document, productADeployment2Document))
 	})
 
 	t.Run("documents expire after an interval", func(t *testing.T) {

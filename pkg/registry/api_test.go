@@ -195,6 +195,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 			[
  				{
                     "apiVersion": "",
+					"uid": "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
                     "product": {
 						"name": "my-product-a",
                     	"version": "1"
