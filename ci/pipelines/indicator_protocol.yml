@@ -379,7 +379,7 @@ jobs:
   plan:
   - aggregate:
     - get: monitoring-indicator-protocol
-      passed: [create-grafana-controller-docker-image,create-prometheus-controller-docker-image]
+      passed: [create-grafana-controller-docker-image,create-prometheus-controller-docker-image,create-indicator-lifecycle-controller-docker-image]
       trigger: true
     - get: interim-grafana-controller-docker-repo
       params: {skip_download: true}

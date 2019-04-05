@@ -18,7 +18,7 @@ spec:
       serviceAccountName: prometheus-indicator-controller
       containers:
       - name: prometheus-indicator-controller
-        image: indicatorprotocol/prometheus-indicator-controller:latest
+        image: indicatorprotocol/prometheus-indicator-controller:release-candidate
         imagePullPolicy: Always
         env:
         - name: NAMESPACE
