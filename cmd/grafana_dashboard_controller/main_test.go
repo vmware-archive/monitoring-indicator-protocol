@@ -13,6 +13,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
@@ -70,6 +71,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 			ServerKeyPath: serverKey,
 			RootCAPath:    rootCACert,
 			DocumentStore: store,
+			StatusStore: status_store.New(time.Now),
 		}
 
 		start, stop, err := registry.NewWebServer(config)

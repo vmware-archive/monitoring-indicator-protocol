@@ -2,6 +2,8 @@
 cloud.google.com/go/compute/metadata
 # code.cloudfoundry.org/go-envstruct v1.4.0
 code.cloudfoundry.org/go-envstruct
+# github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201017-cc08014d6fba
+github.com/benjamintf1/unmarshalledmatchers
 # github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
 github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash v1.1.0

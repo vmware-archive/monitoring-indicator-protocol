@@ -2,6 +2,7 @@ module github.com/pivotal/monitoring-indicator-protocol
 
 require (
 	code.cloudfoundry.org/go-envstruct v1.4.0
+	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201017-cc08014d6fba
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cppforlife/go-patch v0.2.0

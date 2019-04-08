@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/mux"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
@@ -32,11 +35,11 @@ func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 	}
 }
 
-func NewIndicatorDocumentsHandler(store *DocumentStore) http.HandlerFunc {
+func NewIndicatorDocumentsHandler(store *DocumentStore, statusStore *status_store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		bytes, _ := marshal(store.AllDocuments())
+		bytes, _ := marshal(store.AllDocuments(), statusStore)
 		fmt.Fprintf(w, string(bytes))
 	}
 }
@@ -51,15 +54,54 @@ func writeErrors(w http.ResponseWriter, statusCode int, errors ...error) {
 	json.NewEncoder(w).Encode(errorResponse{Errors: errorStrings})
 }
 
+type APIV0UpdateIndicatorStatus struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+func NewIndicatorStatusBulkUpdateHandler(store *status_store.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var indicatorStatuses []APIV0UpdateIndicatorStatus
+		err := json.NewDecoder(r.Body).Decode(&indicatorStatuses)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		documentID := mux.Vars(r)["documentID"]
+		for _, indicatorStatus := range indicatorStatuses {
+			store.UpdateStatus(status_store.UpdateRequest{
+				Status:        indicatorStatus.Status,
+				IndicatorName: indicatorStatus.Name,
+				DocumentUID:   documentID,
+			})
+		}
+	}
+}
+
 type errorResponse struct {
 	Errors []string `json:"errors"`
 }
 
-func marshal(docs []indicator.Document) ([]byte, error) {
+func marshal(docs []indicator.Document, statusStore *status_store.Store) ([]byte, error) {
 	data := make([]APIV0Document, 0)
 	for _, doc := range docs {
-		data = append(data, ToAPIV0Document(doc))
+		data = append(data, ToAPIV0Document(doc, statusGetterForDoc(statusStore, doc)))
 	}
 
 	return json.Marshal(data)
+}
+
+func statusGetterForDoc(statusStore *status_store.Store, doc indicator.Document) func(name string) *APIV0IndicatorStatus {
+	return func(name string) *APIV0IndicatorStatus {
+		status, err := statusStore.StatusFor(doc.UID(), name)
+		if err != nil {
+			return nil
+		}
+
+		return &APIV0IndicatorStatus{
+			Value:     status.Status,
+			UpdatedAt: status.UpdatedAt,
+		}
+	}
 }

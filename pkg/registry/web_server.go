@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
+
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -17,7 +19,8 @@ type WebServerConfig struct {
 	ServerPEMPath string
 	ServerKeyPath string
 	RootCAPath    string
-	*DocumentStore
+	DocumentStore *DocumentStore
+	StatusStore   *status_store.Store
 }
 
 func NewWebServer(c WebServerConfig) (func() error, func() error, error) {
@@ -28,7 +31,7 @@ func NewWebServer(c WebServerConfig) (func() error, func() error, error) {
 
 	server := &http.Server{
 		Addr:      c.Address,
-		Handler:   newRouter(c.DocumentStore),
+		Handler:   newRouter(c),
 		TLSConfig: tlsConfig,
 	}
 
@@ -48,12 +51,13 @@ func init() {
 	prometheus.MustRegister(httpRequests)
 }
 
-func newRouter(documentStore *DocumentStore) *mux.Router {
+func newRouter(w WebServerConfig) *mux.Router {
 	r := mux.NewRouter()
 	r.Handle("/metrics", instrumentEndpoint(httpRequests, promhttp.Handler()))
 	r.NotFoundHandler = notFound(httpRequests)
-	r.HandleFunc("/v1/register", instrumentEndpoint(httpRequests, NewRegisterHandler(documentStore))).Methods(http.MethodPost)
-	r.HandleFunc("/v1/indicator-documents", instrumentEndpoint(httpRequests, NewIndicatorDocumentsHandler(documentStore))).Methods(http.MethodGet)
+	r.HandleFunc("/v1/register", instrumentEndpoint(httpRequests, NewRegisterHandler(w.DocumentStore))).Methods(http.MethodPost)
+	r.HandleFunc("/v1/indicator-documents", instrumentEndpoint(httpRequests, NewIndicatorDocumentsHandler(w.DocumentStore, w.StatusStore))).Methods(http.MethodGet)
+	r.HandleFunc("/v1/indicator-documents/{documentID}/bulk_status", instrumentEndpoint(httpRequests, NewIndicatorStatusBulkUpdateHandler(w.StatusStore))).Methods(http.MethodPost)
 	return r
 }
 

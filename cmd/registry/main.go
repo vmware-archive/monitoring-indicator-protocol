@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
+
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
@@ -40,6 +42,7 @@ func main() {
 		ServerKeyPath: *serverKey,
 		RootCAPath:    *rootCACert,
 		DocumentStore: store,
+		StatusStore:   status_store.New(time.Now),
 	}
 
 	start, stop, err := registry.NewWebServer(config)

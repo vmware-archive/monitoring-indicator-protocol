@@ -35,12 +35,18 @@ type APIV0Presentation struct {
 }
 
 type APIV0Indicator struct {
-	Name          string             `json:"name"`
-	PromQL        string             `json:"promql"`
-	Thresholds    []APIV0Threshold   `json:"thresholds"`
-	Alert         APIV0Alert         `json:"alert"`
-	Documentation map[string]string  `json:"documentation,omitempty"`
-	Presentation  *APIV0Presentation `json:"presentation"`
+	Name          string                `json:"name"`
+	PromQL        string                `json:"promql"`
+	Thresholds    []APIV0Threshold      `json:"thresholds"`
+	Alert         APIV0Alert            `json:"alert"`
+	Documentation map[string]string     `json:"documentation,omitempty"`
+	Presentation  *APIV0Presentation    `json:"presentation"`
+	Status        *APIV0IndicatorStatus `json:"status"`
+}
+
+type APIV0IndicatorStatus struct {
+	Value     string    `json:"value"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type APIV0Alert struct {
@@ -148,7 +154,7 @@ func convertLayoutSection(s APIV0Section, indicators []indicator.Indicator) indi
 	}
 }
 
-func ToAPIV0Document(doc indicator.Document) APIV0Document {
+func ToAPIV0Document(doc indicator.Document, getStatus func (string) *APIV0IndicatorStatus) APIV0Document {
 	indicators := make([]APIV0Indicator, 0)
 
 	for _, i := range doc.Indicators {
@@ -187,6 +193,7 @@ func ToAPIV0Document(doc indicator.Document) APIV0Document {
 			Alert:         alert,
 			Documentation: i.Documentation,
 			Presentation:  presentation,
+			Status: getStatus(i.Name),
 		})
 	}
 

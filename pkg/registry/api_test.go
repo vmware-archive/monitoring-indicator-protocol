@@ -8,6 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
+
 	. "github.com/onsi/gomega"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
@@ -151,6 +154,56 @@ indicators: aasdfasdf`))
 	})
 }
 
+func TestBulkStatusUpdateHandler(t *testing.T) {
+	t.Run("it returns 200 & updates the store status", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		body := bytes.NewBuffer([]byte(`[{"name": "latency", "status": "critical"},{"name": "error_rate", "status": "warning"}]`))
+		req := httptest.NewRequest("POST", "/", body)
+		resp := httptest.NewRecorder()
+
+		now := time.Now()
+		store := status_store.New(func() time.Time { return now })
+
+		req = mux.SetURLVars(req, map[string]string{
+			"documentID": "my-component-1234234234",
+		})
+		registry.NewIndicatorStatusBulkUpdateHandler(store)(resp, req)
+
+		g.Expect(store.StatusFor("my-component-1234234234", "latency")).To(Equal(status_store.IndicatorStatus{
+			DocumentUID:   "my-component-1234234234",
+			IndicatorName: "latency",
+			Status:        "critical",
+			UpdatedAt:     now,
+		}))
+
+		g.Expect(store.StatusFor("my-component-1234234234", "error_rate")).To(Equal(status_store.IndicatorStatus{
+			DocumentUID:   "my-component-1234234234",
+			IndicatorName: "error_rate",
+			Status:        "warning",
+			UpdatedAt:     now,
+		}))
+	})
+
+	t.Run("it returns a 400 if indicator status are not passed into the body", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		body:= bytes.NewBuffer([]byte(`[""]`))
+		req := httptest.NewRequest("POST", "/", body)
+		resp := httptest.NewRecorder()
+
+		now := time.Now()
+		store := status_store.New(func() time.Time { return now })
+
+		req = mux.SetURLVars(req, map[string]string{
+			"documentID": "my-component-1234234234",
+		})
+		registry.NewIndicatorStatusBulkUpdateHandler(store)(resp, req)
+
+		g.Expect(resp.Result().StatusCode).To(Equal(http.StatusBadRequest))
+	})
+}
+
 func TestIndicatorDocumentsHandler(t *testing.T) {
 	t.Run("it returns 200", func(t *testing.T) {
 		g := NewGomegaWithT(t)
@@ -182,7 +235,14 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 			}},
 		})
 
-		handle := registry.NewIndicatorDocumentsHandler(docStore)
+		statusStore := status_store.New(func() time.Time { return time.Date(2012, 12, 1, 16, 45, 19, 0, time.UTC) })
+		statusStore.UpdateStatus(status_store.UpdateRequest{
+			Status:        "critical",
+			IndicatorName: "test_errors2",
+			DocumentUID:   "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
+		})
+
+		handle := registry.NewIndicatorDocumentsHandler(docStore, statusStore)
 		handle(resp, req)
 
 		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
@@ -212,7 +272,8 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 							"for": "5m",
 							"step": "10s"
 						},
-                        "presentation": null
+                        "presentation": null,
+                        "status": null
                       },
                       {
                         "name": "test_errors2",
@@ -228,7 +289,11 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
                           "frequency": 0,
                           "labels": [],
                           "units": "nanoseconds"
-                        }
+                        },
+						"status": {
+						  "value": "critical",
+						  "updatedAt": "2012-12-01T16:45:19Z"
+						}
                       }
                     ],
                     "layout": {
