@@ -1,5 +1,5 @@
 ---
-name: indicator-registry-manifest-generator
+name: indicator-registry
 
 stemcells:
 - alias: default
