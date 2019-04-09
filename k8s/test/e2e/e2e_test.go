@@ -149,6 +149,40 @@ func TestControllers(t *testing.T) {
 	}
 }
 
+func TestAdmission(t *testing.T) {
+	t.Run("patches default values", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		ns, cleanup := createNamespace(t)
+		defer cleanup()
+		id := indicatorDocument(ns)
+		t.Logf("Creating indicator document in namespace: %s", ns)
+		_, err := clients.idClient.IndicatorDocuments(ns).Create(id)
+
+		g.Expect(err).ToNot(HaveOccurred())
+
+		defaultPresentation := &v1alpha1.Presentation{
+			ChartType:    "step",
+			CurrentValue: false,
+			Frequency:    0,
+			Labels:       []string{},
+		}
+		g.Eventually(getIndicatorPresentation(t, ns, id.Name, id.Spec.Indicators[0].Name), 100).
+			Should(Equal(defaultPresentation))
+	})
+}
+
+func getIndicatorPresentation(t *testing.T, ns string, indicatorDocName string, indicatorName string) func() *v1alpha1.Presentation {
+	return func() *v1alpha1.Presentation {
+		resources := clients.idClient.Indicators(ns)
+		resource, err := resources.Get(fmt.Sprintf("%s-%s", indicatorDocName, indicatorName), metav1.GetOptions{})
+		if err != nil {
+			t.Logf("Unable to get new indicator, retrying: %s", err)
+			return nil
+		}
+		return &resource.Spec.Presentation
+	}
+}
+
 func grafanaApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocument) bool {
 	request, err := http.NewRequest("GET", fmt.Sprintf("http://%s/api/search?query=%s", *grafanaURI, document.Spec.Product.Name), nil)
 	if err != nil {
