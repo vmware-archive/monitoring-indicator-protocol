@@ -1,5 +1,5 @@
 ---
-name: indicator-registry
+name: indicator-registry-manifest-generator
 
 stemcells:
 - alias: default
@@ -62,7 +62,7 @@ variables:
   type: certificate
   options:
     ca: indicator_protocol_ca
-    common_name: indicator-registry
+    common_name: localhost
     extended_key_usage:
     - server_auth
 - name: indicator_registration_agent_ssl

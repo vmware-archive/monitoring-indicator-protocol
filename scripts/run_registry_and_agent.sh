@@ -9,9 +9,9 @@ export INDICATOR_DOCUMENTS='./example_indicators.yml'
 
 echo "Starting registry on PORT $REGISTRY_PORT"
 go run cmd/registry/main.go \
-  -tls-key-path ${CERTS}/leaf.key \
-  -tls-pem-path ${CERTS}/leaf.pem \
-  -tls-root-ca-pem ${CERTS}/root.pem \
+  -tls-key-path ${CERTS}/server.key \
+  -tls-pem-path ${CERTS}/server.pem \
+  -tls-root-ca-pem ${CERTS}/ca.pem \
   -port ${REGISTRY_PORT} \
   -indicator-expiration 1m \
   -config example_config.yml &
@@ -21,7 +21,7 @@ go run cmd/registry_agent/main.go \
   -tls-key-path ${CERTS}/client.key \
   -interval 5s \
   -tls-pem-path ${CERTS}/client.pem \
-  -tls-root-ca-pem ${CERTS}/root.pem \
+  -tls-root-ca-pem ${CERTS}/ca.pem \
   -tls-server-cn localhost \
   -registry ${REGISTRY_HOST} \
   -documents-glob ${INDICATOR_DOCUMENTS} &

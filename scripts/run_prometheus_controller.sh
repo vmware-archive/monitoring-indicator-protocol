@@ -11,7 +11,7 @@ go run cmd/prometheus_rules_controller/main.go \
   -output-directory /tmp/alerts \
   -tls-pem-path ${CERTS}/client.pem \
   -tls-key-path ${CERTS}/client.key \
-  -tls-root-ca-pem ${CERTS}/root.pem \
+  -tls-root-ca-pem ${CERTS}/ca.pem \
   -tls-server-cn localhost \
   -prometheus http://localhost:9090
 
