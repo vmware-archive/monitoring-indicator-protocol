@@ -1,4 +1,4 @@
-package webhook_test
+package admission_test
 
 import (
 	"crypto/tls"
@@ -12,14 +12,14 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/webhook"
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/admission"
 	"k8s.io/api/admission/v1beta1"
 )
 
 func TestValidator(t *testing.T) {
 	t.Run("it returns 200 for health endpoint without TLS", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		server := webhook.NewServer("127.0.0.1:0")
+		server := admission.NewServer("127.0.0.1:0")
 		server.Run(false)
 		defer func() {
 			_ = server.Close()
@@ -52,7 +52,7 @@ func TestValidator(t *testing.T) {
 		tlsConf := &tls.Config{
 			Certificates: []tls.Certificate{cert},
 		}
-		server := webhook.NewServer("127.0.0.1:0", webhook.WithTLSConfig(tlsConf))
+		server := admission.NewServer("127.0.0.1:0", admission.WithTLSConfig(tlsConf))
 		server.Run(false)
 		defer func() {
 			_ = server.Close()
@@ -84,7 +84,7 @@ func TestValidator(t *testing.T) {
 	t.Run("it allows blocking on server.Run", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		server := webhook.NewServer("127.0.0.1:0")
+		server := admission.NewServer("127.0.0.1:0")
 
 		done := make(chan struct{})
 		go func() {
@@ -118,7 +118,7 @@ func TestValidator(t *testing.T) {
 	t.Run("allows request when indicator is valid", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		server := webhook.NewServer("127.0.0.1:0")
+		server := admission.NewServer("127.0.0.1:0")
 		server.Run(false)
 		defer func() {
 			_ = server.Close()
@@ -190,7 +190,7 @@ func TestValidator(t *testing.T) {
 		t.Skip("TBD")
 		g := NewGomegaWithT(t)
 
-		server := webhook.NewServer("127.0.0.1:0")
+		server := admission.NewServer("127.0.0.1:0")
 		server.Run(false)
 		defer func() {
 			_ = server.Close()
@@ -258,7 +258,7 @@ func TestValidator(t *testing.T) {
 	})
 
 	t.Run("it expects a content type of application/json", func(t *testing.T) {
-		server := webhook.NewServer("127.0.0.1:0")
+		server := admission.NewServer("127.0.0.1:0")
 		server.Run(false)
 		defer func() {
 			_ = server.Close()
@@ -773,8 +773,8 @@ func TestDefaultValues(t *testing.T) {
 	})
 }
 
-func startServer(g *GomegaWithT) *webhook.Server {
-	server := webhook.NewServer("127.0.0.1:0")
+func startServer(g *GomegaWithT) *admission.Server {
+	server := admission.NewServer("127.0.0.1:0")
 	server.Run(false)
 	var err error
 	for i := 0; i < 100; i++ {

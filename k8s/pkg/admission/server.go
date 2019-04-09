@@ -1,4 +1,4 @@
-package webhook
+package admission
 
 import (
 	"context"
@@ -139,6 +139,7 @@ func indicatorDocumentHandler(responseWriter http.ResponseWriter, r *http.Reques
 	}
 
 	var doc v1alpha1.IndicatorDocument
+	log.Printf("Received request to set defaults for document: %s", requestedAdmissionReview.Request.Object.Raw)
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &doc)
 	if err != nil {
 		log.Printf("Error unmarshaling document: %s", err)
@@ -204,6 +205,7 @@ func indicatorHandler(responseWriter http.ResponseWriter, request *http.Request)
 	}
 
 	var k8sIndicator v1alpha1.Indicator
+	log.Printf("Setting up defaults for indicator: %s", requestedAdmissionReview.Request.Object.Raw)
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicator)
 	if err != nil {
 		log.Printf("Error unmarshalling indicator: %s", err)

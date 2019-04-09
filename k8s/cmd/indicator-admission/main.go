@@ -5,7 +5,7 @@ import (
 	"log"
 
 	envstruct "code.cloudfoundry.org/go-envstruct"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/webhook"
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/admission"
 )
 
 type config struct {
@@ -34,5 +34,5 @@ func main() {
 		Certificates: []tls.Certificate{cert},
 	}
 
-	webhook.NewServer(cfg.HTTPAddr, webhook.WithTLSConfig(tlsConf)).Run(true)
+	admission.NewServer(cfg.HTTPAddr, admission.WithTLSConfig(tlsConf)).Run(true)
 }

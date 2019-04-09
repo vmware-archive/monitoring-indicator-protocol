@@ -1,4 +1,4 @@
-package webhook_test
+package admission_test
 
 var FakeLocalhostCert = []byte(`-----BEGIN CERTIFICATE-----
 MIICEzCCAXygAwIBAgIQMIMChMLGrR+QvmQvpwAU6zANBgkqhkiG9w0BAQsFADAS
