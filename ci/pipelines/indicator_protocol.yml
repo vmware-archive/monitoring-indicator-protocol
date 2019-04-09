@@ -95,9 +95,8 @@ resources:
 jobs:
 - name: build-and-test
   plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      trigger: true
+  - get: monitoring-indicator-protocol
+    trigger: true
   - task: build-and-test
     config:
       platform: linux
@@ -122,10 +121,9 @@ jobs:
 
 - name: indicator-docs
   plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [build-and-test]
-      trigger: true
+  - get: monitoring-indicator-protocol
+    passed: [build-and-test]
+    trigger: true
   - task: generate-docs
     config:
       platform: linux
@@ -283,10 +281,9 @@ jobs:
 
 - name: create-docker-images
   plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [build-and-test]
-      trigger: true
+  - get: monitoring-indicator-protocol
+    passed: [build-and-test]
+    trigger: true
   - task: create-tag
     config:
       platform: linux
@@ -310,30 +307,31 @@ jobs:
           SHA=$(git rev-parse HEAD)
           cd ..
           echo ${SHA} > tag/tag
-  - put: interim-grafana-controller-docker-repo
-    params:
-      additional_tags: tag/tag
-      tag_as_latest: false
-      build: monitoring-indicator-protocol
-      dockerfile: monitoring-indicator-protocol/k8s/cmd/grafana-indicator-controller/Dockerfile
-  - put: interim-prometheus-controller-docker-repo
-    params:
-      additional_tags: tag/tag
-      tag_as_latest: false
-      build: monitoring-indicator-protocol
-      dockerfile: monitoring-indicator-protocol/k8s/cmd/prometheus-indicator-controller/Dockerfile
-  - put: interim-indicator-lifecycle-controller-docker-repo
-    params:
-      additional_tags: tag/tag
-      tag_as_latest: false
-      build: monitoring-indicator-protocol
-      dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-lifecycle-controller/Dockerfile
-  - put: interim-indicator-admission-controller-docker-repo
-    params:
-      additional_tags: tag/tag
-      tag_as_latest: false
-      build: monitoring-indicator-protocol
-      dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-admission/Dockerfile
+  - aggregate:
+    - put: interim-grafana-controller-docker-repo
+      params:
+        additional_tags: tag/tag
+        tag_as_latest: false
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/k8s/cmd/grafana-indicator-controller/Dockerfile
+    - put: interim-prometheus-controller-docker-repo
+      params:
+        additional_tags: tag/tag
+        tag_as_latest: false
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/k8s/cmd/prometheus-indicator-controller/Dockerfile
+    - put: interim-indicator-lifecycle-controller-docker-repo
+      params:
+        additional_tags: tag/tag
+        tag_as_latest: false
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-lifecycle-controller/Dockerfile
+    - put: interim-indicator-admission-controller-docker-repo
+      params:
+        additional_tags: tag/tag
+        tag_as_latest: false
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-admission/Dockerfile
 
 - name: deploy-k8s
   plan:
@@ -482,22 +480,23 @@ jobs:
     - get: monitoring-indicator-protocol
       passed: [test-k8s]
       trigger: true
-  - put: grafana-controller-docker-repo
-    params:
-      tag_as_latest: false
-      load: interim-grafana-controller-docker-repo
-  - put: prometheus-controller-docker-repo
-    params:
-      tag_as_latest: false
-      load: interim-prometheus-controller-docker-repo
-  - put: indicator-lifecycle-controller-docker-repo
-    params:
-      tag_as_latest: false
-      load: interim-indicator-lifecycle-controller-docker-repo
-  - put: indicator-admission-controller-docker-repo
-    params:
-      tag_as_latest: false
-      load: interim-indicator-admission-controller-docker-repo
+  - aggregate:
+    - put: grafana-controller-docker-repo
+      params:
+        tag_as_latest: false
+        load: interim-grafana-controller-docker-repo
+    - put: prometheus-controller-docker-repo
+      params:
+        tag_as_latest: false
+        load: interim-prometheus-controller-docker-repo
+    - put: indicator-lifecycle-controller-docker-repo
+      params:
+        tag_as_latest: false
+        load: interim-indicator-lifecycle-controller-docker-repo
+    - put: indicator-admission-controller-docker-repo
+      params:
+        tag_as_latest: false
+        load: interim-indicator-admission-controller-docker-repo
 
 - name: publish-release
   plan:
@@ -580,7 +579,6 @@ jobs:
           popd
 
           cp -r "monitoring-indicator-protocol/." "final-release/"
-
   - task: publish-github-release
     config:
       platform: linux
@@ -616,23 +614,6 @@ jobs:
             GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-format-linux64-${BUILD_NUMBER} cmd/format/main.go
             GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-verification-linux64-${BUILD_NUMBER} cmd/verification/main.go
           popd
-  - put: monitoring-indicator-protocol
-    params:
-      repository: monitoring-indicator-protocol
-      rebase: true
-      tag: release-version/version
-      tag_prefix: v
-  - put: monitoring-indicator-protocol
-    params:
-      repository: final-release
-      rebase: true
-  - put: github-release-drafts
-    params:
-      name: github-release/name
-      tag: github-release/tag
-      body: github-release/body
-      globs:
-      - github-release/indicator-*
   - task: prefix-version-number
     config:
       platform: linux
@@ -654,26 +635,44 @@ jobs:
           set -ex
           number=$(cat "./release-version/number")
           echo v${number} > prefixed-release-version/version
-  - put: grafana-controller-docker-repo
+  - put: monitoring-indicator-protocol
     params:
-      additional_tags: prefixed-release-version/version
-      tag_as_latest: true
-      load: grafana-controller-docker-repo
-  - put: prometheus-controller-docker-repo
+      repository: monitoring-indicator-protocol
+      rebase: true
+      tag: release-version/version
+      tag_prefix: v
+  - put: monitoring-indicator-protocol
     params:
-      additional_tags: prefixed-release-version/version
-      tag_as_latest: true
-      load: prometheus-controller-docker-repo
-  - put: indicator-lifecycle-controller-docker-repo
+      repository: final-release
+      rebase: true
+  - put: github-release-drafts
     params:
-      additional_tags: prefixed-release-version/version
-      tag_as_latest: true
-      load: indicator-lifecycle-controller-docker-repo
-  - put: indicator-admission-controller-docker-repo
-    params:
-      additional_tags: prefixed-release-version/version
-      tag_as_latest: true
-      load: indicator-admission-controller-docker-repo
+      name: github-release/name
+      tag: github-release/tag
+      body: github-release/body
+      globs:
+      - github-release/indicator-*
+  - aggregate:
+    - put: grafana-controller-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: grafana-controller-docker-repo
+    - put: prometheus-controller-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: prometheus-controller-docker-repo
+    - put: indicator-lifecycle-controller-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: indicator-lifecycle-controller-docker-repo
+    - put: indicator-admission-controller-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: indicator-admission-controller-docker-repo
 
 - name: bump-release-version
   plan:
