@@ -41,7 +41,7 @@ indicators:
 		req := httptest.NewRequest("POST", "/register", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore(1 * time.Minute)
+		docStore := registry.NewDocumentStore(1 * time.Minute, time.Now)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -116,7 +116,7 @@ indicators:
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore(1 * time.Minute)
+		docStore := registry.NewDocumentStore(1 * time.Minute, time.Now)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -139,7 +139,7 @@ indicators: aasdfasdf`))
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc&product=redis-tile", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore(1 * time.Minute)
+		docStore := registry.NewDocumentStore(1 * time.Minute, time.Now)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -211,7 +211,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		req := httptest.NewRequest("POST", "/indicator-documents", nil)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore(1 * time.Minute)
+		docStore := registry.NewDocumentStore(1 * time.Minute, time.Now)
 		docStore.UpsertDocument(indicator.Document{
 			Product: indicator.Product{Name: "my-product-a", Version: "1"},
 			Metadata: map[string]string{

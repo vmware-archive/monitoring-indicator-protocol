@@ -10,11 +10,14 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
-func NewDocumentStore(timeout time.Duration) *DocumentStore {
+type clock func() time.Time
+
+func NewDocumentStore(timeout time.Duration, c clock) *DocumentStore {
 	return &DocumentStore{
 		documents:       make([]registeredDocument, 0),
 		patchesBySource: make(map[string][]indicator.Patch),
 		timeout:         timeout,
+		getTime:         c,
 	}
 }
 
@@ -28,6 +31,7 @@ type DocumentStore struct {
 	documents       []registeredDocument
 	patchesBySource map[string][]indicator.Patch
 	timeout         time.Duration
+	getTime         clock
 }
 
 type PatchList struct {
@@ -43,7 +47,7 @@ func (d *DocumentStore) UpsertDocument(doc indicator.Document) {
 
 	rd := registeredDocument{
 		indicatorDocument: doc,
-		registeredAt:      time.Now(),
+		registeredAt:      d.getTime(),
 	}
 
 	if pos == -1 {
@@ -98,7 +102,7 @@ func (d *DocumentStore) expireDocuments() {
 
 	var unexpiredDocuments []registeredDocument
 	for _, doc := range d.documents {
-		if !doc.registeredAt.Add(d.timeout).Before(time.Now()) {
+		if !doc.registeredAt.Add(d.timeout).Before(d.getTime()) {
 			unexpiredDocuments = append(unexpiredDocuments, doc)
 		}
 	}

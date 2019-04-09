@@ -106,7 +106,7 @@ func TestInsertDocument(t *testing.T) {
 	t.Run("it upserts patchesBySource in bulk by source", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		store := registry.NewDocumentStore(10 * time.Millisecond)
+		store := registry.NewDocumentStore(time.Hour, time.Now)
 
 		store.UpsertPatches(registry.PatchList{
 			Source:  "git:other-repo",
@@ -129,7 +129,7 @@ func TestInsertDocument(t *testing.T) {
 
 	t.Run("it saves documents sent to it", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		store := registry.NewDocumentStore(10 * time.Millisecond)
+		store := registry.NewDocumentStore(time.Hour, time.Now)
 
 		store.UpsertDocument(productAVersion1Document)
 
@@ -138,7 +138,7 @@ func TestInsertDocument(t *testing.T) {
 
 	t.Run("it upserts documents based on product", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		store := registry.NewDocumentStore(10 * time.Millisecond)
+		store := registry.NewDocumentStore(time.Hour, time.Now)
 
 		store.UpsertDocument(productAVersion1Document)
 		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion1Document))
@@ -152,7 +152,7 @@ func TestInsertDocument(t *testing.T) {
 
 	t.Run("it upserts documents based on metadata", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		store := registry.NewDocumentStore(10 * time.Millisecond)
+		store := registry.NewDocumentStore(time.Hour, time.Now)
 
 		store.UpsertDocument(productAVersion1Document)
 		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion1Document))
@@ -163,10 +163,12 @@ func TestInsertDocument(t *testing.T) {
 
 	t.Run("documents expire after an interval", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		store := registry.NewDocumentStore(10 * time.Millisecond)
+
+		theTime := time.Now()
+		store := registry.NewDocumentStore(time.Hour, func() time.Time { return theTime })
 
 		store.UpsertDocument(productAVersion1Document)
-		time.Sleep(11 * time.Millisecond)
+		theTime = theTime.Add(time.Hour).Add(time.Millisecond)
 
 		g.Expect(store.AllDocuments()).To(HaveLen(0))
 	})

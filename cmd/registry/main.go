@@ -29,7 +29,7 @@ func main() {
 
 	address := fmt.Sprintf(":%d", *port)
 
-	store := registry.NewDocumentStore(*expiration)
+	store := registry.NewDocumentStore(*expiration, time.Now)
 
 	if *configFile != "" {
 		upsertFromConfig(*configFile, store)

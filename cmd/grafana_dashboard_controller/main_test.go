@@ -30,7 +30,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 	t.Run("reads documents from registry and outputs graph files to output-directory", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		store := registry.NewDocumentStore(time.Hour)
+		store := registry.NewDocumentStore(time.Hour, time.Now)
 
 		document := indicator.Document{
 			APIVersion: "v0",

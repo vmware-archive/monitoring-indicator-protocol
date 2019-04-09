@@ -27,6 +27,7 @@ func TestUAATokenFetcher(t *testing.T) {
 			UAAClientID:     "test-client",
 			UAAClientSecret: "test-secret",
 			Timeout:         time.Minute,
+			Clock:           time.Now,
 		}
 
 		uaaClient := prometheus_uaa_client.NewUAATokenFetcher(config)
@@ -47,12 +48,14 @@ func TestUAATokenFetcher(t *testing.T) {
 			ghttp.RespondWith(200, `{"token_type":"bearer", "access_token":"test-token-2"}`, map[string][]string{"Content-Type:": {"application/json;charset=UTF-8"}}),
 		)
 
+		theTime := time.Now()
 		config := prometheus_uaa_client.UAAClientConfig{
 			Insecure:        false,
 			UAAHost:         uaaServer.URL(),
 			UAAClientID:     "test-client",
 			UAAClientSecret: "test-secret",
-			Timeout:         50 * time.Millisecond,
+			Timeout:         time.Hour,
+			Clock:           func() time.Time { return theTime },
 		}
 		uaaClient := prometheus_uaa_client.NewUAATokenFetcher(config)
 
@@ -64,7 +67,7 @@ func TestUAATokenFetcher(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(token).To(Equal("bearer test-token-1"))
 
-		time.Sleep(50 * time.Millisecond)
+		theTime = theTime.Add(time.Hour).Add(time.Millisecond)
 
 		token, err = uaaClient.GetClientToken()
 		g.Expect(err).ToNot(HaveOccurred())

@@ -17,15 +17,21 @@ type UAAClientConfig struct {
 	UAAClientID     string
 	UAAClientSecret string
 	Timeout         time.Duration
+	Clock           func() time.Time
 }
 
 func NewUAATokenFetcher(config UAAClientConfig) *uaaTokenFetcher {
+	if config.Clock == nil {
+		config.Clock = time.Now
+	}
+
 	return &uaaTokenFetcher{
 		uaaHost:         config.UAAHost,
 		uaaClientID:     config.UAAClientID,
 		uaaClientSecret: config.UAAClientSecret,
 		insecure:        config.Insecure,
 		timeout:         config.Timeout,
+		getTime:         config.Clock,
 	}
 }
 
@@ -39,6 +45,7 @@ type uaaTokenFetcher struct {
 	token      string
 	expiration time.Time
 	timeout    time.Duration
+	getTime    func() time.Time
 }
 
 func (c *uaaTokenFetcher) GetClientToken() (string, error) {
@@ -98,10 +105,10 @@ func (c *uaaTokenFetcher) doTokenRequest(req *http.Request) (string, error) {
 	}
 
 	c.token = fmt.Sprintf("%s %s", token.TokenType, token.AccessToken)
-	c.expiration = time.Now().Add(c.timeout)
+	c.expiration = c.getTime().Add(c.timeout)
 	return c.token, nil
 }
 
 func (c *uaaTokenFetcher) tokenIsValid() bool {
-	return c.token != "" && c.expiration.After(time.Now())
+	return c.token != "" && c.expiration.After(c.getTime())
 }
