@@ -42,25 +42,18 @@ resources:
     tag: release-candidate
     username: {{dockerhub-username}}
     password: {{dockerhub-password}}
-- name: prometheus-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/prometheus-indicator-controller
-    tag: release-candidate
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
-- name: indicator-lifecycle-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/indicator-lifecycle-controller
-    tag: release-candidate
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
 - name: interim-grafana-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/grafana-indicator-controller
     tag: last-build
+    username: {{dockerhub-username}}
+    password: {{dockerhub-password}}
+- name: prometheus-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/prometheus-indicator-controller
+    tag: release-candidate
     username: {{dockerhub-username}}
     password: {{dockerhub-password}}
 - name: interim-prometheus-controller-docker-repo
@@ -70,10 +63,31 @@ resources:
     tag: last-build
     username: {{dockerhub-username}}
     password: {{dockerhub-password}}
+- name: indicator-lifecycle-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/indicator-lifecycle-controller
+    tag: release-candidate
+    username: {{dockerhub-username}}
+    password: {{dockerhub-password}}
 - name: interim-indicator-lifecycle-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/indicator-lifecycle-controller
+    tag: last-build
+    username: {{dockerhub-username}}
+    password: {{dockerhub-password}}
+- name: indicator-admission-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/indicator-admission
+    tag: release-candidate
+    username: {{dockerhub-username}}
+    password: {{dockerhub-password}}
+- name: interim-indicator-admission-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/indicator-admission
     tag: last-build
     username: {{dockerhub-username}}
     password: {{dockerhub-password}}
@@ -267,7 +281,7 @@ jobs:
             monitoring-indicator-protocol/bosh-release/manifests/manifest.yml \
             -o add-examples-git-source.yml
 
-- name: create-grafana-controller-docker-image
+- name: create-docker-images
   plan:
   - aggregate:
     - get: monitoring-indicator-protocol
@@ -302,94 +316,43 @@ jobs:
       tag_as_latest: false
       build: monitoring-indicator-protocol
       dockerfile: monitoring-indicator-protocol/k8s/cmd/grafana-indicator-controller/Dockerfile
-
-- name: create-prometheus-controller-docker-image
-  plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [build-and-test]
-      trigger: true
-  - task: create-tag
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: buildpack-deps
-          tag: stretch-scm
-      inputs:
-      - name: monitoring-indicator-protocol
-      outputs:
-      - name: tag
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -ex
-          cd monitoring-indicator-protocol
-          SHA=$(git rev-parse HEAD)
-          cd ..
-          echo ${SHA} > tag/tag
   - put: interim-prometheus-controller-docker-repo
     params:
       additional_tags: tag/tag
       tag_as_latest: false
       build: monitoring-indicator-protocol
       dockerfile: monitoring-indicator-protocol/k8s/cmd/prometheus-indicator-controller/Dockerfile
-
-- name: create-indicator-lifecycle-controller-docker-image
-  plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [build-and-test]
-      trigger: true
-  - task: create-tag
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: buildpack-deps
-          tag: stretch-scm
-      inputs:
-      - name: monitoring-indicator-protocol
-      outputs:
-      - name: tag
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -ex
-          cd monitoring-indicator-protocol
-          SHA=$(git rev-parse HEAD)
-          cd ..
-          echo ${SHA} > tag/tag
   - put: interim-indicator-lifecycle-controller-docker-repo
     params:
       additional_tags: tag/tag
       tag_as_latest: false
       build: monitoring-indicator-protocol
       dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-lifecycle-controller/Dockerfile
+  - put: interim-indicator-admission-controller-docker-repo
+    params:
+      additional_tags: tag/tag
+      tag_as_latest: false
+      build: monitoring-indicator-protocol
+      dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-admission/Dockerfile
 
 - name: deploy-k8s
   plan:
   - aggregate:
     - get: monitoring-indicator-protocol
-      passed: [create-grafana-controller-docker-image,create-prometheus-controller-docker-image,create-indicator-lifecycle-controller-docker-image]
+      passed: [create-docker-images]
       trigger: true
     - get: interim-grafana-controller-docker-repo
       params: {skip_download: true}
-      passed: [create-grafana-controller-docker-image]
+      passed: [create-docker-images]
     - get: interim-prometheus-controller-docker-repo
       params: {skip_download: true}
-      passed: [create-prometheus-controller-docker-image]
+      passed: [create-docker-images]
     - get: interim-indicator-lifecycle-controller-docker-repo
       params: {skip_download: true}
-      passed: [create-indicator-lifecycle-controller-docker-image]
+      passed: [create-docker-images]
+    - get: interim-indicator-admission-controller-docker-repo
+      params: {skip_download: true}
+      passed: [create-docker-images]
   - task: deploy-to-gke
     config:
       platform: linux
@@ -454,6 +417,9 @@ jobs:
     - get: interim-indicator-lifecycle-controller-docker-repo
       params: {skip_download: true}
       passed: [deploy-k8s]
+    - get: interim-indicator-admission-controller-docker-repo
+      params: {skip_download: true}
+      passed: [deploy-k8s]
     - get: monitoring-indicator-protocol
       passed: [deploy-k8s]
       trigger: true
@@ -510,6 +476,9 @@ jobs:
     - get: interim-indicator-lifecycle-controller-docker-repo
       params: {save: true}
       passed: [test-k8s]
+    - get: interim-indicator-admission-controller-docker-repo
+      params: {save: true}
+      passed: [test-k8s]
     - get: monitoring-indicator-protocol
       passed: [test-k8s]
       trigger: true
@@ -525,6 +494,10 @@ jobs:
     params:
       tag_as_latest: false
       load: interim-indicator-lifecycle-controller-docker-repo
+  - put: indicator-admission-controller-docker-repo
+    params:
+      tag_as_latest: false
+      load: interim-indicator-admission-controller-docker-repo
 
 - name: publish-release
   plan:
@@ -541,6 +514,9 @@ jobs:
       params: {save: true}
       passed: [promote-docker-images]
     - get: indicator-lifecycle-controller-docker-repo
+      params: {save: true}
+      passed: [promote-docker-images]
+    - get: indicator-admission-controller-docker-repo
       params: {save: true}
       passed: [promote-docker-images]
   - task: create-final-release
@@ -693,6 +669,11 @@ jobs:
       additional_tags: prefixed-release-version/version
       tag_as_latest: true
       load: indicator-lifecycle-controller-docker-repo
+  - put: indicator-admission-controller-docker-repo
+    params:
+      additional_tags: prefixed-release-version/version
+      tag_as_latest: true
+      load: indicator-admission-controller-docker-repo
 
 - name: bump-release-version
   plan:
