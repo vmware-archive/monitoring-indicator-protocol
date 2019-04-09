@@ -36,8 +36,8 @@ type k8sClients struct {
 }
 
 var (
-	clients k8sClients
-	httpClient *http.Client
+	clients                                                     k8sClients
+	httpClient                                                  *http.Client
 	grafanaURI, grafanaAdminUser, grafanaAdminPw, prometheusURI *string
 )
 
@@ -214,10 +214,10 @@ func prometheusApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocume
 }
 
 type promResult struct {
-	Data struct{
-		Groups []struct{
-			Rules []struct{
-				Name string `json:"name"`
+	Data struct {
+		Groups []struct {
+			Rules []struct {
+				Name  string `json:"name"`
 				Query string `json:"query"`
 			} `json:"rules"`
 		} `json:"groups"`
@@ -292,6 +292,7 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 
 func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 	var threshold float64 = 500
+	indicatorName := fmt.Sprintf("e2e-test-indicator-%d", rand.Intn(math.MaxInt32))
 	return &v1alpha1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("e2e-test-%d", rand.Intn(math.MaxInt32)),
@@ -304,7 +305,7 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 			},
 			Indicators: []v1alpha1.IndicatorSpec{
 				{
-					Name:   fmt.Sprintf("e2e-test-indicator-%d", rand.Intn(math.MaxInt32)),
+					Name:   indicatorName,
 					Promql: "rate(some_metric[10m])",
 					Alert: v1alpha1.Alert{
 						For:  "5m",
@@ -317,6 +318,12 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 						},
 					},
 				},
+			},
+			Layout: v1alpha1.Layout{
+				Sections: []v1alpha1.Section{{
+					Title:      "Metrics",
+					Indicators: []string{indicatorName},
+				}},
 			},
 		},
 	}
