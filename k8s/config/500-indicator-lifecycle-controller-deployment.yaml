@@ -18,7 +18,7 @@ spec:
       serviceAccountName: indicator-lifecycle-controller
       containers:
       - name: indicator-lifecycle-controller
-        image: indicatorprotocol/indicator-lifecycle-controller:release-candidate
+        image: indicatorprotocol/indicator-lifecycle-controller:latest
         imagePullPolicy: Always
         env:
         - name: NAMESPACE
