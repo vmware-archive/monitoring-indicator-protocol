@@ -2,7 +2,7 @@ module github.com/pivotal/monitoring-indicator-protocol
 
 require (
 	code.cloudfoundry.org/go-envstruct v1.4.0
-	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201017-cc08014d6fba
+	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cppforlife/go-patch v0.2.0
@@ -37,10 +37,7 @@ require (
 	github.com/prometheus/tsdb v0.0.0-20181016081506-18af5763d8f5 // indirect
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	github.com/spf13/pflag v1.0.3 // indirect
-	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c // indirect
-	golang.org/x/net v0.0.0-20190324223953-e3b2ff56ed87 // indirect
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421 // indirect
-	golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0
