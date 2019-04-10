@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"log"
 
-	envstruct "code.cloudfoundry.org/go-envstruct"
+	"code.cloudfoundry.org/go-envstruct"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/admission"
 )
 

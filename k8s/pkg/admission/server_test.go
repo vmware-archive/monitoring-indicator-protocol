@@ -17,7 +17,7 @@ import (
 )
 
 func TestValidator(t *testing.T) {
-	t.Run("it returns 200 for health endpoint without TLS", func(t *testing.T) {
+	t.Run("it returns 200 for metrics endpoint without TLS", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		server := admission.NewServer("127.0.0.1:0")
 		server.Run(false)
@@ -30,7 +30,7 @@ func TestValidator(t *testing.T) {
 			resp *http.Response
 		)
 		for i := 0; i < 100; i++ {
-			resp, err = http.Get("http://" + server.Addr() + "/health")
+			resp, err = http.Get("http://" + server.Addr() + "/metrics")
 			if err == nil {
 				break
 			}
@@ -43,7 +43,7 @@ func TestValidator(t *testing.T) {
 		g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	})
 
-	t.Run("it returns 200 for health endpoint with TLS", func(t *testing.T) {
+	t.Run("it returns 200 for metrics endpoint with TLS", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		cert, err := tls.X509KeyPair(FakeLocalhostCert, FakeLocalhostKey)
 		if err != nil {
@@ -68,7 +68,7 @@ func TestValidator(t *testing.T) {
 
 		var resp *http.Response
 		for i := 0; i < 100; i++ {
-			resp, err = client.Get("https://" + server.Addr() + "/health")
+			resp, err = client.Get("https://" + server.Addr() + "/metrics")
 			if err == nil {
 				break
 			}
@@ -102,7 +102,7 @@ func TestValidator(t *testing.T) {
 			resp *http.Response
 		)
 		for i := 0; i < 100; i++ {
-			resp, err = http.Get("http://" + server.Addr() + "/health")
+			resp, err = http.Get("http://" + server.Addr() + "/metrics")
 			if err == nil {
 				break
 			}

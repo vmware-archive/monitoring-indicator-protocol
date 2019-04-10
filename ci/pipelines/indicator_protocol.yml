@@ -363,6 +363,7 @@ jobs:
         - name: interim-grafana-controller-docker-repo
         - name: interim-prometheus-controller-docker-repo
         - name: interim-indicator-lifecycle-controller-docker-repo
+        - name: interim-indicator-admission-docker-repo
       params:
         SERVICE_ACCOUNT: {{gcp-service-account}}
         CLUSTER_NAME: mip-test
@@ -387,10 +388,12 @@ jobs:
                 grafana_digest="$(cat interim-grafana-controller-docker-repo/digest)"
                 prometheus_digest="$(cat interim-prometheus-controller-docker-repo/digest)"
                 indicator_lifecycle_digest="$(cat interim-indicator-lifecycle-controller-docker-repo/digest)"
+                indicator_admission_digest="$(cat interim-indicator-admission-docker-repo/digest)"
                 pushd monitoring-indicator-protocol/k8s/config > /dev/null
                     kustomize edit set image "indicatorprotocol/grafana-indicator-controller@$grafana_digest"
                     kustomize edit set image "indicatorprotocol/prometheus-indicator-controller@$prometheus_digest"
                     kustomize edit set image "indicatorprotocol/indicator-lifecycle-controller@$indicator_lifecycle_digest"
+                    kustomize edit set image "indicatorprotocol/indicator-admission@$indicator_admission_digest"
                 popd > /dev/null
 
                 kustomize build monitoring-indicator-protocol/k8s/config | kubectl apply -f -
