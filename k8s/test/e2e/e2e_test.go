@@ -326,7 +326,7 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 
 func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 	var threshold float64 = 500
-	indicatorName := fmt.Sprintf("e2e-test-indicator-%d", rand.Intn(math.MaxInt32))
+	indicatorName := fmt.Sprintf("e2e_test_indicator_%d", rand.Intn(math.MaxInt32))
 	return &v1alpha1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("e2e-test-%d", rand.Intn(math.MaxInt32)),
