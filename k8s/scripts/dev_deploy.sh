@@ -7,42 +7,44 @@ pushd ~/workspace/monitoring-indicator-protocol > /dev/null
         -t indicatorprotocol/grafana-indicator-controller:dev \
         -f k8s/cmd/grafana-indicator-controller/Dockerfile \
         .
-    grafana_digest="$(
-        docker inspect indicatorprotocol/grafana-indicator-controller:dev \
-            | jq .[0].RepoDigests[0] --raw-output
-    )"
 
     docker build \
         -t indicatorprotocol/prometheus-indicator-controller:dev \
         -f k8s/cmd/prometheus-indicator-controller/Dockerfile \
         .
-    prometheus_digest="$(
-        docker inspect indicatorprotocol/prometheus-indicator-controller:dev \
-            | jq .[0].RepoDigests[0] --raw-output
-    )"
 
     docker build \
         -t indicatorprotocol/indicator-lifecycle-controller:dev \
         -f k8s/cmd/indicator-lifecycle-controller/Dockerfile \
         .
-    indicator_lifecycle_digest="$(
-        docker inspect indicatorprotocol/indicator-lifecycle-controller:dev \
-            | jq .[0].RepoDigests[0] --raw-output
-    )"
 
     docker build \
         -t indicatorprotocol/indicator-admission:dev \
         -f k8s/cmd/indicator-admission/Dockerfile \
         .
-    indicator_admission_digest="$(
-        docker inspect indicatorprotocol/indicator-admission:dev \
-            | jq .[0].RepoDigests[0] --raw-output
-    )"
 
     docker push indicatorprotocol/grafana-indicator-controller:dev
     docker push indicatorprotocol/prometheus-indicator-controller:dev
     docker push indicatorprotocol/indicator-lifecycle-controller:dev
     docker push indicatorprotocol/indicator-admission:dev
+
+
+    grafana_digest="$(
+        docker inspect indicatorprotocol/grafana-indicator-controller:dev \
+            | jq .[0].RepoDigests[0] --raw-output
+    )"
+    prometheus_digest="$(
+        docker inspect indicatorprotocol/prometheus-indicator-controller:dev \
+            | jq .[0].RepoDigests[0] --raw-output
+    )"
+    indicator_lifecycle_digest="$(
+        docker inspect indicatorprotocol/indicator-lifecycle-controller:dev \
+            | jq .[0].RepoDigests[0] --raw-output
+    )"
+    indicator_admission_digest="$(
+        docker inspect indicatorprotocol/indicator-admission:dev \
+            | jq .[0].RepoDigests[0] --raw-output
+    )"
 
     mkdir -p k8s/overlays/dev
     echo "
