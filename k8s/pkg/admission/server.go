@@ -118,8 +118,8 @@ func (s *Server) run() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
-	mux.HandleFunc("/indicatordocument", indicatorDocumentHandler)
-	mux.HandleFunc("/indicator", indicatorHandler)
+	mux.HandleFunc("/defaults/indicatordocument", indicatorDocumentHandler)
+	mux.HandleFunc("/defaults/indicator", indicatorHandler)
 
 	s.mu.Lock()
 	s.lis = lis

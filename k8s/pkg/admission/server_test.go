@@ -173,7 +173,7 @@ func TestValidator(t *testing.T) {
 			  }
 			}
 		`)
-		resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+		resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 		g.Expect(err).To(BeNil())
 		g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -244,7 +244,7 @@ func TestValidator(t *testing.T) {
 			  }
 			}
 		`)
-		resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+		resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 		g.Expect(err).To(BeNil())
 		g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -273,7 +273,7 @@ func TestValidator(t *testing.T) {
 				)
 				for i := 0; i < 100; i++ {
 					resp, err = http.Post(
-						fmt.Sprintf("http://%s/%s", server.Addr(), endpoint),
+						fmt.Sprintf("http://%s/defaults/%s", server.Addr(), endpoint),
 						"text/plain",
 						strings.NewReader(`{}`),
 					)
@@ -315,7 +315,7 @@ func TestDefaultValues(t *testing.T) {
 								"labels": ["pod"]
 							}
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -350,7 +350,7 @@ func TestDefaultValues(t *testing.T) {
 								"labels": ["pod"]
 							}
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -384,7 +384,7 @@ func TestDefaultValues(t *testing.T) {
 								"labels": ["pod"]
 							}
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -413,7 +413,7 @@ func TestDefaultValues(t *testing.T) {
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
 							"alert": { "step" : "30m", "for": "5m" }
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -452,7 +452,7 @@ func TestDefaultValues(t *testing.T) {
 								"labels": ["moo"]
 							}
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -484,7 +484,7 @@ func TestDefaultValues(t *testing.T) {
 								"chartType" : "bar"
 							}
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -521,7 +521,7 @@ func TestDefaultValues(t *testing.T) {
 								"labels": ["pod"]
 							}
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -559,7 +559,7 @@ func TestDefaultValues(t *testing.T) {
 								"labels": ["pod"]
 							}
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicator", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -596,7 +596,7 @@ func TestDefaultValues(t *testing.T) {
 								}
 							}]
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicatordocument", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -643,7 +643,7 @@ func TestDefaultValues(t *testing.T) {
 								}
 							}]
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicatordocument", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -709,7 +709,7 @@ func TestDefaultValues(t *testing.T) {
 								}
 							}]
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicatordocument", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -759,7 +759,7 @@ func TestDefaultValues(t *testing.T) {
 								}]
 							}
 						  }`)
-			resp, err := http.Post(fmt.Sprintf("http://%s/indicatordocument", server.Addr()), "application/json", reqBody)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
 
@@ -778,7 +778,7 @@ func startServer(g *GomegaWithT) *admission.Server {
 	server.Run(false)
 	var err error
 	for i := 0; i < 100; i++ {
-		_, err = http.Get(fmt.Sprintf("http://%s/health", server.Addr()))
+		_, err = http.Get(fmt.Sprintf("http://%s/metrics", server.Addr()))
 		if err == nil {
 			break
 		}

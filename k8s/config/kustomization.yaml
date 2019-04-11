@@ -20,7 +20,7 @@ resources:
 - 300-indicator-document.yaml
 - 300-indicator.yaml
 - 400-indicator-admission-service.yaml
-- 401-indicator-admission-config.yaml
+- 401-indicator-admission-defaults-config.yaml
 - 500-cert-generator-job.yaml
 - 500-grafana-indicator-controller-deployment.yaml
 - 500-indicator-admission-deployment.yaml

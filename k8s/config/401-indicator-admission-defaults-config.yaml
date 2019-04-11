@@ -21,7 +21,7 @@ webhooks:
     service:
       name: indicator-admission
       namespace: monitoring-indicator-protocol
-      path: /indicatordocument
+      path: /defaults/indicatordocument
     caBundle: ""
 - name: indicators.indicator-admission.apps.pivotal.io
   rules:
@@ -39,5 +39,5 @@ webhooks:
     service:
       name: indicator-admission
       namespace: monitoring-indicator-protocol
-      path: /indicator
+      path: /defaults/indicator
     caBundle: ""
