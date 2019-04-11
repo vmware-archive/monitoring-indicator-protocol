@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/admission"
 	"k8s.io/api/admission/v1beta1"
@@ -225,6 +227,26 @@ func TestValidators(t *testing.T) {
 			g.Expect(actualResp.Response.Allowed).To(BeFalse())
 			g.Expect(actualResp.Response.AuditAnnotations["error"]).To(ContainSubstring("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"))
 		})
+		t.Run("return UUID in patch response", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+			reqBody := newIndicatorDocumentRequest("CREATE", `{
+						    "name": "latency",
+						    "promql": "rate(apiserver_request_count[5m]) * 60"
+						  }`, "{}")
+			resp, err := http.Post(fmt.Sprintf("http://%s/validation/indicatordocument", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			g.Expect(err).To(BeNil())
+			g.Expect(actualResp.Response.UID).To(Equal(types.UID("f70772c9-572a-11e9-904e-42010a80018e")))
+		})
 	})
 
 	t.Run("indicator", func(t *testing.T) {
@@ -355,6 +377,27 @@ func TestValidators(t *testing.T) {
 
 			g.Expect(actualResp.Response.Allowed).To(BeFalse())
 			g.Expect(actualResp.Response.AuditAnnotations["error"]).To(ContainSubstring("one of [lt, lte, eq, neq, gte, gt] must be provided as a float"))
+		})
+
+		t.Run("return UUID in patch response", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+			reqBody := newIndicatorRequest("CREATE", `{
+						    "name": "latency",
+						    "promql": "rate(apiserver_request_count[5m]) * 60"
+						  }`)
+			resp, err := http.Post(fmt.Sprintf("http://%s/validation/indicator", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			g.Expect(err).To(BeNil())
+			g.Expect(actualResp.Response.UID).To(Equal(types.UID("f70772c9-572a-11e9-904e-42010a80018d")))
 		})
 	})
 }
@@ -632,14 +675,29 @@ func TestDefaultValues(t *testing.T) {
 
 			var actualResp v1beta1.AdmissionReview
 			err = json.NewDecoder(resp.Body).Decode(&actualResp)
-			if err != nil {
-				t.Errorf("unable to decode resp body: %s", err)
-			}
+			g.Expect(err).To(BeNil())
 			g.Expect(actualResp.Response.Patch).To(BeNil())
 		})
 
 		t.Run("return UUID in patch response", func(t *testing.T) {
-			//	TODO
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+			reqBody := newIndicatorRequest("CREATE", `{
+						    "name": "latency",
+						    "promql": "rate(apiserver_request_count[5m]) * 60"
+						  }`)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			g.Expect(err).To(BeNil())
+			g.Expect(actualResp.Response.UID).To(Equal(types.UID("f70772c9-572a-11e9-904e-42010a80018d")))
 		})
 	})
 
@@ -843,7 +901,24 @@ func TestDefaultValues(t *testing.T) {
 		})
 
 		t.Run("return UUID in patch response", func(t *testing.T) {
-			// TODO
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+			reqBody := newIndicatorDocumentRequest("CREATE", `{
+						    "name": "latency",
+						    "promql": "rate(apiserver_request_count[5m]) * 60"
+						  }`, "{}")
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			g.Expect(err).To(BeNil())
+			g.Expect(actualResp.Response.UID).To(Equal(types.UID("f70772c9-572a-11e9-904e-42010a80018e")))
 		})
 	})
 }
@@ -903,7 +978,7 @@ func newIndicatorDocumentRequest(operation string, indicatorDocumentSpec string,
 						  "kind": "AdmissionReview",
 						  "apiVersion": "admission.k8s.io/v1beta1",
 						  "request": {
-							"uid": "f70772c9-572a-11e9-904e-42010a80018d",
+							"uid": "f70772c9-572a-11e9-904e-42010a80018e",
 							"kind": {
 							  "group": "apps.pivotal.io",
 							  "version": "v1alpha1",
