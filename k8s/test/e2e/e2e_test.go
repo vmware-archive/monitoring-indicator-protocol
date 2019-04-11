@@ -332,6 +332,9 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 			Name:      fmt.Sprintf("e2e-test-%d", rand.Intn(math.MaxInt32)),
 			Namespace: ns,
 		},
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "apps.pivotal.io/v1alpha1",
+		},
 		Spec: v1alpha1.IndicatorDocumentSpec{
 			Product: v1alpha1.Product{
 				Name:    fmt.Sprintf("e2e-test-product-%d", rand.Intn(math.MaxInt32)),

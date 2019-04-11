@@ -322,9 +322,9 @@ k8s.io/api/storage/v1
 k8s.io/api/storage/v1alpha1
 k8s.io/api/storage/v1beta1
 # k8s.io/apimachinery v0.0.0-20190204010555-a98ff070d70e
+k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/runtime
 k8s.io/apimachinery/pkg/runtime/serializer
-k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/runtime/schema
 k8s.io/apimachinery/pkg/util/runtime
 k8s.io/apimachinery/pkg/watch
@@ -335,7 +335,10 @@ k8s.io/apimachinery/pkg/fields
 k8s.io/apimachinery/pkg/util/net
 k8s.io/apimachinery/pkg/runtime/serializer/streaming
 k8s.io/apimachinery/pkg/util/sets
+k8s.io/apimachinery/pkg/api/resource
 k8s.io/apimachinery/pkg/conversion
+k8s.io/apimachinery/pkg/selection
+k8s.io/apimachinery/pkg/util/intstr
 k8s.io/apimachinery/pkg/conversion/queryparams
 k8s.io/apimachinery/pkg/util/errors
 k8s.io/apimachinery/pkg/util/json
@@ -344,9 +347,6 @@ k8s.io/apimachinery/pkg/runtime/serializer/json
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
 k8s.io/apimachinery/pkg/runtime/serializer/recognizer
 k8s.io/apimachinery/pkg/runtime/serializer/versioning
-k8s.io/apimachinery/pkg/api/resource
-k8s.io/apimachinery/pkg/selection
-k8s.io/apimachinery/pkg/util/intstr
 k8s.io/apimachinery/pkg/version
 k8s.io/apimachinery/pkg/util/clock
 k8s.io/apimachinery/pkg/api/meta

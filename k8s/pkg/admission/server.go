@@ -19,6 +19,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"k8s.io/api/admission/v1beta1"
@@ -329,7 +330,9 @@ func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, requ
 		Response: &v1beta1.AdmissionResponse{
 			UID:              requestedAdmissionReview.Request.UID,
 			Allowed:          len(errors) == 0,
-			AuditAnnotations: auditAnnotationMessage,
+			Result:  &metav1.Status{
+				Message: auditAnnotationMessage,
+			},
 		},
 	})
 	if err != nil {
@@ -372,9 +375,11 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 
 	data, err := json.Marshal(&v1beta1.AdmissionReview{
 		Response: &v1beta1.AdmissionResponse{
-			UID:              requestedAdmissionReview.Request.UID,
-			Allowed:          len(errors) == 0,
-			AuditAnnotations: auditAnnotationMessage,
+			UID:     requestedAdmissionReview.Request.UID,
+			Allowed: len(errors) == 0,
+			Result:  &metav1.Status{
+				Message: auditAnnotationMessage,
+			},
 		},
 	})
 	if err != nil {
@@ -390,15 +395,12 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 	}
 }
 
-func createReviewAnnotationMap(errors []error) map[string]string {
+func createReviewAnnotationMap(errors []error)string {
 	errorsString := ""
 	for _, errorString := range errors {
 		errorsString += errorString.Error() + "\n"
 	}
-	auditAnnotationMessage := map[string]string{
-		"error": errorsString,
-	}
-	return auditAnnotationMessage
+	return errorsString
 }
 
 func marshalPatches(patchOperations []patch) ([]byte, error) {

@@ -225,7 +225,7 @@ func TestValidators(t *testing.T) {
 			err = json.NewDecoder(resp.Body).Decode(&actualResp)
 
 			g.Expect(actualResp.Response.Allowed).To(BeFalse())
-			g.Expect(actualResp.Response.AuditAnnotations["error"]).To(ContainSubstring("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"))
+			g.Expect(actualResp.Response.Result.Message).To(ContainSubstring("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"))
 		})
 		t.Run("return UUID in patch response", func(t *testing.T) {
 			g := NewGomegaWithT(t)
@@ -376,7 +376,7 @@ func TestValidators(t *testing.T) {
 			}
 
 			g.Expect(actualResp.Response.Allowed).To(BeFalse())
-			g.Expect(actualResp.Response.AuditAnnotations["error"]).To(ContainSubstring("one of [lt, lte, eq, neq, gte, gt] must be provided as a float"))
+			g.Expect(actualResp.Response.Result.Message).To(ContainSubstring("one of [lt, lte, eq, neq, gte, gt] must be provided as a float"))
 		})
 
 		t.Run("return UUID in patch response", func(t *testing.T) {
