@@ -2,20 +2,23 @@ package cf_registry_proxy_test
 
 import (
 	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/cloudfoundry-community/go-cfclient"
 	. "github.com/onsi/gomega"
 	. "github.com/pivotal/monitoring-indicator-protocol/pkg/cf_registry_proxy"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
-	"io/ioutil"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestIndicatorDocumentsHandler(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	capiClient := &fakeCapiClient{}
-	makeFakeCapiClient := func(authToken string)(CapiClient) {
+	makeFakeCapiClient := func(authToken string) CapiClient {
 		capiClient.token = authToken
 		return capiClient
 	}
@@ -25,11 +28,11 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		indicatorDocuments := []registry.APIV0Document{{
 			APIVersion: "",
 			Product:    registry.APIV0Product{},
-			Metadata:   map[string]string{"service_instance_guid":"abc-123"},
+			Metadata:   map[string]string{"service_instance_guid": "abc-123"},
 			Indicators: nil,
 			Layout:     registry.APIV0Layout{},
 		}}
-		handlerFunc := IndicatorDocumentsHandler(&fakeRegistryClient{indicatorDocuments:indicatorDocuments}, makeFakeCapiClient)
+		handlerFunc := IndicatorDocumentsHandler(&fakeRegistryClient{indicatorDocuments: indicatorDocuments}, makeFakeCapiClient)
 		recorder := httptest.NewRecorder()
 
 		request := httptest.NewRequest("GET", "/indicator-documents", nil)
@@ -53,22 +56,23 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 	})
 
 	t.Run("it filters indicator documents by service_instance_guid from the query param", func(t *testing.T) {
-		indicatorDocuments := []registry.APIV0Document{{
-			APIVersion: "",
-			Product:    registry.APIV0Product{},
-			Metadata:   map[string]string{"service_instance_guid":"abc-123"},
-			Indicators: nil,
-			Layout:     registry.APIV0Layout{},
-		},
+		indicatorDocuments := []registry.APIV0Document{
 			{
 				APIVersion: "",
 				Product:    registry.APIV0Product{},
-				Metadata:   map[string]string{"service_instance_guid":"def-456"},
+				Metadata:   map[string]string{"service_instance_guid": "abc-123"},
+				Indicators: nil,
+				Layout:     registry.APIV0Layout{},
+			},
+			{
+				APIVersion: "",
+				Product:    registry.APIV0Product{},
+				Metadata:   map[string]string{"service_instance_guid": "def-456"},
 				Indicators: nil,
 				Layout:     registry.APIV0Layout{},
 			},
 		}
-		handlerFunc := IndicatorDocumentsHandler(&fakeRegistryClient{indicatorDocuments:indicatorDocuments}, makeFakeCapiClient)
+		handlerFunc := IndicatorDocumentsHandler(&fakeRegistryClient{indicatorDocuments: indicatorDocuments}, makeFakeCapiClient)
 
 		recorder := httptest.NewRecorder()
 		request := httptest.NewRequest("GET", "/indicator-documents", nil)
@@ -87,6 +91,42 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 
 		g.Expect(actualDocuments).To(HaveLen(1))
 		g.Expect(actualDocuments[0]).To(Equal(indicatorDocuments[1]))
+		g.Expect(actualDocuments[0].Metadata["service_instance_guid"]).To(Equal("def-456"))
+	})
+
+	t.Run("it returns 403 Forbidden when the user does not have access to the requested service instance", func(t *testing.T) {
+
+		indicatorDocuments := []registry.APIV0Document{
+			{
+				APIVersion: "",
+				Product:    registry.APIV0Product{},
+				Metadata:   map[string]string{"service_instance_guid": "abc-123"},
+				Indicators: nil,
+				Layout:     registry.APIV0Layout{},
+			},
+		}
+
+		makeFakeCapiClient := func(authToken string) CapiClient {
+			capiClient.token = authToken
+			capiClient.errorOnGetServiceInstance = true
+			return capiClient
+		}
+
+		handlerFunc := IndicatorDocumentsHandler(&fakeRegistryClient{indicatorDocuments: indicatorDocuments}, makeFakeCapiClient)
+
+		recorder := httptest.NewRecorder()
+		request := httptest.NewRequest("GET", "/indicator-documents", nil)
+		request.Header.Add("Authorization", "Bearer my-token")
+		queries := request.URL.Query()
+		queries.Add("service_instance_guid", "def-456")
+		request.URL.RawQuery = queries.Encode()
+
+		handlerFunc(recorder, request)
+
+		body, _ := ioutil.ReadAll(recorder.Body)
+
+		g.Expect(body).To(BeEmpty())
+		g.Expect(recorder.Result().StatusCode).To(Equal(http.StatusForbidden))
 	})
 }
 
@@ -99,9 +139,14 @@ func (rc fakeRegistryClient) IndicatorDocuments() ([]registry.APIV0Document, err
 }
 
 type fakeCapiClient struct {
-	token string
+	token                     string
+	errorOnGetServiceInstance bool
 }
 
-func (fakeCapiClient) ServiceInstanceByGuid(string) (cfclient.ServiceInstance, error) {
+func (f *fakeCapiClient) ServiceInstanceByGuid(string) (cfclient.ServiceInstance, error) {
+	if f.errorOnGetServiceInstance {
+		return cfclient.ServiceInstance{}, errors.New("you do not have access")
+	}
+
 	return cfclient.ServiceInstance{}, nil
 }
