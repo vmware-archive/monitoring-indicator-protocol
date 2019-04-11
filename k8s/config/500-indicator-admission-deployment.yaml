@@ -36,11 +36,16 @@ spec:
                     {\"op\": \"add\", \"path\": \"/webhooks/0/clientConfig/caBundle\", \"value\": \"$ca_cert\"},
                     {\"op\": \"add\", \"path\": \"/webhooks/1/clientConfig/caBundle\", \"value\": \"$ca_cert\"},
                   ]" | grep -v "no change" | true
+            kubectl patch \
+              validatingwebhookconfiguration "$WEBHOOK_CONFIG" \
+              --type=json \
+              -p "[
+                    {\"op\": \"add\", \"path\": \"/webhooks/0/clientConfig/caBundle\", \"value\": \"$ca_cert\"},
+                    {\"op\": \"add\", \"path\": \"/webhooks/1/clientConfig/caBundle\", \"value\": \"$ca_cert\"},
+                  ]" | grep -v "no change" | true
             sleep 10
           done
       - name: indicator-admission
-        # This is the Go import path for the binary that is containerized
-        # and substituted here.
         image: indicatorprotocol/indicator-admission:latest
         ports:
         - name: webhook-port

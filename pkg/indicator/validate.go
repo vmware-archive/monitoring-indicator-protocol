@@ -7,14 +7,26 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
-func Validate(document Document) []error {
+func ValidateForRegistry(document Document) []error {
+	es := make([]error, 0)
+	es = append(es, validateCommon(document)...)
+	if document.APIVersion != "v0" {
+		es = append(es, fmt.Errorf("only apiVersion v0 is supported"))
+	}
+	return es
+}
+func ValidateForK8s(document Document) []error {
+	es := make([]error, 0)
+	es = append(es, validateCommon(document)...)
+	if document.APIVersion != "apps.pivotal.io/v1alpha1" {
+		es = append(es, fmt.Errorf("only apiVersion v1alpha1 is supported"))
+	}
+	return es
+}
+func validateCommon(document Document) []error {
 	es := make([]error, 0)
 	if document.APIVersion == "" {
 		es = append(es, fmt.Errorf("apiVersion is required"))
-	}
-
-	if document.APIVersion != "v0" {
-		es = append(es, fmt.Errorf("only apiVersion v0 is supported"))
 	}
 
 	if document.Product.Name == "" {

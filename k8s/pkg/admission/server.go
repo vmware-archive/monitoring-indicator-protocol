@@ -13,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/domain"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -25,21 +27,37 @@ import (
 )
 
 var (
-	indicatorDocumentReviewRequested = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "indicator_document_review_requested",
-		Help: "The number of times the /indicatordocument handler was hit.",
+	indicatorDocumentDefaultsReviewRequested = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "indicator_document_defaults_requested",
+		Help: "The number of times the /defaults/indicatordocument handler was hit.",
 	})
-	indicatorDocumentReviewErrored = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "indicator_document_review_errored",
-		Help: "The number of times the /indicatordocument handler was hit and errored.",
+	indicatorDocumentDefaultsReviewErrored = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "indicator_document_defaults_errored",
+		Help: "The number of times the /defaults/indicatordocument handler was hit and errored.",
 	})
-	indicatorReviewRequested = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "indicator_review_requested",
-		Help: "The number of times the /indicator handler was hit.",
+	indicatorDefaultsReviewRequested = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "indicator_defaults_requested",
+		Help: "The number of times the /defaults/indicator handler was hit.",
 	})
-	indicatorReviewErrored = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "indicator_review_errored",
-		Help: "The number of times the /indicator handler was hit and errored.",
+	indicatorDefaultsReviewErrored = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "indicator_defaults_errored",
+		Help: "The number of times the /defaults/indicator handler was hit and errored.",
+	})
+	indicatorDocumentValidationReviewRequested = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "indicator_document_validation_requested",
+		Help: "The number of times the /validation/indicatordocument handler was hit.",
+	})
+	indicatorDocumentValidationReviewErrored = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "indicator_document_validation_errored",
+		Help: "The number of times the /validation/indicatordocument handler was hit and errored.",
+	})
+	indicatorValidationReviewRequested = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "indicator_validation_requested",
+		Help: "The number of times the /validation/indicator handler was hit.",
+	})
+	indicatorValidationReviewErrored = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "indicator_validation_errored",
+		Help: "The number of times the /validation/indicator handler was hit and errored.",
 	})
 )
 
@@ -118,8 +136,10 @@ func (s *Server) run() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
-	mux.HandleFunc("/defaults/indicatordocument", indicatorDocumentHandler)
-	mux.HandleFunc("/defaults/indicator", indicatorHandler)
+	mux.HandleFunc("/defaults/indicatordocument", indicatorDocumentDefaultHandler)
+	mux.HandleFunc("/defaults/indicator", indicatorDefaultHandler)
+	mux.HandleFunc("/validation/indicatordocument", indicatorDocumentValidationHandler)
+	mux.HandleFunc("/validation/indicator", indicatorValidationHandler)
 
 	s.mu.Lock()
 	s.lis = lis
@@ -151,12 +171,12 @@ type patch struct {
 	Value interface{} `json:"value"`
 }
 
-func indicatorDocumentHandler(responseWriter http.ResponseWriter, r *http.Request) {
-	indicatorDocumentReviewRequested.Inc()
+func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http.Request) {
+	indicatorDocumentDefaultsReviewRequested.Inc()
 
 	requestedAdmissionReview, httpErr := deserializeReview(r)
 	if httpErr != nil {
-		indicatorDocumentReviewErrored.Inc()
+		indicatorDocumentDefaultsReviewErrored.Inc()
 		log.Printf("Error deserializing review: %s", httpErr.message)
 		httpErr.Write(responseWriter)
 		return
@@ -165,7 +185,7 @@ func indicatorDocumentHandler(responseWriter http.ResponseWriter, r *http.Reques
 	var doc v1alpha1.IndicatorDocument
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &doc)
 	if err != nil {
-		indicatorDocumentReviewErrored.Inc()
+		indicatorDocumentDefaultsReviewErrored.Inc()
 		log.Printf("Error unmarshaling document: %s", err)
 		errUnableToDeserialize.Write(responseWriter)
 		return
@@ -181,7 +201,7 @@ func indicatorDocumentHandler(responseWriter http.ResponseWriter, r *http.Reques
 
 	patchBytes, err := marshalPatches(patchOperations)
 	if err != nil {
-		indicatorDocumentReviewErrored.Inc()
+		indicatorDocumentDefaultsReviewErrored.Inc()
 		log.Printf("Error marshaling patches: %s", err)
 		errInternal.Write(responseWriter)
 		return
@@ -195,14 +215,14 @@ func indicatorDocumentHandler(responseWriter http.ResponseWriter, r *http.Reques
 		},
 	})
 	if err != nil {
-		indicatorDocumentReviewErrored.Inc()
+		indicatorDocumentDefaultsReviewErrored.Inc()
 		log.Printf("Error marshaling resp: %s", err)
 		errInternal.Write(responseWriter)
 		return
 	}
 	_, err = responseWriter.Write(data)
 	if err != nil {
-		indicatorDocumentReviewErrored.Inc()
+		indicatorDocumentDefaultsReviewErrored.Inc()
 		log.Printf("Error writing resp: %s", err)
 	}
 }
@@ -229,12 +249,12 @@ func getLayoutPatches(doc v1alpha1.IndicatorDocument) []patch {
 	return patchOperations
 }
 
-func indicatorHandler(responseWriter http.ResponseWriter, request *http.Request) {
-	indicatorReviewRequested.Inc()
+func indicatorDefaultHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	indicatorDefaultsReviewRequested.Inc()
 
 	requestedAdmissionReview, httpErr := deserializeReview(request)
 	if httpErr != nil {
-		indicatorReviewErrored.Inc()
+		indicatorDefaultsReviewErrored.Inc()
 		log.Printf("Error deserializing review: %s", httpErr.message)
 		httpErr.Write(responseWriter)
 		return
@@ -243,7 +263,7 @@ func indicatorHandler(responseWriter http.ResponseWriter, request *http.Request)
 	var k8sIndicator v1alpha1.Indicator
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicator)
 	if err != nil {
-		indicatorReviewErrored.Inc()
+		indicatorDefaultsReviewErrored.Inc()
 		log.Printf("Error unmarshalling indicator: %s", err)
 		errUnableToDeserialize.Write(responseWriter)
 		return
@@ -255,7 +275,7 @@ func indicatorHandler(responseWriter http.ResponseWriter, request *http.Request)
 
 	patchBytes, err := marshalPatches(patchOperations)
 	if err != nil {
-		indicatorReviewErrored.Inc()
+		indicatorDefaultsReviewErrored.Inc()
 		log.Printf("Error marshaling patches: %s", err)
 		errInternal.Write(responseWriter)
 		return
@@ -269,16 +289,116 @@ func indicatorHandler(responseWriter http.ResponseWriter, request *http.Request)
 		},
 	})
 	if err != nil {
-		indicatorReviewErrored.Inc()
+		indicatorDefaultsReviewErrored.Inc()
 		log.Printf("Unable to marshal resp: %s", err)
 		errInternal.Write(responseWriter)
 		return
 	}
 	_, err = responseWriter.Write(data)
 	if err != nil {
-		indicatorReviewErrored.Inc()
+		indicatorDefaultsReviewErrored.Inc()
 		log.Printf("Unable to write resp: %s", err)
 	}
+}
+
+func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	indicatorDocumentValidationReviewRequested.Inc()
+	requestedAdmissionReview, httpErr := deserializeReview(request)
+	if httpErr != nil {
+		indicatorDocumentValidationReviewErrored.Inc()
+		log.Printf("Error deserializing review: %s", httpErr.message)
+		httpErr.Write(responseWriter)
+		return
+	}
+
+	var k8sIndicatorDoc v1alpha1.IndicatorDocument
+	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicatorDoc)
+	if err != nil {
+		indicatorDocumentValidationReviewErrored.Inc()
+		log.Printf("Error unmarshalling indicator document: %s", err)
+		errUnableToDeserialize.Write(responseWriter)
+		return
+	}
+
+	id := domain.Map(&k8sIndicatorDoc)
+	errors := indicator.ValidateForK8s(id)
+
+	auditAnnotationMessage := createReviewAnnotationMap(errors)
+
+	data, err := json.Marshal(&v1beta1.AdmissionReview{
+		Response: &v1beta1.AdmissionResponse{
+			UID:              requestedAdmissionReview.Request.UID,
+			Allowed:          len(errors) == 0,
+			AuditAnnotations: auditAnnotationMessage,
+		},
+	})
+	if err != nil {
+		indicatorDocumentValidationReviewErrored.Inc()
+		log.Printf("Unable to marshal resp: %s", err)
+		errInternal.Write(responseWriter)
+		return
+	}
+	_, err = responseWriter.Write(data)
+	if err != nil {
+		indicatorDocumentValidationReviewErrored.Inc()
+		log.Printf("Unable to write resp: %s", err)
+	}
+}
+
+func indicatorValidationHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	indicatorValidationReviewRequested.Inc()
+
+	requestedAdmissionReview, httpErr := deserializeReview(request)
+	if httpErr != nil {
+		indicatorValidationReviewErrored.Inc()
+		log.Printf("Error deserializing review: %s", httpErr.message)
+		httpErr.Write(responseWriter)
+		return
+	}
+
+	var k8sIndicator v1alpha1.Indicator
+	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicator)
+	if err != nil {
+		indicatorValidationReviewErrored.Inc()
+		log.Printf("Error unmarshalling indicator: %s", err)
+		errUnableToDeserialize.Write(responseWriter)
+		return
+	}
+
+	i := domain.ToDomainIndicator(k8sIndicator.Spec)
+	errors := indicator.ValidateIndicator(i, 0)
+
+	auditAnnotationMessage := createReviewAnnotationMap(errors)
+
+	data, err := json.Marshal(&v1beta1.AdmissionReview{
+		Response: &v1beta1.AdmissionResponse{
+			UID:              requestedAdmissionReview.Request.UID,
+			Allowed:          len(errors) == 0,
+			AuditAnnotations: auditAnnotationMessage,
+		},
+	})
+	if err != nil {
+		indicatorValidationReviewErrored.Inc()
+		log.Printf("Unable to marshal resp: %s", err)
+		errInternal.Write(responseWriter)
+		return
+	}
+	_, err = responseWriter.Write(data)
+	if err != nil {
+		indicatorValidationReviewErrored.Inc()
+		log.Printf("Unable to write resp: %s", err)
+	}
+}
+
+func createReviewAnnotationMap(errors []error) map[string]string {
+	errorsString := ""
+	for _, errorString := range errors {
+		errorsString += errorString.Error() + "\n"
+	}
+	auditAnnotationMessage := map[string]string{
+		"error": errorsString,
+	}
+	return auditAnnotationMessage
 }
 
 func marshalPatches(patchOperations []patch) ([]byte, error) {

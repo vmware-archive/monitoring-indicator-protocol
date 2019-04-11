@@ -37,7 +37,7 @@ func ProcessDocument(patches []Patch, documentBytes []byte) (Document, []error) 
 		return Document{}, []error{err}
 	}
 
-	errs := Validate(doc)
+	errs := ValidateForRegistry(doc)
 	if len(errs) > 0 {
 		return Document{}, errs
 	}

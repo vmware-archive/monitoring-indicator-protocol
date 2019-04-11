@@ -16,26 +16,15 @@ import (
 	"k8s.io/api/admission/v1beta1"
 )
 
-func TestValidator(t *testing.T) {
+func TestServer(t *testing.T) {
 	t.Run("it returns 200 for metrics endpoint without TLS", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		server := admission.NewServer("127.0.0.1:0")
-		server.Run(false)
+		server := startServer(g)
 		defer func() {
 			_ = server.Close()
 		}()
 
-		var (
-			err  error
-			resp *http.Response
-		)
-		for i := 0; i < 100; i++ {
-			resp, err = http.Get("http://" + server.Addr() + "/metrics")
-			if err == nil {
-				break
-			}
-			time.Sleep(5 * time.Millisecond)
-		}
+		resp, err := http.Get("http://" + server.Addr() + "/metrics")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -115,27 +104,140 @@ func TestValidator(t *testing.T) {
 		g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	})
 
-	t.Run("allows request when indicator is valid", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
+	t.Run("it expects a content type of application/json", func(t *testing.T) {
 		server := admission.NewServer("127.0.0.1:0")
 		server.Run(false)
 		defer func() {
 			_ = server.Close()
 		}()
 
-		var err error
-		for i := 0; i < 100; i++ {
-			_, err = http.Get(fmt.Sprintf("http://%s/health", server.Addr()))
-			if err == nil {
-				break
-			}
-			time.Sleep(5 * time.Millisecond)
-		}
-		g.Expect(err).To(BeNil())
+		for _, endpoint := range []string{"indicatordocument", "indicator"} {
+			t.Run(endpoint, func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				startServer(g)
+				var (
+					err  error
+					resp *http.Response
+				)
+				for i := 0; i < 100; i++ {
+					resp, err = http.Post(
+						fmt.Sprintf("http://%s/defaults/%s", server.Addr(), endpoint),
+						"text/plain",
+						strings.NewReader(`{}`),
+					)
+					if err == nil {
+						break
+					}
+					time.Sleep(5 * time.Millisecond)
+				}
+				g.Expect(err).To(BeNil())
 
-		//v1beta1.AdmissionReview{}
-		reqBody := strings.NewReader(`
+				body, err := ioutil.ReadAll(resp.Body)
+				g.Expect(err).To(BeNil())
+				g.Expect(string(body)).To(ContainSubstring("Expected a Content-Type of application/json"))
+				g.Expect(resp.StatusCode).To(Equal(http.StatusUnsupportedMediaType))
+			})
+		}
+	})
+}
+
+func TestValidators(t *testing.T) {
+
+	t.Run("indicator document", func(t *testing.T) {
+		t.Run("allows request when valid", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+
+			//v1beta1.AdmissionReview{}
+			reqBody := newIndicatorDocumentRequest("CREATE", `{
+							"product": {"name":"uaa", "version":"v1.2.3"},
+							"indicators": [{
+						    	"name": "latency",
+						    	"promql": "rate(apiserver_request_count[5m]) * 60",
+								"alert": { "step" : "30m", "for": "5m" },
+								"presentation": { 
+									"chartType" : "step", 
+									"currentValue" : true,
+									"frequency": 10,
+									"labels": ["pod"]
+								}
+							}],
+							"layout": {
+								"sections":[{
+									"title": "Metrics",
+									"indicators": ["latency"],
+									"description": ""
+								}]
+							}
+						  }`, "{}")
+			resp, err := http.Post(fmt.Sprintf("http://%s/validation/indicatordocument", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+
+			g.Expect(actualResp.Response.Allowed).To(BeTrue())
+		})
+		t.Run("does not allow request when metadata contains a `step` key", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+
+			//v1beta1.AdmissionReview{}
+			reqBody := newIndicatorDocumentRequest("CREATE", `{
+							"product": {"name":"uaa", "version":"v1.2.3"},
+							"apiVersion": "v0",
+							"metadata": {"step": "12m"},
+							"indicators": [{
+						    	"name": "latency",
+						    	"promql": "rate(apiserver_request_count[5m]) * 60",
+								"alert": { "step" : "30m", "for": "5m" },
+								"presentation": { 
+									"chartType" : "step", 
+									"currentValue" : true,
+									"frequency": 10,
+									"labels": ["pod"]
+								}
+							}],
+							"layout": {
+								"sections":[{
+									"title": "Metrics",
+									"indicators": ["latency"],
+									"description": ""
+								}]
+							}
+						  }`, `{"step": "10m"}`)
+			resp, err := http.Post(fmt.Sprintf("http://%s/validation/indicatordocument", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+
+			g.Expect(actualResp.Response.Allowed).To(BeFalse())
+			g.Expect(actualResp.Response.AuditAnnotations["error"]).To(ContainSubstring("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"))
+		})
+	})
+
+	t.Run("indicator", func(t *testing.T) {
+		t.Run("allows request when valid", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+
+			//v1beta1.AdmissionReview{}
+			reqBody := strings.NewReader(`
 			{
 			  "kind": "AdmissionReview",
 			  "apiVersion": "admission.k8s.io/v1beta1",
@@ -166,48 +268,42 @@ func TestValidator(t *testing.T) {
 				    "thresholds": [{
 					  "gt": 375,
 					  "level": "critical"
-				    }]
+				    }],
+					"presentation": {
+						"currentValue": true,
+						"frequency": 10,
+						"labels": ["moo"],
+						"chartType": "step"
+					}
 				  }
 				},
 				"oldObject": null
 			  }
 			}
 		`)
-		resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
-		g.Expect(err).To(BeNil())
-		g.Expect(resp.StatusCode).To(Equal(200))
+			resp, err := http.Post(fmt.Sprintf("http://%s/validation/indicator", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
 
-		var actualResp v1beta1.AdmissionReview
-		err = json.NewDecoder(resp.Body).Decode(&actualResp)
-		if err != nil {
-			t.Errorf("unable to decode resp body: %s", err)
-		}
-
-		g.Expect(actualResp.Response.Allowed).To(BeTrue())
-	})
-
-	t.Run("does not allow request when indicator is not valid", func(t *testing.T) {
-		t.Skip("TBD")
-		g := NewGomegaWithT(t)
-
-		server := admission.NewServer("127.0.0.1:0")
-		server.Run(false)
-		defer func() {
-			_ = server.Close()
-		}()
-
-		var err error
-		for i := 0; i < 100; i++ {
-			_, err = http.Get(fmt.Sprintf("http://%s/health", server.Addr()))
-			if err == nil {
-				break
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			if err != nil {
+				t.Errorf("unable to decode resp body: %s", err)
 			}
-			time.Sleep(5 * time.Millisecond)
-		}
-		g.Expect(err).To(BeNil())
 
-		//v1beta1.AdmissionReview{}
-		reqBody := strings.NewReader(`
+			g.Expect(actualResp.Response.Allowed).To(BeTrue())
+		})
+
+		t.Run("does not allow request when missing threshold operator", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+
+			//v1beta1.AdmissionReview{}
+			reqBody := strings.NewReader(`
 			{
 			  "kind": "AdmissionReview",
 			  "apiVersion": "admission.k8s.io/v1beta1",
@@ -237,63 +333,34 @@ func TestValidator(t *testing.T) {
 				    "promql": "rate(apiserver_request_count[5m]) * 60",
 				    "thresholds": [{
 					  "level": "critical"
-				    }]
+				    }],
+					"presentation": {
+					  "chartType": "step"
+					}
 				  }
 				},
 				"oldObject": null
 			  }
 			}
 		`)
-		resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
-		g.Expect(err).To(BeNil())
-		g.Expect(resp.StatusCode).To(Equal(200))
+			resp, err := http.Post(fmt.Sprintf("http://%s/validation/indicator", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
 
-		var actualResp v1beta1.AdmissionReview
-		err = json.NewDecoder(resp.Body).Decode(&actualResp)
-		if err != nil {
-			t.Errorf("unable to decode resp body: %s", err)
-		}
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			if err != nil {
+				t.Errorf("unable to decode resp body: %s", err)
+			}
 
-		g.Expect(actualResp.Response.Allowed).To(BeFalse())
-	})
-
-	t.Run("it expects a content type of application/json", func(t *testing.T) {
-		server := admission.NewServer("127.0.0.1:0")
-		server.Run(false)
-		defer func() {
-			_ = server.Close()
-		}()
-
-		for _, endpoint := range []string{"indicatordocument", "indicator"} {
-			t.Run(endpoint, func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				var (
-					err  error
-					resp *http.Response
-				)
-				for i := 0; i < 100; i++ {
-					resp, err = http.Post(
-						fmt.Sprintf("http://%s/defaults/%s", server.Addr(), endpoint),
-						"text/plain",
-						strings.NewReader(`{}`),
-					)
-					if err == nil {
-						break
-					}
-					time.Sleep(5 * time.Millisecond)
-				}
-				g.Expect(err).To(BeNil())
-
-				body, err := ioutil.ReadAll(resp.Body)
-				g.Expect(err).To(BeNil())
-				g.Expect(string(body)).To(ContainSubstring("Expected a Content-Type of application/json"))
-				g.Expect(resp.StatusCode).To(Equal(http.StatusUnsupportedMediaType))
-			})
-		}
+			g.Expect(actualResp.Response.Allowed).To(BeFalse())
+			g.Expect(actualResp.Response.AuditAnnotations["error"]).To(ContainSubstring("one of [lt, lte, eq, neq, gte, gt] must be provided as a float"))
+		})
 	})
 }
 
 func TestDefaultValues(t *testing.T) {
+
 	t.Run("indicator", func(t *testing.T) {
 		t.Run("patches default alert `for`", func(t *testing.T) {
 			g := NewGomegaWithT(t)
@@ -570,6 +637,10 @@ func TestDefaultValues(t *testing.T) {
 			}
 			g.Expect(actualResp.Response.Patch).To(BeNil())
 		})
+
+		t.Run("return UUID in patch response", func(t *testing.T) {
+			//	TODO
+		})
 	})
 
 	t.Run("indicator document", func(t *testing.T) {
@@ -595,7 +666,7 @@ func TestDefaultValues(t *testing.T) {
 									"labels": ["pod"]
 								}
 							}]
-						  }`)
+						  }`, "{}")
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
@@ -642,7 +713,7 @@ func TestDefaultValues(t *testing.T) {
 									"labels": ["pod"]
 								}
 							}]
-						  }`)
+						  }`, "{}")
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
@@ -708,7 +779,7 @@ func TestDefaultValues(t *testing.T) {
 									"labels": ["pod"]
 								}
 							}]
-						  }`)
+						  }`, "{}")
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
@@ -758,7 +829,7 @@ func TestDefaultValues(t *testing.T) {
 									"description": "again"
 								}]
 							}
-						  }`)
+						  }`, "{}")
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
 			g.Expect(resp.StatusCode).To(Equal(200))
@@ -769,6 +840,10 @@ func TestDefaultValues(t *testing.T) {
 				t.Errorf("unable to decode resp body: %s", err)
 			}
 			g.Expect(actualResp.Response.Patch).To(BeNil())
+		})
+
+		t.Run("return UUID in patch response", func(t *testing.T) {
+			// TODO
 		})
 	})
 }
@@ -822,36 +897,35 @@ func newIndicatorRequest(operation string, indicatorSpec string) *strings.Reader
 				`, operation, indicatorSpec))
 }
 
-func newIndicatorDocumentRequest(operation string, indicatorDocumentSpec string) *strings.Reader {
+func newIndicatorDocumentRequest(operation string, indicatorDocumentSpec string, metadata string) *strings.Reader {
 	return strings.NewReader(fmt.Sprintf(`
-					{
-					  "kind": "AdmissionReview",
-					  "apiVersion": "admission.k8s.io/v1beta1",
-					  "request": {
-						"uid": "f70772c9-572a-11e9-904e-42010a80018d",
-						"kind": {
-						  "group": "apps.pivotal.io",
-						  "version": "v1alpha1",
-						  "kind": "IndicatorDocument"
-						},
-						"resource": {
-						  "group": "apps.pivotal.io",
-						  "version": "v1alpha1",
-						  "resource": "indicatordocuments"
-						},
-						"namespace": "monitoring-indicator-protocol",
-						"operation": "%s",
-						"object": {
-						  "apiVersion": "apps.pivotal.io/v1alpha1",
-						  "kind": "IndicatorDocument",
-						  "metadata": {
-							"name": "test-indicator",
-							"namespace": "monitoring-indicator-protocol"
-						  },
-						  "spec": %s
-						},
-						"oldObject": null
-					  }
-					}
-				`, operation, indicatorDocumentSpec))
+						{
+						  "kind": "AdmissionReview",
+						  "apiVersion": "admission.k8s.io/v1beta1",
+						  "request": {
+							"uid": "f70772c9-572a-11e9-904e-42010a80018d",
+							"kind": {
+							  "group": "apps.pivotal.io",
+							  "version": "v1alpha1",
+							  "kind": "IndicatorDocument"
+							},
+							"resource": {
+							  "group": "apps.pivotal.io",
+							  "version": "v1alpha1",
+							  "resource": "indicatordocuments"
+							},
+							"namespace": "monitoring-indicator-protocol",
+							"operation": "%s",
+							"object": {
+							  "apiVersion": "apps.pivotal.io/v1alpha1",
+							  "kind": "IndicatorDocument",
+							  "metadata": {
+								"labels": %s
+							  },
+							  "spec": %s
+							},
+							"oldObject": null
+						  }
+						}
+					`, operation, metadata, indicatorDocumentSpec))
 }

@@ -60,7 +60,7 @@ func TestValidDocument(t *testing.T) {
 			},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(BeEmpty())
 	})
@@ -75,7 +75,7 @@ func TestProduct(t *testing.T) {
 			Product:    indicator.Product{Name: "", Version: "0.0.1"},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("product name is required"),
@@ -92,7 +92,7 @@ func TestVersion(t *testing.T) {
 			Product:    indicator.Product{Name: "product", Version: ""},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("product version is required"),
@@ -108,7 +108,7 @@ func TestAPIVersion(t *testing.T) {
 			Product: indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("apiVersion is required"),
@@ -124,7 +124,7 @@ func TestAPIVersion(t *testing.T) {
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("only apiVersion v0 is supported"),
@@ -149,7 +149,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name is required"),
@@ -173,7 +173,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
@@ -196,7 +196,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
@@ -214,7 +214,7 @@ func TestMetadata(t *testing.T) {
 			Metadata:   map[string]string{"step": "my-step"},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
@@ -241,7 +241,7 @@ func TestThreshold(t *testing.T) {
 			}},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"),
@@ -265,7 +265,7 @@ func TestChartType(t *testing.T) {
 			}},
 		}
 
-		es := indicator.Validate(document)
+		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] invalid chartType provided: 'fakey-fake' - valid chart types are [step bar status]"),

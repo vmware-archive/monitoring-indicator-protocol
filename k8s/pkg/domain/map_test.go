@@ -150,4 +150,27 @@ func TestMap(t *testing.T) {
 		}
 		g.Expect(domain.Map(&k8sDoc)).To(BeEquivalentTo(domainDoc))
 	})
+
+	t.Run("uses the 'Undefined' operator when appropriate", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		k8sDoc := v1alpha1.IndicatorDocument{
+			Spec: v1alpha1.IndicatorDocumentSpec{
+				Product: v1alpha1.Product{
+					Name:    "my-product",
+					Version: "my-version",
+				},
+				Indicators: []v1alpha1.IndicatorSpec{{
+					Name:   "my-indicator",
+					Promql: "my_promql",
+					Thresholds: []v1alpha1.Threshold{{
+						Level:    "WARNING",
+					}},
+				}},
+			},
+		}
+
+		g.Expect(domain.Map(&k8sDoc).Indicators[0].Thresholds[0].Operator).
+			To(BeEquivalentTo(indicator.Undefined))
+	})
 }

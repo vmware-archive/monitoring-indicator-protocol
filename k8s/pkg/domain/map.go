@@ -13,9 +13,9 @@ func Map(i *v1alpha1.IndicatorDocument) indicator.Document {
 			Version: i.Spec.Product.Version,
 		},
 		Metadata:   i.Labels,
+		APIVersion: i.APIVersion,
 		Indicators: indicators,
 
-		// TODO: add layouts correctly
 		Layout: indicator.Layout{
 			Title:       i.Spec.Layout.Title,
 			Description: i.Spec.Layout.Description,
@@ -56,12 +56,12 @@ func findIndicators(names []string, indicators []indicator.Indicator) []indicato
 func mapToDomainIndicators(ids []v1alpha1.IndicatorSpec) []indicator.Indicator {
 	indicators := make([]indicator.Indicator, 0, len(ids))
 	for _, i := range ids {
-		indicators = append(indicators, toDomainIndicator(i))
+		indicators = append(indicators, ToDomainIndicator(i))
 	}
 	return indicators
 }
 
-func toDomainIndicator(i v1alpha1.IndicatorSpec) indicator.Indicator {
+func ToDomainIndicator(i v1alpha1.IndicatorSpec) indicator.Indicator {
 	return indicator.Indicator{
 		Name:          i.Name,
 		PromQL:        i.Promql,
@@ -117,5 +117,5 @@ func resolveOperator(t v1alpha1.Threshold) (indicator.OperatorType, float64) {
 		return indicator.GreaterThan, *t.Gt
 	}
 
-	return indicator.LessThan, 0
+	return indicator.Undefined, 0
 }
