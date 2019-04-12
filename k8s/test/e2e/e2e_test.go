@@ -169,6 +169,18 @@ func TestAdmission(t *testing.T) {
 		g.Eventually(getIndicatorPresentation(t, ns, id.Name, id.Spec.Indicators[0].Name), 10).
 			Should(Equal(defaultPresentation))
 	})
+	t.Run("rejects invalid indicators", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		ns, cleanup := createNamespace(t)
+		defer cleanup()
+		id := indicatorDocument(ns)
+		id.Spec.Indicators[0].Thresholds[0].Gte = nil
+		t.Logf("Creating indicator document in namespace: %s", ns)
+		_, err := clients.idClient.IndicatorDocuments(ns).Create(id)
+
+		g.Expect(err).To(HaveOccurred())
+		g.Expect(err.Error()).To(ContainSubstring("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"))
+	})
 }
 
 func getIndicatorPresentation(t *testing.T, ns string, indicatorDocName string, indicatorName string) func() *v1alpha1.Presentation {
@@ -184,7 +196,7 @@ func getIndicatorPresentation(t *testing.T, ns string, indicatorDocName string, 
 }
 
 func getIndicator(resources clientsetV1alpha1.IndicatorInterface, indicatorDocName string, indicatorName string) (*v1alpha1.Indicator, error) {
-	return resources.Get(fmt.Sprintf("%s-%s", indicatorDocName, strings.ReplaceAll(indicatorName, "_", "-")), metav1.GetOptions{})
+	return resources.Get(fmt.Sprintf("%s-%s", indicatorDocName, strings.Replace(indicatorName, "_", "-", -1)), metav1.GetOptions{})
 }
 
 func grafanaApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocument) bool {
