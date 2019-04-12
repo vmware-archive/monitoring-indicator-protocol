@@ -2,7 +2,6 @@
 set -efu
 
 export CERTS=./test_fixtures
-export REGISTRY_PORT=8091
 export REGISTRY_HOST="https://localhost:8091"
 
 echo "Running grafana agent"

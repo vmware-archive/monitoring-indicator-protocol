@@ -15,13 +15,14 @@ func main() {
 	stdErr := log.New(os.Stderr, "", 0)
 	l := log.New(os.Stderr, "", 0)
 
-	flagSet := flag.NewFlagSet("validator", flag.ErrorHandling(0))
-	indicatorsFilePath := flagSet.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/indicators)")
-	metadata := flagSet.String("metadata", "", "metadata to overide (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
-	prometheusURL := flagSet.String("query-endpoint", "", "the query url of a Prometheus compliant store (e.g. https://log-cache.system.cfapp.com")
-	authorization := flagSet.String("authorization", "", "the authorization header sent to prometheus (e.g. 'bearer abc-123')")
-	insecure := flagSet.Bool("k", false, "skips ssl verification (insecure)")
-	flagSet.Parse(os.Args[1:])
+	indicatorsFilePath := flag.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/indicators)")
+	metadata := flag.String("metadata", "", "metadata to override (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
+	prometheusURI := flag.String("query-endpoint", "", "the query url of a Prometheus compliant store (e.g. https://log-cache.system.cfapp.com")
+	authorization := flag.String("authorization", "", "the authorization header sent to prometheus (e.g. 'bearer abc-123')")
+	insecure := flag.Bool("k", false, "skips ssl verification (insecure)")
+	flag.Parse()
+
+	checkRequiredFlagsArePresent(*indicatorsFilePath, *prometheusURI, *authorization)
 
 	document, err := indicator.ReadFile(*indicatorsFilePath, indicator.OverrideMetadata(indicator.ParseMetadata(*metadata)))
 	if err != nil {
@@ -30,7 +31,7 @@ func main() {
 
 	tokenFetcher := func() (string, error) { return *authorization, nil }
 
-	prometheusClient, err := prometheus_uaa_client.Build(*prometheusURL, tokenFetcher, *insecure)
+	prometheusClient, err := prometheus_uaa_client.Build(*prometheusURI, tokenFetcher, *insecure)
 	if err != nil {
 		l.Fatalf("could not create prometheus client: %s\n", err)
 	}
@@ -68,7 +69,7 @@ func main() {
 		separator(stdOut)
 		stdErr.Println("---------------------------------------------------------------------------------------------")
 		stdErr.Println("VALIDATION FAILURE")
-		stdErr.Printf("  Could not find %d indicators in %s \n", len(failedIndicators), *prometheusURL)
+		stdErr.Printf("  Could not find %d indicators in %s \n", len(failedIndicators), *prometheusURI)
 		stdErr.Println("  Both operators and platform observability tools such as PCF Healthwatch rely on the")
 		stdErr.Println("  existence of this data. Perhaps a metric name changed, or refactored code")
 		stdErr.Println("  is failing to emit.")
@@ -83,6 +84,23 @@ func main() {
 	stdOut.Println("  All indicator data found")
 	stdOut.Println("---------------------------------------------------------------------------------------------")
 	separator(stdOut)
+}
+
+func checkRequiredFlagsArePresent(indicatorsFilePath string, prometheusURI string, prometheusAuthorization string) {
+	stdErr := log.New(os.Stderr, "", 0)
+
+	exitOnEmpty := func(v string, name string) {
+		if v == "" {
+			stdErr.Printf("%s is required\n\n", name)
+			stdErr.Printf("Usage:\n")
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
+	}
+
+	exitOnEmpty(indicatorsFilePath, "indicators")
+	exitOnEmpty(prometheusURI, "query-endpoint")
+	exitOnEmpty(prometheusAuthorization, "authorization")
 }
 
 func separator(stdOut *log.Logger) {

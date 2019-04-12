@@ -3,6 +3,8 @@ package status_store_test
 import (
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
+
 	"testing"
 	"time"
 )
@@ -20,19 +22,19 @@ func TestUpdatingStatus(t *testing.T) {
 		store.UpdateStatus(status_store.UpdateRequest{
 			DocumentUID:   "abc-123",
 			IndicatorName: "error_rate",
-			Status:        "critical",
+			Status:        test_fixtures.StrPtr("critical"),
 		})
 
 		store.UpdateStatus(status_store.UpdateRequest{
 			DocumentUID:   "abc-123",
 			IndicatorName: "latency",
-			Status:        "critical",
+			Status:        test_fixtures.StrPtr("critical"),
 		})
 
 		g.Expect(store.StatusFor("abc-123", "latency")).To(Equal(status_store.IndicatorStatus{
 			DocumentUID:   "abc-123",
 			IndicatorName: "latency",
-			Status:        "critical",
+			Status:        test_fixtures.StrPtr("critical"),
 			UpdatedAt:     now,
 		}))
 	})
@@ -53,12 +55,12 @@ func TestUpdatingStatus(t *testing.T) {
 		store := status_store.New(fakeClock)
 
 		store.UpdateStatus(status_store.UpdateRequest{
-			Status:        "healthy",
+			Status:        test_fixtures.StrPtr("healthy"),
 			IndicatorName: "latency",
 			DocumentUID:   "abc-123",
 		})
 		store.UpdateStatus(status_store.UpdateRequest{
-			Status:        "critical",
+			Status:        test_fixtures.StrPtr("critical"),
 			IndicatorName: "latency",
 			DocumentUID:   "abc-123",
 		})
@@ -66,9 +68,8 @@ func TestUpdatingStatus(t *testing.T) {
 		g.Expect(store.StatusFor("abc-123", "latency")).To(Equal(status_store.IndicatorStatus{
 			DocumentUID:   "abc-123",
 			IndicatorName: "latency",
-			Status:        "critical",
+			Status:        test_fixtures.StrPtr("critical"),
 			UpdatedAt:     now,
 		}))
 	})
 }
-

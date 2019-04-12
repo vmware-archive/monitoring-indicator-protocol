@@ -62,3 +62,7 @@ func DefaultAPIV0Alert() registry.APIV0Alert {
 		Step: "1m",
 	}
 }
+
+func StrPtr(s string) *string {
+	return &s
+}

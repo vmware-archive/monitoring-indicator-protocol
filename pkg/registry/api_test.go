@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
 	. "github.com/onsi/gomega"
 
@@ -173,14 +174,14 @@ func TestBulkStatusUpdateHandler(t *testing.T) {
 		g.Expect(store.StatusFor("my-component-1234234234", "latency")).To(Equal(status_store.IndicatorStatus{
 			DocumentUID:   "my-component-1234234234",
 			IndicatorName: "latency",
-			Status:        "critical",
+			Status:        test_fixtures.StrPtr("critical"),
 			UpdatedAt:     now,
 		}))
 
 		g.Expect(store.StatusFor("my-component-1234234234", "error_rate")).To(Equal(status_store.IndicatorStatus{
 			DocumentUID:   "my-component-1234234234",
 			IndicatorName: "error_rate",
-			Status:        "warning",
+			Status:        test_fixtures.StrPtr("warning"),
 			UpdatedAt:     now,
 		}))
 	})
@@ -188,7 +189,7 @@ func TestBulkStatusUpdateHandler(t *testing.T) {
 	t.Run("it returns a 400 if indicator status are not passed into the body", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		body:= bytes.NewBuffer([]byte(`[""]`))
+		body := bytes.NewBuffer([]byte(`[""]`))
 		req := httptest.NewRequest("POST", "/", body)
 		resp := httptest.NewRecorder()
 
@@ -237,7 +238,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 
 		statusStore := status_store.New(func() time.Time { return time.Date(2012, 12, 1, 16, 45, 19, 0, time.UTC) })
 		statusStore.UpdateStatus(status_store.UpdateRequest{
-			Status:        "critical",
+			Status:        test_fixtures.StrPtr("critical"),
 			IndicatorName: "test_errors2",
 			DocumentUID:   "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
 		})

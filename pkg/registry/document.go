@@ -45,7 +45,7 @@ type APIV0Indicator struct {
 }
 
 type APIV0IndicatorStatus struct {
-	Value     string    `json:"value"`
+	Value     *string    `json:"value"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 

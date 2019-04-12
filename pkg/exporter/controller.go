@@ -12,8 +12,12 @@ import (
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
+type APIClient interface {
+	IndicatorDocuments() ([]registry.APIV0Document, error)
+}
+
 type ControllerConfig struct {
-	RegistryAPIClient registry.APIClient
+	RegistryAPIClient APIClient
 	Filesystem        billy.Filesystem
 	OutputDirectory   string
 	UpdateFrequency   time.Duration

@@ -1,22 +1,19 @@
 package registry
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
-type APIClient interface {
-	IndicatorDocuments() ([]APIV0Document, error)
-}
-
 type apiClient struct {
 	serverURL string
 	client    *http.Client
 }
 
-func NewAPIClient(serverURL string, client *http.Client) APIClient {
+func NewAPIClient(serverURL string, client *http.Client) *apiClient {
 	return &apiClient{
 		serverURL: serverURL,
 		client:    client,
@@ -43,4 +40,27 @@ func (c *apiClient) indicatorResponse() ([]byte, error) {
 	defer resp.Body.Close()
 
 	return ioutil.ReadAll(resp.Body)
+}
+
+func (c *apiClient) BulkStatusUpdate(statusUpdates []APIV0UpdateIndicatorStatus, documentId string) error {
+	updateBytes, err := json.Marshal(statusUpdates)
+	body := bytes.NewBuffer(updateBytes)
+	if err != nil {
+		return fmt.Errorf("error marshaling status updates: %s", err)
+	}
+	resp, err := c.client.Post(
+		fmt.Sprintf("%s/v1/indicator-documents/%s/bulk_status", c.serverURL, documentId),
+		"application/json",
+		body,
+	)
+
+	if err != nil {
+		return fmt.Errorf("error sending status updates: %s", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("error response from status updates: %s", resp.Status)
+	}
+
+	return nil
 }

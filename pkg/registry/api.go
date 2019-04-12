@@ -56,7 +56,7 @@ func writeErrors(w http.ResponseWriter, statusCode int, errors ...error) {
 
 type APIV0UpdateIndicatorStatus struct {
 	Name   string `json:"name"`
-	Status string `json:"status"`
+	Status *string `json:"status"`
 }
 
 func NewIndicatorStatusBulkUpdateHandler(store *status_store.Store) http.HandlerFunc {

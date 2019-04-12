@@ -9,7 +9,7 @@ import (
 type Clock func() time.Time
 
 type UpdateRequest struct {
-	Status        string
+	Status        *string
 	IndicatorName string
 	DocumentUID   string
 }
@@ -17,7 +17,7 @@ type UpdateRequest struct {
 type IndicatorStatus struct {
 	DocumentUID   string
 	IndicatorName string
-	Status        string
+	Status        *string
 	UpdatedAt     time.Time
 }
 
