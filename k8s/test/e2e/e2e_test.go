@@ -89,12 +89,14 @@ func TestControllers(t *testing.T) {
 				cm, err := clients.k8sClientset.CoreV1().
 					ConfigMaps("grafana").
 					Get(grafanaDashboardFilename(id), metav1.GetOptions{})
+
 				if err != nil {
 					t.Logf("Unable to get config map, retrying: %s", err)
 					return false
 				}
 				match := grafanaConfigMapMatch(t, grafanaDashboardFilename(id)+".json", cm, id)
 				if !match {
+					t.Logf("Unable to match grafana config")
 					return false
 				}
 				return grafanaApiResponseMatch(t, id)
@@ -111,6 +113,7 @@ func TestControllers(t *testing.T) {
 				}
 				match := prometheusConfigMapMatch(t, cm, id)
 				if !match {
+					t.Logf("Unable to match prometheus config")
 					return false
 				}
 				return prometheusApiResponseMatch(t, id)
@@ -120,8 +123,6 @@ func TestControllers(t *testing.T) {
 			return func() bool {
 				resources := clients.idClient.Indicators(id.Namespace)
 				resource, err := getIndicator(resources, id.Name, id.Spec.Indicators[0].Name)
-				indicatorList, _ := resources.List(metav1.ListOptions{})
-				log.Printf("Indicators found: %v", indicatorList)
 				if err != nil {
 					t.Logf("Unable to get new indicator, retrying: %s", err)
 					return false
