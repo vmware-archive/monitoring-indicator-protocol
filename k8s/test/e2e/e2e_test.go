@@ -119,7 +119,7 @@ func TestControllers(t *testing.T) {
 		"lifecycle": func(id *v1alpha1.IndicatorDocument) func() bool {
 			return func() bool {
 				resources := clients.idClient.Indicators(id.Namespace)
-				resource, err := resources.Get(fmt.Sprintf("%s-%s", id.Name, id.Spec.Indicators[0].Name), metav1.GetOptions{})
+				resource, err := getIndicator(resources, id.Name, id.Spec.Indicators[0].Name)
 				indicatorList, _ := resources.List(metav1.ListOptions{})
 				log.Printf("Indicators found: %v", indicatorList)
 				if err != nil {
@@ -166,7 +166,7 @@ func TestAdmission(t *testing.T) {
 			Frequency:    0,
 			Labels:       []string{},
 		}
-		g.Eventually(getIndicatorPresentation(t, ns, id.Name, id.Spec.Indicators[0].Name), 100).
+		g.Eventually(getIndicatorPresentation(t, ns, id.Name, id.Spec.Indicators[0].Name), 10).
 			Should(Equal(defaultPresentation))
 	})
 }
@@ -174,13 +174,17 @@ func TestAdmission(t *testing.T) {
 func getIndicatorPresentation(t *testing.T, ns string, indicatorDocName string, indicatorName string) func() *v1alpha1.Presentation {
 	return func() *v1alpha1.Presentation {
 		resources := clients.idClient.Indicators(ns)
-		resource, err := resources.Get(fmt.Sprintf("%s-%s", indicatorDocName, indicatorName), metav1.GetOptions{})
+		resource, err := getIndicator(resources, indicatorDocName, indicatorName)
 		if err != nil {
 			t.Logf("Unable to get new indicator, retrying: %s", err)
 			return nil
 		}
 		return &resource.Spec.Presentation
 	}
+}
+
+func getIndicator(resources clientsetV1alpha1.IndicatorInterface, indicatorDocName string, indicatorName string) (*v1alpha1.Indicator, error) {
+	return resources.Get(fmt.Sprintf("%s-%s", indicatorDocName, strings.ReplaceAll(indicatorName, "_", "-")), metav1.GetOptions{})
 }
 
 func grafanaApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocument) bool {
