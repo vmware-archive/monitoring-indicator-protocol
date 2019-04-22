@@ -1,3 +1,6 @@
+**WARNING: Indicator Protocol for Kubernetes is experimental and is subject to change!**
+
+We welcome any feedback you might have. Feel free to open a github issue.
 
 ## Monitoring Indicator Protocol
 
