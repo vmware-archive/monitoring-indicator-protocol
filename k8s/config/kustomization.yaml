@@ -9,13 +9,16 @@ resources:
 - 200-indicator-admission-roles.yaml
 - 200-indicator-admission-service-account.yaml
 - 200-indicator-lifecycle-controller-roles.yaml
+- 200-indicator-status-controller-roles.yaml
 - 200-indicator-lifecycle-controller-service-account.yaml
+- 200-indicator-status-controller-service-account.yaml
 - 200-prometheus-indicator-controller-roles.yaml
 - 200-prometheus-indicator-controller-service-account.yaml
 - 201-cert-generator-role-binding.yaml
 - 201-grafana-indicator-controller-role-binding.yaml
 - 201-indicator-admission-role-binding.yaml
 - 201-indicator-lifecycle-controller-role-binding.yaml
+- 201-indicator-status-controller-role-binding.yaml
 - 201-prometheus-indicator-controller-role-binding.yaml
 - 300-indicator-document.yaml
 - 300-indicator.yaml
@@ -27,3 +30,4 @@ resources:
 - 500-indicator-admission-deployment.yaml
 - 500-indicator-lifecycle-controller-deployment.yaml
 - 500-prometheus-indicator-controller-deployment.yaml
+- 500-indicator-status-controller-deployment.yaml

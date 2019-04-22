@@ -1,0 +1,12 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: indicator-status-controller
+subjects:
+  - kind: ServiceAccount
+    name: indicator-status-controller
+    namespace: monitoring-indicator-protocol
+roleRef:
+  kind: ClusterRole
+  name: indicator-status-controller
+  apiGroup: rbac.authorization.k8s.io

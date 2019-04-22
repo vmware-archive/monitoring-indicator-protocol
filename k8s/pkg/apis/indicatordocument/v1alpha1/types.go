@@ -47,6 +47,7 @@ type IndicatorSpec struct {
 	Thresholds    []Threshold       `json:"thresholds"`
 	Documentation map[string]string `json:"documentation,omitempty"`
 	Presentation  Presentation      `json:"presentation"`
+	Status        *string           `json:"status"`
 }
 
 type Presentation struct {

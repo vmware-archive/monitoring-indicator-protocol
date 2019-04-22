@@ -2,6 +2,8 @@
 cloud.google.com/go/compute/metadata
 # code.cloudfoundry.org/go-envstruct v1.4.0
 code.cloudfoundry.org/go-envstruct
+# github.com/benbjohnson/clock v0.0.0-20161215174838-7dc76406b6d3
+github.com/benbjohnson/clock
 # github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 github.com/benjamintf1/unmarshalledmatchers
 # github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973

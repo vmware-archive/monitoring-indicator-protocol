@@ -9,8 +9,8 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator_status"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator_status"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
 	"github.com/prometheus/common/model"
@@ -52,11 +52,12 @@ func TestStatusController(t *testing.T) {
 			},
 		})
 
-		controller := indicator_status.StatusController{
-			RegistryClient: fakeRegistryClient,
-			IntervalTime:   time.Minute,
-			PromQLClient:   fakeQueryClient,
-		}
+		controller := indicator_status.NewStatusController(
+			fakeRegistryClient,
+			fakeRegistryClient,
+			fakeQueryClient,
+			time.Minute,
+		)
 
 		go controller.Start()
 
@@ -99,11 +100,12 @@ func TestStatusController(t *testing.T) {
 			},
 		})
 
-		controller := indicator_status.StatusController{
-			RegistryClient: fakeRegistryClient,
-			IntervalTime:   time.Minute,
-			PromQLClient:   fakeQueryClient,
-		}
+		controller := indicator_status.NewStatusController(
+			fakeRegistryClient,
+			fakeRegistryClient,
+			fakeQueryClient,
+			time.Minute,
+		)
 
 		go controller.Start()
 
@@ -149,11 +151,12 @@ func TestStatusController(t *testing.T) {
 			},
 		})
 
-		controller := indicator_status.StatusController{
-			RegistryClient: fakeRegistryClient,
-			IntervalTime:   time.Minute,
-			PromQLClient:   fakeQueryClient,
-		}
+		controller := indicator_status.NewStatusController(
+			fakeRegistryClient,
+			fakeRegistryClient,
+			fakeQueryClient,
+			time.Minute,
+		)
 
 		go controller.Start()
 
@@ -184,11 +187,12 @@ func TestStatusController(t *testing.T) {
 			},
 		})
 
-		controller := indicator_status.StatusController{
-			RegistryClient: fakeRegistryClient,
-			IntervalTime:   time.Minute,
-			PromQLClient:   fakeQueryClient,
-		}
+		controller := indicator_status.NewStatusController(
+			fakeRegistryClient,
+			fakeRegistryClient,
+			fakeQueryClient,
+			time.Minute,
+		)
 
 		go controller.Start()
 
@@ -258,6 +262,14 @@ type fakeQueryClient struct {
 	sync.Mutex
 	responses  map[string]model.Value
 	queryCount int
+	queryArgs []queryArgs
+	err error
+}
+
+type queryArgs struct {
+	ctx context.Context
+	query string
+	ts time.Time
 }
 
 func (m *fakeQueryClient) Query(ctx context.Context, query string, ts time.Time) (model.Value, error) {
@@ -265,6 +277,16 @@ func (m *fakeQueryClient) Query(ctx context.Context, query string, ts time.Time)
 	defer m.Unlock()
 
 	m.queryCount += 1
+	m.queryArgs = append(m.queryArgs, queryArgs{
+		ctx: ctx,
+		query: query,
+		ts: ts,
+	})
+
+	if m.err != nil {
+		return nil, m.err
+	}
+
 	return m.responses[query], nil
 }
 

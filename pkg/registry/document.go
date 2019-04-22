@@ -86,10 +86,8 @@ func ToIndicatorDocument(d APIV0Document) indicator.Document {
 }
 
 func convertIndicator(i APIV0Indicator) indicator.Indicator {
-	thresholds := make([]indicator.Threshold, 0)
-	for _, t := range i.Thresholds {
-		thresholds = append(thresholds, convertThreshold(t))
-	}
+	apiv0Thresholds := i.Thresholds
+	thresholds := ConvertThresholds(apiv0Thresholds)
 
 	return indicator.Indicator{
 		Name:       i.Name,
@@ -107,6 +105,14 @@ func convertIndicator(i APIV0Indicator) indicator.Indicator {
 			Labels:       i.Presentation.Labels,
 		},
 	}
+}
+
+func ConvertThresholds(apiv0Thresholds []APIV0Threshold) []indicator.Threshold {
+	thresholds := make([]indicator.Threshold, 0)
+	for _, t := range apiv0Thresholds {
+		thresholds = append(thresholds, convertThreshold(t))
+	}
+	return thresholds
 }
 
 func convertThreshold(t APIV0Threshold) indicator.Threshold {

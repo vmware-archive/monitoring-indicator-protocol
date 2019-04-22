@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: indicator-status-controller
+  namespace: monitoring-indicator-protocol
+  labels:
+    app: indicator-status-controller
+spec:
+  selector:
+    matchLabels:
+      app: indicator-status-controller
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: indicator-status-controller
+    spec:
+      serviceAccountName: indicator-status-controller
+      containers:
+      - name: indicator-status-controller
+        image: indicatorprotocol/indicator-status-controller:latest
+        imagePullPolicy: Always
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: PROMETHEUS_URL
+          value: http://prometheus-server.prometheus.svc.cluster.local

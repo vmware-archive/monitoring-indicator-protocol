@@ -405,6 +405,41 @@ func TestValidators(t *testing.T) {
 func TestDefaultValues(t *testing.T) {
 
 	t.Run("indicator", func(t *testing.T) {
+		t.Run("patches default thresholds", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+
+			//v1beta1.AdmissionReview{}
+			reqBody := newIndicatorRequest("CREATE", `{
+						    "name": "latency",
+						    "promql": "rate(apiserver_request_count[5m]) * 60",
+							"alert": { "step" : "30m", "for": "1m" },
+							"presentation": { 
+								"chartType" : "step", 
+								"currentValue" : true,
+								"frequency": 10,
+								"labels": ["pod"]
+							}
+						  }`)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			if err != nil {
+				t.Errorf("unable to decode resp body: %s", err)
+			}
+
+			patch := []byte(`[{"op":"add","path":"/spec/thresholds","value":[]}]`)
+			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
+			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
+		})
+
 		t.Run("patches default alert `for`", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
@@ -423,7 +458,13 @@ func TestDefaultValues(t *testing.T) {
 								"currentValue" : true,
 								"frequency": 10,
 								"labels": ["pod"]
-							}
+							},
+							"thresholds": [
+								{
+									"gt": 12,
+									"level": "critical"
+								}
+							]
 						  }`)
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
@@ -458,7 +499,13 @@ func TestDefaultValues(t *testing.T) {
 								"currentValue" : true,
 								"frequency": 10,
 								"labels": ["pod"]
-							}
+							},
+							"thresholds": [
+								{
+									"gt": 12,
+									"level": "critical"
+								}
+							]
 						  }`)
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
@@ -492,7 +539,13 @@ func TestDefaultValues(t *testing.T) {
 								"currentValue" : true,
 								"frequency": 10,
 								"labels": ["pod"]
-							}
+							},
+							"thresholds": [
+								{
+									"gt": 12,
+									"level": "critical"
+								}
+							]
 						  }`)
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
@@ -521,7 +574,13 @@ func TestDefaultValues(t *testing.T) {
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
-							"alert": { "step" : "30m", "for": "5m" }
+							"alert": { "step" : "30m", "for": "5m" },
+							"thresholds": [
+								{
+									"gt": 12,
+									"level": "critical"
+								}
+							]
 						  }`)
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
@@ -560,7 +619,13 @@ func TestDefaultValues(t *testing.T) {
 								"currentValue" : true,
 								"frequency": 10,
 								"labels": ["moo"]
-							}
+							},
+							"thresholds": [
+								{
+									"gt": 12,
+									"level": "critical"
+								}
+							]
 						  }`)
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
@@ -592,7 +657,13 @@ func TestDefaultValues(t *testing.T) {
 							"alert": { "step" : "30m", "for": "5m" },
 							"presentation": { 
 								"chartType" : "bar"
-							}
+							},
+							"thresholds": [
+								{
+									"gt": 12,
+									"level": "critical"
+								}
+							]
 						  }`)
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
@@ -629,7 +700,13 @@ func TestDefaultValues(t *testing.T) {
 								"currentValue" : true,
 								"frequency": 10,
 								"labels": ["pod"]
-							}
+							},
+							"thresholds": [
+								{
+									"gt": 12,
+									"level": "critical"
+								}
+							]
 						  }`)
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
@@ -667,7 +744,13 @@ func TestDefaultValues(t *testing.T) {
 								"currentValue" : true,
 								"frequency": 10,
 								"labels": ["pod"]
-							}
+							},
+							"thresholds": [
+								{
+									"gt": 12,
+									"level": "critical"
+								}
+							]
 						  }`)
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
 			g.Expect(err).To(BeNil())
@@ -722,7 +805,13 @@ func TestDefaultValues(t *testing.T) {
 									"currentValue" : true,
 									"frequency": 10,
 									"labels": ["pod"]
+								},
+								"thresholds": [
+								{
+									"gt": 12,
+									"level": "critical"
 								}
+							]
 							}]
 						  }`, "{}")
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
@@ -769,7 +858,13 @@ func TestDefaultValues(t *testing.T) {
 									"currentValue" : true,
 									"frequency": 10,
 									"labels": ["pod"]
-								}
+								},
+								"thresholds": [
+									{
+										"gt": 12,
+										"level": "critical"
+									}
+								]
 							}]
 						  }`, "{}")
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
@@ -825,7 +920,13 @@ func TestDefaultValues(t *testing.T) {
 									"currentValue" : true,
 									"frequency": 10,
 									"labels": ["pod"]
-								}
+								},
+								"thresholds": [
+									{
+										"gt": 12,
+										"level": "critical"
+									}
+								]
 							},{
 						    	"name": "latency",
 						    	"promql": "rate(apiserver_request_count[5m]) * 60",
@@ -835,7 +936,13 @@ func TestDefaultValues(t *testing.T) {
 									"currentValue" : true,
 									"frequency": 10,
 									"labels": ["pod"]
-								}
+								},
+								"thresholds": [
+									{
+										"gt": 12,
+										"level": "critical"
+									}
+								]
 							}]
 						  }`, "{}")
 			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
@@ -851,6 +958,55 @@ func TestDefaultValues(t *testing.T) {
 			patch := []byte(`[
 {"op":"add","path":"/spec/indicators/0/presentation/chartType","value":"step"},
 {"op":"add","path":"/spec/indicators/1/alert/for","value":"1m"}]`)
+			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
+			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
+		})
+
+		t.Run("patches threshold on an indicator", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+
+			//v1beta1.AdmissionReview{}
+			reqBody := newIndicatorDocumentRequest("UPDATE", `{
+							"product": {"name":"uaa", "version":"v1.2.3"},
+							"layout": {
+								"owner": "",
+								"title": "",
+								"description": "",
+								"sections":[{
+									"title": "Metrics",
+									"indicators": ["throughput", "latency"],
+									"description": ""
+								}]
+							},
+							"indicators": [{
+						    	"name": "throughput",
+						    	"promql": "rate(apiserver_request_count[5m]) * 60",
+								"alert": {"step": "10m", "for": "5m"},
+								"presentation": { 
+									"currentValue" : true,
+									"frequency": 10,
+									"labels": ["pod"],
+									"chartType": "step"
+								}
+							}]
+						  }`, "{}")
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			if err != nil {
+				t.Errorf("unable to decode resp body: %s", err)
+			}
+
+			patch := []byte(`[
+{"op":"add","path":"/spec/indicators/0/thresholds","value":[]}]`)
 			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
 			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
 		})
@@ -875,7 +1031,13 @@ func TestDefaultValues(t *testing.T) {
 									"currentValue" : true,
 									"frequency": 10,
 									"labels": ["pod"]
-								}
+								},
+								"thresholds": [
+									{
+										"gt": 12,
+										"level": "critical"
+									}
+								]
 							}],
 							"layout": {
 								"owner": "Foo",

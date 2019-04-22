@@ -10,35 +10,49 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-type registryClient interface {
+type DocumentGetter interface {
 	IndicatorDocuments() ([]registry.APIV0Document, error)
+}
+type StatusUpdater interface {
 	BulkStatusUpdate(statusUpdates []registry.APIV0UpdateIndicatorStatus, documentId string) error
 }
 
-type promQLClient interface {
+type PromQLClient interface {
 	Query(ctx context.Context, query string, ts time.Time) (model.Value, error)
 }
 
 type StatusController struct {
-	RegistryClient registryClient
-	IntervalTime   time.Duration
-	PromQLClient   promQLClient
+	documentGetter DocumentGetter
+	statusUpdater  StatusUpdater
+	interval       time.Duration
+	promQLClient   PromQLClient
+}
+
+func NewStatusController(
+	dg DocumentGetter,
+	su StatusUpdater,
+	pc PromQLClient,
+	interval time.Duration,
+) *StatusController {
+	return &StatusController{
+		documentGetter: dg,
+		statusUpdater:  su,
+		interval:       interval,
+		promQLClient:   pc,
+	}
 }
 
 func (c StatusController) Start() {
 	err := c.updateStatuses()
 	if err != nil {
-		log.Printf("failed to update indicator statuses: %s", err)
+		log.Printf("Failed to update indicator statuses: %s", err)
 	}
 
-	interval := time.NewTicker(c.IntervalTime)
 	for {
-		select {
-		case <-interval.C:
-			err := c.updateStatuses()
-			if err != nil {
-				log.Printf("failed to update indicator statuses: %s", err)
-			}
+		time.Sleep(c.interval)
+		err := c.updateStatuses()
+		if err != nil {
+			log.Printf("Failed to update indicator statuses: %s", err)
 		}
 	}
 }
@@ -46,40 +60,31 @@ func (c StatusController) Start() {
 func (c StatusController) updateStatuses() error {
 	var statusUpdates []registry.APIV0UpdateIndicatorStatus
 
-	apiv0Documents, err := c.RegistryClient.IndicatorDocuments()
+	apiv0Documents, err := c.documentGetter.IndicatorDocuments()
 	if err != nil {
 		return fmt.Errorf("error retrieving indicator docs: %s", err)
 	}
 	for _, indicatorDocument := range apiv0Documents {
 		for _, indicator := range indicatorDocument.Indicators {
-
 			if len(indicator.Thresholds) == 0 {
 				continue
 			}
 
-			value, err := c.PromQLClient.Query(context.Background(), indicator.PromQL, time.Time{})
+			values, err := QueryValues(c.promQLClient, indicator.PromQL)
 			if err != nil {
-				log.Printf("error querying Prometheus: %s", err)
-			}
-
-			vectors, ok := value.(model.Vector)
-			if !ok {
+				log.Printf("Error querying Prometheus: %s", err)
 				continue
 			}
-
-			var values []float64
-			for _, v := range vectors {
-				values = append(values, float64(v.Value))
-			}
-			status := Match(indicator.Thresholds, values)
+			thresholds := registry.ConvertThresholds(indicator.Thresholds)
+			status := Match(thresholds, values)
 			statusUpdates = append(statusUpdates, registry.APIV0UpdateIndicatorStatus{
 				Name:   indicator.Name,
-				Status: status,
+				Status: &status,
 			})
 		}
-		err := c.RegistryClient.BulkStatusUpdate(statusUpdates, indicatorDocument.UID)
+		err := c.statusUpdater.BulkStatusUpdate(statusUpdates, indicatorDocument.UID)
 		if err != nil {
-			log.Printf("%s", err)
+			log.Print(err)
 		}
 	}
 

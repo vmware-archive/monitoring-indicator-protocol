@@ -66,7 +66,7 @@ func ToDomainIndicator(i v1alpha1.IndicatorSpec) indicator.Indicator {
 		Name:          i.Name,
 		PromQL:        i.Promql,
 		Alert:         toDomainAlert(i.Alert),
-		Thresholds:    mapToDomainThreshold(i.Thresholds),
+		Thresholds:    MapToDomainThreshold(i.Thresholds),
 		Documentation: i.Documentation,
 		Presentation:  toDomainPresentation(i.Presentation),
 	}
@@ -88,7 +88,7 @@ func toDomainAlert(a v1alpha1.Alert) indicator.Alert {
 	}
 }
 
-func mapToDomainThreshold(ths []v1alpha1.Threshold) []indicator.Threshold {
+func MapToDomainThreshold(ths []v1alpha1.Threshold) []indicator.Threshold {
 	thresholds := make([]indicator.Threshold, 0, len(ths))
 	for _, t := range ths {
 		op, val := resolveOperator(t)

@@ -53,11 +53,12 @@ func main() {
 	})
 	prometheusClient, err := prometheus_uaa_client.Build(*prometheusURI, tokenFetcher.GetClientToken, *insecure)
 
-	statusController := indicator_status.StatusController{
-		RegistryClient: registryClient,
-		IntervalTime:   *updateInterval,
-		PromQLClient:   prometheusClient,
-	}
+	statusController := indicator_status.NewStatusController(
+		registryClient,
+		registryClient,
+		prometheusClient,
+		*updateInterval,
+	)
 
 	statusController.Start()
 }

@@ -198,6 +198,7 @@ func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http
 			getAlertPatches(i.Alert, fmt.Sprintf("/spec/indicators/%d", idx))...)
 		patchOperations = append(patchOperations,
 			getPresentationPatches(i.Presentation, fmt.Sprintf("/spec/indicators/%d", idx))...)
+		patchOperations = append(patchOperations, getThresholdPatches(i.Thresholds, fmt.Sprintf("/spec/indicators/%d", idx))...)
 	}
 
 	patchBytes, err := marshalPatches(patchOperations)
@@ -273,6 +274,7 @@ func indicatorDefaultHandler(responseWriter http.ResponseWriter, request *http.R
 	var patchOperations []patch
 	patchOperations = append(patchOperations, getAlertPatches(k8sIndicator.Spec.Alert, "/spec")...)
 	patchOperations = append(patchOperations, getPresentationPatches(k8sIndicator.Spec.Presentation, "/spec")...)
+	patchOperations = append(patchOperations, getThresholdPatches(k8sIndicator.Spec.Thresholds, "/spec")...)
 
 	patchBytes, err := marshalPatches(patchOperations)
 	if err != nil {
@@ -410,6 +412,19 @@ func marshalPatches(patchOperations []patch) ([]byte, error) {
 		patchBytes, err = json.Marshal(patchOperations)
 	}
 	return patchBytes, err
+}
+
+func getThresholdPatches(threshold []v1alpha1.Threshold, context string) []patch {
+	if len(threshold) == 0 {
+		return []patch {
+			{
+				Op: "add",
+				Path: fmt.Sprintf("%s/thresholds", context),
+				Value: []v1alpha1.Threshold{},
+			},
+		}
+	}
+	return []patch{}
 }
 
 func getPresentationPatches(presentation v1alpha1.Presentation, context string) []patch {

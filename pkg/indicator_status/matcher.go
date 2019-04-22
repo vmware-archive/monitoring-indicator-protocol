@@ -3,12 +3,17 @@ package indicator_status
 import (
 	"sort"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
-func Match(thresholds []registry.APIV0Threshold, values []float64) *string {
+var undefined = "UNDEFINED"
+var healthy = "HEALTHY"
+
+// Match takes thresholds and values and determines what threshold has been
+// breached. It returns nil if nothing was breached.
+func Match(thresholds []indicator.Threshold, values []float64) string {
 	if len(thresholds) == 0 {
-		return nil
+		return undefined
 	}
 
 	var breachedThresholdLevels []string
@@ -21,11 +26,11 @@ func Match(thresholds []registry.APIV0Threshold, values []float64) *string {
 	}
 
 	if len(breachedThresholdLevels) == 0 {
-		return nil
+		return healthy
 	}
 
 	status := selectThreshold(breachedThresholdLevels)
-	return &status
+	return status
 }
 
 func selectThreshold(thresholdLevels []string) string {
@@ -33,19 +38,19 @@ func selectThreshold(thresholdLevels []string) string {
 	return thresholdLevels[0]
 }
 
-func isBreached(threshold registry.APIV0Threshold, value float64) bool {
+func isBreached(threshold indicator.Threshold, value float64) bool {
 	switch threshold.Operator {
-	case "lte":
+	case indicator.LessThanOrEqualTo:
 		return value <= threshold.Value
-	case "lt":
+	case indicator.LessThan:
 		return value < threshold.Value
-	case "gte":
+	case indicator.GreaterThanOrEqualTo:
 		return value >= threshold.Value
-	case "gt":
+	case indicator.GreaterThan:
 		return value > threshold.Value
-	case "neq":
+	case indicator.NotEqualTo:
 		return value != threshold.Value
-	case "eq":
+	case indicator.EqualTo:
 		return value == threshold.Value
 
 	default:
