@@ -470,6 +470,7 @@ jobs:
   - aggregate:
     - get: monitoring-indicator-protocol
       passed: [test-k8s]
+      trigger: true
     - get: interim-grafana-controller-docker-repo
       params: {skip_download: true}
       passed: [test-k8s]
