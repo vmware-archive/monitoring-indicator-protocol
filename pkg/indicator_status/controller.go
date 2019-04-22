@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
@@ -27,9 +26,7 @@ type StatusController struct {
 }
 
 func (c StatusController) Start() {
-	prometheusClient := http.Client{}
-
-	err := c.updateStatuses(prometheusClient)
+	err := c.updateStatuses()
 	if err != nil {
 		log.Printf("failed to update indicator statuses: %s", err)
 	}
@@ -38,7 +35,7 @@ func (c StatusController) Start() {
 	for {
 		select {
 		case <-interval.C:
-			err := c.updateStatuses(prometheusClient)
+			err := c.updateStatuses()
 			if err != nil {
 				log.Printf("failed to update indicator statuses: %s", err)
 			}
@@ -46,7 +43,7 @@ func (c StatusController) Start() {
 	}
 }
 
-func (c StatusController) updateStatuses(prometheusClient http.Client) error {
+func (c StatusController) updateStatuses() error {
 	var statusUpdates []registry.APIV0UpdateIndicatorStatus
 
 	apiv0Documents, err := c.RegistryClient.IndicatorDocuments()

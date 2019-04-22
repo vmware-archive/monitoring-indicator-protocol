@@ -1,0 +1,29 @@
+---
+processes:
+- name: status-controller
+  executable: /var/vcap/packages/indicator-registry/status_controller
+  ephemeral_disk: true
+  args:
+  - --tls-pem-path
+  - /var/vcap/jobs/status-controller/certs/client.crt
+  - --tls-key-path
+  - /var/vcap/jobs/status-controller/certs/client.key
+  - --tls-root-ca-pem
+  - /var/vcap/jobs/status-controller/certs/indicator_protocol_ca.crt
+  - --registry-uri
+  - https://<%= link('indicator-registry').address %>:<%= link('indicator-registry').p('port') %>
+  - --tls-server-cn
+  - <%= link('indicator-registry').p('tls.server_common_name') %>
+  - --prometheus-uri
+  - <%= p('prometheus_uri') %>
+  - --interval
+  - <%= p('interval') %>
+  - --uaa-uri
+  - <%= p('uaa_uri') %>
+  - --uaa-client-id
+  - <%= p('uaa_client_id') %>
+  - --uaa-client-secret
+  - <%= p('uaa_client_secret') %>
+  <% if_p('ssl.skip_cert_verify') do %>
+  - -k
+  <% end %>

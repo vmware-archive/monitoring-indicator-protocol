@@ -219,6 +219,8 @@ jobs:
   - task: deploy
     config:
       params:
+        ENVIRONMENT: madlamp
+        DEPLOYMENT_NAME: cf-01234567890123456789
         BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
         S3_ACCESS_KEY: {{aws-access-key-id}}
         S3_SECRET_KEY: {{aws-secret-access-key}}
@@ -269,15 +271,29 @@ jobs:
           cat << EOF > add-examples-git-source.yml
           ---
           - type: replace
-            path: /instance_groups/name=cf-indicator-registry/jobs/name=indicator-registry/properties/sources?/-
+            path: /instance_groups/name=indicator-registry/jobs/name=indicator-registry/properties/sources?/-
             value:
               type: git
               repository: https://github.com/joerodriguez/indicator-protocol-examples
           EOF
 
+          cat << EOF > add-metric-store-creds.yml
+          ---
+          - type: replace
+            path: /instance_groups/name=indicator-registry/jobs/name=status-controller/properties
+            value:
+              prometheus_uri: https://metric-store.madlamp.cf-denver.com
+              ssl:
+                skip_cert_verify: true
+              uaa_uri: https://uaa.madlamp.cf-denver.com
+              uaa_client_id: admin
+              uaa_client_secret: $(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_admin_secret -j | jq -r .value)
+          EOF
+
           bosh -n -d indicator-registry deploy \
             monitoring-indicator-protocol/bosh-release/manifests/manifest.yml \
-            -o add-examples-git-source.yml
+            -o add-examples-git-source.yml \
+            -o add-metric-store-creds.yml
 
 - name: create-docker-images
   plan:

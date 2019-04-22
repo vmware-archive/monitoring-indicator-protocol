@@ -16,7 +16,7 @@ import (
 func main() {
 	registryURI := flag.String("registry-uri", "", "URI of a registry instance")
 	prometheusURI := flag.String("prometheus-uri", "", "URI of a Prometheus instance")
-	intervalTime := flag.Duration("interval", 5*time.Minute, "Status update interval")
+	updateInterval := flag.Duration("interval", 1*time.Minute, "Status update interval")
 	clientPEM := flag.String("tls-pem-path", "", "Client TLS public cert pem path which can connect to the server (indicator-registry)")
 	clientKey := flag.String("tls-key-path", "", "Server TLS private key path which can connect to the server (indicator-registry)")
 	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs")
@@ -55,7 +55,7 @@ func main() {
 
 	statusController := indicator_status.StatusController{
 		RegistryClient: registryClient,
-		IntervalTime:   *intervalTime,
+		IntervalTime:   *updateInterval,
 		PromQLClient:   prometheusClient,
 	}
 

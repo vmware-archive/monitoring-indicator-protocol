@@ -13,7 +13,7 @@ releases:
   version: latest
 
 instance_groups:
-- name: cf-indicator-registry
+- name: indicator-registry
   azs:
     - z1
   instances: 1
@@ -45,6 +45,15 @@ instance_groups:
     properties:
       output_directory: /var/vcap/data/tmp/
       prometheus_uri: http://localhost:12345
+  - name: status-controller
+    release: indicator-protocol
+    properties:
+      prometheus_uri: prometheus-compliant-uri
+      ssl:
+        skip_cert_verify: false
+      uaa_uri: uaa-uri
+      uaa_client_id: client_with_prometheus_access
+      uaa_client_secret: client_secret
 
 update:
   canaries: 0

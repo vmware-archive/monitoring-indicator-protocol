@@ -1,0 +1,5 @@
+check process status-controller
+  with pidfile /var/vcap/sys/run/bpm/status-controller/status-controller.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start status-controller"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop status-controller" with timeout 60 seconds
+  group vcap
