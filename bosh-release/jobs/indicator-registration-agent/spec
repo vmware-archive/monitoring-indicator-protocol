@@ -18,7 +18,7 @@ consumes:
 properties:
   interval:
     description: "how often to register"
-    default: "5m"
+    default: "30s"
   documents_glob:
     description: "Location of indicator documents"
     default: "/var/vcap/jobs/*/config/indicators.yml"

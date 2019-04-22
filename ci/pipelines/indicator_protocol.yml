@@ -286,8 +286,8 @@ jobs:
               ssl:
                 skip_cert_verify: true
               uaa_uri: https://uaa.madlamp.cf-denver.com
-              uaa_client_id: admin
-              uaa_client_secret: $(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_admin_client_secret -j | jq -r .value)
+              uaa_client_id: healthwatch_admin
+              uaa_client_secret: $(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_cc-service-dashboards_secret -j | jq -r .value)
           EOF
 
           bosh -n -d indicator-registry deploy \
