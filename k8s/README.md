@@ -36,17 +36,6 @@ for prometheus based on `IndicatorDocument`s.
 The `indicator-lifecycle-controller` creates individual Indicator
 resources in k8s for each indicator defined in a document.
 
-### Deployment
-
-After setting up your cluster,
-you can deploy the SRE resources by:
-
-```
-kubectl apply -Rf config
-```
-
-This will install the controllers using the `latest` tag in Docker.
-
 ### Cluster setup
 
 ```bash
@@ -82,11 +71,22 @@ kubectl create ns prometheus
 
 # Install Prometheus helmchart
 helm install stable/prometheus --name prometheus --namespace prometheus
+```
 
-# MIP components
+### Deployment
+
+After setting up your cluster,
+you can deploy the SRE resources by:
+
+```
 kubectl apply -k config
+```
 
-# Apply a simple indicatordocument
+This will install the controllers using the `latest` tag in Docker.
+
+After deploying the SRE resources you can deploy indicatordocument resources:
+
+```
 kubectl apply -f test/valid/simple.yml
 ```
 
