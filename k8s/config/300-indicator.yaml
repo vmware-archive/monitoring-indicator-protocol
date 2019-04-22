@@ -18,7 +18,7 @@ spec:
   - name: Product
     type: string
     description: Product for which the indicator is defined
-    JSONPath: .Spec.product
+    JSONPath: .spec.product
   - name: Age
     type: date
     JSONPath: .metadata.creationTimestamp
