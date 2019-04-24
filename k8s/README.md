@@ -64,7 +64,7 @@ helm init --service-account tiller --upgrade
 kubectl create ns grafana
 
 # Install Grafana helmchart
-helm install stable/grafana --values helm_config/grafana_values.yml --name grafana --namespace grafana
+helm install stable/grafana --values helm_config/dev_grafana_values.yml --name grafana --namespace grafana
 
 # Create Prometheus namespace
 kubectl create ns prometheus

@@ -1,0 +1,5 @@
+rabbitmq:
+  url: http://rabbit-mq-rabbitmq.rabbit.svc.cluster.local:15672
+  user: user
+  password: XXXXXXXXXX  # You'll need to retrieve this from Kubernetes
+  skip_verify: true

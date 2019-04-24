@@ -31,7 +31,7 @@ require (
 	github.com/prometheus/tsdb v0.0.0-20181016081506-18af5763d8f5 // indirect
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	github.com/spf13/pflag v1.0.3 // indirect
-	golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a // indirect
+	golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a
 	golang.org/x/net v0.0.0-20190415100556-4a65cf94b679 // indirect
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421 // indirect
 	golang.org/x/sys v0.0.0-20190415145633-3fd5a3612ccd // indirect

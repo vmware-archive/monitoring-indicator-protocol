@@ -1,0 +1,28 @@
+apiVersion: apps.pivotal.io/v1alpha1
+kind: IndicatorDocument
+metadata:
+  name: rabbitmq
+spec:
+  product:
+    name: rabbitmq
+    version: 3.7.14
+  indicators:
+    - name: fileDescriptorConsumption
+      promql: rabbitmq_fd_used / rabbitmq_fd_total
+      alert: { for: 10m }
+      thresholds:
+        - level: critical
+          gt: .8
+    - name: memoryConsumption
+      promql: rabbitmq_node_mem_used / rabbitmq_node_mem_limit
+      alert: { for: 10m }
+      thresholds:
+        - level: critical
+          gt: .8
+  layout:
+    title: RabbitMQ
+    sections:
+      - title: Request rate
+        indicators:
+          - fileDescriptorConsumption
+          - memoryConsumption

@@ -1,0 +1,6 @@
+extraScrapeConfigs: |
+  - job_name: RabbitMQ
+    kubernetes_sd_configs:
+    - role: service
+      namespaces:
+        names: [rabbit]
