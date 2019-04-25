@@ -12,6 +12,7 @@ wiki-resources
 
 k8s/README.md
 k8s/config
+k8s/examples
 k8s/hack
 k8s/helm_config
 k8s/overlays

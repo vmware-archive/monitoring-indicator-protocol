@@ -12,6 +12,7 @@ resources:
     - ci
     - bosh-release/.final_builds
     - bosh-release/releases
+    - k8s/examples
 - name: env-state
   type: git
   source:
