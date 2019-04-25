@@ -3,5 +3,55 @@ sources:
   - type: local
     path: example_patch.yml
   - type: git
-    repository: https://github.com/pivotal/monitoring-indicator-protocol.git
+    repository: git@github.com:pivotal/monitoring-indicator-protocol.git
+    private_key: | # This can be omitted for public repositories
+        -----BEGIN OPENSSH PRIVATE KEY-----
+        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
+        -----END OPENSSH PRIVATE KEY-----
     glob: "**/*.y*ml"

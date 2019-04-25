@@ -108,6 +108,7 @@ type Source struct {
 	Path       string `yaml:"path"`
 	Repository string `yaml:"repository"`
 	Token      string `yaml:"token"`
+	Key        string `yaml:"private_key"`
 	Glob       string `yaml:"glob"`
 }
 

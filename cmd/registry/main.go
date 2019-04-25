@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"golang.org/x/crypto/ssh"
 	"log"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/configuration"
@@ -88,17 +90,25 @@ func upsertFromConfig(configFile string, store *registry.DocumentStore) {
 
 func getRealRepository(s configuration.Source) (*git.Repository, error) {
 	storage := memory.NewStorage()
-	var auth transport.AuthMethod = nil
-	if s.Token != "" {
-		auth = &http.BasicAuth{
-			Username: "github",
-			Password: s.Token,
-		}
-	}
+	auth := getAuth(s)
 	repoURL := s.Repository
 	r, err := git.Clone(storage, nil, &git.CloneOptions{
 		Auth: auth,
 		URL:  repoURL,
 	})
 	return r, err
+}
+
+func getAuth(s configuration.Source) transport.AuthMethod {
+	if s.Token != "" {
+		return &http.BasicAuth{
+			Username: "github",
+			Password: s.Token,
+		}
+	}
+	if s.Key != "" {
+		signer, _ := ssh.ParsePrivateKey([]byte(s.Key))
+		return &ssh2.PublicKeys{User: "git", Signer: signer}
+	}
+	return nil
 }
