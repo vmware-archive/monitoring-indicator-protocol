@@ -19,6 +19,12 @@ spec:
       thresholds:
         - level: critical
           gt: .8
+    - name: diskRemaining
+      promql: rabbitmq_node_disk_free - rabbitmq_node_disk_free_limit
+      alert: { for: 10m }
+      thresholds:
+        - level: critical
+          lt: 1000000000
   layout:
     title: RabbitMQ
     sections:
@@ -26,3 +32,4 @@ spec:
         indicators:
           - fileDescriptorConsumption
           - memoryConsumption
+          - diskRemaining

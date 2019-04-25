@@ -35,7 +35,7 @@ Note that the output includes instructions for retrieving the generated admin
 password after installation completes.
 It should involve running a command that looks something like this:
 ```bash
-kubectl get secret --namespace rabbit rabbit-mq -o jsonpath="{.data.rabbitmq-password}" | base64 --decode
+kubectl get secret --namespace rabbit rabbit-mq-rabbitmq -o jsonpath="{.data.rabbitmq-password}" | base64 --decode
 ```
 You'll need this password soon, so either retrieve and retain it,
 or retain the command.
