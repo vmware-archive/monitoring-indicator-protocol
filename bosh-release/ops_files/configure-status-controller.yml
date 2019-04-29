@@ -1,0 +1,10 @@
+---
+- type: replace
+  path: /instance_groups/name=indicator-registry/jobs/name=status-controller/properties
+  value:
+    prometheus_uri: ((prometheus_uri))
+    ssl:
+      skip_cert_verify: true
+    uaa_uri: ((uaa_uri))
+    uaa_client_id: ((uaa_client_id))
+    uaa_client_secret: ((uaa_client_secret))

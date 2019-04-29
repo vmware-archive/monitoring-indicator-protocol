@@ -1,0 +1,6 @@
+---
+- type: replace
+  path: /instance_groups/name=indicator-registry/jobs/name=indicator-registry/properties/sources?/-
+  value:
+    type: git
+    repository: https://github.com/joerodriguez/indicator-protocol-examples
