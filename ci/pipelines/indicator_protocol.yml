@@ -6,7 +6,7 @@ resources:
     uri: https://github.com/pivotal/monitoring-indicator-protocol
     branch: master
     username: git
-    password: {{indicator-protocol-access-token}}
+    password: ((indicator-protocol-access-token))
     ignore_paths:
     - README.md
     - ci
@@ -18,7 +18,7 @@ resources:
   source:
     branch: master
     uri: git@github.com:pivotal-cf/denver-locks.git
-    private_key: {{event-producer-github-key}}
+    private_key: ((event-producer-github-key))
 - name: release-version
   type: semver
   source:
@@ -27,85 +27,85 @@ resources:
     bucket: indicator-protocol-release-version
     region_name: us-east-2
     key: version
-    access_key_id: {{aws-access-key-id}}
-    secret_access_key: {{aws-secret-access-key}}
+    access_key_id: ((aws-access-key-id))
+    secret_access_key: ((aws-secret-access-key))
 - name: github-release-drafts
   type: github-release
   source:
     user: pivotal
     repository: monitoring-indicator-protocol
-    access_token: {{indicator-protocol-access-token}}
+    access_token: ((indicator-protocol-access-token))
     drafts: true
 - name: grafana-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/grafana-indicator-controller
     tag: release-candidate
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: interim-grafana-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/grafana-indicator-controller
     tag: last-build
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: prometheus-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/prometheus-indicator-controller
     tag: release-candidate
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: interim-prometheus-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/prometheus-indicator-controller
     tag: last-build
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: indicator-lifecycle-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/indicator-lifecycle-controller
     tag: release-candidate
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: interim-indicator-lifecycle-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/indicator-lifecycle-controller
     tag: last-build
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: indicator-admission-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/indicator-admission
     tag: release-candidate
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: interim-indicator-admission-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/indicator-admission
     tag: last-build
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: indicator-status-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/indicator-status-controller
     tag: release-candidate
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: interim-indicator-status-controller-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/indicator-status-controller
     tag: last-build
-    username: {{dockerhub-username}}
-    password: {{dockerhub-password}}
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 
 jobs:
 - name: build-and-test
@@ -237,8 +237,8 @@ jobs:
         ENVIRONMENT: madlamp
         DEPLOYMENT_NAME: cf-01234567890123456789
         BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
-        S3_ACCESS_KEY: {{aws-access-key-id}}
-        S3_SECRET_KEY: {{aws-secret-access-key}}
+        S3_ACCESS_KEY: ((aws-access-key-id))
+        S3_SECRET_KEY: ((aws-secret-access-key))
       platform: linux
       image_resource:
         type: docker-image
@@ -406,7 +406,7 @@ jobs:
         - name: interim-indicator-admission-controller-docker-repo
         - name: interim-indicator-status-controller-docker-repo
       params:
-        SERVICE_ACCOUNT: {{gcp-service-account}}
+        SERVICE_ACCOUNT: ((gcp-service-account))
         CLUSTER_NAME: mip-test
         PROJECT_NAME: cf-denver
       run:
@@ -480,7 +480,7 @@ jobs:
       inputs:
         - name: monitoring-indicator-protocol
       params:
-        SERVICE_ACCOUNT: {{gcp-service-account}}
+        SERVICE_ACCOUNT: ((gcp-service-account))
         CLUSTER_NAME: mip-test
         PROJECT_NAME: cf-denver
       run:
@@ -547,7 +547,7 @@ jobs:
       - name: interim-indicator-admission-controller-docker-repo
       - name: interim-indicator-status-controller-docker-repo
       params:
-        SERVICE_ACCOUNT: {{gcp-service-account}}
+        SERVICE_ACCOUNT: ((gcp-service-account))
         CLUSTER_NAME: mip-acceptance
         PROJECT_NAME: cf-denver
       run:
@@ -672,8 +672,8 @@ jobs:
       params:
         RELEASE_NAME: indicator-protocol
         S3_BUCKET: cf-indicators-bosh-blubs
-        S3_ACCESS_KEY: {{aws-access-key-id}}
-        S3_SECRET_KEY: {{aws-secret-access-key}}
+        S3_ACCESS_KEY: ((aws-access-key-id))
+        S3_SECRET_KEY: ((aws-secret-access-key))
       run:
         path: bash
         args:
