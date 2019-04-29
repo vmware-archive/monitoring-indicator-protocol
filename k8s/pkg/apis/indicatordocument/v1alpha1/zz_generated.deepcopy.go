@@ -205,6 +205,11 @@ func (in *IndicatorSpec) DeepCopyInto(out *IndicatorSpec) {
 		}
 	}
 	in.Presentation.DeepCopyInto(&out.Presentation)
+	if in.Status != nil {
+		in, out := &in.Status, &out.Status
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 

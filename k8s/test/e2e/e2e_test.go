@@ -184,6 +184,52 @@ func TestAdmission(t *testing.T) {
 	})
 }
 
+func TestStatus(t *testing.T) {
+	t.Run("it updates indicator status", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		ns, cleanup := createNamespace(t)
+		defer cleanup()
+
+		var threshold float64 = 10
+		indicator := &v1alpha1.Indicator{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:            "my-name",
+				Namespace:       ns,
+			},
+			Spec: v1alpha1.IndicatorSpec{
+				Name:   "my_cool_name",
+				Promql: `prometheus_http_request_duration_seconds_sum{handler="/-/healthy"}`,
+				Alert: v1alpha1.Alert{
+					For:  "5m",
+					Step: "2m",
+				},
+				Thresholds: []v1alpha1.Threshold{
+					{
+						Level: "critical",
+						Gte:   &threshold,
+					},
+				},
+			},
+		}
+		t.Logf("Creating indicator in namespace: %s", ns)
+		_, err := clients.idClient.Indicators(ns).Create(indicator)
+		g.Expect(err).To(Not(HaveOccurred()))
+
+		resources := clients.idClient.Indicators(ns)
+
+		g.Eventually(func() string {
+			indicator, err = getSoloIndicator(resources, "my-name")
+			if err != nil {
+				t.Logf("error: %s", err)
+			}
+			if indicator.Spec.Status == nil {
+				return ""
+			}
+			return *indicator.Spec.Status
+		}, 35*time.Second).Should(Equal("HEALTHY"))
+	})
+}
+
 func getIndicatorPresentation(t *testing.T, ns string, indicatorDocName string, indicatorName string) func() *v1alpha1.Presentation {
 	return func() *v1alpha1.Presentation {
 		resources := clients.idClient.Indicators(ns)
@@ -198,6 +244,10 @@ func getIndicatorPresentation(t *testing.T, ns string, indicatorDocName string, 
 
 func getIndicator(resources clientsetV1alpha1.IndicatorInterface, indicatorDocName string, indicatorName string) (*v1alpha1.Indicator, error) {
 	return resources.Get(fmt.Sprintf("%s-%s", indicatorDocName, strings.Replace(indicatorName, "_", "-", -1)), metav1.GetOptions{})
+}
+
+func getSoloIndicator(resources clientsetV1alpha1.IndicatorInterface, indicatorName string) (*v1alpha1.Indicator, error) {
+	return resources.Get(indicatorName, metav1.GetOptions{})
 }
 
 func grafanaApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocument) bool {

@@ -16,7 +16,7 @@ func TestStatusMatcher(t *testing.T) {
 		g.Expect(status).To(Equal("UNDEFINED"))
 	})
 
-	t.Run("returns healthy when there are no values", func(t *testing.T) {
+	t.Run("returns unknown when there are no values", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		status := indicator_status.Match([]indicator.Threshold{{
@@ -24,7 +24,7 @@ func TestStatusMatcher(t *testing.T) {
 			Operator: indicator.LessThanOrEqualTo,
 			Value:    0,
 		}}, []float64{})
-		g.Expect(status).To(Equal("HEALTHY"))
+		g.Expect(status).To(Equal("UNKNOWN"))
 	})
 
 	t.Run("returns the threshold name when it's breached", func(t *testing.T) {

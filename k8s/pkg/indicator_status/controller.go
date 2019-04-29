@@ -21,13 +21,13 @@ type PromQLClient interface {
 }
 
 type indicatorStore struct {
-	sync.RWMutex
+	sync.Mutex
 	indicators []types.Indicator
 }
 
 type Controller struct {
 	interval        time.Duration
-	indicatorStore  indicatorStore
+	indicatorStore  *indicatorStore
 	promqlClient    PromQLClient
 	indicatorClient v1alpha1.IndicatorsGetter
 	clock           clock.Clock
@@ -45,7 +45,7 @@ func NewController(
 		interval:        interval,
 		indicatorClient: indicatorClient,
 		promqlClient:    promqlClient,
-		indicatorStore: indicatorStore{
+		indicatorStore: &indicatorStore{
 			indicators: make([]types.Indicator, 0),
 		},
 		clock:     clock,
@@ -54,16 +54,15 @@ func NewController(
 }
 
 func (c *Controller) Start() {
-	c.indicatorStore.Lock()
 	existingList, err := c.indicatorClient.Indicators(c.namespace).List(v1.ListOptions{})
 	if err != nil {
 		log.Printf("Could not load existing indicators on Start: %s", err)
 	}
 	if existingList.Items != nil {
+		c.indicatorStore.Lock()
 		c.indicatorStore.indicators = existingList.Items
+		c.indicatorStore.Unlock()
 	}
-	c.indicatorStore.Unlock()
-
 	c.updateStatuses()
 	for {
 		c.clock.Sleep(c.interval)
@@ -117,12 +116,14 @@ func (c *Controller) OnDelete(obj interface{}) {
 }
 
 func (c *Controller) updateStatuses() {
+	//TODO: move status off of spec onto a subresource
 	c.indicatorStore.Lock()
 	defer c.indicatorStore.Unlock()
 
 	for _, indicator := range c.indicatorStore.indicators {
 		status, err := c.getStatus(indicator)
 		if err != nil {
+			log.Printf("Error getting status: %s", err)
 			continue
 		}
 

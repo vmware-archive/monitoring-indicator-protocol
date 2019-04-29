@@ -6,8 +6,9 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
-var undefined = "UNDEFINED"
-var healthy = "HEALTHY"
+const healthy = "HEALTHY"
+const undefined = "UNDEFINED"
+const unknown = "UNKNOWN"
 
 // Match takes thresholds and values and determines what threshold has been
 // breached. It returns nil if nothing was breached.
@@ -15,7 +16,9 @@ func Match(thresholds []indicator.Threshold, values []float64) string {
 	if len(thresholds) == 0 {
 		return undefined
 	}
-
+	if len(values) == 0 {
+		return unknown
+	}
 	var breachedThresholdLevels []string
 	for _, threshold := range thresholds {
 		for _, value := range values {
@@ -29,8 +32,7 @@ func Match(thresholds []indicator.Threshold, values []float64) string {
 		return healthy
 	}
 
-	status := selectThreshold(breachedThresholdLevels)
-	return status
+	return selectThreshold(breachedThresholdLevels)
 }
 
 func selectThreshold(thresholdLevels []string) string {

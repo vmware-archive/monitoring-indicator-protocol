@@ -23,10 +23,16 @@ pushd ~/workspace/monitoring-indicator-protocol > /dev/null
         -f k8s/cmd/indicator-admission/Dockerfile \
         .
 
+    docker build \
+        -t indicatorprotocol/indicator-status-controller:dev \
+        -f k8s/cmd/indicator-status-controller/Dockerfile \
+        .
+
     docker push indicatorprotocol/grafana-indicator-controller:dev
     docker push indicatorprotocol/prometheus-indicator-controller:dev
     docker push indicatorprotocol/indicator-lifecycle-controller:dev
     docker push indicatorprotocol/indicator-admission:dev
+    docker push indicatorprotocol/indicator-status-controller:dev
 
 
     grafana_digest="$(
@@ -45,6 +51,10 @@ pushd ~/workspace/monitoring-indicator-protocol > /dev/null
         docker inspect indicatorprotocol/indicator-admission:dev \
             | jq .[0].RepoDigests[0] --raw-output
     )"
+    indicator_status_digest="$(
+        docker inspect indicatorprotocol/indicator-status-controller:dev \
+            | jq .[0].RepoDigests[0] --raw-output
+    )"
 
     mkdir -p k8s/overlays/dev
     echo "
@@ -59,6 +69,7 @@ bases:
         kustomize edit set image "$prometheus_digest"
         kustomize edit set image "$indicator_lifecycle_digest"
         kustomize edit set image "$indicator_admission_digest"
+        kustomize edit set image "$indicator_status_digest"
     popd > /dev/null
 
     kubectl apply -k k8s/overlays/dev
