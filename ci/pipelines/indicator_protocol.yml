@@ -256,13 +256,11 @@ jobs:
         - -c
         - |
           #!/bin/bash
-          set -ex
+          set -e
 
-          set +x
           pushd "env-state/${BBL_STATE_DIR}"
             eval "$(bbl print-env)"
           popd
-          set -x
 
           mkdir -p monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
           rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
