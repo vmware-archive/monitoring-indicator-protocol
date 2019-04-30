@@ -29,7 +29,7 @@ type APIV0Threshold struct {
 type APIV0Presentation struct {
 	ChartType    string   `json:"chartType"`
 	CurrentValue bool     `json:"currentValue"`
-	Frequency    int64	  `json:"frequency"`
+	Frequency    int64    `json:"frequency"`
 	Labels       []string `json:"labels"`
 	Units        string   `json:"units"`
 }
@@ -39,13 +39,18 @@ type APIV0Indicator struct {
 	PromQL        string                `json:"promql"`
 	Thresholds    []APIV0Threshold      `json:"thresholds"`
 	Alert         APIV0Alert            `json:"alert"`
+	ServiceLevel  *APIV0ServiceLevel	`json:"serviceLevel"`
 	Documentation map[string]string     `json:"documentation,omitempty"`
-	Presentation  *APIV0Presentation    `json:"presentation"`
+	Presentation  APIV0Presentation     `json:"presentation"`
 	Status        *APIV0IndicatorStatus `json:"status"`
 }
 
+type APIV0ServiceLevel struct {
+	Objective float64 `json:"objective"`
+}
+
 type APIV0IndicatorStatus struct {
-	Value     *string    `json:"value"`
+	Value     *string   `json:"value"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
@@ -98,7 +103,7 @@ func convertIndicator(i APIV0Indicator) indicator.Indicator {
 			Step: i.Alert.Step,
 		},
 		Documentation: i.Documentation,
-		Presentation: &indicator.Presentation{
+		Presentation: indicator.Presentation{
 			ChartType:    indicator.ChartType(i.Presentation.ChartType),
 			CurrentValue: i.Presentation.CurrentValue,
 			Frequency:    i.Presentation.Frequency,
@@ -160,7 +165,7 @@ func convertLayoutSection(s APIV0Section, indicators []indicator.Indicator) indi
 	}
 }
 
-func ToAPIV0Document(doc indicator.Document, getStatus func (string) *APIV0IndicatorStatus) APIV0Document {
+func ToAPIV0Document(doc indicator.Document, getStatus func(string) *APIV0IndicatorStatus) APIV0Document {
 	indicators := make([]APIV0Indicator, 0)
 
 	for _, i := range doc.Indicators {
@@ -172,34 +177,33 @@ func ToAPIV0Document(doc indicator.Document, getStatus func (string) *APIV0Indic
 				Value:    t.Value,
 			})
 		}
-		var presentation *APIV0Presentation
-		if i.Presentation != nil {
-			labels := make([]string, 0)
-			for _, l := range i.Presentation.Labels {
-				labels = append(labels, l)
-			}
-			presentation = &APIV0Presentation{
-				ChartType:    string(i.Presentation.ChartType),
-				CurrentValue: i.Presentation.CurrentValue,
-				Frequency:    i.Presentation.Frequency,
-				Labels:       labels,
-				Units:        i.Presentation.Units,
-			}
+		labels := make([]string, 0)
+		for _, l := range i.Presentation.Labels {
+			labels = append(labels, l)
+		}
+		presentation := APIV0Presentation{
+			ChartType:    string(i.Presentation.ChartType),
+			CurrentValue: i.Presentation.CurrentValue,
+			Frequency:    i.Presentation.Frequency,
+			Labels:       labels,
+			Units:        i.Presentation.Units,
 		}
 
 		alert := APIV0Alert{
 			For:  i.Alert.For,
 			Step: i.Alert.Step,
 		}
+		serviceLevel := convertServiceLevel(i.ServiceLevel)
 
 		indicators = append(indicators, APIV0Indicator{
 			Name:          i.Name,
 			PromQL:        i.PromQL,
 			Thresholds:    thresholds,
 			Alert:         alert,
+			ServiceLevel:  serviceLevel,
 			Documentation: i.Documentation,
 			Presentation:  presentation,
-			Status: getStatus(i.Name),
+			Status:        getStatus(i.Name),
 		})
 	}
 
@@ -233,5 +237,14 @@ func ToAPIV0Document(doc indicator.Document, getStatus func (string) *APIV0Indic
 			Sections:    sections,
 			Owner:       doc.Layout.Owner,
 		},
+	}
+}
+
+func convertServiceLevel(level *indicator.ServiceLevel) *APIV0ServiceLevel {
+	if level == nil {
+		return nil
+	}
+	return &APIV0ServiceLevel{
+		Objective: level.Objective,
 	}
 }

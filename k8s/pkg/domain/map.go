@@ -72,8 +72,8 @@ func ToDomainIndicator(i v1alpha1.IndicatorSpec) indicator.Indicator {
 	}
 }
 
-func toDomainPresentation(presentation v1alpha1.Presentation) *indicator.Presentation {
-	return &indicator.Presentation{
+func toDomainPresentation(presentation v1alpha1.Presentation) indicator.Presentation {
+	return indicator.Presentation{
 		ChartType:    presentation.ChartType,
 		CurrentValue: presentation.CurrentValue,
 		Frequency:    presentation.Frequency,

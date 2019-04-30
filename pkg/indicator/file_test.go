@@ -39,7 +39,7 @@ indicators:
 						For:  "1m",
 						Step: "1m",
 					},
-					Presentation: &indicator.Presentation{
+					Presentation: indicator.Presentation{
 						CurrentValue: false,
 						ChartType:    "step",
 						Frequency:    0,
@@ -58,7 +58,7 @@ indicators:
 								For:  "1m",
 								Step: "1m",
 							},
-							Presentation: &indicator.Presentation{
+							Presentation: indicator.Presentation{
 								CurrentValue: false,
 								ChartType:    "step",
 								Frequency:    0,
@@ -88,7 +88,7 @@ indicators:
 						For:  "1m",
 						Step: "1m",
 					},
-					Presentation: &indicator.Presentation{
+					Presentation: indicator.Presentation{
 						CurrentValue: false,
 						ChartType:    "step",
 						Frequency:    0,
@@ -107,7 +107,7 @@ indicators:
 								For:  "1m",
 								Step: "1m",
 							},
-							Presentation: &indicator.Presentation{
+							Presentation: indicator.Presentation{
 								CurrentValue: false,
 								ChartType:    "step",
 								Frequency:    0,

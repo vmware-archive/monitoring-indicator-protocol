@@ -39,6 +39,8 @@ indicators:
   thresholds:
   - level: warning
     gte: 50
+  serviceLevel:
+    objective: 99
 
 layout:
   title: Monitoring Test Product
@@ -51,39 +53,43 @@ layout:
 `), indicator.SkipMetadataInterpolation, indicator.OverrideMetadata(map[string]string{"deployment": "well-performing-deployment"}))
 		g.Expect(err).ToNot(HaveOccurred())
 
+		indie := indicator.Indicator{
+			Name:   "test_performance_indicator",
+			PromQL: `prom{deployment="$deployment"}`,
+			Alert: indicator.Alert{
+				For:  "1m",
+				Step: "1m",
+			},
+			Thresholds: []indicator.Threshold{
+				{
+					Level:    "warning",
+					Operator: indicator.GreaterThanOrEqualTo,
+					Value:    50,
+				},
+			},
+			ServiceLevel: &indicator.ServiceLevel{
+				Objective: float64(99),
+			},
+			Presentation: indicator.Presentation{
+				CurrentValue: false,
+				ChartType:    indicator.StepChart,
+				Frequency:    5,
+				Labels:       []string{"job", "ip"},
+				Units:        "nanoseconds",
+			},
+			Documentation: map[string]string{
+				"title":               "Test Performance Indicator",
+				"description":         "This is a valid markdown description.",
+				"recommendedResponse": "Panic!",
+				"thresholdNote":       "Threshold Note Text",
+			},
+		}
 		g.Expect(d).To(BeEquivalentTo(indicator.Document{
 			APIVersion: "v0",
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Metadata:   map[string]string{"deployment": "well-performing-deployment"},
 			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_performance_indicator",
-					PromQL: `prom{deployment="$deployment"}`,
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Thresholds: []indicator.Threshold{
-						{
-							Level:    "warning",
-							Operator: indicator.GreaterThanOrEqualTo,
-							Value:    50,
-						},
-					},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    indicator.StepChart,
-						Frequency:    5,
-						Labels:       []string{"job", "ip"},
-						Units:        "nanoseconds",
-					},
-					Documentation: map[string]string{
-						"title":               "Test Performance Indicator",
-						"description":         "This is a valid markdown description.",
-						"recommendedResponse": "Panic!",
-						"thresholdNote":       "Threshold Note Text",
-					},
-				},
+				indie,
 			},
 			Layout: indicator.Layout{
 				Title:       "Monitoring Test Product",
@@ -91,95 +97,10 @@ layout:
 				Sections: []indicator.Section{{
 					Title:       "Test Section",
 					Description: "This section includes indicators and metrics",
-					Indicators: []indicator.Indicator{{
-						Name:   "test_performance_indicator",
-						PromQL: `prom{deployment="$deployment"}`,
-						Alert: indicator.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
-						Thresholds: []indicator.Threshold{
-							{
-								Level:    "warning",
-								Operator: indicator.GreaterThanOrEqualTo,
-								Value:    50,
-							},
-						},
-						Presentation: &indicator.Presentation{
-							ChartType: indicator.StepChart,
-							Frequency: 5,
-							Labels:    []string{"job", "ip"},
-							Units:     "nanoseconds",
-						},
-						Documentation: map[string]string{
-							"title":               "Test Performance Indicator",
-							"description":         "This is a valid markdown description.",
-							"recommendedResponse": "Panic!",
-							"thresholdNote":       "Threshold Note Text",
-						},
-					}},
+					Indicators:  []indicator.Indicator{indie},
 				}},
 			},
 		}))
-	})
-
-	t.Run("it uses defaults in the case of empty presentation data", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		d, err := indicator.ReadIndicatorDocument([]byte(`---
-apiVersion: v0
-product:
-  name: test_product
-  version: 0.0.1
-metadata:
-  deployment: test_deployment
-
-indicators:
-- name: test_performance_indicator
-  promql: prom{deployment="$deployment"}
-
-layout:
-  sections:
-  - title: Metrics
-    indicators:
-    - test_performance_indicator
-
-`))
-		g.Expect(err).ToNot(HaveOccurred())
-
-		g.Expect(*d.Indicators[0].Presentation).To(BeEquivalentTo(indicator.Presentation{
-			ChartType:    "step",
-			CurrentValue: false,
-			Frequency:    0,
-			Labels:       []string{},
-		}))
-	})
-
-	t.Run("it sets chartType to 'step' if none is provided", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		d, err := indicator.ReadIndicatorDocument([]byte(`---
-apiVersion: v0
-product:
-  name: test_product
-  version: 0.0.1
-metadata:
-  deployment: test_deployment
-
-indicators:
-- name: test_performance_indicator
-  promql: prom{deployment="$deployment"}
-  presentation:
-    currentValue: false
-
-layout:
-  sections:
-  - title: Metrics
-    indicators:
-    - test_performance_indicator
-
-`))
-		g.Expect(err).ToNot(HaveOccurred())
-
-		g.Expect(d.Indicators[0].Presentation.ChartType).To(BeEquivalentTo("step"))
 	})
 }
 
@@ -311,45 +232,6 @@ layout:
   `))
 		g.Expect(err).To(MatchError(ContainSubstring("documentation.sections[0].indicators[0] references non-existent indicator")))
 	})
-}
-
-func TestReturnsDefaultLayoutWhenGivenNoLayout(t *testing.T) {
-	g := NewGomegaWithT(t)
-	d, err := indicator.ReadIndicatorDocument([]byte(`---
-apiVersion: v0
-product:
-  name: well-performing-component
-  version: 0.0.1
-metadata:
-  deployment: valid-deployment
-
-indicators:
-- name: test_performance_indicator
-  promql: promql_test_expr
-`))
-	g.Expect(err).ToNot(HaveOccurred())
-
-	g.Expect(d.Layout).To(Equal(indicator.Layout{
-		Sections: []indicator.Section{{
-			Title: "Metrics",
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_performance_indicator",
-					PromQL: "promql_test_expr",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
-					},
-					Presentation: &indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-				},
-			},
-		}},
-	}))
 }
 
 func TestReturnsACompletePatchDocument(t *testing.T) {
@@ -1033,7 +915,7 @@ indicators:
 	})
 }
 
-func TestDefaultAlertConfig(t *testing.T) {
+func TestDefaults(t *testing.T) {
 	t.Run("populates default alert config when no alert given", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		d, err := indicator.ReadIndicatorDocument([]byte(`---
@@ -1104,8 +986,121 @@ indicators:
 			Step: "1m",
 		}))
 	})
-}
 
+	t.Run("sets a default layout when not provided", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_performance_indicator
+  promql: promql_test_expr
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Layout).To(Equal(indicator.Layout{
+			Sections: []indicator.Section{{
+				Title: "Metrics",
+				Indicators: []indicator.Indicator{
+					{
+						Name:   "test_performance_indicator",
+						PromQL: "promql_test_expr",
+						Alert: indicator.Alert{
+							For:  "1m",
+							Step: "1m",
+						},
+						Presentation: indicator.Presentation{
+							CurrentValue: false,
+							ChartType:    "step",
+							Frequency:    0,
+							Labels:       []string{},
+						},
+					},
+				},
+			}},
+		}))
+	})
+
+	t.Run("it uses defaults in the case of empty presentation data", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+metadata:
+  deployment: test_deployment
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="$deployment"}
+
+layout:
+  sections:
+  - title: Metrics
+    indicators:
+    - test_performance_indicator
+
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].Presentation).To(BeEquivalentTo(indicator.Presentation{
+			ChartType:    "step",
+			CurrentValue: false,
+			Frequency:    0,
+			Labels:       []string{},
+		}))
+	})
+
+	t.Run("it sets chartType to 'step' if none is provided", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+metadata:
+  deployment: test_deployment
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="$deployment"}
+  presentation:
+    currentValue: false
+
+layout:
+  sections:
+  - title: Metrics
+    indicators:
+    - test_performance_indicator
+
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].Presentation.ChartType).To(BeEquivalentTo("step"))
+	})
+
+	t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="$deployment"}
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].ServiceLevel).To(BeNil())
+	})
+}
 func strPtr(s string) *string {
 	return &s
 }

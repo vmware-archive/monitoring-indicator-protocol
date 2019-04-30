@@ -64,7 +64,7 @@ indicators:
 							For:  "1m",
 							Step: "1m",
 						},
-						Presentation: &indicator.Presentation{
+						Presentation: indicator.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
 							Frequency:    0,
@@ -87,7 +87,7 @@ indicators:
 					For:  "1m",
 					Step: "1m",
 				},
-				Presentation: &indicator.Presentation{
+				Presentation: indicator.Presentation{
 					CurrentValue: false,
 					ChartType:    "step",
 					Frequency:    0,
@@ -219,19 +219,29 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 				"deployment": "abc-123",
 			},
 			Indicators: []indicator.Indicator{{
-				Name: "test_errors1",
+				Name:       "indie1",
+				PromQL:     "promql1",
 				Alert: indicator.Alert{
 					For:  "5m",
 					Step: "10s",
 				},
+				ServiceLevel: nil,
+				Presentation: test_fixtures.DefaultPresentation(),
 			}, {
-				Name: "test_errors2",
+				Name:       "indie2",
+				PromQL:     "promql2",
 				Alert: indicator.Alert{
 					For:  "5m",
 					Step: "10s",
 				},
-				Presentation: &indicator.Presentation{
-					Units: "nanoseconds",
+				ServiceLevel: &indicator.ServiceLevel{
+					Objective: float64(99.99),
+				},
+				Presentation: indicator.Presentation{
+					ChartType:    "status",
+					CurrentValue: false,
+					Frequency:    0,
+					Units:        "nanoseconds",
 				},
 			}},
 		})
@@ -239,7 +249,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		statusStore := status_store.New(func() time.Time { return time.Date(2012, 12, 1, 16, 45, 19, 0, time.UTC) })
 		statusStore.UpdateStatus(status_store.UpdateRequest{
 			Status:        test_fixtures.StrPtr("critical"),
-			IndicatorName: "test_errors2",
+			IndicatorName: "indie2",
 			DocumentUID:   "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
 		})
 
@@ -266,26 +276,36 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
                     },
                     "indicators": [
                       {
-                        "name": "test_errors1",
-                        "promql": "",
+                        "name": "indie1",
+                        "promql": "promql1",
                         "thresholds": [],
 						"alert": {
 							"for": "5m",
 							"step": "10s"
 						},
-                        "presentation": null,
+						"serviceLevel": null,
+                        "presentation": {
+                          "chartType": "step",
+                          "currentValue": false,
+                          "frequency": 0,
+                          "labels": [],
+                          "units": ""
+                        },
                         "status": null
                       },
                       {
-                        "name": "test_errors2",
-                        "promql": "",
+                        "name": "indie2",
+                        "promql": "promql2",
                         "thresholds": [],
 						"alert": {
 							"for": "5m",
 							"step": "10s"
 						},
+						"serviceLevel": {
+							"objective": 99.99
+						},
                         "presentation": {
-                          "chartType": "",
+                          "chartType": "status",
                           "currentValue": false,
                           "frequency": 0,
                           "labels": [],

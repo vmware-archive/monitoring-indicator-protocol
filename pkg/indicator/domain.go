@@ -69,8 +69,13 @@ type Indicator struct {
 	PromQL        string
 	Thresholds    []Threshold
 	Alert         Alert
+	ServiceLevel  *ServiceLevel
 	Documentation map[string]string
-	Presentation  *Presentation
+	Presentation  Presentation
+}
+
+type ServiceLevel struct {
+	Objective float64
 }
 
 type Alert struct {

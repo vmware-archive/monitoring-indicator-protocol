@@ -69,7 +69,7 @@ func TestMap(t *testing.T) {
 				Step: "1m",
 			},
 			Documentation: map[string]string{"docs": "explained"},
-			Presentation: &indicator.Presentation{
+			Presentation: indicator.Presentation{
 				ChartType:    indicator.BarChart,
 				CurrentValue: false,
 				Frequency:    5,
@@ -128,7 +128,7 @@ func TestMap(t *testing.T) {
 			Name:         "my-indicator",
 			PromQL:       "my_promql",
 			Thresholds:   []indicator.Threshold{},
-			Presentation: &indicator.Presentation{},
+			Presentation: indicator.Presentation{},
 		}
 
 		domainDoc := indicator.Document{

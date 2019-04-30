@@ -259,7 +259,7 @@ func TestChartType(t *testing.T) {
 			Indicators: []indicator.Indicator{{
 				Name:   "my_fair_indicator",
 				PromQL: "rate(speech)",
-				Presentation: &indicator.Presentation{
+				Presentation: indicator.Presentation{
 					ChartType: "fakey-fake",
 				},
 			}},

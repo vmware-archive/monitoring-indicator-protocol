@@ -5,21 +5,23 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
-func DefaultPresentation() *indicator.Presentation {
-	return &indicator.Presentation{
+func DefaultPresentation() indicator.Presentation {
+	return indicator.Presentation{
 		ChartType:    "step",
 		CurrentValue: false,
 		Frequency:    0,
 		Labels:       nil,
+		Units:        "",
 	}
 }
 
-func DefaultAPIV0Presentation() *registry.APIV0Presentation {
-	return &registry.APIV0Presentation{
+func DefaultAPIV0Presentation() registry.APIV0Presentation {
+	return registry.APIV0Presentation{
 		ChartType:    "step",
 		CurrentValue: false,
 		Frequency:    0,
 		Labels:       nil,
+		Units:        "",
 	}
 }
 

@@ -179,7 +179,8 @@ func TestAlertGeneration(t *testing.T) {
 
 		docBytes, err := json.Marshal(document)
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(prometheus_alerts.AlertDocumentFilename(docBytes, "test_product")).To(Equal("test_product_c47308287f60c776ba39f27aaa743bca7c6c6387.yml"))
+		filename := prometheus_alerts.AlertDocumentFilename(docBytes, "test_product")
+		g.Expect(filename).To(Equal("test_product_c12b6589da43b1979559e0d21e1ba38ead4767b5.yml"))
 	})
 }
 

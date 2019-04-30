@@ -145,16 +145,14 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 			thresholds = append(thresholds, threshold)
 		}
 
-		p, err := presentationFromYAML(yamlIndicator.Presentation)
-		if err != nil {
-			return Document{}, fmt.Errorf("could not convert yaml indicator[%v]: %s", i, err)
-		}
+		p := presentationFromYAML(yamlIndicator.Presentation)
 
 		indicators = append(indicators, Indicator{
 			Name:          yamlIndicator.Name,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
 			Alert:         alertFromYAML(yamlIndicator.Alert),
+			ServiceLevel:  serviceLevelFromYAML(yamlIndicator.ServiceLevel),
 			Presentation:  p,
 			Documentation: yamlIndicator.Documentation,
 		})
@@ -175,6 +173,15 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 		Indicators: indicators,
 		Layout:     layout,
 	}, nil
+}
+
+func serviceLevelFromYAML(level *yamlServiceLevel) *ServiceLevel {
+	if level == nil {
+		return nil
+	}
+	return &ServiceLevel{
+		Objective: level.Objective,
+	}
 }
 
 func ReadPatchBytes(yamlBytes []byte) (Patch, error) {
@@ -295,8 +302,13 @@ type yamlIndicator struct {
 	Promql        string            `yaml:"promql"`
 	Thresholds    []yamlThreshold   `yaml:"thresholds"`
 	Alert         yamlAlert         `yaml:"alert"`
+	ServiceLevel  *yamlServiceLevel `yaml:"serviceLevel"`
 	Documentation map[string]string `yaml:"documentation"`
-	Presentation  yamlPresentation  `yaml:"presentation"`
+	Presentation  *yamlPresentation `yaml:"presentation"`
+}
+
+type yamlServiceLevel struct {
+	Objective float64 `yaml:"objective"`
 }
 
 type yamlAlert struct {
@@ -315,11 +327,11 @@ type yamlThreshold struct {
 }
 
 type yamlPresentation struct {
-	ChartType    ChartType     `yaml:"chartType"`
-	CurrentValue bool          `yaml:"currentValue"`
-	Frequency    int64		   `yaml:"frequency"`
-	Labels       []string      `yaml:"labels"`
-	Units        string        `yaml:"units"`
+	ChartType    ChartType `yaml:"chartType"`
+	CurrentValue bool      `yaml:"currentValue"`
+	Frequency    int64     `yaml:"frequency"`
+	Labels       []string  `yaml:"labels"`
+	Units        string    `yaml:"units"`
 }
 
 type yamlPatch struct {
@@ -385,16 +397,15 @@ func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
 	}, nil
 }
 
-func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
-	defaultValue := yamlPresentation{}
-	if reflect.DeepEqual(p, defaultValue) {
-		return &Presentation{
+func presentationFromYAML(p *yamlPresentation) (Presentation) {
+	if p == nil {
+		return Presentation{
 			ChartType:    StepChart,
 			CurrentValue: false,
 			Frequency:    0,
 			Labels:       []string{},
 			Units:        "",
-		}, nil
+		}
 	}
 
 	chartType := p.ChartType
@@ -402,13 +413,13 @@ func presentationFromYAML(p yamlPresentation) (*Presentation, error) {
 		chartType = StepChart
 	}
 
-	return &Presentation{
+	return Presentation{
 		ChartType:    chartType,
 		CurrentValue: p.CurrentValue,
 		Frequency:    p.Frequency,
 		Labels:       p.Labels,
 		Units:        p.Units,
-	}, nil
+	}
 }
 
 func alertFromYAML(a yamlAlert) Alert {

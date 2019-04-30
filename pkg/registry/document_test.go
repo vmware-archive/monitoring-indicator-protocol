@@ -36,7 +36,7 @@ func TestDocumentTranslation(t *testing.T) {
 				Documentation: map[string]string{
 					"anotherKey": "anotherValue",
 				},
-				Presentation: &registry.APIV0Presentation{
+				Presentation: registry.APIV0Presentation{
 					ChartType:    "bar",
 					CurrentValue: false,
 					Frequency:    50,
@@ -83,7 +83,7 @@ func TestDocumentTranslation(t *testing.T) {
 				Documentation: map[string]string{
 					"anotherKey": "anotherValue",
 				},
-				Presentation: &indicator.Presentation{
+				Presentation: indicator.Presentation{
 					ChartType:    "bar",
 					CurrentValue: false,
 					Frequency:    50,
@@ -112,7 +112,7 @@ func TestDocumentTranslation(t *testing.T) {
 							Documentation: map[string]string{
 								"anotherKey": "anotherValue",
 							},
-							Presentation: &indicator.Presentation{
+							Presentation: indicator.Presentation{
 								ChartType:    "bar",
 								CurrentValue: false,
 								Frequency:    50,
