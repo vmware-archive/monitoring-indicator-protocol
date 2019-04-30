@@ -2,7 +2,6 @@ package indicator_status_test
 
 import (
 	"bytes"
-	"context"
 	"log"
 	"sync"
 	"testing"
@@ -13,7 +12,7 @@ import (
 	types "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned/typed/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/indicator_status"
-	"github.com/prometheus/common/model"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -21,41 +20,57 @@ func TestController(t *testing.T) {
 	buffer := bytes.NewBuffer(nil)
 	log.SetOutput(buffer)
 
-	t.Run("adds all preexisting indicators on start", func(t *testing.T) {
+	t.Run("adds all preexisting indicators on Start()", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		spyIndicatorsGetter := &spyIndicatorsGetter{listedIndicators: []types.Indicator{
-			*createIndicator("my-indicators", "rate(love[8m])"),
+			test_fixtures.Indicator("my-indicator", "rate(love[8m])"),
+			test_fixtures.Indicator("my-indicator2", "rate(love[5m])"),
 		}}
-		spyPromqlClient := &spyPromqlClient{response: vectorResponse([]float64{-1})}
+		spyPromqlClient := &spyPromqlClient{response: []float64{float64(-1)}}
 		mockClock := clock.NewMock()
 		c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
 
 		go c.Start()
-		mockClock.Add(time.Second)
 
-		g.Expect(spyPromqlClient.GetQueries()).To(ContainElement("rate(love[8m])"))
-		g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(1))
-		g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Name).To(Equal("my-indicators"))
-		g.Expect(*spyIndicatorsGetter.GetUpdateCalls()[0].Spec.Status).To(Equal("critical"))
+		mockClock.Add(2 * time.Second)
+		g.Expect(len(spyIndicatorsGetter.GetUpdateCalls())).Should(Equal(2))
+	})
+
+	t.Run("can call Start concurrently with another call", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		spyIndicatorsGetter := &spyIndicatorsGetter{listedIndicators: []types.Indicator{
+			test_fixtures.Indicator("my-indicator", "rate(love[8m])"),
+			test_fixtures.Indicator("my-indicator2", "rate(love[5m])"),
+		}}
+		spyPromqlClient := &spyPromqlClient{response: []float64{-1}}
+		mockClock := clock.NewMock()
+		anotherIndicator := test_fixtures.Indicator("my-indicator3", "rate(love[5m])")
+		c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
+
+		go c.OnDelete(&anotherIndicator)
+		go c.Start()
+
+		mockClock.Add(2 * time.Second)
+		g.Expect(spyIndicatorsGetter.GetUpdateCalls()).Should(HaveLen(2))
 	})
 
 	t.Run("OnAdd", func(t *testing.T) {
 		t.Run("starts updating indicator status", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			spyIndicatorsGetter := &spyIndicatorsGetter{}
-			spyPromqlClient := &spyPromqlClient{response: vectorResponse([]float64{-1})}
+			spyPromqlClient := &spyPromqlClient{response: []float64{-1}}
 			mockClock := clock.NewMock()
 			c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
-			indicator := createIndicator("name", "rate(errors[5m])")
+			indicator := test_fixtures.Indicator("name", "rate(errors[5m])")
 
 			go c.Start()
-			c.OnAdd(indicator)
+			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
 
 			g.Expect(spyPromqlClient.GetQueries()).To(ContainElement("rate(errors[5m])"))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(1))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Name).To(Equal("name"))
-			g.Expect(*spyIndicatorsGetter.GetUpdateCalls()[0].Spec.Status).To(Equal("critical"))
+			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Status.Phase).To(Equal("critical"))
 		})
 
 		t.Run("it updates indicator status to UNDEFINED when there is no threshold", func(t *testing.T) {
@@ -65,7 +80,7 @@ func TestController(t *testing.T) {
 			mockClock := clock.NewMock()
 			c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
 
-			indicator := &types.Indicator{
+			indicator := types.Indicator{
 				ObjectMeta: v1.ObjectMeta{
 					Name: "a name",
 				},
@@ -77,28 +92,12 @@ func TestController(t *testing.T) {
 				},
 			}
 			go c.Start()
-			c.OnAdd(indicator)
+			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
 			g.Expect(spyPromqlClient.GetQueries()).To(HaveLen(0))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(1))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Name).To(Equal("a name"))
-			g.Expect(*spyIndicatorsGetter.GetUpdateCalls()[0].Spec.Status).To(Equal("UNDEFINED"))
-		})
-
-		t.Run("ignores query results that are not vectors", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			spyIndicatorsGetter := &spyIndicatorsGetter{}
-			spyPromqlClient := &spyPromqlClient{response: matrixResponse()}
-			mockClock := clock.NewMock()
-			c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
-			indicator := createIndicator("name", "rate(errors[5m])")
-
-			go c.Start()
-			c.OnAdd(indicator)
-			mockClock.Add(time.Second)
-
-			g.Expect(spyPromqlClient.GetQueries()).To(ContainElement("rate(errors[5m])"))
-			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(0))
+			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Status.Phase).To(Equal("UNDEFINED"))
 		})
 	})
 
@@ -106,13 +105,13 @@ func TestController(t *testing.T) {
 		t.Run("stops updating indicator status", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			spyIndicatorsGetter := &spyIndicatorsGetter{}
-			spyPromqlClient := &spyPromqlClient{response: vectorResponse([]float64{-1})}
+			spyPromqlClient := &spyPromqlClient{response: []float64{-1}}
 			mockClock := clock.NewMock()
 			c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
-			indicator := createIndicator("name", "rate(errors[10m])")
+			indicator := test_fixtures.Indicator("name", "rate(errors[10m])")
 
 			go c.Start()
-			c.OnAdd(indicator)
+			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
 
 			g.Expect(spyPromqlClient.GetQueries()).To(HaveLen(1))
@@ -120,7 +119,7 @@ func TestController(t *testing.T) {
 
 			spyPromqlClient.ResetQueryArgs()
 			spyIndicatorsGetter.ResetUpdateCalls()
-			c.OnDelete(indicator)
+			c.OnDelete(&indicator)
 			mockClock.Add(time.Second)
 
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(0))
@@ -130,21 +129,21 @@ func TestController(t *testing.T) {
 		t.Run("deleting non-existent indicator is a noop", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			spyIndicatorsGetter := &spyIndicatorsGetter{}
-			spyPromqlClient := &spyPromqlClient{response: vectorResponse([]float64{-1})}
+			spyPromqlClient := &spyPromqlClient{response: []float64{-1}}
 			mockClock := clock.NewMock()
 			c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
 
-			indicator1 := createIndicator("name", "rate(errors[10m])")
-			indicator2 := createIndicator("new-name", "rate(errors[5m])")
+			indicator1 := test_fixtures.Indicator("name", "rate(errors[10m])")
+			indicator2 := test_fixtures.Indicator("new-name", "rate(errors[5m])")
 
 			go c.Start()
 
-			c.OnAdd(indicator1)
+			c.OnAdd(&indicator1)
 			mockClock.Add(time.Second)
 			spyPromqlClient.ResetQueryArgs()
 			spyIndicatorsGetter.ResetUpdateCalls()
 
-			c.OnDelete(indicator2)
+			c.OnDelete(&indicator2)
 			mockClock.Add(time.Second)
 
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(1))
@@ -156,35 +155,35 @@ func TestController(t *testing.T) {
 		t.Run("updates indicator status to UNDEFINED when threshold is removed", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			spyIndicatorsGetter := &spyIndicatorsGetter{}
-			spyPromqlClient := &spyPromqlClient{response: vectorResponse([]float64{-1})}
+			spyPromqlClient := &spyPromqlClient{response: []float64{-1}}
 			mockClock := clock.NewMock()
 			c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
-			indicator := createIndicator("name", "rate(errors[10m])")
+			indicator := test_fixtures.Indicator("name", "rate(errors[10m])")
 
 			go c.Start()
-			c.OnAdd(indicator)
+			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
 			newIndicator := indicator.DeepCopy()
 			newIndicator.Spec.Thresholds = []types.Threshold{}
 
 			spyPromqlClient.ResetQueryArgs()
 			spyIndicatorsGetter.ResetUpdateCalls()
-			c.OnUpdate(indicator, newIndicator)
+			c.OnUpdate(&indicator, newIndicator)
 			mockClock.Add(time.Second)
 
 			g.Expect(spyPromqlClient.GetQueries()).To(Not(ContainElement(newIndicator.Spec.Promql)))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(1))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Name).To(Equal("name"))
-			g.Expect(*spyIndicatorsGetter.GetUpdateCalls()[0].Spec.Status).To(Equal("UNDEFINED"))
+			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Status.Phase).To(Equal("UNDEFINED"))
 		})
 
-		t.Run("starts updating indicator status when threshold is added", func(t *testing.T) {
+		t.Run("updates indicator status when threshold is added", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			spyIndicatorsGetter := &spyIndicatorsGetter{}
-			spyPromqlClient := &spyPromqlClient{response: vectorResponse([]float64{-1})}
+			spyPromqlClient := &spyPromqlClient{response: []float64{-1}}
 			mockClock := clock.NewMock()
 			c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
-			indicator := &types.Indicator{
+			indicator := types.Indicator{
 				ObjectMeta: v1.ObjectMeta{
 					Name: "new name",
 				},
@@ -198,7 +197,7 @@ func TestController(t *testing.T) {
 
 			go c.Start()
 
-			c.OnAdd(indicator)
+			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
 			spyPromqlClient.ResetQueryArgs()
 			spyIndicatorsGetter.ResetUpdateCalls()
@@ -211,11 +210,11 @@ func TestController(t *testing.T) {
 				Gt:    &thresholdLevel,
 			}}
 
-			c.OnUpdate(indicator, newIndicator)
+			c.OnUpdate(&indicator, newIndicator)
 			mockClock.Add(time.Second)
 
-			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(1))
-			g.Expect(*spyIndicatorsGetter.GetUpdateCalls()[0].Spec.Status).To(Equal("HEALTHY"))
+			g.Consistently(spyIndicatorsGetter.GetUpdateCalls()).Should(HaveLen(1))
+			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Status.Phase).To(Equal("HEALTHY"))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Name).To(Equal("new name"))
 			g.Expect(spyPromqlClient.GetQueries()).To(ContainElement(newIndicator.Spec.Promql))
 		})
@@ -223,14 +222,14 @@ func TestController(t *testing.T) {
 		t.Run("updates indicator status with new threshold when threshold is changed", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			spyIndicatorsGetter := &spyIndicatorsGetter{}
-			spyPromqlClient := &spyPromqlClient{response: vectorResponse([]float64{0})}
+			spyPromqlClient := &spyPromqlClient{response: []float64{0}}
 			mockClock := clock.NewMock()
 			c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
-			indicator := createIndicator("my-fave-indicator", "rate(error[6m])")
+			indicator := test_fixtures.Indicator("my-fave-indicator", "rate(error[6m])")
 
 			go c.Start()
 
-			c.OnAdd(indicator)
+			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
 			spyPromqlClient.ResetQueryArgs()
 			spyIndicatorsGetter.ResetUpdateCalls()
@@ -243,45 +242,26 @@ func TestController(t *testing.T) {
 				Gte:   &thresholdLevel,
 			}}
 
-			c.OnUpdate(indicator, newIndicator)
+			c.OnUpdate(&indicator, newIndicator)
 			mockClock.Add(time.Second)
 
-			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(1))
-			g.Expect(*spyIndicatorsGetter.GetUpdateCalls()[0].Spec.Status).To(Equal("pamplemousse"))
+			g.Consistently(spyIndicatorsGetter.GetUpdateCalls()).Should(HaveLen(1))
+			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Status.Phase).To(Equal("pamplemousse"))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Name).To(Equal("my-fave-indicator"))
 			g.Expect(spyPromqlClient.GetQueries()).To(ContainElement(newIndicator.Spec.Promql))
 		})
 	})
 }
 
-func createIndicator(name string, promql string) *types.Indicator {
-	thresholdLevel := float64(0)
-
-	return &types.Indicator{
-		ObjectMeta: v1.ObjectMeta{
-			Name: name,
-		},
-		Spec: types.IndicatorSpec{
-			Product: "CF",
-			Name:    "test",
-			Promql:  promql,
-			Thresholds: []types.Threshold{{
-				Level: "critical",
-				Lt:    &thresholdLevel,
-			}},
-		},
-	}
-}
-
 //********** Spy Prometheus Client **********//
 
 type spyPromqlClient struct {
-	response model.Value
+	response []float64
 	queries  []string
 	sync.Mutex
 }
 
-func (s *spyPromqlClient) Query(ctx context.Context, query string, ts time.Time) (model.Value, error) {
+func (s *spyPromqlClient) QueryVectorValues(query string) ([]float64, error) {
 	s.Lock()
 	defer s.Unlock()
 	s.queries = append(s.queries, query)
@@ -299,42 +279,6 @@ func (s *spyPromqlClient) ResetQueryArgs() {
 	s.Lock()
 	defer s.Unlock()
 	s.queries = make([]string, 0)
-}
-
-func vectorResponse(values []float64) model.Vector {
-	var vector model.Vector
-
-	for _, v := range values {
-		sample := &model.Sample{
-			Metric: model.Metric{
-				"deployment": "uaa123",
-			},
-			Value:     model.SampleValue(v),
-			Timestamp: 100,
-		}
-
-		vector = append(vector, sample)
-	}
-	return vector
-}
-
-func matrixResponse() model.Matrix {
-	var seriesList model.Matrix
-	var series *model.SampleStream
-
-	series = &model.SampleStream{
-		Metric: model.Metric{},
-		Values: nil,
-	}
-
-	series.Values = []model.SamplePair{{
-		Value:     model.SampleValue(float64(100)),
-		Timestamp: model.Time(time.Now().Unix()),
-	}}
-
-	seriesList = append(seriesList, series)
-
-	return seriesList
 }
 
 //********** Spy Indicators Client **********//

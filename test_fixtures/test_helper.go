@@ -1,8 +1,10 @@
 package test_fixtures
 
 import (
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func DefaultPresentation() indicator.Presentation {
@@ -67,4 +69,23 @@ func DefaultAPIV0Alert() registry.APIV0Alert {
 
 func StrPtr(s string) *string {
 	return &s
+}
+
+func Indicator(name string, promql string) v1alpha1.Indicator {
+	thresholdLevel := float64(0)
+
+	return v1alpha1.Indicator{
+		ObjectMeta: v1.ObjectMeta{
+			Name: name,
+		},
+		Spec: v1alpha1.IndicatorSpec{
+			Product: "CF",
+			Name:    "test",
+			Promql:  promql,
+			Thresholds: []v1alpha1.Threshold{{
+				Level: "critical",
+				Lt:    &thresholdLevel,
+			}},
+		},
+	}
 }

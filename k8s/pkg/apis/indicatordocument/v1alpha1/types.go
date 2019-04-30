@@ -31,12 +31,12 @@ type Product struct {
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
 type Indicator struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec IndicatorSpec `json:"spec"`
+	Spec   IndicatorSpec   `json:"spec"`
+	Status IndicatorStatus `json:"status"`
 }
 
 type IndicatorSpec struct {
@@ -47,7 +47,10 @@ type IndicatorSpec struct {
 	Thresholds    []Threshold       `json:"thresholds"`
 	Documentation map[string]string `json:"documentation,omitempty"`
 	Presentation  Presentation      `json:"presentation"`
-	Status        *string           `json:"status"`
+}
+
+type IndicatorStatus struct {
+	Phase string `json:"phase"`
 }
 
 type Presentation struct {

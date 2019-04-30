@@ -1,13 +1,11 @@
 package indicator_status
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
-	"github.com/prometheus/common/model"
 )
 
 type DocumentGetter interface {
@@ -18,7 +16,7 @@ type StatusUpdater interface {
 }
 
 type PromQLClient interface {
-	Query(ctx context.Context, query string, ts time.Time) (model.Value, error)
+	QueryVectorValues(promql string) ([]float64, error)
 }
 
 type StatusController struct {
@@ -70,7 +68,7 @@ func (c StatusController) updateStatuses() error {
 				continue
 			}
 
-			values, err := QueryValues(c.promQLClient, indicator.PromQL)
+			values, err := c.promQLClient.QueryVectorValues(indicator.PromQL)
 			if err != nil {
 				log.Printf("Error querying Prometheus: %s", err)
 				continue

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_client"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
@@ -32,7 +33,7 @@ func (c wrappedClient) Do(ctx context.Context, req *http.Request) (*http.Respons
 
 type TokenFetcherFunc func() (string, error)
 
-func Build(url string, fetchToken TokenFetcherFunc, insecure bool) (v1.API, error) {
+func Build(url string, fetchToken TokenFetcherFunc, insecure bool) (*prometheus_client.PrometheusClient, error) {
 	prometheusClient, err := api.NewClient(api.Config{
 		Address: url,
 		RoundTripper: &http.Transport{
@@ -46,5 +47,8 @@ func Build(url string, fetchToken TokenFetcherFunc, insecure bool) (v1.API, erro
 		return nil, err
 	}
 
-	return v1.NewAPI(wrappedClient{fetchToken, prometheusClient}), err
+	prometheusAPI := v1.NewAPI(wrappedClient{fetchToken, prometheusClient})
+	return &prometheus_client.PrometheusClient{
+		Api: prometheusAPI,
+	}, err
 }

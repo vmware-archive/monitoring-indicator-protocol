@@ -222,10 +222,7 @@ func TestStatus(t *testing.T) {
 			if err != nil {
 				t.Logf("error: %s", err)
 			}
-			if indicator.Spec.Status == nil {
-				return ""
-			}
-			return *indicator.Spec.Status
+			return indicator.Status.Phase
 		}, 35*time.Second).Should(Equal("HEALTHY"))
 	})
 }

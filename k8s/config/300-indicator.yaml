@@ -24,7 +24,7 @@ spec:
     JSONPath: .metadata.creationTimestamp
   - name: Status
     type: string
-    JSONPath: .spec.status
+    JSONPath: .status.phase
   validation:
     openAPIV3Schema:
       required:

@@ -84,6 +84,18 @@ func (c *FakeIndicators) Update(indicator *v1alpha1.Indicator) (result *v1alpha1
 	return obj.(*v1alpha1.Indicator), err
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakeIndicators) UpdateStatus(indicator *v1alpha1.Indicator) (*v1alpha1.Indicator, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewUpdateSubresourceAction(indicatorsResource, "status", c.ns, indicator), &v1alpha1.Indicator{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.Indicator), err
+}
+
 // Delete takes name of the indicator and deletes it. Returns an error if one occurs.
 func (c *FakeIndicators) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.

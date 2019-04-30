@@ -1,9 +1,7 @@
 package indicator_status
 
 import (
-	"context"
 	"log"
-	"sync"
 	"time"
 
 	"github.com/benbjohnson/clock"
@@ -11,23 +9,16 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned/typed/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/domain"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator_status"
-	"github.com/prometheus/common/model"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type PromQLClient interface {
-	// TODO: can we change this to queryValues?
-	Query(ctx context.Context, query string, ts time.Time) (model.Value, error)
-}
-
-type indicatorStore struct {
-	sync.Mutex
-	indicators []types.Indicator
+	QueryVectorValues(query string) ([]float64, error)
 }
 
 type Controller struct {
 	interval        time.Duration
-	indicatorStore  *indicatorStore
+	indicatorStore  IndicatorStore
 	promqlClient    PromQLClient
 	indicatorClient v1alpha1.IndicatorsGetter
 	clock           clock.Clock
@@ -45,11 +36,9 @@ func NewController(
 		interval:        interval,
 		indicatorClient: indicatorClient,
 		promqlClient:    promqlClient,
-		indicatorStore: &indicatorStore{
-			indicators: make([]types.Indicator, 0),
-		},
-		clock:     clock,
-		namespace: namespace,
+		indicatorStore:  NewIndicatorStore(),
+		clock:           clock,
+		namespace:       namespace,
 	}
 }
 
@@ -59,9 +48,9 @@ func (c *Controller) Start() {
 		log.Printf("Could not load existing indicators on Start: %s", err)
 	}
 	if existingList.Items != nil {
-		c.indicatorStore.Lock()
-		c.indicatorStore.indicators = existingList.Items
-		c.indicatorStore.Unlock()
+		for _, indicator := range existingList.Items {
+			c.indicatorStore.Add(indicator)
+		}
 	}
 	c.updateStatuses()
 	for {
@@ -76,9 +65,8 @@ func (c *Controller) OnAdd(obj interface{}) {
 		log.Printf("Invalid resource type OnAdd: %T", obj)
 		return
 	}
-	c.indicatorStore.Lock()
-	defer c.indicatorStore.Unlock()
-	c.indicatorStore.indicators = append(c.indicatorStore.indicators, *indicator)
+
+	c.indicatorStore.Add(*indicator)
 }
 
 func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
@@ -88,13 +76,7 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 		return
 	}
 
-	c.indicatorStore.Lock()
-	defer c.indicatorStore.Unlock()
-	for i, indie := range c.indicatorStore.indicators {
-		if indicator.Name == indie.Name {
-			c.indicatorStore.indicators[i] = *indicator
-		}
-	}
+	c.indicatorStore.Update(*indicator)
 }
 
 func (c *Controller) OnDelete(obj interface{}) {
@@ -104,52 +86,44 @@ func (c *Controller) OnDelete(obj interface{}) {
 		return
 	}
 
-	c.indicatorStore.Lock()
-	defer c.indicatorStore.Unlock()
-	nextIndicators := make([]types.Indicator, 0)
-	for _, indie := range c.indicatorStore.indicators {
-		if !(indicator.Name == indie.Name) {
-			nextIndicators = append(nextIndicators, indie)
-		}
-	}
-	c.indicatorStore.indicators = nextIndicators
+	c.indicatorStore.Delete(*indicator)
 }
 
 func (c *Controller) updateStatuses() {
-	//TODO: move status off of spec onto a subresource
-	c.indicatorStore.Lock()
-	defer c.indicatorStore.Unlock()
-
-	for _, indicator := range c.indicatorStore.indicators {
+	for _, indicator := range c.indicatorStore.GetIndicators() {
 		status, err := c.getStatus(indicator)
 		if err != nil {
 			log.Printf("Error getting status: %s", err)
 			continue
 		}
 
-		updatedIndicator := indicator.DeepCopy()
-		updatedIndicator.Spec.Status = status
-		// TODO: [optimization] do not update status if no change
-		_, err = c.indicatorClient.Indicators(indicator.Namespace).Update(updatedIndicator)
-		if err != nil {
-			log.Printf("Error updating indicator %s: %s", updatedIndicator.Name, err)
+		if indicator.Status.Phase == status {
 			continue
+		}
+
+		indicator.Status = types.IndicatorStatus{
+			Phase: status,
+		}
+		_, err = c.indicatorClient.Indicators(indicator.Namespace).Update(&indicator)
+
+		if err != nil {
+			log.Printf("Error updating indicator %s: %s", indicator.Name, err)
 		}
 	}
 }
 
-func (c *Controller) getStatus(indicator types.Indicator) (*string, error) {
-	status := "UNDEFINED"
+func (c *Controller) getStatus(indicator types.Indicator) (string, error) {
+	status := indicator_status.Undefined
 	if len(indicator.Spec.Thresholds) == 0 {
-		return &status, nil
+		return status, nil
 	}
-	values, err := indicator_status.QueryValues(c.promqlClient, indicator.Spec.Promql)
+	values, err := c.promqlClient.QueryVectorValues(	indicator.Spec.Promql)
 	if err != nil {
 		log.Printf("Error querying Prometheus: %s", err)
-		return nil, err
+		return "", err
 	}
 
 	domainThresholds := domain.MapToDomainThreshold(indicator.Spec.Thresholds)
 	status = indicator_status.Match(domainThresholds, values)
-	return &status, nil
+	return status, nil
 }

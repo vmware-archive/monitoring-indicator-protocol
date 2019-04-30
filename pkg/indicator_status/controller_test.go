@@ -2,18 +2,16 @@ package indicator_status_test
 
 import (
 	"bytes"
-	"context"
 	"log"
 	"sync"
 	"testing"
 	"time"
 
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator_status"
-	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
-	"github.com/prometheus/common/model"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator_status"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
 func TestStatusController(t *testing.T) {
@@ -23,9 +21,9 @@ func TestStatusController(t *testing.T) {
 	t.Run("updates all indicator statuses", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		fakeQueryClient := setupFakeQueryClientWithVectorResponses(map[string]model.Value{
-			"rate(errors[5m])":  vectorResponse([]float64{50}),
-			"rate(happies[1m])": vectorResponse([]float64{9}),
+		fakeQueryClient := setupFakeQueryClientWithVectorResponses(map[string][]float64{
+			"rate(errors[5m])":  {50},
+			"rate(happies[1m])": {9},
 		})
 
 		fakeRegistryClient := setupFakeRegistryClient([]registry.APIV0Indicator{
@@ -78,8 +76,8 @@ func TestStatusController(t *testing.T) {
 	t.Run("handles multiple series", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		fakeQueryClient := setupFakeQueryClientWithVectorResponses(map[string]model.Value{
-			"rate(errors[5m])": vectorResponse([]float64{40, 51}),
+		fakeQueryClient := setupFakeQueryClientWithVectorResponses(map[string][]float64{
+			"rate(errors[5m])": {40, 51},
 		})
 		fakeRegistryClient := setupFakeRegistryClient([]registry.APIV0Indicator{
 			{
@@ -119,64 +117,13 @@ func TestStatusController(t *testing.T) {
 		))
 	})
 
-	t.Run("ignores query results that are not vectors", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		fakeQueryClient := setupFakeQueryClientWithVectorResponses(map[string]model.Value{
-			"rate(errors[5m])":  matrixResponse(),
-			"rate(happies[1m])": vectorResponse([]float64{9}),
-		})
-
-		fakeRegistryClient := setupFakeRegistryClient([]registry.APIV0Indicator{
-			{
-				Name:   "error_rate",
-				PromQL: "rate(errors[5m])",
-				Thresholds: []registry.APIV0Threshold{
-					{
-						Level:    "critical",
-						Operator: "gte",
-						Value:    50,
-					},
-				},
-			}, {
-				Name:   "happiness_rate",
-				PromQL: "rate(happies[1m])",
-				Thresholds: []registry.APIV0Threshold{
-					{
-						Level:    "warning",
-						Operator: "lt",
-						Value:    10,
-					},
-				},
-			},
-		})
-
-		controller := indicator_status.NewStatusController(
-			fakeRegistryClient,
-			fakeRegistryClient,
-			fakeQueryClient,
-			time.Minute,
-		)
-
-		go controller.Start()
-
-		g.Eventually(fakeRegistryClient.countBulkUpdates).Should(Equal(1))
-
-		g.Expect(fakeRegistryClient.statusesForUID("uaa-abc-123")).To(ConsistOf(
-			registry.APIV0UpdateIndicatorStatus{
-				Name:   "happiness_rate",
-				Status: test_fixtures.StrPtr("warning"),
-			},
-		))
-	})
-
 	t.Run("only queries indicators with thresholds", func(t *testing.T) {
 
 		g := NewGomegaWithT(t)
 
-		fakeQueryClient := setupFakeQueryClientWithVectorResponses(map[string]model.Value{
-			"rate(errors[5m])":  vectorResponse([]float64{50}),
-			"rate(happies[1m])": vectorResponse([]float64{9}),
+		fakeQueryClient := setupFakeQueryClientWithVectorResponses(map[string][]float64{
+			"rate(errors[5m])":  {50},
+			"rate(happies[1m])": {9},
 		})
 
 		fakeRegistryClient := setupFakeRegistryClient([]registry.APIV0Indicator{
@@ -196,12 +143,12 @@ func TestStatusController(t *testing.T) {
 
 		go controller.Start()
 
-		g.Consistently(fakeQueryClient.QueryCount).Should(Equal(0))
+		g.Consistently(fakeQueryClient.GetQueries).Should(HaveLen(0))
 	})
 
 }
 
-func setupFakeQueryClientWithVectorResponses(responses map[string]model.Value) *fakeQueryClient {
+func setupFakeQueryClientWithVectorResponses(responses map[string][]float64) *fakeQueryClient {
 	fakeQueryClient := &fakeQueryClient{
 		responses: responses,
 	}
@@ -222,79 +169,24 @@ func setupFakeRegistryClient(indicators []registry.APIV0Indicator) *fakeRegistry
 	return fakeRegistryClient
 }
 
-func matrixResponse() model.Matrix {
-	var seriesList model.Matrix
-	var series *model.SampleStream
-
-	series = &model.SampleStream{
-		Metric: model.Metric{},
-		Values: nil,
-	}
-
-	series.Values = []model.SamplePair{{
-		Value:     model.SampleValue(float64(100)),
-		Timestamp: model.Time(time.Now().Unix()),
-	}}
-
-	seriesList = append(seriesList, series)
-
-	return seriesList
-}
-
-func vectorResponse(values []float64) model.Vector {
-	var vector model.Vector
-
-	for _, v := range values {
-		sample := &model.Sample{
-			Metric: model.Metric{
-				"deployment": "uaa123",
-			},
-			Value:     model.SampleValue(v),
-			Timestamp: 100,
-		}
-
-		vector = append(vector, sample)
-	}
-	return vector
-}
-
 type fakeQueryClient struct {
+	responses map[string][]float64
+	queries   []string
 	sync.Mutex
-	responses  map[string]model.Value
-	queryCount int
-	queryArgs []queryArgs
-	err error
 }
 
-type queryArgs struct {
-	ctx context.Context
-	query string
-	ts time.Time
+func (s *fakeQueryClient) QueryVectorValues(query string) ([]float64, error) {
+	s.Lock()
+	defer s.Unlock()
+	s.queries = append(s.queries, query)
+
+	return s.responses[query], nil
 }
 
-func (m *fakeQueryClient) Query(ctx context.Context, query string, ts time.Time) (model.Value, error) {
-	m.Lock()
-	defer m.Unlock()
-
-	m.queryCount += 1
-	m.queryArgs = append(m.queryArgs, queryArgs{
-		ctx: ctx,
-		query: query,
-		ts: ts,
-	})
-
-	if m.err != nil {
-		return nil, m.err
-	}
-
-	return m.responses[query], nil
-}
-
-func (m *fakeQueryClient) QueryCount() int {
-	m.Lock()
-	defer m.Unlock()
-
-	return m.queryCount
+func (s *fakeQueryClient) GetQueries() []string {
+	s.Lock()
+	defer s.Unlock()
+	return s.queries
 }
 
 type fakeRegistryClient struct {

@@ -23,6 +23,7 @@ type IndicatorsGetter interface {
 type IndicatorInterface interface {
 	Create(*v1alpha1.Indicator) (*v1alpha1.Indicator, error)
 	Update(*v1alpha1.Indicator) (*v1alpha1.Indicator, error)
+	UpdateStatus(*v1alpha1.Indicator) (*v1alpha1.Indicator, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
 	Get(name string, options v1.GetOptions) (*v1alpha1.Indicator, error)
@@ -110,6 +111,21 @@ func (c *indicators) Update(indicator *v1alpha1.Indicator) (result *v1alpha1.Ind
 		Namespace(c.ns).
 		Resource("indicators").
 		Name(indicator.Name).
+		Body(indicator).
+		Do().
+		Into(result)
+	return
+}
+
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *indicators) UpdateStatus(indicator *v1alpha1.Indicator) (result *v1alpha1.Indicator, err error) {
+	result = &v1alpha1.Indicator{}
+	err = c.client.Put().
+		Namespace(c.ns).
+		Resource("indicators").
+		Name(indicator.Name).
+		SubResource("status").
 		Body(indicator).
 		Do().
 		Into(result)

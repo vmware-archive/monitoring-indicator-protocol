@@ -1,4 +1,4 @@
-package indicator_status
+package prometheus_client
 
 import (
 	"context"
@@ -8,12 +8,19 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-// QueryValues takes a promql string and returns the latest values.
-func QueryValues(client PromQLClient, promql string) ([]float64, error) {
+type PrometheusQueryAPI interface {
+	Query(ctx context.Context, query string, ts time.Time) (model.Value, error)
+}
+
+type PrometheusClient struct {
+	Api PrometheusQueryAPI
+}
+
+func (p *PrometheusClient) QueryVectorValues(promql string) ([]float64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	value, err := client.Query(ctx, promql, time.Time{})
+	value, err := p.Api.Query(ctx, promql, time.Time{})
 	if err != nil {
 		return nil, err
 	}
@@ -28,4 +35,8 @@ func QueryValues(client PromQLClient, promql string) ([]float64, error) {
 		values = append(values, float64(v.Value))
 	}
 	return values, nil
+}
+
+func (p *PrometheusClient) Query(ctx context.Context, query string, ts time.Time) (model.Value, error){
+	return p.Api.Query(ctx, query, ts)
 }
