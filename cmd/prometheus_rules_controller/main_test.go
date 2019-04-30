@@ -109,7 +109,6 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 		fs := osfs.New("/")
 		files, err := fs.ReadDir(directory)
 		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(files).To(HaveLen(1))
 
 		file, err := fs.Open(fmt.Sprintf("%s/%s", directory, files[0].Name()))
 		g.Expect(err).ToNot(HaveOccurred())

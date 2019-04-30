@@ -16,7 +16,13 @@ func WaitForFiles(directory string, count int) error {
 		}
 
 		if len(files) >= count {
-			return nil
+			file, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", directory, files[0].Name()))
+			if err != nil {
+				return err
+			}
+			if len(file) > 0 {
+				return nil
+			}
 		}
 
 		time.Sleep(10 * time.Millisecond)
