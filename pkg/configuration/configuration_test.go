@@ -16,8 +16,7 @@ func TestReadLocalConfigurationFile(t *testing.T) {
 
 	sourceFile, _ := configuration.ParseSourcesFile("test_fixtures/local_config.yml")
 
-	patches, _, err := configuration.Read(sourceFile, nil)
-	g.Expect(err).ToNot(HaveOccurred())
+	patches, _ := configuration.Read(sourceFile, nil)
 
 	g.Expect(patches).To(HaveLen(2))
 
@@ -46,8 +45,7 @@ func TestReadGitConfigurationFile(t *testing.T) {
 
 	sources, _ := configuration.ParseSourcesFile("test_fixtures/git_config.yml")
 
-	patches, documents, err := configuration.Read(sources, fakeGetter)
-	g.Expect(err).ToNot(HaveOccurred())
+	patches, documents := configuration.Read(sources, fakeGetter)
 
 	g.Expect(patches).To(HaveLen(1))
 	g.Expect(patches[0].Source).To(Equal("https://fakegit.nope/slowens/test-repo.git"))
@@ -79,12 +77,11 @@ func TestGlobMatching(t *testing.T) {
 		return fakeRepository, nil
 	}
 
-	_, _, err := configuration.Read([]configuration.Source{{
+	configuration.Read([]configuration.Source{{
 		Type:       "git",
 		Repository: "fake/fake/fake",
 		Glob:       "patch*.yml",
 	}}, fakeGetter)
-	g.Expect(err).ToNot(HaveOccurred())
 
 	g.Expect(buffer.String()).To(ContainSubstring("Parsed 0 documents and 2 patches from fake/fake/fake git source"))
 }
@@ -138,6 +135,31 @@ func TestValidateConfigFile(t *testing.T) {
 	})
 }
 
+func TestNotifyWhenInvalidPatchFiles(t *testing.T) {
+	t.Run("returns an error when patch cannot be read", func(t *testing.T) {
+		buffer := bytes.NewBuffer(nil)
+		log.SetOutput(buffer)
+
+		g := NewGomegaWithT(t)
+
+		fakeRepository := go_test.CreateMemoryRepo(
+			"test_fixtures/bad-patch.yml")
+
+		fakeGetter := func(s configuration.Source) (*git.Repository, error) {
+			return fakeRepository, nil
+		}
+
+		patchesList, _ := configuration.Read([]configuration.Source{{
+			Type:       "git",
+			Repository: "fake/fake/fake",
+			Glob:       "",
+		}}, fakeGetter)
+
+		g.Expect(patchesList[0].Patches).To(HaveLen(0))
+		g.Expect(buffer.String()).To(ContainSubstring("Failed to parse apiVersion for file bad-patch.yml"))
+	})
+}
+
 func TestFailToParseConfigurationFile(t *testing.T) {
 	t.Run("returns an error if config file cannot be read", func(t *testing.T) {
 		g := NewGomegaWithT(t)
@@ -161,8 +183,7 @@ func TestFailToParseConfigurationFile(t *testing.T) {
 
 		sourceFile, _ := configuration.ParseSourcesFile("test_fixtures/partial_bad.yml")
 
-		patches, _, err := configuration.Read(sourceFile, nil)
-		g.Expect(err).ToNot(HaveOccurred())
+		patches, _ := configuration.Read(sourceFile, nil)
 
 		g.Expect(patches).To(HaveLen(1))
 		g.Expect(*patches[0].Patches[0].Match.Name).To(Equal("my-component-1"))

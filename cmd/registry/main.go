@@ -61,7 +61,7 @@ func main() {
 }
 
 func readConfigEachMinute(configFile string, store *registry.DocumentStore) {
-	timer := time.NewTicker(1 * time.Minute)
+	timer := time.NewTicker(10 * time.Second)
 
 	for {
 		select {
@@ -76,10 +76,8 @@ func upsertFromConfig(configFile string, store *registry.DocumentStore) {
 	if err != nil {
 		log.Fatalf("failed to parse configuration file: %s\n", err)
 	}
-	patches, documents, err := configuration.Read(sources, getRealRepository)
-	if err != nil {
-		log.Fatalf("failed to read sources from configuration file: %s\n", err)
-	}
+	patches, documents := configuration.Read(sources, getRealRepository)
+
 	for _, p := range patches {
 		store.UpsertPatches(p)
 	}

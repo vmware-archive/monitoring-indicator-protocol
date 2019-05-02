@@ -1,0 +1,14 @@
+---
+apiVersion: v0/patch
+
+match:
+  product:
+    name: my-component-1
+    version: 1.2.3
+
+operations:
+  - type: replace
+    path: /indicators/0/thresholds
+    value:
+      - level: critical
+          gt: 0

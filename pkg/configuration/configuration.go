@@ -35,7 +35,7 @@ func ParseSourcesFile(filePath string) ([]Source, error) {
 	return f.Sources, nil
 }
 
-func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.PatchList, []indicator.Document, error) {
+func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.PatchList, []indicator.Document) {
 	var patches []registry.PatchList
 	var documents []indicator.Document
 	for _, source := range sources {
@@ -52,6 +52,7 @@ func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.Patch
 				Source:  source.Path,
 				Patches: []indicator.Patch{patch},
 			})
+			log.Printf("Parsed %d patches from local source %s", len(patches), source.Path)
 		case "git":
 			repository, err := repositoryGetter(source)
 			if err != nil {
@@ -75,7 +76,7 @@ func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.Patch
 		}
 	}
 
-	return patches, documents, nil
+	return patches, documents
 }
 
 func Validate(f SourcesFile) error {
@@ -148,7 +149,12 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 				return nil
 			}
 
-			apiVersion := getAPIVersion([]byte(contents))
+			apiVersion, err := getAPIVersion([]byte(contents))
+			if err != nil {
+				log.Printf("Failed to parse apiVersion for file %s: %s", f.Name, err)
+				return nil
+			}
+
 			switch apiVersion {
 			case "v0/patch":
 				patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
@@ -202,15 +208,15 @@ func processDocuments(documentsBytes [][]byte, patches []indicator.Patch) []indi
 	return documents
 }
 
-func getAPIVersion(fileBytes []byte) string {
+func getAPIVersion(fileBytes []byte) (string, error) {
 	var f struct {
 		APIVersion string `yaml:"apiVersion"`
 	}
 
 	err := yaml.Unmarshal(fileBytes, &f)
 	if err != nil {
-		return err.Error()
+		return "", err
 	}
 
-	return f.APIVersion
+	return f.APIVersion, nil
 }
