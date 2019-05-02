@@ -32,8 +32,7 @@ func TestController(t *testing.T) {
 
 		go c.Start()
 
-		mockClock.Add(2 * time.Second)
-		g.Expect(len(spyIndicatorsGetter.GetUpdateCalls())).Should(Equal(2))
+		g.Eventually(spyIndicatorsGetter.GetUpdateCalls).Should(HaveLen(2))
 	})
 
 	t.Run("can call Start concurrently with another call", func(t *testing.T) {
@@ -50,8 +49,7 @@ func TestController(t *testing.T) {
 		go c.OnDelete(&anotherIndicator)
 		go c.Start()
 
-		mockClock.Add(2 * time.Second)
-		g.Expect(spyIndicatorsGetter.GetUpdateCalls()).Should(HaveLen(2))
+		g.Eventually(spyIndicatorsGetter.GetUpdateCalls).Should(HaveLen(2))
 	})
 
 	t.Run("OnAdd", func(t *testing.T) {
@@ -91,9 +89,11 @@ func TestController(t *testing.T) {
 					Thresholds: []types.Threshold{},
 				},
 			}
+
 			go c.Start()
 			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
+
 			g.Expect(spyPromqlClient.GetQueries()).To(HaveLen(0))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(1))
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Name).To(Equal("a name"))
@@ -140,9 +140,9 @@ func TestController(t *testing.T) {
 
 			c.OnAdd(&indicator1)
 			mockClock.Add(time.Second)
+
 			spyPromqlClient.ResetQueryArgs()
 			spyIndicatorsGetter.ResetUpdateCalls()
-
 			c.OnDelete(&indicator2)
 			mockClock.Add(time.Second)
 
@@ -199,8 +199,6 @@ func TestController(t *testing.T) {
 
 			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
-			spyPromqlClient.ResetQueryArgs()
-			spyIndicatorsGetter.ResetUpdateCalls()
 
 			thresholdLevel := float64(0)
 
@@ -210,6 +208,8 @@ func TestController(t *testing.T) {
 				Gt:    &thresholdLevel,
 			}}
 
+			spyPromqlClient.ResetQueryArgs()
+			spyIndicatorsGetter.ResetUpdateCalls()
 			c.OnUpdate(&indicator, newIndicator)
 			mockClock.Add(time.Second)
 
@@ -231,8 +231,6 @@ func TestController(t *testing.T) {
 
 			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
-			spyPromqlClient.ResetQueryArgs()
-			spyIndicatorsGetter.ResetUpdateCalls()
 
 			thresholdLevel := float64(0)
 
@@ -242,6 +240,8 @@ func TestController(t *testing.T) {
 				Gte:   &thresholdLevel,
 			}}
 
+			spyPromqlClient.ResetQueryArgs()
+			spyIndicatorsGetter.ResetUpdateCalls()
 			c.OnUpdate(&indicator, newIndicator)
 			mockClock.Add(time.Second)
 
@@ -250,6 +250,27 @@ func TestController(t *testing.T) {
 			g.Expect(spyIndicatorsGetter.GetUpdateCalls()[0].Name).To(Equal("my-fave-indicator"))
 			g.Expect(spyPromqlClient.GetQueries()).To(ContainElement(newIndicator.Spec.Promql))
 		})
+
+		t.Run("does not update status when it has not changed", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			indicator := test_fixtures.Indicator("my-fave-indicator", "rate(error[6m])")
+			indicator.Status = types.IndicatorStatus{
+				Phase: "critical",
+			}
+			spyIndicatorsGetter := &spyIndicatorsGetter{
+				listedIndicators: []types.Indicator{indicator},
+			}
+			spyPromqlClient := &spyPromqlClient{response: []float64{-1}}
+			mockClock := clock.NewMock()
+			c := indicator_status.NewController(spyIndicatorsGetter, spyPromqlClient, time.Second, mockClock, "cool-namespace-name")
+
+			go c.Start()
+			c.OnAdd(&indicator)
+			mockClock.Add(time.Second)
+
+			g.Expect(spyIndicatorsGetter.GetUpdateCalls()).To(HaveLen(0))
+		})
+
 	})
 }
 
