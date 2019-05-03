@@ -82,7 +82,7 @@ func TestIndicatorStore(t *testing.T) {
 			go store.Update(updated1)
 			go store.Update(updated2)
 
-			g.Eventually(store.GetIndicators).Should(ConsistOf(updated2))
+			g.Consistently(store.GetIndicators).Should(HaveLen(1))
 		})
 	})
 }

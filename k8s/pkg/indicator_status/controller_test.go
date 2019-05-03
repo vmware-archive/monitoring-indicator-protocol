@@ -100,8 +100,8 @@ func TestController(t *testing.T) {
 			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
 
-			g.Expect(fakePromqlClient.getQueries()).To(HaveLen(0))
-			g.Expect(fakeIndicatorsGetter.getUpdateCalls()).To(HaveLen(1))
+			g.Eventually(fakePromqlClient.getQueries).Should(HaveLen(0))
+			g.Eventually(fakeIndicatorsGetter.getUpdateCalls).Should(HaveLen(1))
 			g.Expect(fakeIndicatorsGetter.getUpdateCalls()[0].Name).To(Equal("a name"))
 			g.Expect(fakeIndicatorsGetter.getUpdateCalls()[0].Status.Phase).To(Equal("UNDEFINED"))
 		})
