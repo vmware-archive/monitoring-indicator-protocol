@@ -12,7 +12,33 @@ import (
 func TestRenderDocumentHTML(t *testing.T) {
 	g := NewGomegaWithT(t)
 
+	indicators := []indicator.Indicator{
+		{
+			Name: "test_indicator",
+			Documentation: map[string]string{
+
+				"title":       "Test Indicator",
+				"description": "*test description* of kpi",
+				"response":    "*test response* of kpi",
+				"measurement": "Average over 100 minutes",
+			},
+			PromQL: `avg_over_time(test_latency{source_id="demo_source"}[100m])`,
+			Thresholds: []indicator.Threshold{
+				{
+					Level:    "warning",
+					Operator: indicator.GreaterThan,
+					Value:    500,
+				},
+				{
+					Level:    "critical",
+					Operator: indicator.GreaterThan,
+					Value:    1000,
+				},
+			},
+		},
+	}
 	document := indicator.Document{
+		Indicators: indicators,
 		Layout: indicator.Layout{
 			Title:       "Test Document",
 			Owner:       "Test Owner",
@@ -21,31 +47,7 @@ func TestRenderDocumentHTML(t *testing.T) {
 				{
 					Title:       "Test Indicators Section",
 					Description: "This is a section of indicator documentation for testing `other code`",
-					Indicators: []indicator.Indicator{
-						{
-							Name: "test_indicator",
-							Documentation: map[string]string{
-
-								"title":       "Test Indicator",
-								"description": "*test description* of kpi",
-								"response":    "*test response* of kpi",
-								"measurement": "Average over 100 minutes",
-							},
-							PromQL: `avg_over_time(test_latency{source_id="demo_source"}[100m])`,
-							Thresholds: []indicator.Threshold{
-								{
-									Level:    "warning",
-									Operator: indicator.GreaterThan,
-									Value:    500,
-								},
-								{
-									Level:    "critical",
-									Operator: indicator.GreaterThan,
-									Value:    1000,
-								},
-							},
-						},
-					},
+					Indicators:  []string{"test_indicator"},
 				},
 			},
 		},

@@ -28,13 +28,17 @@ func DefaultAPIV0Presentation() registry.APIV0Presentation {
 }
 
 func DefaultLayout(indicators []indicator.Indicator) indicator.Layout {
+	indicatorNames := make([]string, 0, len(indicators))
+	for _, i := range indicators {
+		indicatorNames = append(indicatorNames, i.Name)
+	}
 	return indicator.Layout{
 		Title:       "",
 		Description: "",
 		Sections: []indicator.Section{{
 			Title:       "",
 			Description: "",
-			Indicators:  indicators,
+			Indicators:  indicatorNames,
 		}},
 		Owner: "",
 	}

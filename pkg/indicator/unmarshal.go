@@ -203,32 +203,40 @@ func ReadPatchBytes(yamlBytes []byte) (Patch, error) {
 	}, nil
 }
 
+func getIndicatorNames(indicators []Indicator) []string {
+	names := make([]string, 0, len(indicators))
+	for _, i := range indicators {
+		names = append(names, i.Name)
+	}
+	return names
+}
+
 func getLayout(l *yamlLayout, indicators []Indicator) (Layout, error) {
 	var sections []Section
 	if l == nil {
 		return Layout{
 			Sections: []Section{{
 				Title:      "Metrics",
-				Indicators: indicators,
+				Indicators: getIndicatorNames(indicators),
 			}},
 		}, nil
 	}
 
-	for idx, s := range l.Sections {
-		var sectionIndicators []Indicator
-		for iIdx, i := range s.IndicatorRefs {
-			indic, ok := findIndicator(i, indicators)
-			if !ok {
-				return Layout{}, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator", idx, iIdx)
-			}
-
-			sectionIndicators = append(sectionIndicators, indic)
-		}
+	for _, s := range l.Sections {
+		//var sectionIndicators []Indicator
+		//for iIdx, i := range s.IndicatorRefs {
+		//	indic, ok := findIndicator(i, indicators)
+		//	if !ok {
+		//		return Layout{}, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator", idx, iIdx)
+		//	}
+		//
+		//	sectionIndicators = append(sectionIndicators, indic)
+		//}
 
 		sections = append(sections, Section{
 			Title:       s.Title,
 			Description: s.Description,
-			Indicators:  sectionIndicators,
+			Indicators:  s.IndicatorRefs,
 		})
 	}
 

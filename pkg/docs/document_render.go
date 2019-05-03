@@ -11,7 +11,7 @@ import (
 
 func docToTemplate(d indicator.Document, t *template.Template) (string, error) {
 	buffer := bytes.NewBuffer(nil)
-	err := t.Execute(buffer, documentPresenter{d.Layout})
+	err := t.Execute(buffer, documentPresenter{d.Layout, d.Indicators})
 
 	if err != nil {
 		return "", err
@@ -22,6 +22,7 @@ func docToTemplate(d indicator.Document, t *template.Template) (string, error) {
 
 type documentPresenter struct {
 	indicator.Layout
+	indicators []indicator.Indicator
 }
 
 func (dp documentPresenter) Description() template.HTML {
@@ -31,13 +32,14 @@ func (dp documentPresenter) Description() template.HTML {
 func (dp documentPresenter) Sections() []sectionPresenter {
 	var s []sectionPresenter
 	for _, section := range dp.Layout.Sections {
-		s = append(s, sectionPresenter{section})
+		s = append(s, sectionPresenter{section, dp.indicators})
 	}
 	return s
 }
 
 type sectionPresenter struct {
 	indicator.Section
+	indicators []indicator.Indicator
 }
 
 func (sp sectionPresenter) TitleID() string {
@@ -48,18 +50,36 @@ func (sp sectionPresenter) Description() template.HTML {
 	return template.HTML(blackfriday.Run([]byte(sp.Section.Description)))
 }
 
-func (sp sectionPresenter) Indicators() []indicatorPresenter {
+func (sp sectionPresenter) Indicators() ([]indicatorPresenter, error) {
 	var indicatorPresenters []indicatorPresenter
 	for _, i := range sp.Section.Indicators {
-		indicatorPresenters = append(indicatorPresenters, indicatorPresenter{i})
+		indie, err := findIndicator(i, sp.indicators)
+		if err != nil {
+			return nil, err
+		}
+		indicatorPresenters = append(indicatorPresenters, indicatorPresenter{*indie})
 	}
-	return indicatorPresenters
+	return indicatorPresenters, nil
 }
 
-func (sp sectionPresenter) HTMLIndicators() []indicatorPresenter {
+func findIndicator(name string, indicators []indicator.Indicator) (*indicator.Indicator, error) {
+	for _, i := range indicators {
+		if i.Name == name {
+			return &i, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func (sp sectionPresenter) HTMLIndicators() ([]indicatorPresenter, error) {
 	var renderedIndicators []indicatorPresenter
 	for _, i := range sp.Section.Indicators {
-		renderedIndicators = append(renderedIndicators, indicatorPresenter{i})
+		indie, err := findIndicator(i, sp.indicators)
+		if err != nil {
+			return nil, err
+		}
+		renderedIndicators = append(renderedIndicators, indicatorPresenter{*indie})
 	}
-	return renderedIndicators
+	return renderedIndicators, nil
 }

@@ -16,13 +16,20 @@ type PromQLClient interface {
 	QueryVectorValues(query string) ([]float64, error)
 }
 
+type indicatorStore interface {
+	Add(indicator types.Indicator)
+	Delete(indicator types.Indicator)
+	Update(indicator types.Indicator)
+	GetIndicators() []types.Indicator
+}
+
 type Controller struct {
 	interval        time.Duration
-	indicatorStore  IndicatorStore
 	promqlClient    PromQLClient
 	indicatorClient v1alpha1.IndicatorsGetter
 	clock           clock.Clock
 	namespace       string
+	indicatorStore  indicatorStore
 }
 
 func NewController(
@@ -31,12 +38,13 @@ func NewController(
 	interval time.Duration,
 	clock clock.Clock,
 	namespace string,
+	store indicatorStore,
 ) *Controller {
 	return &Controller{
 		interval:        interval,
 		indicatorClient: indicatorClient,
 		promqlClient:    promqlClient,
-		indicatorStore:  NewIndicatorStore(),
+		indicatorStore:  store,
 		clock:           clock,
 		namespace:       namespace,
 	}
@@ -117,7 +125,7 @@ func (c *Controller) getStatus(indicator types.Indicator) (string, error) {
 	if len(indicator.Spec.Thresholds) == 0 {
 		return status, nil
 	}
-	values, err := c.promqlClient.QueryVectorValues(	indicator.Spec.Promql)
+	values, err := c.promqlClient.QueryVectorValues(indicator.Spec.Promql)
 	if err != nil {
 		log.Printf("Error querying Prometheus: %s", err)
 		return "", err

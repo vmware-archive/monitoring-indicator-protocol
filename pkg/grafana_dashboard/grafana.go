@@ -13,16 +13,20 @@ func DashboardFilename(documentBytes []byte, productName string) string {
 	return fmt.Sprintf("%s_%x.json", productName, sha1.Sum(documentBytes))
 }
 
-func DocumentToDashboard(document indicator.Document) GrafanaDashboard {
+func DocumentToDashboard(document indicator.Document) (*GrafanaDashboard, error) {
 	return toGrafanaDashboard(document)
 }
 
-func toGrafanaDashboard(d indicator.Document) GrafanaDashboard {
-	return GrafanaDashboard{
-		Title:       getDashboardTitle(d),
-		Rows:        toGrafanaRows(d.Layout.Sections),
-		Annotations: toGrafanaAnnotations(d.Product, d.Metadata),
+func toGrafanaDashboard(d indicator.Document) (*GrafanaDashboard , error) {
+	rows, err := toGrafanaRows(d)
+	if err != nil {
+		return nil, err
 	}
+	return &GrafanaDashboard{
+		Title:       getDashboardTitle(d),
+		Rows:        rows,
+		Annotations: toGrafanaAnnotations(d.Product, d.Metadata),
+	}, nil
 }
 
 func toGrafanaAnnotations(product indicator.Product, metadata map[string]string) GrafanaAnnotations {
@@ -54,22 +58,26 @@ func getDashboardTitle(d indicator.Document) string {
 	return d.Layout.Title
 }
 
-func toGrafanaRows(sections []indicator.Section) []GrafanaRow {
+func toGrafanaRows(document indicator.Document) ([]GrafanaRow, error) {
 	var rows []GrafanaRow
 
-	for _, i := range sections {
-		rows = append(rows, sectionToGrafanaRow(i))
+	for _, i := range document.Layout.Sections {
+		row, err := sectionToGrafanaRow(i, document)
+		if err != nil {
+			return nil, err
+		}
+		rows = append(rows, *row)
 	}
 
-	return rows
+	return rows, nil
 }
 
 func getIndicatorTitle(i indicator.Indicator) string {
-	title := i.Name
 	if t, ok := i.Documentation["title"]; ok {
-		title = t
+		return t
 	}
-	return title
+
+	return i.Name
 }
 
 func toGrafanaPanel(i indicator.Indicator, title string) GrafanaPanel {
@@ -83,19 +91,23 @@ func toGrafanaPanel(i indicator.Indicator, title string) GrafanaPanel {
 	}
 }
 
-func sectionToGrafanaRow(s indicator.Section) GrafanaRow {
-	title := s.Title
+func sectionToGrafanaRow(section indicator.Section, document indicator.Document) (*GrafanaRow, error) {
+	title := section.Title
 
 	var panels []GrafanaPanel
 
-	for _, s := range s.Indicators {
-		panels = append(panels, toGrafanaPanel(s, getIndicatorTitle(s)))
+	for _, indicatorName := range section.Indicators {
+		i, found := document.GetIndicator(indicatorName)
+		if !found {
+			return nil, fmt.Errorf("section[%s] indicator[%s] not found", section.Title, indicatorName)
+		}
+		panels = append(panels, toGrafanaPanel(i, getIndicatorTitle(i)))
 	}
 
-	return GrafanaRow{
+	return &GrafanaRow{
 		Title:  title,
 		Panels: panels,
-	}
+	}, nil
 }
 
 func toGrafanaThresholds(thresholds []indicator.Threshold) []GrafanaThreshold {

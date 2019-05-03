@@ -28,11 +28,11 @@ func Map(i *v1alpha1.IndicatorDocument) indicator.Document {
 func mapToDomainSections(sections []v1alpha1.Section, indicators []indicator.Indicator) []indicator.Section {
 	domainSections := make([]indicator.Section, 0, len(sections))
 
-	for _, i := range sections {
+	for _, s := range sections {
 		domainSections = append(domainSections, indicator.Section{
-			Title:       i.Title,
-			Description: i.Description,
-			Indicators:  findIndicators(i.Indicators, indicators),
+			Title:       s.Title,
+			Description: s.Description,
+			Indicators:  s.Indicators,
 		})
 	}
 

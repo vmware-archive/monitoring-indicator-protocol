@@ -43,8 +43,12 @@ func parseDocument(format string, metadata string, filePath string) (string, err
 	case "html":
 		return docs.DocumentToHTML(getDocument(filePath, indicator.SkipMetadataInterpolation))
 	case "grafana":
-		yamlOutput, err := json.Marshal(grafana_dashboard.DocumentToDashboard(getDocument(filePath,
-			indicator.OverrideMetadata(indicator.ParseMetadata(metadata)))))
+		grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(getDocument(filePath,
+			indicator.OverrideMetadata(indicator.ParseMetadata(metadata))))
+		if err != nil {
+			return "", fmt.Errorf(`error converting to Grafana dashboard: %s`, err)
+		}
+		yamlOutput, err := json.Marshal(grafanaDashboard)
 		return string(yamlOutput), err
 	case "prometheus-alerts":
 		yamlOutput, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(getDocument(filePath,

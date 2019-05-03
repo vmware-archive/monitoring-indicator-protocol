@@ -57,27 +57,7 @@ indicators:
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{{
 					Title: "Metrics",
-					Indicators: []indicator.Indicator{{
-						Name:   "test_performance_indicator",
-						PromQL: "prom",
-						Alert: indicator.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
-						Presentation: indicator.Presentation{
-							CurrentValue: false,
-							ChartType:    "step",
-							Frequency:    0,
-							Labels:       []string{},
-						},
-						Thresholds: []indicator.Threshold{
-							{
-								Level:    "warning",
-								Operator: indicator.GreaterThanOrEqualTo,
-								Value:    50,
-							},
-						},
-					}},
+					Indicators: []string{"test_performance_indicator"},
 				}},
 			},
 			Indicators: []indicator.Indicator{{

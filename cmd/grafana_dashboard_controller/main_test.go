@@ -52,15 +52,15 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 				Documentation: map[string]string{"title": "Test Indicator Title"},
 			}},
 			Layout: indicator.Layout{
-				Title: "Test Dashboard",
+				Title:       "Test Dashboard",
 				Sections: []indicator.Section{
 					{
-						Title: "Test Section Title",
+						Title:       "Test Section Title",
+						Indicators:  []string{"test_indicator"},
 					},
 				},
 			},
 		}
-		document.Layout.Sections[0].Indicators = document.Indicators
 
 		store.UpsertDocument(document)
 

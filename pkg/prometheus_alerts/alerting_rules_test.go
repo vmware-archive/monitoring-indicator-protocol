@@ -145,7 +145,7 @@ func TestAlertGeneration(t *testing.T) {
 		g.Expect(getFirstRule(doc).Expr).To(Equal("super_query(promql_expression[12m])[12m] < 0"))
 	})
 
-	t.Run("creates a filename based on product name and contents", func(t *testing.T) {
+	t.Run("creates a filename based on product name and document contents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		document := indicator.Document{
 			APIVersion: "v0",
@@ -170,17 +170,18 @@ func TestAlertGeneration(t *testing.T) {
 				Title: "Test Dashboard",
 				Sections: []indicator.Section{
 					{
-						Title: "Test Section Title",
+						Title:      "Test Section Title",
+						Indicators: []string{"test_indicator"},
 					},
 				},
 			},
 		}
-		document.Layout.Sections[0].Indicators = document.Indicators
 
 		docBytes, err := json.Marshal(document)
+
 		g.Expect(err).ToNot(HaveOccurred())
 		filename := prometheus_alerts.AlertDocumentFilename(docBytes, "test_product")
-		g.Expect(filename).To(Equal("test_product_c12b6589da43b1979559e0d21e1ba38ead4767b5.yml"))
+		g.Expect(filename).To(Equal("test_product_39472a3a8a619a2996e221488060105dab60c3df.yml"))
 	})
 }
 

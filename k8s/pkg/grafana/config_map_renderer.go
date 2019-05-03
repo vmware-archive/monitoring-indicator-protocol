@@ -24,7 +24,11 @@ func ConfigMap(doc *v1alpha1.IndicatorDocument, m mapper) (*v1.ConfigMap, error)
 
 	if m == nil {
 		m = func(document indicator.Document) ([]byte, error) {
-			dashboard := grafana_dashboard.DocumentToDashboard(document)
+			grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document)
+			if err != nil {
+				return nil, err
+			}
+			dashboard := grafanaDashboard
 			data, err := json.Marshal(dashboard)
 			if err != nil {
 				return nil, err
@@ -49,11 +53,11 @@ func ConfigMap(doc *v1alpha1.IndicatorDocument, m mapper) (*v1.ConfigMap, error)
 				"owner":             doc.Name + "-" + doc.Namespace,
 			},
 			OwnerReferences: []metav1.OwnerReference{{
-				APIVersion:         "apps.pivotal.io/v1alpha1",
-				Kind:               "IndicatorDocument",
-				Name:               doc.Name,
-				UID:                doc.UID,
-				Controller:         &trueVal,
+				APIVersion: "apps.pivotal.io/v1alpha1",
+				Kind:       "IndicatorDocument",
+				Name:       doc.Name,
+				UID:        doc.UID,
+				Controller: &trueVal,
 			}},
 		},
 		Data: map[string]string{

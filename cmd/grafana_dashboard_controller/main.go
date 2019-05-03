@@ -51,7 +51,11 @@ func main() {
 }
 
 func Convert(document indicator.Document) (*exporter.File, error) {
-	documentBytes, err := json.Marshal(grafana_dashboard.DocumentToDashboard(document))
+	grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document)
+	if err != nil {
+		return nil, err
+	}
+	documentBytes, err := json.Marshal(grafanaDashboard)
 	if err != nil {
 		return nil, err
 	}

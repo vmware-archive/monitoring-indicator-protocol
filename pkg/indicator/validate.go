@@ -15,6 +15,7 @@ func ValidateForRegistry(document Document) []error {
 	}
 	return es
 }
+
 func ValidateForK8s(document Document) []error {
 	es := make([]error, 0)
 	es = append(es, validateCommon(document)...)
@@ -23,6 +24,7 @@ func ValidateForK8s(document Document) []error {
 	}
 	return es
 }
+
 func validateCommon(document Document) []error {
 	es := make([]error, 0)
 	if document.APIVersion == "" {
@@ -45,6 +47,14 @@ func validateCommon(document Document) []error {
 
 	for idx, i := range document.Indicators {
 		es = append(es, ValidateIndicator(i, idx)...)
+	}
+
+	for sectionIdx, section := range document.Layout.Sections {
+		for idx, i := range section.Indicators {
+			if _, found := document.GetIndicator(i); !found {
+				es = append(es, fmt.Errorf("layout sections[%d] indicators[%d] references a non-existent indicator: %s", sectionIdx, idx, i))
+			}
+		}
 	}
 
 	return es

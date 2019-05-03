@@ -97,7 +97,7 @@ layout:
 				Sections: []indicator.Section{{
 					Title:       "Test Section",
 					Description: "This section includes indicators and metrics",
-					Indicators:  []indicator.Indicator{indie},
+					Indicators:  []string{indie.Name},
 				}},
 			},
 		}))
@@ -209,29 +209,6 @@ indicators:
     level: warning
   `))
 	g.Expect(err).To(HaveOccurred())
-}
-
-func TestReturnsErrors(t *testing.T) {
-	t.Run("if layout section references non-existent indicator", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		_, err := indicator.ReadIndicatorDocument([]byte(`---
-apiVersion: v0
-product:
-  name: my-product
-  version: 1
-indicators: []
-layout:
-  title: docs
-  description: desc
-  sections:
-  - title: metric section
-    description: metric desc
-    indicators:
-    - not_found
-  `))
-		g.Expect(err).To(MatchError(ContainSubstring("documentation.sections[0].indicators[0] references non-existent indicator")))
-	})
 }
 
 func TestReturnsACompletePatchDocument(t *testing.T) {
@@ -1006,22 +983,7 @@ indicators:
 		g.Expect(d.Layout).To(Equal(indicator.Layout{
 			Sections: []indicator.Section{{
 				Title: "Metrics",
-				Indicators: []indicator.Indicator{
-					{
-						Name:   "test_performance_indicator",
-						PromQL: "promql_test_expr",
-						Alert: indicator.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
-						Presentation: indicator.Presentation{
-							CurrentValue: false,
-							ChartType:    "step",
-							Frequency:    0,
-							Labels:       []string{},
-						},
-					},
-				},
+				Indicators: []string{"test_performance_indicator"},
 			}},
 		}))
 	})

@@ -67,6 +67,7 @@ func main() {
 		30*time.Second,
 		clock.New(),
 		conf.Namespace,
+		indicator_status.NewIndicatorStore(),
 	)
 
 	informerFactory := informers.NewSharedInformerFactory(

@@ -97,28 +97,7 @@ func TestDocumentTranslation(t *testing.T) {
 					{
 						Title:       "The performance indicator",
 						Description: "Pay attention!",
-						Indicators: []indicator.Indicator{{
-							Name:   "performance-indicator",
-							PromQL: "someQuery",
-							Thresholds: []indicator.Threshold{{
-								Level:    "warning",
-								Operator: indicator.LessThanOrEqualTo,
-								Value:    100,
-							}},
-							Alert: indicator.Alert{
-								For:  "30s",
-								Step: "5s",
-							},
-							Documentation: map[string]string{
-								"anotherKey": "anotherValue",
-							},
-							Presentation: indicator.Presentation{
-								ChartType:    "bar",
-								CurrentValue: false,
-								Frequency:    50,
-								Labels:       []string{"radical"},
-							},
-						}},
+						Indicators: []string{"performance-indicator"},
 					},
 				},
 				Owner: "Waldo",

@@ -90,7 +90,7 @@ func TestMap(t *testing.T) {
 				Sections: []indicator.Section{{
 					Title:       "my section",
 					Description: "the only section",
-					Indicators:  []indicator.Indicator{i},
+					Indicators:  []string{i.Name},
 				}},
 				Owner: "me",
 			},
@@ -143,7 +143,7 @@ func TestMap(t *testing.T) {
 				Sections: []indicator.Section{{
 					Title:       "my section",
 					Description: "the only section",
-					Indicators:  []indicator.Indicator{i, i},
+					Indicators:  []string{i.Name, i.Name},
 				}},
 				Owner: "me",
 			},

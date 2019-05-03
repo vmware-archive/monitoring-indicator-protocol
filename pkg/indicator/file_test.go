@@ -50,22 +50,7 @@ indicators:
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{{
 					Title: "Metrics",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_performance_indicator",
-							PromQL: `query_metric{source_id="well-performing-deployment"}`,
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "1m",
-							},
-							Presentation: indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
+					Indicators: []string{"test_performance_indicator"},
 				}},
 			},
 		}))
@@ -99,22 +84,7 @@ indicators:
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{{
 					Title: "Metrics",
-					Indicators: []indicator.Indicator{
-						{
-							Name:   "test_performance_indicator",
-							PromQL: `query_metric{source_id="$deployment"}`,
-							Alert: indicator.Alert{
-								For:  "1m",
-								Step: "1m",
-							},
-							Presentation: indicator.Presentation{
-								CurrentValue: false,
-								ChartType:    "step",
-								Frequency:    0,
-								Labels:       []string{},
-							},
-						},
-					},
+					Indicators: []string{"test_performance_indicator"},
 				}},
 			},
 		}))

@@ -32,6 +32,15 @@ func (document Document) UID() string {
 	return fmt.Sprintf("%s-%x", document.Product.Name, getMetadataSHA(document.Metadata))
 }
 
+func (document Document) GetIndicator(name string) (Indicator, bool) {
+	for _, indicator := range document.Indicators {
+		if indicator.Name == name {
+			return indicator, true
+		}
+	}
+	return Indicator{}, false
+}
+
 func getMetadataSHA(metadata map[string]string) [20]byte {
 	var metadataKeys []string
 	for k := range metadata {
@@ -170,8 +179,8 @@ type Layout struct {
 	Owner       string
 }
 
-type Section struct {
+type  Section struct {
 	Title       string
 	Description string
-	Indicators  []Indicator
+	Indicators  []string
 }

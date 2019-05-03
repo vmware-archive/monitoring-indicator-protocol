@@ -19,7 +19,6 @@ func TestDocumentToDashboard(t *testing.T) {
 		log.SetOutput(buffer)
 
 		g := NewGomegaWithT(t)
-
 		document := indicator.Document{
 			Indicators: []indicator.Indicator{
 				{
@@ -46,36 +45,17 @@ func TestDocumentToDashboard(t *testing.T) {
 				Title: "Indicator Test Dashboard",
 				Sections: []indicator.Section{
 					{
-						Title: "Test Section Title",
-						Indicators: []indicator.Indicator{
-							{
-								Name:          "test_indicator",
-								PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
-								Documentation: map[string]string{"title": "Test Indicator Title"},
-								Thresholds: []indicator.Threshold{{
-									Level:    "critical",
-									Operator: indicator.GreaterThan,
-									Value:    1000,
-								}, {
-									Level:    "warning",
-									Operator: indicator.LessThanOrEqualTo,
-									Value:    700,
-								}},
-							},
-							{
-								Name:       "second_test_indicator",
-								PromQL:     `rate(gorouter_requests[1m])`,
-								Thresholds: []indicator.Threshold{},
-							},
-						},
+						Title:      "Test Section Title",
+						Indicators: []string{"test_indicator"},
 					},
 				},
 			},
 		}
 
-		dashboard := grafana_dashboard.DocumentToDashboard(document)
+		dashboard, err := grafana_dashboard.DocumentToDashboard(document)
+		g.Expect(err).NotTo(HaveOccurred())
 
-		g.Expect(dashboard).To(BeEquivalentTo(grafana_dashboard.GrafanaDashboard{
+		g.Expect(*dashboard).To(BeEquivalentTo(grafana_dashboard.GrafanaDashboard{
 			Title: "Indicator Test Dashboard",
 			Rows: []grafana_dashboard.GrafanaRow{{
 				Title: "Test Section Title",
@@ -100,13 +80,6 @@ func TestDocumentToDashboard(t *testing.T) {
 							Fill:      true,
 							Line:      true,
 							Yaxis:     "left",
-						}},
-					},
-					{
-						Title: "second_test_indicator",
-						Type:  "graph",
-						Targets: []grafana_dashboard.GrafanaTarget{{
-							Expression: `rate(gorouter_requests[1m])`,
 						}},
 					},
 				},
@@ -147,29 +120,19 @@ func TestDocumentToDashboard(t *testing.T) {
 				Title: "Indicator Test Dashboard",
 				Sections: []indicator.Section{
 					{
-						Title: "foo",
-						Indicators: []indicator.Indicator{
-							{
-								Name:   "second_test_indicator",
-								PromQL: `rate(gorouter_requests[1m])`,
-							},
-						},
+						Title:      "foo",
+						Indicators: []string{"second_test_indicator"},
 					},
 					{
-						Title: "bar",
-						Indicators: []indicator.Indicator{
-							{
-								Name:          "test_indicator",
-								PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
-								Documentation: map[string]string{"title": "Test Indicator Title"},
-							},
-						},
+						Title:      "bar",
+						Indicators: []string{"test_indicator"},
 					},
 				},
 			},
 		}
 
-		dashboard := grafana_dashboard.DocumentToDashboard(document)
+		dashboard, err := grafana_dashboard.DocumentToDashboard(document)
+		g.Expect(err).NotTo(HaveOccurred())
 
 		g.Expect(dashboard.Rows[0].Title).To(Equal("foo"))
 		g.Expect(dashboard.Rows[0].Panels[0].Title).To(Equal("second_test_indicator"))
@@ -183,27 +146,29 @@ func TestDocumentToDashboard(t *testing.T) {
 
 		g := NewGomegaWithT(t)
 
+		indicators := []indicator.Indicator{
+			{
+				Name:   "test_indicator",
+				PromQL: `sum_over_time(gorouter_latency_ms[30m])`,
+			},
+		}
 		document := indicator.Document{
 			Product: indicator.Product{
 				Name:    "test product",
 				Version: "v0.9",
 			},
+			Indicators: indicators,
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{
 					{
-						Title: "test section",
-						Indicators: []indicator.Indicator{
-							{
-								Name:   "test_indicator",
-								PromQL: `sum_over_time(gorouter_latency_ms[30m])`,
-							},
-						},
+						Indicators: []string{"test_indicator"},
 					},
 				},
 			},
 		}
 
-		dashboard := grafana_dashboard.DocumentToDashboard(document)
+		dashboard, err := grafana_dashboard.DocumentToDashboard(document)
+		g.Expect(err).NotTo(HaveOccurred())
 
 		g.Expect(dashboard.Title).To(BeEquivalentTo("test product - v0.9"))
 	})
@@ -214,30 +179,27 @@ func TestDocumentToDashboard(t *testing.T) {
 
 		g := NewGomegaWithT(t)
 
-		document := indicator.Document{
-			Indicators: []indicator.Indicator{
-				{
-					Name:   "test_indicator",
-					PromQL: `sum_over_time(gorouter_latency_ms[$step])`,
-				},
+		indicators := []indicator.Indicator{
+			{
+				Name:   "test_indicator",
+				PromQL: `rate(sum_over_time(gorouter_latency_ms[$step])[$step])`,
 			},
+		}
+		document := indicator.Document{
+			Indicators: indicators,
 			Layout: indicator.Layout{
 				Title: "Indicator Test Dashboard",
 				Sections: []indicator.Section{
 					{
-						Title: "Test Section Title",
-						Indicators: []indicator.Indicator{
-							{
-								Name:   "test_indicator",
-								PromQL: `rate(sum_over_time(gorouter_latency_ms[$step])[$step])`,
-							},
-						},
+						Title:      "Test Section Title",
+						Indicators: []string{"test_indicator"},
 					},
 				},
 			},
 		}
 
-		dashboard := grafana_dashboard.DocumentToDashboard(document)
+		dashboard, err := grafana_dashboard.DocumentToDashboard(document)
+		g.Expect(err).NotTo(HaveOccurred())
 
 		g.Expect(dashboard.Rows[0].Panels[0].Targets[0].Expression).To(BeEquivalentTo(`rate(sum_over_time(gorouter_latency_ms[$__interval])[$__interval])`))
 	})
@@ -267,17 +229,17 @@ func TestDocumentToDashboard(t *testing.T) {
 				Title: "Test Dashboard",
 				Sections: []indicator.Section{
 					{
-						Title: "Test Section Title",
+						Title:      "Test Section Title",
+						Indicators: []string{"test_indicator"},
 					},
 				},
 			},
 		}
-		document.Layout.Sections[0].Indicators = document.Indicators
 
 		docBytes, err := json.Marshal(document)
 		g.Expect(err).ToNot(HaveOccurred())
 		filename := grafana_dashboard.DashboardFilename(docBytes, "test_product")
-		g.Expect(filename).To(Equal("test_product_c12b6589da43b1979559e0d21e1ba38ead4767b5.json"))
+		g.Expect(filename).To(Equal("test_product_39472a3a8a619a2996e221488060105dab60c3df.json"))
 	})
 
 	t.Run("includes annotations based on product & metadata alerts", func(t *testing.T) {
@@ -316,14 +278,15 @@ func TestDocumentToDashboard(t *testing.T) {
 				Title: "Test Dashboard",
 				Sections: []indicator.Section{
 					{
-						Title: "Test Section Title",
+						Title:      "Test Section Title",
+						Indicators: []string{"test_indicator", "second_test_indicator"},
 					},
 				},
 			},
 		}
-		document.Layout.Sections[0].Indicators = document.Indicators
 
-		dashboard := grafana_dashboard.DocumentToDashboard(document)
+		dashboard, err := grafana_dashboard.DocumentToDashboard(document)
+		g.Expect(err).NotTo(HaveOccurred())
 
 		g.Expect(dashboard.Annotations.List).To(ConsistOf(grafana_dashboard.GrafanaAnnotation{
 			Enable:      true,

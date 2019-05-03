@@ -11,8 +11,8 @@ type IndicatorStore struct {
 	indicators []types.Indicator
 }
 
-func NewIndicatorStore() IndicatorStore {
-	return IndicatorStore{indicators: make([]types.Indicator, 0)}
+func NewIndicatorStore() *IndicatorStore {
+	return &IndicatorStore{indicators: make([]types.Indicator, 0)}
 }
 
 func (is *IndicatorStore) Add(indicator types.Indicator) {

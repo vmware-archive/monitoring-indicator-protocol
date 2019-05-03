@@ -56,6 +56,7 @@ func TestValidDocument(t *testing.T) {
 				Sections: []indicator.Section{{
 					Title:       "Test Section",
 					Description: "This section includes indicators and metrics",
+					Indicators:  []string{"test_performance_indicator"},
 				}},
 			},
 		}
@@ -200,6 +201,38 @@ func TestIndicator(t *testing.T) {
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
+		))
+	})
+}
+
+func TestLayout(t *testing.T) {
+	t.Run("validation returns error if layout contains non-existent indicator name", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "valid", Version: "0.1.1"},
+			Metadata:   map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
+			Indicators: []indicator.Indicator{{
+				Name:         "test_performance_indicator",
+				PromQL:       "prom",
+				Presentation: test_fixtures.DefaultPresentation(),
+			}},
+			Layout: indicator.Layout{
+				Title:       "Monitoring Test Product",
+				Owner:       "Test Owner Team",
+				Description: "Test description",
+				Sections: []indicator.Section{{
+					Title:       "Test Section",
+					Description: "This section includes indicators and metrics",
+					Indicators:  []string{"test_performance_indicator", "cats"},
+				}},
+			},
+		}
+		es := indicator.ValidateForRegistry(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("layout sections[0] indicators[1] references a non-existent indicator: cats"),
 		))
 	})
 }
