@@ -9,7 +9,7 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator_status"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_uaa_client"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -22,12 +22,12 @@ func main() {
 	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs")
 	serverCommonName := flag.String("tls-server-cn", "indicator-registry", "server (indicator-registry) common name")
 	insecure := flag.Bool("k", false, "skips ssl verification (insecure)")
-	uaaHost := flag.String("uaa-uri", "", "URI of a UAA instance)")
-	uaaClientID := flag.String("uaa-client-id", "", "UAA client ID with access to the Prometheus instance")
-	uaaClientSecret := flag.String("uaa-client-secret", "", "UAA client secret")
+	oauthHost := flag.String("oauth-server", "", "URI of a OAuth authentication server)")
+	oauthClientID := flag.String("oauth-client-id", "", "OAuth client ID with access to the Prometheus instance")
+	oauthClientSecret := flag.String("oauth-client-secret", "", "OAuth client secret")
 	flag.Parse()
 
-	checkRequiredFlagsArePresent(*registryURI, *prometheusURI, *clientPEM, *clientKey, *rootCACert, *uaaHost, *uaaClientID, *uaaClientSecret)
+	checkRequiredFlagsArePresent(*registryURI, *prometheusURI, *clientPEM, *clientKey, *rootCACert, *oauthHost, *oauthClientID, *oauthClientSecret)
 
 	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
@@ -44,14 +44,14 @@ func main() {
 
 	registryClient := registry.NewAPIClient(*registryURI, registryHttpClient)
 
-	tokenFetcher := prometheus_uaa_client.NewUAATokenFetcher(prometheus_uaa_client.UAAClientConfig{
-		Insecure:        *insecure,
-		UAAHost:         *uaaHost,
-		UAAClientID:     *uaaClientID,
-		UAAClientSecret: *uaaClientSecret,
-		Timeout:         0,
+	tokenFetcher := prometheus_oauth_client.NewTokenFetcher(prometheus_oauth_client.OAuthClientConfig{
+		Insecure:          *insecure,
+		OAuthServer:       *oauthHost,
+		OAuthClientID:     *oauthClientID,
+		OAuthClientSecret: *oauthClientSecret,
+		Timeout:           0,
 	})
-	prometheusClient, err := prometheus_uaa_client.Build(*prometheusURI, tokenFetcher.GetClientToken, *insecure)
+	prometheusClient, err := prometheus_oauth_client.Build(*prometheusURI, tokenFetcher.GetClientToken, *insecure)
 
 	statusController := indicator_status.NewStatusController(
 		registryClient,
@@ -69,9 +69,9 @@ func checkRequiredFlagsArePresent(
 	clientPEM string,
 	clientKey string,
 	rootCACert string,
-	uaaHost string,
-	uaaClientID string,
-	uaaClientSecret string,
+	oauthHost string,
+	oauthClientID string,
+	oauthClientSecret string,
 ) {
 	stdErr := log.New(os.Stderr, "", 0)
 
@@ -89,7 +89,7 @@ func checkRequiredFlagsArePresent(
 	exitOnEmpty(clientPEM, "tls-pem-path")
 	exitOnEmpty(clientKey, "tls-key-path")
 	exitOnEmpty(rootCACert, "tls-root-ca-pem")
-	exitOnEmpty(uaaHost, "uaa-host")
-	exitOnEmpty(uaaClientID, "uaa-client-id")
-	exitOnEmpty(uaaClientSecret, "uaa-client-secret")
+	exitOnEmpty(oauthHost, "oauth-server")
+	exitOnEmpty(oauthClientID, "oauth-client-id")
+	exitOnEmpty(oauthClientSecret, "oauth-client-secret")
 }

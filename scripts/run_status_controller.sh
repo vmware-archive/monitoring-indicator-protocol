@@ -21,9 +21,9 @@ go run cmd/status_controller/main.go \
   -registry-uri ${REGISTRY_URI} \
   -prometheus-uri ${PROMETHEUS_URI} \
   -interval ${INTERVAL} \
-  -uaa-uri ${UAA_URI} \
-  -uaa-client-id ${UAA_CLIENT_ID} \
-  -uaa-client-secret ${UAA_CLIENT_SECRET} \
+  -oauth-server ${UAA_URI} \
+  -oauth-client-id ${UAA_CLIENT_ID} \
+  -oauth-client-secret ${UAA_CLIENT_SECRET} \
   -tls-pem-path ${CERTS}/client.pem \
   -tls-key-path ${CERTS}/client.key \
   -tls-root-ca-pem ${CERTS}/server.pem \

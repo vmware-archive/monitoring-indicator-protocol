@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_uaa_client"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/verification"
 )
 
@@ -31,7 +31,7 @@ func main() {
 
 	tokenFetcher := func() (string, error) { return *authorization, nil }
 
-	prometheusClient, err := prometheus_uaa_client.Build(*prometheusURI, tokenFetcher, *insecure)
+	prometheusClient, err := prometheus_oauth_client.Build(*prometheusURI, tokenFetcher, *insecure)
 	if err != nil {
 		l.Fatalf("could not create prometheus client: %s\n", err)
 	}

@@ -1,4 +1,4 @@
-package prometheus_uaa_client
+package prometheus_oauth_client
 
 import (
 	"context"

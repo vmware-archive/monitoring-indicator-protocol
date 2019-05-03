@@ -76,8 +76,8 @@ func TestStatusControllerBinary(t *testing.T) {
 		registryServer := setupFakeRegistry(g)
 		defer registryServer.Close()
 
-		uaaServer := setupFakeUAA(g)
-		defer uaaServer.Close()
+		oauthServer := setupFakeOauthServer(g)
+		defer oauthServer.Close()
 
 		binPath, err := go_test.Build("./", "-race")
 		g.Expect(err).ToNot(HaveOccurred())
@@ -90,9 +90,9 @@ func TestStatusControllerBinary(t *testing.T) {
 			"--tls-key-path", clientKey,
 			"--tls-root-ca-pem", rootCACert,
 			"--tls-server-cn", "localhost",
-			"--uaa-uri", uaaServer.URL(),
-			"--uaa-client-id", "alana",
-			"--uaa-client-secret", "abc123",
+			"--oauth-server", oauthServer.URL(),
+			"--oauth-client-id", "alana",
+			"--oauth-client-secret", "abc123",
 		)
 
 		session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
@@ -135,14 +135,14 @@ func setupFakeRegistry(g *GomegaWithT) *ghttp.Server {
 	return registryServer
 }
 
-func setupFakeUAA(g *GomegaWithT) *ghttp.Server {
-	uaaServer := ghttp.NewServer()
-	uaaServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
+func setupFakeOauthServer(g *GomegaWithT) *ghttp.Server {
+	oauthServer := ghttp.NewServer()
+	oauthServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, err := w.Write([]byte(`{"token_type": "bearer", "access_token": "my-token"}`))
 		g.Expect(err).ToNot(HaveOccurred())
 	})
-	return uaaServer
+	return oauthServer
 }
 
 func setupFakePrometheusServer(g *GomegaWithT) *ghttp.Server {

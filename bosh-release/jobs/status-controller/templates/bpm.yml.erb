@@ -18,11 +18,11 @@ processes:
   - <%= p('prometheus_uri') %>
   - --interval
   - <%= p('interval') %>
-  - --uaa-uri
+  - --oauth-server
   - <%= p('uaa_uri') %>
-  - --uaa-client-id
+  - --oauth-client-id
   - <%= p('uaa_client_id') %>
-  - --uaa-client-secret
+  - --oauth-client-secret
   - <%= p('uaa_client_secret') %>
   <% if_p('ssl.skip_cert_verify') do %>
   - -k

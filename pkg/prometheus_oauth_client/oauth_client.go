@@ -1,4 +1,4 @@
-package prometheus_uaa_client
+package prometheus_oauth_client
 
 import (
 	"crypto/tls"
@@ -11,35 +11,35 @@ import (
 	"time"
 )
 
-type UAAClientConfig struct {
-	Insecure        bool
-	UAAHost         string
-	UAAClientID     string
-	UAAClientSecret string
-	Timeout         time.Duration
-	Clock           func() time.Time
+type OAuthClientConfig struct {
+	Insecure          bool
+	OAuthServer       string
+	OAuthClientID     string
+	OAuthClientSecret string
+	Timeout           time.Duration
+	Clock             func() time.Time
 }
 
-func NewUAATokenFetcher(config UAAClientConfig) *uaaTokenFetcher {
+func NewTokenFetcher(config OAuthClientConfig) *oauthTokenFetcher {
 	if config.Clock == nil {
 		config.Clock = time.Now
 	}
 
-	return &uaaTokenFetcher{
-		uaaHost:         config.UAAHost,
-		uaaClientID:     config.UAAClientID,
-		uaaClientSecret: config.UAAClientSecret,
-		insecure:        config.Insecure,
-		timeout:         config.Timeout,
-		getTime:         config.Clock,
+	return &oauthTokenFetcher{
+		oauthHost:         config.OAuthServer,
+		oauthClientID:     config.OAuthClientID,
+		oauthClientSecret: config.OAuthClientSecret,
+		insecure:          config.Insecure,
+		timeout:           config.Timeout,
+		getTime:           config.Clock,
 	}
 }
 
-type uaaTokenFetcher struct {
-	uaaHost         string
-	uaaClientID     string
-	uaaClientSecret string
-	insecure        bool
+type oauthTokenFetcher struct {
+	oauthHost         string
+	oauthClientID     string
+	oauthClientSecret string
+	insecure          bool
 
 	tokenLock  sync.Mutex
 	token      string
@@ -48,7 +48,7 @@ type uaaTokenFetcher struct {
 	getTime    func() time.Time
 }
 
-func (c *uaaTokenFetcher) GetClientToken() (string, error) {
+func (c *oauthTokenFetcher) GetClientToken() (string, error) {
 	c.tokenLock.Lock()
 	defer c.tokenLock.Unlock()
 
@@ -57,12 +57,12 @@ func (c *uaaTokenFetcher) GetClientToken() (string, error) {
 	}
 
 	v := make(url.Values)
-	v.Set("client_id", c.uaaClientID)
+	v.Set("client_id", c.oauthClientID)
 	v.Set("grant_type", "client_credentials")
 
 	req, err := http.NewRequest(
 		"POST",
-		c.uaaHost,
+		c.oauthHost,
 		strings.NewReader(v.Encode()),
 	)
 	if err != nil {
@@ -72,12 +72,12 @@ func (c *uaaTokenFetcher) GetClientToken() (string, error) {
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	req.URL.User = url.UserPassword(c.uaaClientID, c.uaaClientSecret)
+	req.URL.User = url.UserPassword(c.oauthClientID, c.oauthClientSecret)
 
 	return c.doTokenRequest(req)
 }
 
-func (c *uaaTokenFetcher) doTokenRequest(req *http.Request) (string, error) {
+func (c *oauthTokenFetcher) doTokenRequest(req *http.Request) (string, error) {
 	client := http.Client{Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: c.insecure,
@@ -109,6 +109,6 @@ func (c *uaaTokenFetcher) doTokenRequest(req *http.Request) (string, error) {
 	return c.token, nil
 }
 
-func (c *uaaTokenFetcher) tokenIsValid() bool {
+func (c *oauthTokenFetcher) tokenIsValid() bool {
 	return c.token != "" && c.expiration.After(c.getTime())
 }
