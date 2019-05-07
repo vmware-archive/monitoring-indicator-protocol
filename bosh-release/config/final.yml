@@ -1,5 +1,5 @@
 name: indicator-protocol
 blobstore:
-  provider: s3
+  provider: gcs
   options:
-    bucket_name: cf-indicators-bosh-blubs
+    bucket_name: monitoring-indicator-protocol/bosh-blobs
