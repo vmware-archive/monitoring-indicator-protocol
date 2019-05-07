@@ -2,4 +2,4 @@ name: indicator-protocol
 blobstore:
   provider: gcs
   options:
-    bucket_name: monitoring-indicator-protocol/bosh-blobs
+    bucket_name: monitoring-indicator-protocol/releases/bosh-blobs
