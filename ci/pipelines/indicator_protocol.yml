@@ -104,6 +104,18 @@ resources:
     tag: last-build
     username: ((dockerhub-username))
     password: ((dockerhub-password))
+- name: dev-release-destination
+  type: gcs-resource
+  source:
+    bucket: monitoring-indicator-protocol
+    json_key: ((gcp-service-account))
+    regexp: releases/dev/indicator-protocol-bosh-(.*).tgz
+
+resource_types:
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
 
 jobs:
 - name: build-and-test
@@ -614,6 +626,78 @@ jobs:
       params:
         tag_as_latest: false
         load: interim-indicator-status-controller-docker-repo
+- name: create-dev-release
+  plan:
+  - aggregate:
+    - get: monitoring-indicator-protocol
+      passed: [indicator-verification,indicator-docs,deploy-indicator-registry,promote-docker-images]
+      trigger: false
+    - get: release-version
+      params: {}
+    - get: grafana-controller-docker-repo
+      params: {save: true}
+      passed: [promote-docker-images]
+    - get: prometheus-controller-docker-repo
+      params: {save: true}
+      passed: [promote-docker-images]
+    - get: indicator-lifecycle-controller-docker-repo
+      params: {save: true}
+      passed: [promote-docker-images]
+    - get: indicator-admission-controller-docker-repo
+      params: {save: true}
+      passed: [promote-docker-images]
+    - get: indicator-status-controller-docker-repo
+      params: {save: true}
+      passed: [promote-docker-images]
+  - task: create-release
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: indicatorprotocol/test-base
+      inputs:
+      - name: release-version
+      - name: monitoring-indicator-protocol
+      outputs:
+      - name: created-release
+      params:
+        RELEASE_NAME: indicator-protocol
+        RELEASE_BLOBSTORE_BUCKET: monitoring-indicator-protocol-bosh-blobs
+        SERVICE_ACCOUNT: ((gcp-service-account))
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+          set -ex
+
+          BUILD_NUMBER="$(cat release-version/number)"
+
+          mkdir -p monitoring-indicator-protocol/bosh-release/src/github.com/pivotal
+          rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
+
+          pushd monitoring-indicator-protocol/bosh-release
+            cat << EOF > config/private.yml
+          ---
+          blobstore:
+            provider: gcs
+            options:
+              bucket_name: ${RELEASE_BLOBSTORE_BUCKET}
+              credentials_source: static
+              json_key: |
+                ${SERVICE_ACCOUNT}
+          EOF
+
+            SHORT_SHA="$(git rev-parse --short @)"
+            bosh -n create-release --sha2 --force \
+              --version ${BUILD_NUMBER}-${SHORT_SHA} \
+              --tarball ../../created-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}-${SHORT_SHA}.tgz
+          popd
+  - put: dev-release-destination
+    params:
+      file: created-release/*.tgz
 
 - name: publish-release
   plan:
