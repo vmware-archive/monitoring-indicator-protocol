@@ -175,8 +175,8 @@ func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) 
 	}, nil
 }
 
-func serviceLevelFromYAML(level *yamlServiceLevel) *ServiceLevel {
-	if level == nil {
+func serviceLevelFromYAML(level yamlServiceLevel) *ServiceLevel {
+	if reflect.DeepEqual(level, yamlServiceLevel{}) {
 		return nil
 	}
 	return &ServiceLevel{
@@ -310,9 +310,9 @@ type yamlIndicator struct {
 	Promql        string            `yaml:"promql"`
 	Thresholds    []yamlThreshold   `yaml:"thresholds"`
 	Alert         yamlAlert         `yaml:"alert"`
-	ServiceLevel  *yamlServiceLevel `yaml:"serviceLevel"`
+	ServiceLevel  yamlServiceLevel  `yaml:"serviceLevel"`
 	Documentation map[string]string `yaml:"documentation"`
-	Presentation  *yamlPresentation `yaml:"presentation"`
+	Presentation  yamlPresentation  `yaml:"presentation"`
 }
 
 type yamlServiceLevel struct {
@@ -405,8 +405,8 @@ func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
 	}, nil
 }
 
-func presentationFromYAML(p *yamlPresentation) (Presentation) {
-	if p == nil {
+func presentationFromYAML(p yamlPresentation) Presentation {
+	if reflect.DeepEqual(p, yamlPresentation{}) {
 		return Presentation{
 			ChartType:    StepChart,
 			CurrentValue: false,
