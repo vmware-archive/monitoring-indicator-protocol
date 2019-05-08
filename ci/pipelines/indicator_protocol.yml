@@ -104,7 +104,7 @@ resources:
     tag: last-build
     username: ((dockerhub-username))
     password: ((dockerhub-password))
-- name: dev-release-destination
+- name: dev-release
   type: gcs-resource
   source:
     bucket: monitoring-indicator-protocol
@@ -633,7 +633,8 @@ jobs:
       passed: [indicator-verification,indicator-docs,deploy-indicator-registry,promote-docker-images]
       trigger: false
     - get: release-version
-      params: {}
+      params:
+        pre: build
     - get: grafana-controller-docker-repo
       params: {save: true}
       passed: [promote-docker-images]
@@ -690,38 +691,50 @@ jobs:
                 ${SERVICE_ACCOUNT}
           EOF
 
-            SHORT_SHA="$(git rev-parse --short @)"
             bosh -n create-release --sha2 --force \
-              --version ${BUILD_NUMBER}-${SHORT_SHA} \
-              --tarball ../../created-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}-${SHORT_SHA}.tgz
+              --version ${BUILD_NUMBER} \
+              --tarball ../../created-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz
           popd
-  - put: dev-release-destination
-    params:
-      file: created-release/*.tgz
+  - aggregate:
+    - put: dev-release
+      params:
+        file: created-release/*.tgz
+    - put: release-version
+      params:
+        pre: build
 
-- name: publish-release
+- name: finalize-release
   plan:
   - aggregate:
     - get: monitoring-indicator-protocol
-      passed: [indicator-verification,indicator-docs,deploy-indicator-registry,promote-docker-images]
-      trigger: false
+      passed:
+      - create-dev-release
     - get: release-version
-      params: {}
+      params:
+        bump: final
     - get: grafana-controller-docker-repo
       params: {save: true}
-      passed: [promote-docker-images]
+      passed:
+      - create-dev-release
     - get: prometheus-controller-docker-repo
       params: {save: true}
-      passed: [promote-docker-images]
+      passed:
+      - create-dev-release
     - get: indicator-lifecycle-controller-docker-repo
       params: {save: true}
-      passed: [promote-docker-images]
+      passed:
+      - create-dev-release
     - get: indicator-admission-controller-docker-repo
       params: {save: true}
-      passed: [promote-docker-images]
+      passed:
+      - create-dev-release
     - get: indicator-status-controller-docker-repo
       params: {save: true}
-      passed: [promote-docker-images]
+      passed:
+      - create-dev-release
+    - get: dev-release
+      passed:
+      - create-dev-release
   - task: create-final-release
     config:
       platform: linux
@@ -732,6 +745,7 @@ jobs:
       inputs:
       - name: release-version
       - name: monitoring-indicator-protocol
+      - name: dev-release
       outputs:
       - name: final-release
       - name: github-release
@@ -770,11 +784,16 @@ jobs:
                 ${SERVICE_ACCOUNT}
           EOF
 
-            bosh -n create-release --sha2 --final --force \
-              --tarball ../../github-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz \
-              --version "$BUILD_NUMBER"
-            git add .
+            bosh -n finalize-release --sha2 \
+              --version "$BUILD_NUMBER" \
+              ../../dev-release/*.tgz
 
+            bosh -n create-release --sha2 \
+              --tarball ../../github-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz \
+              --version "$BUILD_NUMBER" \
+              releases/indicator-protocol/indicator-protocol-${BUILD_NUMBER}.yml
+
+            git add .
             git config --global user.email "cf-event-producer@pivotal.io"
             git config --global user.name "event-producer-cibot"
             git commit -m "Create final release\
@@ -856,6 +875,9 @@ jobs:
       body: github-release/body
       globs:
       - github-release/indicator-*
+  - put: release-version
+    params:
+      bump: patch
   - aggregate:
     - put: grafana-controller-docker-repo
       params:
@@ -882,12 +904,3 @@ jobs:
         additional_tags: prefixed-release-version/version
         tag_as_latest: true
         load: indicator-status-controller-docker-repo
-- name: bump-release-version
-  plan:
-  - aggregate:
-    - get: monitoring-indicator-protocol
-      passed: [publish-release]
-      trigger: true
-  - put: release-version
-    params:
-      bump: patch
