@@ -14,3 +14,6 @@ proto/out
 *.mprof
 *.coverprofile
 *.test
+
+# system
+.DS_Store
