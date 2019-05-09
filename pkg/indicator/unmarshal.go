@@ -1,10 +1,10 @@
 package indicator
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -405,7 +405,7 @@ func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
 	}, nil
 }
 
-func presentationFromYAML(p *yamlPresentation) (Presentation) {
+func presentationFromYAML(p *yamlPresentation) Presentation {
 	if p == nil {
 		return Presentation{
 			ChartType:    StepChart,
@@ -478,7 +478,9 @@ func fillInMetadata(documentMetadata map[string]string, overrideMetadata map[str
 	}
 
 	for k, v := range documentMetadata {
-		documentBytes = bytes.Replace(documentBytes, []byte("$"+k), []byte(v), -1)
+		regString := fmt.Sprintf(`(?i)\$%s\b`, k)
+		reg := regexp.MustCompile(regString)
+		documentBytes = reg.ReplaceAll(documentBytes, []byte(v))
 	}
 
 	return documentBytes

@@ -204,6 +204,42 @@ func TestDocumentToDashboard(t *testing.T) {
 		g.Expect(dashboard.Rows[0].Panels[0].Targets[0].Expression).To(BeEquivalentTo(`rate(sum_over_time(gorouter_latency_ms[$__interval])[$__interval])`))
 	})
 
+	t.Run("replaces only $step with $__interval", func(t *testing.T) {
+		buffer := bytes.NewBuffer(nil)
+		log.SetOutput(buffer)
+
+		g := NewGomegaWithT(t)
+
+		indicators := []indicator.Indicator{
+			{
+				Name:   "test_indicator",
+				PromQL: `rate(sum_over_time(gorouter_latency_ms[$steper])[$STEP])`,
+			},
+			{
+				Name:   "another_indicator",
+				PromQL: `avg_over_time(demo_latency{source_id="$step"}[5m])`,
+			},
+		}
+		document := indicator.Document{
+			Metadata:   map[string]string{"ste": "123"},
+			Indicators: indicators,
+			Layout: indicator.Layout{
+				Title: "Indicator Test Dashboard",
+				Sections: []indicator.Section{
+					{
+						Title:      "Test Section Title",
+						Indicators: []string{"test_indicator", "another_indicator"},
+					},
+				},
+			},
+		}
+
+		dashboard, err := grafana_dashboard.DocumentToDashboard(document)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(dashboard.Rows[0].Panels[0].Targets[0].Expression).To(BeEquivalentTo(`rate(sum_over_time(gorouter_latency_ms[$steper])[$__interval])`))
+		g.Expect(dashboard.Rows[0].Panels[1].Targets[0].Expression).ToNot(BeEquivalentTo(`avg_over_time(demo_latency{source_id="123p"}[5m])`))
+	})
+
 	t.Run("creates a filename based on product name and contents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		document := indicator.Document{

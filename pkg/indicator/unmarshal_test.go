@@ -982,7 +982,7 @@ indicators:
 
 		g.Expect(d.Layout).To(Equal(indicator.Layout{
 			Sections: []indicator.Section{{
-				Title: "Metrics",
+				Title:      "Metrics",
 				Indicators: []string{"test_performance_indicator"},
 			}},
 		}))
@@ -1043,8 +1043,36 @@ layout:
 
 `))
 		g.Expect(err).ToNot(HaveOccurred())
-
+		g.Expect(d.Indicators[0].PromQL).To(BeEquivalentTo(`prom{deployment="test_deployment"}`))
 		g.Expect(d.Indicators[0].Presentation.ChartType).To(BeEquivalentTo("step"))
+	})
+
+	t.Run("it does not override $step within promql", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+metadata:
+  ste: test_ste
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="$step"}
+  presentation:
+    currentValue: false
+
+layout:
+  sections:
+  - title: Metrics
+    indicators:
+    - test_performance_indicator
+
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].PromQL).To(BeEquivalentTo(`prom{deployment="$step"}`))
 	})
 
 	t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {

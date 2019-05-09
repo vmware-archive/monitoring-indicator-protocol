@@ -40,7 +40,7 @@ func validateCommon(document Document) []error {
 	}
 
 	for k := range document.Metadata {
-		if k == "step" {
+		if strings.ToLower(k) == "step" {
 			es = append(es, fmt.Errorf("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"))
 		}
 	}

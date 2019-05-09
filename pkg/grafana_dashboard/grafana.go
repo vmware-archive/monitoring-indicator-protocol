@@ -4,7 +4,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"log"
-	"strings"
+	"regexp"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
@@ -17,7 +17,7 @@ func DocumentToDashboard(document indicator.Document) (*GrafanaDashboard, error)
 	return toGrafanaDashboard(document)
 }
 
-func toGrafanaDashboard(d indicator.Document) (*GrafanaDashboard , error) {
+func toGrafanaDashboard(d indicator.Document) (*GrafanaDashboard, error) {
 	rows, err := toGrafanaRows(d)
 	if err != nil {
 		return nil, err
@@ -81,14 +81,20 @@ func getIndicatorTitle(i indicator.Indicator) string {
 }
 
 func toGrafanaPanel(i indicator.Indicator, title string) GrafanaPanel {
+	replacementString := replaceStep(i.PromQL)
 	return GrafanaPanel{
 		Title: title,
 		Type:  "graph",
 		Targets: []GrafanaTarget{{
-			Expression: strings.Replace(i.PromQL, "$step", "$__interval", -1),
+			Expression: replacementString,
 		}},
 		Thresholds: toGrafanaThresholds(i.Thresholds),
 	}
+}
+
+func replaceStep(str string) string {
+	reg := regexp.MustCompile(`(?i)\$step\b`)
+	return reg.ReplaceAllString(str, `$$__interval`)
 }
 
 func sectionToGrafanaRow(section indicator.Section, document indicator.Document) (*GrafanaRow, error) {

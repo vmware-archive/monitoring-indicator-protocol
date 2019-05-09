@@ -253,6 +253,22 @@ func TestMetadata(t *testing.T) {
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
 		))
 	})
+
+	t.Run("validation returns errors if metadata key is step containing uppercase letters", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+			Metadata:   map[string]string{"StEp": "my-step"},
+		}
+
+		es := indicator.ValidateForRegistry(document)
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
+		))
+	})
 }
 
 func TestThreshold(t *testing.T) {
