@@ -44,6 +44,10 @@ func (c Controller) OnAdd(obj interface{}) {
 
 func (c Controller) OnUpdate(oldObj, newObj interface{}) {
 	oldDoc, ok := oldObj.(*types.IndicatorDocument)
+	if !ok {
+		log.Printf("Invalid resource type OnUpdate: %T", oldObj)
+		return
+	}
 	newDoc, ok := newObj.(*types.IndicatorDocument)
 	if !ok {
 		log.Printf("Invalid resource type OnUpdate: %T", newObj)
@@ -111,7 +115,7 @@ func (c Controller) OnDelete(obj interface{}) {
 }
 
 func toIndicator(is types.IndicatorSpec, parent *types.IndicatorDocument) *types.Indicator {
-	name := parent.Name + "-" + strings.Replace(is.Name, "_", "-", -1)
+	name := parent.Name + "-" + sanitizeIndicatorName(is.Name)
 	indicator := is.DeepCopy()
 	indicator.Product = fmt.Sprintf("%s %s", parent.Spec.Product.Name, parent.Spec.Product.Version)
 	return &types.Indicator{
@@ -134,6 +138,12 @@ func toIndicator(is types.IndicatorSpec, parent *types.IndicatorDocument) *types
 		},
 		Spec: *indicator,
 	}
+}
+
+func sanitizeIndicatorName(input string) string {
+	noUnderscores := strings.ReplaceAll(input, "_", "-")
+	noColons := strings.ReplaceAll(noUnderscores, ":", "-")
+	return strings.ToLower(noColons)
 }
 
 func find(list []types.Indicator, item types.IndicatorSpec) *types.Indicator {

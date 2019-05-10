@@ -91,7 +91,7 @@ func TestController(t *testing.T) {
 			existingIndicatorList := types.IndicatorList{
 				Items: []types.Indicator{{
 					ObjectMeta: v1.ObjectMeta{
-						Name: "test-I1",
+						Name: "test-i1",
 					},
 					Spec: existingIndicatorSpec,
 				}},
@@ -165,14 +165,14 @@ func TestController(t *testing.T) {
 						Version: "v1.2.3",
 					},
 					Indicators: []types.IndicatorSpec{
-						{Name: "I1_foo", Promql: "promql-query-1"},
+						{Name: "I1_foo:Goo", Promql: "promql-query-1"},
 					},
 				},
 			}
 
 			c.OnAdd(id)
 
-			g.Expect(spyIndicatorsGetter.createCalls[0].Name).To(Equal("test-I1-foo"))
+			g.Expect(spyIndicatorsGetter.createCalls[0].Name).To(Equal("test-i1-foo-goo"))
 		})
 
 		t.Run("adds product info to indicator", func(t *testing.T) {
@@ -319,14 +319,14 @@ func TestController(t *testing.T) {
 			g := NewGomegaWithT(t)
 			existingIndicatorList := types.IndicatorList{
 				Items: []types.Indicator{{
-					ObjectMeta: v1.ObjectMeta{Name: "test-I1"},
+					ObjectMeta: v1.ObjectMeta{Name: "test-i1"},
 					Spec: types.IndicatorSpec{
 						Product: "rabbit v1.2.3",
 						Name:    "I1",
 						Promql:  "promql-query-1",
 					},
 				}, {
-					ObjectMeta: v1.ObjectMeta{Name: "test-I2"},
+					ObjectMeta: v1.ObjectMeta{Name: "test-i2"},
 					Spec: types.IndicatorSpec{
 						Product: "rabbit v1.2.3",
 						Name:    "I2",
@@ -371,7 +371,7 @@ func TestController(t *testing.T) {
 			c.OnUpdate(oldIndicatorDoc, newIndicatorDoc)
 
 			g.Expect(spyIndicatorsGetter.deleteCalls).To(HaveLen(1))
-			g.Expect(spyIndicatorsGetter.deleteCalls[0]).To(Equal("test-I2"))
+			g.Expect(spyIndicatorsGetter.deleteCalls[0]).To(Equal("test-i2"))
 
 			g.Expect(spyIndicatorsGetter.updateCalls).To(HaveLen(0))
 			g.Expect(spyIndicatorsGetter.createCalls).To(HaveLen(0))
@@ -381,11 +381,13 @@ func TestController(t *testing.T) {
 			g := NewGomegaWithT(t)
 			existingIndicatorList := types.IndicatorList{
 				Items: []types.Indicator{{
+					ObjectMeta: v1.ObjectMeta{Name: "test-boo-i1-foo"},
 					Spec: types.IndicatorSpec{
 						Product: "rabbit v1.2.3",
-						Name:    "boo_I1_foo",
+						Name:    "boo_I1_foo:Goo",
 						Promql:  "promql-query-4",
 					},
+					Status: types.IndicatorStatus{},
 				}},
 			}
 			spyIndicatorsGetter := &spyIndicatorsGetter{g: g, t: t, indicatorList: &existingIndicatorList}
@@ -401,7 +403,7 @@ func TestController(t *testing.T) {
 						Version: "v1.2.3",
 					},
 					Indicators: []types.IndicatorSpec{
-						{Name: "boo_I1_foo", Promql: "promql-query-4"},
+						{Name: "boo_I1_foo:Goo", Promql: "promql-query-4"},
 					},
 				},
 			}
@@ -416,7 +418,7 @@ func TestController(t *testing.T) {
 						Version: "v1.2.3",
 					},
 					Indicators: []types.IndicatorSpec{
-						{Name: "boo_I1_foo", Promql: "new-promql-query-4"},
+						{Name: "boo_I1_foo:Goo", Promql: "new-promql-query-4"},
 					},
 				},
 			}
@@ -424,7 +426,7 @@ func TestController(t *testing.T) {
 			c.OnUpdate(oldIndicatorDoc, newIndicatorDoc)
 
 			g.Expect(spyIndicatorsGetter.updateCalls).To(HaveLen(1))
-			g.Expect(spyIndicatorsGetter.updateCalls[0].Name).To(Equal("test-boo-I1-foo"))
+			g.Expect(spyIndicatorsGetter.updateCalls[0].Name).To(Equal("test-boo-i1-foo-goo"))
 		})
 	})
 }
