@@ -36,6 +36,11 @@ for prometheus based on `IndicatorDocument`s.
 The `indicator-lifecycle-controller` creates individual Indicator
 resources in k8s for each indicator defined in a document.
 
+#### Status
+
+The `indicator-status-controller` updates the status of each indicator 
+based on thresholds and query results.
+
 ### Cluster setup
 
 ```bash
