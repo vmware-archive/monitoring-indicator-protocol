@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -efu
 
-ENVIRONMENT=sunstorm
+ENVIRONMENT=moonstorm
 
 set +u
   source ~/workspace/denver-bash-it/custom/environment-targeting.bash
@@ -10,7 +10,7 @@ set -u
 
 export CERTS=./test_fixtures
 export REGISTRY_URI="https://localhost:8091"
-export PROMETHEUS_URI="https://log-cache.${ENVIRONMENT}.cf-denver.com "
+export PROMETHEUS_URI="https://metric-store.${ENVIRONMENT}.cf-denver.com "
 export UAA_URI="https://login.${ENVIRONMENT}.cf-denver.com"
 export UAA_CLIENT_ID="firehose_exporter"
 export UAA_CLIENT_SECRET=$(credhub g -n /bosh-${ENVIRONMENT}/cf-01234567890123456789/uaa_clients_firehose_exporter_secret -j | jq -r .value)

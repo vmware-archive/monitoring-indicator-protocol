@@ -17,7 +17,7 @@ func main() {
 
 	indicatorsFilePath := flag.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/indicators)")
 	metadata := flag.String("metadata", "", "metadata to override (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
-	prometheusURI := flag.String("query-endpoint", "", "the query url of a Prometheus compliant store (e.g. https://log-cache.system.cfapp.com")
+	prometheusURI := flag.String("query-endpoint", "", "the query url of a Prometheus compliant store (e.g. https://metric-store.system.cfapp.com")
 	authorization := flag.String("authorization", "", "the authorization header sent to prometheus (e.g. 'bearer abc-123')")
 	insecure := flag.Bool("k", false, "skips ssl verification (insecure)")
 	flag.Parse()

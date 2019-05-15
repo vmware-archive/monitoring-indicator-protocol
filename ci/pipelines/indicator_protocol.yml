@@ -191,8 +191,8 @@ jobs:
       - name: monitoring-indicator-protocol
       - name: env-state
       params:
-        ENVIRONMENT: sunstorm
-        BBL_STATE_DIR: acceptance-bosh/claimed/sunstorm
+        ENVIRONMENT: moonstorm
+        BBL_STATE_DIR: acceptance-bosh/claimed/moonstorm
         DEPLOYMENT_NAME: cf-01234567890123456789
       run:
         path: bash
@@ -229,7 +229,7 @@ jobs:
 
             go run -mod=vendor cmd/verification/main.go -indicators=indicators.yml \
                                                         -authorization="bearer ${access_token}" \
-                                                        -query-endpoint=https://log-cache.${ENVIRONMENT}.cf-denver.com \
+                                                        -query-endpoint=https://metric-store.${ENVIRONMENT}.cf-denver.com \
                                                         -k
 
           popd
