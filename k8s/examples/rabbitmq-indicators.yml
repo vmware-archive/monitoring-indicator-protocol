@@ -7,29 +7,37 @@ spec:
     name: rabbitmq
     version: 3.7.14
   indicators:
-    - name: file_descriptor_consumption
-      promql: rabbitmq_fd_used / rabbitmq_fd_total
-      alert: { for: 10m }
-      thresholds:
-        - level: critical
-          gt: .8
-    - name: memory_consumption
-      promql: rabbitmq_node_mem_used / rabbitmq_node_mem_limit
-      alert: { for: 10m }
-      thresholds:
-        - level: critical
-          gt: .8
-    - name: disk_remaining
-      promql: rabbitmq_node_disk_free - rabbitmq_node_disk_free_limit
-      alert: { for: 10m }
-      thresholds:
-        - level: critical
-          lt: 1000000000
+  - name: file_descriptor_consumption
+    promql: rabbitmq_fd_used / rabbitmq_fd_total
+    alert: { for: 10m }
+    thresholds:
+    - level: critical
+      gt: .8
+  - name: memory_consumption
+    promql: rabbitmq_node_mem_used / rabbitmq_node_mem_limit
+    alert: { for: 10m }
+    thresholds:
+    - level: critical
+      gt: .8
+  - name: disk_remaining
+    promql: rabbitmq_node_disk_free - rabbitmq_node_disk_free_limit
+    alert: { for: 10m }
+    thresholds:
+    - level: critical
+      lt: 1000000000
+  - name: messages_rate
+    promql: rate(rabbitmq_queue_messages_total[5m])
+    alert:
+      for: 10s
+    thresholds:
+    - level: warning
+      gt: 0.02
   layout:
     title: RabbitMQ
     sections:
-      - title: Request rate
-        indicators:
-          - file_descriptor_consumption
-          - memory_consumption
-          - disk_remaining
+    - title: RabbitMQ indicators
+      indicators:
+      - file_descriptor_consumption
+      - memory_consumption
+      - disk_remaining
+      - messages_rate

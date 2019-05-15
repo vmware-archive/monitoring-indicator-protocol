@@ -65,14 +65,8 @@ kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admi
 kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 helm init --service-account tiller --upgrade
 
-# Create Grafana namespace
-kubectl create ns grafana
-
 # Install Grafana helmchart
 helm install stable/grafana --values helm_config/dev_grafana_values.yml --name grafana --namespace grafana
-
-# Create Prometheus namespace
-kubectl create ns prometheus
 
 # Install Prometheus helmchart
 helm install stable/prometheus --name prometheus --namespace prometheus
