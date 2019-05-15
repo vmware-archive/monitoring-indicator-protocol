@@ -45,6 +45,15 @@ function exit_on_failure {
     fi
 }
 
+function exit_on_dirty_git_directory {
+    git diff --quiet
+    result=$?
+    if [[ $1 -ne 0 ]]; then
+        red "GIT DIRECTORY IS NOT CLEAN"
+        exit $1
+    fi
+}
+
 function run_cleaners {
     print_checkpoint "Running Cleaners"
 
@@ -145,6 +154,7 @@ function main {
     "$command" $@
     result=$?
     exit_on_failure $result
+    exit_on_dirty_git_directory $result
     green "SWEET SUITE SUCCESS"
 }
 
