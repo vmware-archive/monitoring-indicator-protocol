@@ -1,5 +1,5 @@
 ---
-name: indicator-registry
+name: indicator-protocol
 
 stemcells:
 - alias: default
@@ -7,13 +7,13 @@ stemcells:
   version: latest
 
 releases:
-- name: indicator-protocol
+- name: monitoring-indicator-protocol
   version: latest
 - name: bpm
   version: latest
 
 instance_groups:
-- name: indicator-registry
+- name: indicator-protocol
   azs:
     - z1
   instances: 1
@@ -25,7 +25,7 @@ instance_groups:
   - name: bpm
     release: bpm
   - name: indicator-registry
-    release: indicator-protocol
+    release: monitoring-indicator-protocol
     provides:
       indicator-registry: {shared: true}
     properties:
@@ -37,16 +37,16 @@ instance_groups:
         client_cert: ((indicator_registration_agent_ssl.certificate))
         client_key: ((indicator_registration_agent_ssl.private_key))
   - name: grafana-dashboard-controller
-    release: indicator-protocol
+    release: monitoring-indicator-protocol
     properties:
       output_directory: /var/vcap/data/tmp/
   - name: prometheus-rules-controller
-    release: indicator-protocol
+    release: monitoring-indicator-protocol
     properties:
       output_directory: /var/vcap/data/tmp/
       prometheus_uri: http://localhost:12345
   - name: status-controller
-    release: indicator-protocol
+    release: monitoring-indicator-protocol
     properties:
       prometheus_uri: prometheus-compliant-uri
       ssl:

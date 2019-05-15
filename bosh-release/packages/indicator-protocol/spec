@@ -1,5 +1,5 @@
 ---
-name: indicator-registry
+name: indicator-protocol
 
 dependencies:
 - golang-1.12-linux
