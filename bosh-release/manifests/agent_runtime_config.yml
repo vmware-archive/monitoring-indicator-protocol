@@ -11,7 +11,6 @@ addons:
       indicator-registry: {deployment: indicator-registry}
 
   include:
-    deployments: [indicator-registry]
     stemcell:
     - os: ubuntu-trusty
     - os: ubuntu-xenial
