@@ -53,6 +53,10 @@ func main() {
 	})
 	prometheusClient, err := prometheus_oauth_client.Build(*prometheusURI, tokenFetcher.GetClientToken, *insecure)
 
+	if err != nil {
+		log.Fatalf("failed to create Prometheus client: %s", err)
+	}
+
 	statusController := indicator_status.NewStatusController(
 		registryClient,
 		registryClient,

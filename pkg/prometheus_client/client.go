@@ -37,6 +37,6 @@ func (p *PrometheusClient) QueryVectorValues(promql string) ([]float64, error) {
 	return values, nil
 }
 
-func (p *PrometheusClient) Query(ctx context.Context, query string, ts time.Time) (model.Value, error){
+func (p *PrometheusClient) Query(ctx context.Context, query string, ts time.Time) (model.Value, error) {
 	return p.Api.Query(ctx, query, ts)
 }

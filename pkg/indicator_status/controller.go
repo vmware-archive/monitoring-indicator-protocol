@@ -1,7 +1,6 @@
 package indicator_status
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -60,7 +59,7 @@ func (c StatusController) updateStatuses() error {
 
 	apiv0Documents, err := c.documentGetter.IndicatorDocuments()
 	if err != nil {
-		return fmt.Errorf("error retrieving indicator docs: %s", err)
+		return err
 	}
 	for _, indicatorDocument := range apiv0Documents {
 		for _, indicator := range indicatorDocument.Indicators {

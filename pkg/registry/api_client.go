@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg"
 )
 
 type apiClient struct {
@@ -23,7 +25,8 @@ func NewAPIClient(serverURL string, client *http.Client) *apiClient {
 func (c *apiClient) IndicatorDocuments() ([]APIV0Document, error) {
 	payload, e := c.indicatorResponse()
 	if e != nil {
-		return nil, fmt.Errorf("failed to get indicator documents: %s\n", e)
+		errString := utils.SanitizeUrl(e, c.serverURL, "failed to get indicator documents")
+		return nil, fmt.Errorf(errString)
 	}
 
 	var d []APIV0Document
@@ -55,7 +58,8 @@ func (c *apiClient) BulkStatusUpdate(statusUpdates []APIV0UpdateIndicatorStatus,
 	)
 
 	if err != nil {
-		return fmt.Errorf("error sending status updates: %s", err)
+		errMessage := utils.SanitizeUrl(err, c.serverURL, "Error sending status updates")
+		return fmt.Errorf(errMessage)
 	}
 
 	if resp.StatusCode != 200 {

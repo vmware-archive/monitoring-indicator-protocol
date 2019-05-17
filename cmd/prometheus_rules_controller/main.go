@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
@@ -67,7 +68,7 @@ func (p *prometheusClient) Reload() error {
 	buffer := bytes.NewBuffer(nil)
 	resp, err := p.httpClient.Post(fmt.Sprintf("%s/-/reload", p.prometheusURI), "", buffer)
 	if err != nil {
-		return err
+		return fmt.Errorf(utils.SanitizeUrl(err, p.prometheusURI, ""))
 	}
 
 	if resp.StatusCode != 200 {

@@ -12,6 +12,7 @@ import (
 	"github.com/benbjohnson/clock"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/indicator_status"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
@@ -58,7 +59,8 @@ func main() {
 	tokenFetcher := func() (string, error) { return conf.PrometheusApiToken, nil }
 	prometheusClient, err := prometheus_oauth_client.Build(conf.PrometheusURL, tokenFetcher, false)
 	if err != nil {
-		log.Fatal(err.Error())
+		errString := utils.SanitizeUrl(err, conf.PrometheusURL, "")
+		log.Fatal(errString)
 	}
 
 	controller := indicator_status.NewController(

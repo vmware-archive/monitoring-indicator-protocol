@@ -127,7 +127,7 @@ func (c *Controller) getStatus(indicator types.Indicator) (string, error) {
 	}
 	values, err := c.promqlClient.QueryVectorValues(indicator.Spec.Promql)
 	if err != nil {
-		log.Printf("Error querying Prometheus: %s", err)
+		log.Print(err)
 		return "", err
 	}
 

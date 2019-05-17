@@ -9,6 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	utils "github.com/pivotal/monitoring-indicator-protocol/pkg"
 )
 
 type OAuthClientConfig struct {
@@ -66,7 +68,7 @@ func (c *oauthTokenFetcher) GetClientToken() (string, error) {
 		strings.NewReader(v.Encode()),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf(utils.SanitizeUrl(err, c.oauthHost, ""))
 	}
 	req.URL.Path = "/oauth/token"
 

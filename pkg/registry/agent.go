@@ -6,12 +6,12 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"path/filepath"
 	"strconv"
 	"time"
 
-	"net/http"
-
+	utils "github.com/pivotal/monitoring-indicator-protocol/pkg"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -66,11 +66,13 @@ func (a Agent) registerIndicatorDocument(indicatorsDocument document) {
 
 	body := bytes.NewBuffer(indicatorsDocument)
 
+	// TODO: move to the registry API file
 	resp, err := a.Client.Post(registry, "text/plain", body)
 
 	if err != nil {
 		registrationCount.WithLabelValues("err").Inc()
-		log.Printf("could not make http request: %s\n", err)
+		errorMessage := utils.SanitizeUrl(err, a.RegistryURI, "could not post to the registry")
+		log.Printf(errorMessage, "\n")
 	} else {
 		registrationCount.WithLabelValues(strconv.Itoa(resp.StatusCode)).Inc()
 		if resp.StatusCode != http.StatusOK {
