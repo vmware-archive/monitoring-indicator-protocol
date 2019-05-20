@@ -18,7 +18,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 	"gopkg.in/yaml.v2"
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -191,10 +191,12 @@ func TestStatus(t *testing.T) {
 		defer cleanup()
 
 		var threshold float64 = 10
+		timestamp := time.Now().UnixNano()
+		indicatorName := fmt.Sprintf("my-name-%d", timestamp)
 		indicator := &v1alpha1.Indicator{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:            "my-name",
-				Namespace:       ns,
+				Name:      indicatorName,
+				Namespace: ns,
 			},
 			Spec: v1alpha1.IndicatorSpec{
 				Name:   "my_cool_name",
@@ -218,7 +220,7 @@ func TestStatus(t *testing.T) {
 		resources := clients.idClient.Indicators(ns)
 
 		g.Eventually(func() string {
-			indicator, err = getSoloIndicator(resources, "my-name")
+			indicator, err = getSoloIndicator(resources, indicatorName)
 			if err != nil {
 				t.Logf("error: %s", err)
 			}
@@ -354,7 +356,7 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 
 	var (
 		cmAlerts map[string][]map[string]interface{}
-		cmAlert interface{}
+		cmAlert  interface{}
 	)
 	err = yaml.Unmarshal([]byte(cm.Data["alerts"]), &cmAlerts)
 	if err != nil {
