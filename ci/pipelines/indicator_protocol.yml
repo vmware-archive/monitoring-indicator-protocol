@@ -305,6 +305,11 @@ jobs:
             -v uaa_client_id=$UAA_CLIENT_ID \
             -v uaa_client_secret=$UAA_CLIENT_SECRET
 
+          CF_DEPLOYMENT_NAME=$(bosh deployments --json | jq .Tables[0].Rows | jq '.[] | select( .name | contains("cf"))' | jq .name -r)
+          bosh -n -d $CF_DEPLOYMENT_NAME manifest > temp.yml
+          bosh -n -d $CF_DEPLOYMENT_NAME deploy temp.yml
+          rm temp.yml
+
 - name: create-docker-images
   plan:
   - get: monitoring-indicator-protocol
