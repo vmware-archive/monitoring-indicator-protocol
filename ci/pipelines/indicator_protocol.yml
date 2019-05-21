@@ -796,7 +796,7 @@ jobs:
             bosh -n create-release --sha2 \
               --tarball ../../github-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz \
               --version "$BUILD_NUMBER" \
-              releases/indicator-protocol/indicator-protocol-${BUILD_NUMBER}.yml
+              releases/monitoring-indicator-protocol/monitoring-indicator-protocol-${BUILD_NUMBER}.yml
 
             git add .
             git config --global user.email "cf-event-producer@pivotal.io"
