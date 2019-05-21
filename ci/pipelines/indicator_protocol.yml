@@ -290,7 +290,7 @@ jobs:
 
             bosh update-runtime-config -n \
               --name indicator-tile-registration-agent \
-              --var=indicator-protocol-version=$(bosh releases | grep indicator-protocol -m1 | cut -f2) \
+              --var=indicator-protocol-version=$(bosh releases | grep monitoring-indicator-protocol -m1 | cut -f2) \
               manifests/agent_runtime_config.yml
           popd
 
