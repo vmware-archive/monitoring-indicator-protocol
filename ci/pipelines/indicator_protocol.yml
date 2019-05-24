@@ -110,6 +110,14 @@ resources:
     bucket: monitoring-indicator-protocol
     json_key: ((gcp-service-account))
     regexp: releases/dev/indicator-protocol-bosh-(.*).tgz
+- name: evening
+  type: time
+  source:
+    start: 6:00 PM
+    stop: 12:00 AM
+    location: America/Denver
+    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
+
 
 resource_types:
 - name: gcs-resource
@@ -241,6 +249,7 @@ jobs:
     - get: monitoring-indicator-protocol
       trigger: true
       passed: [build-and-test]
+    - get: release-version
   - task: deploy
     config:
       params:
@@ -259,6 +268,7 @@ jobs:
       inputs:
       - name: monitoring-indicator-protocol
       - name: env-state
+      - name: release-version
       run:
         path: bash
         args:
@@ -274,6 +284,8 @@ jobs:
           mkdir -p monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
           rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
 
+          BUILD_NUMBER=$(cat release-version/number)
+
           pushd monitoring-indicator-protocol/bosh-release
 
             cat << EOF > config/private.yml
@@ -285,25 +297,26 @@ jobs:
                 ${SERVICE_ACCOUNT}
           EOF
 
-            bosh create-release --force
-            bosh -n upload-release --fix --rebase
+            bosh -n create-release --sha2 --force \
+              --version ${BUILD_NUMBER}
+            bosh -n upload-release --fix
 
             bosh update-runtime-config -n \
               --name indicator-tile-registration-agent \
               --var=indicator-protocol-version=$(bosh releases | grep monitoring-indicator-protocol -m1 | cut -f2) \
               manifests/agent_runtime_config.yml
-          popd
 
           UAA_CLIENT_SECRET=$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_cc-service-dashboards_secret -j | jq -r .value)
 
           bosh -n -d indicator-protocol deploy \
-            monitoring-indicator-protocol/bosh-release/manifests/manifest.yml \
-            -o monitoring-indicator-protocol/bosh-release/ops_files/add-examples-git-source.yml \
-            -o monitoring-indicator-protocol/bosh-release/ops_files/configure-status-controller.yml \
+            manifests/manifest.yml \
+            -o ops_files/add-examples-git-source.yml \
+            -o ops_files/configure-status-controller.yml \
             -v prometheus_uri=$PROMETHEUS_URI \
             -v uaa_uri=$UAA_URI \
             -v uaa_client_id=$UAA_CLIENT_ID \
             -v uaa_client_secret=$UAA_CLIENT_SECRET
+          popd
 
           CF_DEPLOYMENT_NAME=$(bosh deployments --json | jq .Tables[0].Rows | jq '.[] | select( .name | contains("cf"))' | jq .name -r)
           bosh -n -d $CF_DEPLOYMENT_NAME manifest > temp.yml
@@ -639,6 +652,8 @@ jobs:
 - name: create-dev-release
   plan:
   - aggregate:
+    - get: evening
+      trigger: true
     - get: monitoring-indicator-protocol
       passed: [indicator-verification,indicator-docs,deploy-indicator-registry,promote-docker-images]
       trigger: false
