@@ -1,5 +1,5 @@
 ---
-name: indicator-tile-registration-agent
+name: indicator-document-registration-agent
 
 templates:
   agent_ctl.erb: bin/agent_ctl

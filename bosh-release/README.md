@@ -16,7 +16,7 @@ bosh upload-release indicator-protocol-bosh-0.7.10.tgz
 You will need to add a runtime config for the registration agent:
 ```bash
 bosh update-runtime-config -n \
-  --name indicator-tile-registration-agent \
+  --name indicator-document-registration-agent \
   --var=indicator-protocol-version=$(bosh releases | grep indicator-protocol -m1 | cut -f2) \
   monitoring-indicator-protocol/bosh-release/manifests/agent_runtime_config.yml
 ```
