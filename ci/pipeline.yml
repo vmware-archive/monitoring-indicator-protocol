@@ -209,13 +209,11 @@ jobs:
         - |
           #!/usr/bin/env bash
 
-          set -exu
+          set -eu
 
-          set +x
           pushd "env-state/${BBL_STATE_DIR}"
             eval "$(bbl print-env)"
           popd
-          set -x
 
           export GO111MODULE=on
 
