@@ -3,9 +3,9 @@ releases:
   version: ((indicator-protocol-version))
 
 addons:
-- name: indicator-tile-registration-agent
+- name: indicator-document-registration-agent
   jobs:
-  - name: indicator-tile-registration-agent
+  - name: indicator-document-registration-agent
     release: monitoring-indicator-protocol
     consumes:
       indicator-registry: {deployment: indicator-protocol}
