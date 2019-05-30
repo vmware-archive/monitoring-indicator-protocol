@@ -54,6 +54,8 @@ instance_groups:
       uaa_uri: uaa-uri
       uaa_client_id: client_with_prometheus_access
       uaa_client_secret: client_secret
+  - name: indicator-smoke-tests
+    release: monitoring-indicator-protocol
 
 update:
   canaries: 0

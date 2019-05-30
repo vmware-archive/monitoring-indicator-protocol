@@ -316,6 +316,8 @@ jobs:
             -v uaa_client_secret=$UAA_CLIENT_SECRET
           popd
 
+          bosh -d indicator-protocol run-errand indicator-smoke-tests
+
           CF_DEPLOYMENT_NAME=$(bosh deployments --json | jq .Tables[0].Rows | jq '.[] | select( .name | contains("cf"))' | jq .name -r)
           bosh -n -d $CF_DEPLOYMENT_NAME manifest > temp.yml
           bosh -n -d $CF_DEPLOYMENT_NAME deploy temp.yml

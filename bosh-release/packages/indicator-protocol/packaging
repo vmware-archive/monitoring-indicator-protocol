@@ -19,6 +19,7 @@ pushd github.com/pivotal/monitoring-indicator-protocol
     go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/prometheus_rules_controller cmd/prometheus_rules_controller/main.go
     go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/grafana_dashboard_controller cmd/grafana_dashboard_controller/main.go
     go build -mod=vendor -o ${BOSH_INSTALL_TARGET}/status_controller cmd/status_controller/main.go
+    go test -mod=vendor -c -o ${BOSH_INSTALL_TARGET}/indicator_smoke_tests pkg/smoke_test/registry_smoke_test.go
 popd
 
 # clean up source artifacts

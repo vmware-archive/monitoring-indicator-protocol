@@ -95,7 +95,7 @@ function run_build {
 
 function run_unit {
     print_checkpoint "Running Unit Tests"
-    go test -mod=vendor -race $(go list ./... | grep -v e2e)
+    go test -mod=vendor -race $(go list ./... | grep -v e2e | grep -v smoke)
     exit_code=$?
     return $exit_code
 }

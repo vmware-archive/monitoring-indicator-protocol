@@ -7,6 +7,7 @@ templates:
   registry.crt.erb: certs/registry.crt
   registry.key.erb: certs/registry.key
   indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
+  indicators.yml.erb: config/indicators.yml
 
 packages:
   - indicator-protocol
