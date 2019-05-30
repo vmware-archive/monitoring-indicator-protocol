@@ -110,12 +110,6 @@ resources:
     bucket: monitoring-indicator-protocol
     json_key: ((gcp-service-account))
     regexp: releases/dev/indicator-protocol-bosh-(.*).tgz
-- name: final-release
-  type: gcs-resource
-  source:
-    bucket: monitoring-indicator-protocol
-    json_key: ((gcp-service-account))
-    regexp: releases/final/indicator-protocol-bosh-(.*).tgz
 - name: evening
   type: time
   source:
@@ -908,9 +902,6 @@ jobs:
     params:
       bump: patch
   - aggregate:
-    - put: final-release
-      params:
-        file: github-release/*.tgz
     - put: grafana-controller-docker-repo
       params:
         additional_tags: prefixed-release-version/version
