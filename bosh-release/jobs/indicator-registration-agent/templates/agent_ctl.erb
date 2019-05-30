@@ -32,7 +32,7 @@ case $1 in
     chpst -u vcap:vcap /var/vcap/packages/indicator-registry/registry_agent \
       --registry $REGISTRY_URI \
       --interval <%= p('interval') %> \
-      --documents-glob <%= p('documents_glob') %> \
+      --documents-glob "<%= p('documents_glob') %>" \
       --tls-pem-path ${CERTS_DIR}/client.crt \
       --tls-key-path ${CERTS_DIR}/client.key \
       --tls-root-ca-pem ${CERTS_DIR}/indicator_protocol_ca.crt \
