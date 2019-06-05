@@ -33,7 +33,7 @@ Additionally, there are two ops files included in the repository:
 
 1. `add-examples-git-source.yml` configures the registry to look for indicator
 documents and patches in
-[this](https://github.com/joerodriguez/indicator-protocol-examples)
+[this](https://github.com/pivotal/indicator-protocol-examples)
 GitHub repository.
 1. `configure-status-controller` configures the indicator status controller to
 communicate with a prometheus compliant datastore using UAA client credentials.
