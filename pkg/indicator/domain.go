@@ -109,12 +109,13 @@ type Presentation struct {
 type ChartType string
 
 const (
-	StepChart ChartType = "step"
-	BarChart  ChartType = "bar"
-	StatusChart  ChartType = "status"
+	StepChart   ChartType = "step"
+	BarChart    ChartType = "bar"
+	StatusChart ChartType = "status"
+	QuotaChart  ChartType = "quota"
 )
 
-var ChartTypes = []ChartType{StepChart, BarChart, StatusChart}
+var ChartTypes = []ChartType{StepChart, BarChart, StatusChart, QuotaChart}
 
 func (e *Threshold) GetComparatorAbbrev() string {
 	switch e.Operator {
@@ -179,7 +180,7 @@ type Layout struct {
 	Owner       string
 }
 
-type  Section struct {
+type Section struct {
 	Title       string
 	Description string
 	Indicators  []string

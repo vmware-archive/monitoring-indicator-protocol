@@ -317,7 +317,7 @@ func TestChartType(t *testing.T) {
 		es := indicator.ValidateForRegistry(document)
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("indicators[0] invalid chartType provided: 'fakey-fake' - valid chart types are [step bar status]"),
+			errors.New("indicators[0] invalid chartType provided: 'fakey-fake' - valid chart types are [step bar status quota]"),
 		))
 	})
 }

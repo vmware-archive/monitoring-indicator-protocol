@@ -1047,7 +1047,108 @@ layout:
 		g.Expect(d.Indicators[0].Presentation.ChartType).To(BeEquivalentTo("step"))
 	})
 
-	t.Run("it does not override $step within promql", func(t *testing.T) {
+	t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="$deployment"}
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].ServiceLevel).To(BeNil())
+	})
+}
+
+func TestPresentationChartTypes(t *testing.T) {
+	t.Run("can set a step chartType", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="test"}
+  presentation:
+    chartType: step
+
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.StepChart))
+	})
+
+	t.Run("can set a bar chartType", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="test"}
+  presentation:
+    chartType: bar
+
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.BarChart))
+	})
+
+	t.Run("can set a status chartType", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="test"}
+  presentation:
+    chartType: status
+
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.StatusChart))
+	})
+
+	t.Run("can set a quota chartType", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		d, err := indicator.ReadIndicatorDocument([]byte(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+metadata:
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="test"}
+  presentation:
+    chartType: quota
+
+`))
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.QuotaChart))
+	})
+}
+
+func TestMetadataInterpolation(t *testing.T) {
+	t.Run("it does not override $step within promql when a subset of the name is a metadata key", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		d, err := indicator.ReadIndicatorDocument([]byte(`---
 apiVersion: v0
@@ -1074,23 +1175,8 @@ layout:
 
 		g.Expect(d.Indicators[0].PromQL).To(BeEquivalentTo(`prom{deployment="$step"}`))
 	})
-
-	t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		d, err := indicator.ReadIndicatorDocument([]byte(`---
-apiVersion: v0
-product:
-  name: test_product
-  version: 0.0.1
-indicators:
-- name: test_performance_indicator
-  promql: prom{deployment="$deployment"}
-`))
-		g.Expect(err).ToNot(HaveOccurred())
-
-		g.Expect(d.Indicators[0].ServiceLevel).To(BeNil())
-	})
 }
+
 func strPtr(s string) *string {
 	return &s
 }
