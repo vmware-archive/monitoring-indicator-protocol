@@ -14,31 +14,10 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/configuration"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 	"gopkg.in/yaml.v2"
 )
 
-var (
-	serverCert = "../../test_fixtures/server.pem"
-	serverKey  = "../../test_fixtures/server.key"
-	rootCACert = "../../test_fixtures/ca.pem"
-
-	clientKey  = "../../test_fixtures/client.key"
-	clientCert = "../../test_fixtures/client.pem"
-)
-
 func TestIndicatorRegistry(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	tlsConfig, err := mtls.NewClientConfig(clientCert, clientKey, rootCACert, "localhost")
-	g.Expect(err).ToNot(HaveOccurred())
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-	}
-
 	t.Run("it patches indicator documents when received", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
@@ -65,12 +44,12 @@ func TestIndicatorRegistry(t *testing.T) {
 			file, err := os.Open("test_fixtures/indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err := client.Post(serverUrl+"/v1/register", "text/plain", file)
+			resp, err := http.Post(serverUrl+"/v1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(resp.StatusCode, resp.Body).To(Equal(http.StatusOK))
 
-			resp, err = client.Get(serverUrl + "/v1/indicator-documents")
+			resp, err = http.Get(serverUrl + "/v1/indicator-documents")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
@@ -91,18 +70,18 @@ func TestIndicatorRegistry(t *testing.T) {
 			file, err := os.Open("test_fixtures/indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err := client.Post(serverUrl+"/v1/register", "text/plain", file)
+			resp, err := http.Post(serverUrl+"/v1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			file, err = os.Open("test_fixtures/bulk_status_request.json")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err = client.Post(serverUrl+"/v1/indicator-documents/my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf/bulk_status", "text/plain", file)
+			resp, err = http.Post(serverUrl+"/v1/indicator-documents/my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf/bulk_status", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-			resp, err = client.Get(serverUrl + "/v1/indicator-documents")
+			resp, err = http.Get(serverUrl + "/v1/indicator-documents")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
@@ -123,18 +102,18 @@ func TestIndicatorRegistry(t *testing.T) {
 			file, err := os.Open("test_fixtures/indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err := client.Post(serverUrl+"/v1/register", "text/plain", file)
+			resp, err := http.Post(serverUrl+"/v1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			file, err = os.Open("test_fixtures/indicators2.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err = client.Post(serverUrl+"/v1/register", "text/plain", file)
+			resp, err = http.Post(serverUrl+"/v1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-			resp, err = client.Get(serverUrl + "/v1/indicator-documents?product-name=my-other-other-component")
+			resp, err = http.Get(serverUrl + "/v1/indicator-documents?product-name=my-other-other-component")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
@@ -154,11 +133,9 @@ func withConfigServer(port, configPath string, g *GomegaWithT, testFun func(stri
 	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 
-	cmd := exec.Command(binPath,
+	cmd := exec.Command(
+		binPath,
 		"--port", port,
-		"--tls-pem-path", serverCert,
-		"--tls-key-path", serverKey,
-		"--tls-root-ca-pem", rootCACert,
 		"--config", configPath,
 	)
 
@@ -166,7 +143,7 @@ func withConfigServer(port, configPath string, g *GomegaWithT, testFun func(stri
 	g.Expect(err).ToNot(HaveOccurred())
 	defer session.Kill()
 	serverHost := "localhost:" + port
-	err = go_test.WaitForHTTPServer(serverHost, 3*time.Second)
+	err = go_test.WaitForTCPServer(serverHost, 3*time.Second)
 	g.Expect(err).ToNot(HaveOccurred())
-	testFun("https://" + serverHost)
+	testFun("http://" + serverHost)
 }

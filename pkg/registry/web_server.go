@@ -4,38 +4,29 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 )
 
 type WebServerConfig struct {
 	Address       string
-	ServerPEMPath string
-	ServerKeyPath string
-	RootCAPath    string
 	DocumentStore *DocumentStore
 	StatusStore   *status_store.Store
 }
 
 func NewWebServer(c WebServerConfig) (func() error, func() error, error) {
-	tlsConfig, err := mtls.NewServerConfig(c.RootCAPath)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	server := &http.Server{
-		Addr:      c.Address,
-		Handler:   newRouter(c),
-		TLSConfig: tlsConfig,
+		Addr:         c.Address,
+		Handler:      newRouter(c),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
-	start := func() error { return server.ListenAndServeTLS(c.ServerPEMPath, c.ServerKeyPath) }
+	start := func() error { return server.ListenAndServe() }
 	stop := func() error { return server.Close() }
 
 	return start, stop, nil

@@ -67,11 +67,8 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 		registryAddress := "localhost:13245"
 		config := registry.WebServerConfig{
 			Address:       registryAddress,
-			ServerPEMPath: serverCert,
-			ServerKeyPath: serverKey,
-			RootCAPath:    rootCACert,
 			DocumentStore: store,
-			StatusStore: status_store.New(time.Now),
+			StatusStore:   status_store.New(time.Now),
 		}
 
 		start, stop, err := registry.NewWebServer(config)
@@ -100,7 +97,7 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 		directory, err := ioutil.TempDir("", "test-alerts")
 		g.Expect(err).ToNot(HaveOccurred())
 
-		session := run(g, directory, fmt.Sprintf("https://%s", registryAddress), prometheusServer.URL())
+		session := run(g, directory, fmt.Sprintf("http://%s", registryAddress), prometheusServer.URL())
 		defer session.Kill()
 
 		err = go_test.WaitForFiles(directory, 1)

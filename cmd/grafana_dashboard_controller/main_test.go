@@ -52,11 +52,11 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 				Documentation: map[string]string{"title": "Test Indicator Title"},
 			}},
 			Layout: indicator.Layout{
-				Title:       "Test Dashboard",
+				Title: "Test Dashboard",
 				Sections: []indicator.Section{
 					{
-						Title:       "Test Section Title",
-						Indicators:  []string{"test_indicator"},
+						Title:      "Test Section Title",
+						Indicators: []string{"test_indicator"},
 					},
 				},
 			},
@@ -67,11 +67,8 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 		registryAddress := "localhost:12346"
 		config := registry.WebServerConfig{
 			Address:       registryAddress,
-			ServerPEMPath: serverCert,
-			ServerKeyPath: serverKey,
-			RootCAPath:    rootCACert,
 			DocumentStore: store,
-			StatusStore: status_store.New(time.Now),
+			StatusStore:   status_store.New(time.Now),
 		}
 
 		start, stop, err := registry.NewWebServer(config)
@@ -90,7 +87,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 		directory, err := ioutil.TempDir("", "test-dashboards")
 		g.Expect(err).ToNot(HaveOccurred())
 
-		session := run(g, fmt.Sprintf("https://%s", registryAddress), directory)
+		session := run(g, fmt.Sprintf("http://%s", registryAddress), directory)
 		defer session.Kill()
 
 		err = go_test.WaitForFiles(directory, 1)

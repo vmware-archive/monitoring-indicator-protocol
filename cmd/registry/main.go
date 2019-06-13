@@ -20,16 +20,14 @@ import (
 )
 
 func main() {
-	port := flag.Int("port", 443, "Port to expose registration endpoints")
-	serverPEM := flag.String("tls-pem-path", "", "Server TLS public cert pem path")
-	serverKey := flag.String("tls-key-path", "", "Server TLS private key path")
-	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs.")
+	port := flag.Int("port", 10568, "Port to expose registration endpoints")
+	host := flag.String("host", "localhost", "Host to bind to for registration endpoints")
 	expiration := flag.Duration("indicator-expiration", 120*time.Minute, "Document expiration duration")
 	configFile := flag.String("config", "", "Configuration yaml for patch and document sources")
 
 	flag.Parse()
 
-	address := fmt.Sprintf(":%d", *port)
+	address := fmt.Sprintf("%s:%d", *host, *port)
 
 	store := registry.NewDocumentStore(*expiration, time.Now)
 
@@ -40,9 +38,6 @@ func main() {
 
 	config := registry.WebServerConfig{
 		Address:       address,
-		ServerPEMPath: *serverPEM,
-		ServerKeyPath: *serverKey,
-		RootCAPath:    *rootCACert,
 		DocumentStore: store,
 		StatusStore:   status_store.New(time.Now),
 	}

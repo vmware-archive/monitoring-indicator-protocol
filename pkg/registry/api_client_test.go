@@ -28,7 +28,7 @@ func TestAPIClient_IndicatorDocuments(t *testing.T) {
 	go server.ListenAndServe()
 
 	defer server.Close()
-	go_test.WaitForHTTPServer("localhost:8975", time.Second)
+	go_test.WaitForTCPServer("localhost:8975", time.Second)
 
 	t.Run("it parses the indicator response into Document Structs", func(t *testing.T) {
 		g := NewGomegaWithT(t)
