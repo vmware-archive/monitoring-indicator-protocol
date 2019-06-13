@@ -283,6 +283,7 @@ jobs:
           rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
 
           BUILD_NUMBER=$(cat release-version/number)
+          BUILD_NUMBER=${BUILD_NUMBER}-$(date +"%s")
 
           pushd monitoring-indicator-protocol/bosh-release
 
