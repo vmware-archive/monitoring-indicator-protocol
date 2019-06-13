@@ -16,7 +16,7 @@ instance_groups:
 - name: indicator-protocol
   azs:
     - z1
-  instances: 1
+  instances: 3
   vm_type: minimal
   stemcell: default
   networks:
@@ -25,6 +25,8 @@ instance_groups:
   - name: bpm
     release: bpm
   - name: indicator-registry
+    release: monitoring-indicator-protocol
+  - name: indicator-registry-proxy
     release: monitoring-indicator-protocol
     provides:
       indicator-registry: {shared: true}

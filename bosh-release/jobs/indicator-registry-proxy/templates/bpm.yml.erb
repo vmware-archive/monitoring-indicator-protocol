@@ -1,0 +1,31 @@
+---
+processes:
+- name: indicator-registry-proxy
+  executable: /var/vcap/packages/indicator-protocol/registry_proxy
+  ephemeral_disk: true
+  args:
+  - --port
+  - <%= p('port') %>
+  - --tls-pem-path
+  - /var/vcap/jobs/indicator-registry-proxy/certs/server.crt
+  - --tls-key-path
+  - /var/vcap/jobs/indicator-registry-proxy/certs/server.key
+  - --tls-root-ca-pem
+  - /var/vcap/jobs/indicator-registry-proxy/certs/indicator_protocol_ca.crt
+  - --tls-client-key-path
+  - /var/vcap/jobs/indicator-registry-proxy/certs/client.key
+  - --tls-client-pem-path
+  - /var/vcap/jobs/indicator-registry-proxy/certs/client.crt
+  - --tls-server-cn
+  - <%= p('tls.server_common_name') %>
+
+  - --local-registry-addr
+  - localhost:10568
+<% if_link('indicator-registry') do |ir| %>
+    <% ir.instances.each do |instance| %>
+        <% if instance.id != spec.id %>
+  - --registry-addr
+  - <%= instance.address %>:<%= ir.p('port') %>
+        <% end %>
+    <% end %>
+<% end %>

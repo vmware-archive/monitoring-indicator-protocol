@@ -1,0 +1,45 @@
+---
+name: indicator-registry-proxy
+
+templates:
+  bpm.yml.erb: config/bpm.yml
+  client.crt.erb: certs/client.crt
+  client.key.erb: certs/client.key
+  indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
+  server.crt.erb: certs/server.crt
+  server.key.erb: certs/server.key
+
+packages:
+  - indicator-protocol
+
+consumes:
+  - name: indicator-registry
+    type: indicator-registry
+
+provides:
+  - name: indicator-registry
+    type: indicator-registry
+    properties:
+      - port
+      - tls.ca_cert
+      - tls.client_cert
+      - tls.client_key
+      - tls.server_common_name
+
+properties:
+  port:
+    description: "Port to expose registration endpoints"
+    default: 10567
+
+  tls.ca_cert:
+    description: "CA root required for key/cert verification"
+  tls.server_cert:
+    description: "TLS Server public certificate"
+  tls.server_key:
+    description: "TLS Server private key"
+  tls.client_cert:
+    description: "TLS Client public certificate"
+  tls.client_key:
+    description: "TLS Client private key"
+  tls.server_common_name:
+    description: "TLS Server common name"
