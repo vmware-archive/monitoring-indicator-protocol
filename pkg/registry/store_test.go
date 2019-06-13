@@ -11,7 +11,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
-func TestInsertDocument(t *testing.T) {
+func TestStore(t *testing.T) {
 	var val interface{}
 	val = map[interface{}]interface{}{
 		"promQL": "foo{bar&bar}",
@@ -134,6 +134,17 @@ func TestInsertDocument(t *testing.T) {
 		store.UpsertDocument(productAVersion1Document)
 
 		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion1Document))
+	})
+
+	t.Run("it can retrieve documents by product name", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(time.Hour, time.Now)
+
+		store.UpsertDocument(productAVersion1Document)
+		store.UpsertDocument(productBDocument)
+
+		g.Expect(store.FilteredDocuments("my-product-a")).To(ConsistOf(productAVersion1Document))
 	})
 
 	t.Run("it upserts documents based on product", func(t *testing.T) {

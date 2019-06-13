@@ -115,6 +115,39 @@ func TestIndicatorRegistry(t *testing.T) {
 			g.Expect(responseBytes).Should(ContainOrderedJSON(expectedJSON))
 		})
 	})
+
+	t.Run("it retrieves documents by product name", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		withConfigServer("1093", "", g, func(serverUrl string) {
+			file, err := os.Open("test_fixtures/indicators.yml")
+			g.Expect(err).ToNot(HaveOccurred())
+
+			resp, err := client.Post(serverUrl+"/v1/register", "text/plain", file)
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			file, err = os.Open("test_fixtures/indicators2.yml")
+			g.Expect(err).ToNot(HaveOccurred())
+
+			resp, err = client.Post(serverUrl+"/v1/register", "text/plain", file)
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			resp, err = client.Get(serverUrl + "/v1/indicator-documents?product-name=my-other-other-component")
+			g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			responseBytes, err := ioutil.ReadAll(resp.Body)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			expectedJSON, err := ioutil.ReadFile("test_fixtures/filtered_response.json")
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Expect(responseBytes).Should(ContainOrderedJSON(expectedJSON))
+
+		})
+	})
 }
 
 func withConfigServer(port, configPath string, g *GomegaWithT, testFun func(string)) {

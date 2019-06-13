@@ -83,6 +83,23 @@ func (d *DocumentStore) AllDocuments() []indicator.Document {
 	return documents
 }
 
+func (d *DocumentStore) FilteredDocuments(productName string) []indicator.Document {
+	d.expireDocuments()
+
+	d.RLock()
+	defer d.RUnlock()
+
+	documents := make([]indicator.Document, 0)
+
+	for _, doc := range d.documents {
+		if doc.indicatorDocument.Product.Name == productName {
+			documents = append(documents, doc.indicatorDocument)
+		}
+	}
+
+	return documents
+}
+
 func (d *DocumentStore) AllPatches() []indicator.Patch {
 	d.RLock()
 	defer d.RUnlock()

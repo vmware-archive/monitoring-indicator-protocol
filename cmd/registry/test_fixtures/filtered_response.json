@@ -1,0 +1,27 @@
+[
+  {
+    "apiVersion": "v0",
+    "uid": "my-other-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
+    "product": {
+      "name": "my-other-other-component",
+      "version": "1.2.3"
+    },
+    "metadata": {
+      "deployment": "my-service-deployment",
+      "source_id": "my-metric-source"
+    },
+    "indicators": [],
+    "layout": {
+      "title": "",
+      "description": "",
+      "sections": [
+        {
+          "title": "Metrics",
+          "description": "",
+          "indicators": []
+        }
+      ],
+      "owner": ""
+    }
+  }
+]

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -39,8 +40,23 @@ func NewIndicatorDocumentsHandler(store *DocumentStore, statusStore *status_stor
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		bytes, _ := marshal(store.AllDocuments(), statusStore)
-		fmt.Fprintf(w, string(bytes))
+		var bytes []byte
+		var err error
+		productName := r.URL.Query().Get("product-name")
+		if productName == "" {
+			bytes, err = marshal(store.AllDocuments(), statusStore)
+		} else {
+			bytes, err = marshal(store.FilteredDocuments(productName), statusStore)
+		}
+
+		if err != nil {
+			writeErrors(w, http.StatusInternalServerError, err)
+		}
+		_, err = fmt.Fprintf(w, string(bytes))
+
+		if err != nil {
+			log.Printf("error writing /indicator-documents response: %s", err)
+		}
 	}
 }
 
@@ -55,7 +71,7 @@ func writeErrors(w http.ResponseWriter, statusCode int, errors ...error) {
 }
 
 type APIV0UpdateIndicatorStatus struct {
-	Name   string `json:"name"`
+	Name   string  `json:"name"`
 	Status *string `json:"status"`
 }
 
