@@ -63,7 +63,7 @@ update:
   canaries: 0
   canary_watch_time: 30000-240000
   update_watch_time: 30000-600000
-  max_in_flight: 1
+  max_in_flight: 3
 
 variables:
 - name: indicator_protocol_ca

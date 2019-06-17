@@ -5,6 +5,7 @@ templates:
   bpm.yml.erb: config/bpm.yml
   sources.yml.erb: config/sources.yml
   indicators.yml.erb: config/indicators.yml
+  metric_port.yml.erb: config/metric_port.yml
 
 packages:
   - indicator-protocol

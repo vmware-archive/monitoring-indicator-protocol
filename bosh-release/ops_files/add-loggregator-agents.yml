@@ -1,0 +1,53 @@
+---
+- type: replace
+  path: /releases/-
+  value:
+    name: loggregator-agent
+    version: 3.17
+
+- type: replace
+  path: /instance_groups/name=indicator-protocol/jobs/-
+  value:
+    name: loggregator_agent
+    release: loggregator-agent
+    consumes:
+      doppler: { from: doppler, deployment: cf-01234567890123456789 }
+    properties:
+      bosh_dns: true
+      disable_udp: true
+      grpc_port: 3458
+      loggregator:
+        tls:
+          ca_cert: ((loggregator_tls_agent.ca))
+          agent:
+            key: ((loggregator_tls_agent.private_key))
+            cert: ((loggregator_tls_agent.certificate))
+#TODO: check if we can use a loggregator link after we support PAS >= 2.6 (check doppler job config in p-runtime)
+- type: replace
+  path: /instance_groups/name=indicator-protocol/jobs/-
+  value:
+    name: prom_scraper
+    release: loggregator-agent
+    consumes:
+      loggregator_agent:
+        from: loggregator_agent
+        deployment: indicator-protocol
+    properties:
+      loggregator_agent:
+        grpc_port: 3458
+        tls:
+          ca_cert: ((loggregator_tls_agent.ca))
+          key: ((loggregator_tls_agent.private_key))
+          cert: ((loggregator_tls_agent.certificate))
+
+- type: replace
+  path: /variables/-
+  value:
+    name: loggregator_tls_agent
+    type: certificate
+    options:
+      ca: "/bosh-madlamp/cf-01234567890123456789/loggregator_ca"
+      common_name: metron
+      extended_key_usage:
+      - client_auth
+      - server_auth
