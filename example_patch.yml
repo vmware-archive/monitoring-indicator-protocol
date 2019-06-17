@@ -11,6 +11,6 @@ operations:
   path: /indicators?/-
   value:
     name: success_percentage
-    promql: success_percentage_promql{source_id="origin"}
+    promql: another_success_percentage_promql{source_id="origin"}
     documentation:
       title: Success Percentage
