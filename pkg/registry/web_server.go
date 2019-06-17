@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -78,6 +79,11 @@ func instrumentEndpoint(counter *prometheus.CounterVec, h http.Handler) http.Han
 
 		h.ServeHTTP(&rec, r)
 
-		counter.WithLabelValues(r.URL.Path, strconv.Itoa(rec.status)).Inc()
+		urlLabel := r.URL.Path
+		if strings.Contains(r.URL.Path, "bulk_status") {
+			urlLabel = "/v1/indicator-documents//bulk_status"
+		}
+
+		counter.WithLabelValues(urlLabel, strconv.Itoa(rec.status)).Inc()
 	}
 }
