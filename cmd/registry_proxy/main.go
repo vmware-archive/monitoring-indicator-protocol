@@ -46,16 +46,16 @@ func main() {
 
 	tlsConfig, err := mtls.NewServerConfig(*rootCACert)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error with creating mTLS server config: %s", err)
 	}
 	tlsClientConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error with creating mTLS client config: %s", err)
 	}
 
 	localRegistryHandler, registryHandlers, err := createHandlers(*localRegistryAddr, registryAddrs, tlsClientConfig)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error with creating handlers: %s", err)
 	}
 
 	server := &http.Server{
@@ -66,7 +66,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 	log.Printf("Listening for request via: https://%s\n", address)
-	log.Fatal(server.ListenAndServeTLS(*serverPEM, *serverKey))
+	log.Fatalf("Listen unblocked: %s", server.ListenAndServeTLS(*serverPEM, *serverKey))
 }
 
 func createHandlers(localRegistryAddr string, registryAddrs []string, tlsConfig *tls.Config) (http.Handler, []http.Handler, error) {
