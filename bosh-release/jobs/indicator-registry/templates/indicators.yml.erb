@@ -3,9 +3,47 @@ apiVersion: v0
 
 product:
   name: indicator-protocol-registry
-  version: 0.7.13 #TODO: make dynamic
+  version: latest #TODO make dynamic
 
-layout:
-  owner: Indicator Protocol Team
-  title: Indicator Protocol Registry
-  description: Stores all indicators for the bosh cluster.
+metadata:
+  deployment: <%= spec.deployment =>
+  source_id: <%= spec.job.name =>
+
+indicators:
+- name: registry_http_request_frequency
+  description: HTTP request rate to the indicator registry over the prior 5 minutes, broken down by response status
+  promql: sum by(status)(rate(registry_http_requests{source_id=$source_id,deployment=$deployment}[5m])) * 60
+  presentation:
+    units: requests/minute
+  documentation:
+    title: Registry HTTP Request Frequency
+    description: HTTP request rate to the indicator registry over the prior 5 minutes, broken down by response status
+
+- name: registry_http_error_percentage
+  description: Percentage of HTTP requests to the registry resulting in a non 200 response
+  promql: (sum (rate(registry_http_requests{source_id=$source_id,deployment=$deployment,status!="200"}[5m])) / sum (rate(registry_http_requests{source_id=$source_id,deployment=$deployment}[5m]))) * 100
+  presentation:
+    units: "%"
+  documentation:
+    title: Registry HTTP Error Percentage
+    description: Percentage of HTTP requests to the registry resulting in a non 200 response
+    recommendedResponse: See if a particular VM is struggling.
+
+- name: registry_http_request_frequency_by_vm
+  description: HTTP request rate to the indicator registry over the prior 5 minutes, broken down by VM
+  promql: sum by(ip)(rate(registry_http_requests{source_id=$source_id,deployment=$deployment}[5m])) * 60
+  presentation:
+    units: requests/minute
+  documentation:
+    title: Registry HTTP Request Frequency by VM
+    description: HTTP request rate to the indicator registry over the prior 5 minutes, broken down by VM
+
+- name: registry_http_error_percentage_by_vm
+  description: Percentage of HTTP requests to the registry resulting in a non 200 response, broken down by VM
+  promql: (sum by(ip)(rate(registry_http_requests{source_id=$source_id,deployment=$deployment,status!="200"}[5m])) / sum by(ip)(rate(registry_http_requests{source_id=$source_id,deployment=$deployment}[5m]))) * 100
+  presentation:
+    units: "%"
+  documentation:
+    title: Registry HTTP Error percentage by VM
+    description: Percentage of HTTP requests to the registry resulting in a non 200 response, broken down by VM
+    recommendedResponse: Delete the misbehaving VM from Bosh, it should be resurrected in a healthy state.
