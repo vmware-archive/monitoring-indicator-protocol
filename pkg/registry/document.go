@@ -86,7 +86,7 @@ func ToIndicatorDocument(d APIV0Document) indicator.Document {
 		},
 		Metadata:   d.Metadata,
 		Indicators: indicators,
-		Layout:     convertLayout(d.Layout, indicators),
+		Layout:     convertLayout(d.Layout),
 	}
 }
 
@@ -128,36 +128,26 @@ func convertThreshold(t APIV0Threshold) indicator.Threshold {
 	}
 }
 
-func convertLayout(l APIV0Layout, indicators []indicator.Indicator) indicator.Layout {
+func convertLayout(l APIV0Layout) indicator.Layout {
 	return indicator.Layout{
 		Title:       l.Title,
 		Description: l.Description,
-		Sections:    convertLayoutSections(l.Sections, indicators),
+		Sections:    convertLayoutSections(l.Sections),
 		Owner:       l.Owner,
 	}
 }
 
-func convertLayoutSections(sections []APIV0Section, indicators []indicator.Indicator) []indicator.Section {
+func convertLayoutSections(sections []APIV0Section) []indicator.Section {
 	apiSections := make([]indicator.Section, 0)
 
 	for _, s := range sections {
-		apiSections = append(apiSections, convertLayoutSection(s, indicators))
+		apiSections = append(apiSections, convertLayoutSection(s))
 	}
 
 	return apiSections
 }
 
-func convertLayoutSection(s APIV0Section, indicators []indicator.Indicator) indicator.Section {
-	//sectionIndicators := make([]indicator.Indicator, 0)
-	//
-	//for _, name := range s.Indicators {
-	//	for _, i := range indicators {
-	//		if i.Name == name {
-	//			sectionIndicators = append(sectionIndicators, i)
-	//		}
-	//	}
-	//}
-
+func convertLayoutSection(s APIV0Section) indicator.Section {
 	return indicator.Section{
 		Title:       s.Title,
 		Description: s.Description,
