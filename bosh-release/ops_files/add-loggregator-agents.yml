@@ -28,10 +28,6 @@
   value:
     name: prom_scraper
     release: loggregator-agent
-    consumes:
-      loggregator_agent:
-        from: loggregator_agent
-        deployment: indicator-protocol
     properties:
       loggregator_agent:
         grpc_port: 3458
