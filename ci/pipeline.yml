@@ -241,6 +241,7 @@ jobs:
           popd
 
 - name: deploy-indicator-registry
+  serial: true
   plan:
   - in_parallel:
     - get: env-state
