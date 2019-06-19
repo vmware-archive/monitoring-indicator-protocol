@@ -532,6 +532,7 @@ jobs:
           main
 
 - name: deploy-k8s-acceptance
+  serial: true
   plan:
   - in_parallel:
     - get: monitoring-indicator-protocol
@@ -611,6 +612,7 @@ jobs:
           main
 
 - name: promote-docker-images
+  serial: true
   plan:
   - in_parallel:
     - get: interim-grafana-controller-docker-repo
@@ -732,6 +734,7 @@ jobs:
         pre: build
 
 - name: finalize-release
+  serial: true
   plan:
   - in_parallel:
     - get: monitoring-indicator-protocol
