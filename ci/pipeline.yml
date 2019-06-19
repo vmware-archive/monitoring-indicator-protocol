@@ -183,7 +183,7 @@ jobs:
 
 - name: indicator-verification
   plan:
-  - aggregate:
+  - in_parallel:
     - get: monitoring-indicator-protocol
       passed: [build-and-test]
       trigger: true
@@ -242,7 +242,7 @@ jobs:
 
 - name: deploy-indicator-registry
   plan:
-  - aggregate:
+  - in_parallel:
     - get: env-state
     - get: monitoring-indicator-protocol
       trigger: true
@@ -353,7 +353,7 @@ jobs:
           SHA=$(git rev-parse HEAD)
           cd ..
           echo ${SHA} > tag/tag
-  - aggregate:
+  - in_parallel:
     - put: interim-grafana-controller-docker-repo
       attempts: 2
       params:
@@ -391,7 +391,7 @@ jobs:
         dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-status-controller/Dockerfile
 - name: deploy-k8s-test
   plan:
-  - aggregate:
+  - in_parallel:
     - get: monitoring-indicator-protocol
       passed: [create-docker-images]
       trigger: true
@@ -470,7 +470,7 @@ jobs:
 
 - name: test-k8s
   plan:
-  - aggregate:
+  - in_parallel:
     - get: interim-grafana-controller-docker-repo
       params: {skip_download: true}
       passed: [deploy-k8s-test]
@@ -532,7 +532,7 @@ jobs:
 
 - name: deploy-k8s-acceptance
   plan:
-  - aggregate:
+  - in_parallel:
     - get: monitoring-indicator-protocol
       passed: [test-k8s]
       trigger: true
@@ -611,7 +611,7 @@ jobs:
 
 - name: promote-docker-images
   plan:
-  - aggregate:
+  - in_parallel:
     - get: interim-grafana-controller-docker-repo
       params: {save: true}
       passed: [test-k8s]
@@ -630,7 +630,7 @@ jobs:
     - get: monitoring-indicator-protocol
       passed: [test-k8s]
       trigger: true
-  - aggregate:
+  - in_parallel:
     - put: grafana-controller-docker-repo
       params:
         tag_as_latest: false
@@ -653,7 +653,7 @@ jobs:
         load: interim-indicator-status-controller-docker-repo
 - name: create-dev-release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: evening
       trigger: true
     - get: monitoring-indicator-protocol
@@ -722,7 +722,7 @@ jobs:
               --version ${BUILD_NUMBER} \
               --tarball ../../created-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz
           popd
-  - aggregate:
+  - in_parallel:
     - put: dev-release
       params:
         file: created-release/*.tgz
@@ -732,7 +732,7 @@ jobs:
 
 - name: finalize-release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: monitoring-indicator-protocol
       passed:
       - create-dev-release
@@ -905,7 +905,7 @@ jobs:
   - put: release-version
     params:
       bump: patch
-  - aggregate:
+  - in_parallel:
     - put: grafana-controller-docker-repo
       params:
         additional_tags: prefixed-release-version/version
