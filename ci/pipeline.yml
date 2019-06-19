@@ -259,6 +259,7 @@ jobs:
         UAA_URI: https://uaa.madlamp.cf-denver.com
         UAA_CLIENT_ID: healthwatch_admin
         SERVICE_ACCOUNT: ((gcp-service-account))
+        EXAMPLE_REPO_PRIVATE_KEY: ((example-repository-private-key-pair.private_key))
       platform: linux
       image_resource:
         type: docker-image
@@ -316,7 +317,8 @@ jobs:
             -v prometheus_uri=$PROMETHEUS_URI \
             -v uaa_uri=$UAA_URI \
             -v uaa_client_id=$UAA_CLIENT_ID \
-            -v uaa_client_secret=$UAA_CLIENT_SECRET
+            -v uaa_client_secret=$UAA_CLIENT_SECRET \
+            -v patch_repo_private_key=$EXAMPLE_REPO_PRIVATE_KEY
           popd
 
           bosh -d indicator-protocol run-errand indicator-smoke-tests
