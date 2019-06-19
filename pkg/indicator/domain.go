@@ -21,11 +21,11 @@ const (
 )
 
 type Document struct {
-	APIVersion string
-	Product    Product
-	Metadata   map[string]string
-	Indicators []Indicator
-	Layout     Layout
+	APIVersion string            `yaml:"apiVersion"`
+	Product    Product           `yaml:"product"`
+	Metadata   map[string]string `yaml:"metadata"`
+	Indicators []Indicator       `yaml:"indicators"`
+	Layout     Layout            `yaml:"layout"`
 }
 
 func (document Document) UID() string {
@@ -69,41 +69,41 @@ type Match struct {
 }
 
 type Product struct {
-	Name    string
-	Version string
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
 }
 
 type Indicator struct {
-	Name          string
-	PromQL        string
-	Thresholds    []Threshold
-	Alert         Alert
-	ServiceLevel  *ServiceLevel
-	Documentation map[string]string
-	Presentation  Presentation
+	Name          string            `yaml:"name"`
+	PromQL        string            `yaml:"promql"`
+	Thresholds    []Threshold       `yaml:"thresholds"`
+	Alert         Alert             `yaml:"alert"`
+	ServiceLevel  *ServiceLevel     `yaml:"serviceLevel"`
+	Documentation map[string]string `yaml:"documentation"`
+	Presentation  Presentation      `yaml:"presentation"`
 }
 
 type ServiceLevel struct {
-	Objective float64
+	Objective float64 `yaml:"objective"`
 }
 
 type Alert struct {
-	For  string
-	Step string
+	For  string `yaml:"for"`
+	Step string `yaml:"step"`
 }
 
 type Threshold struct {
-	Level    string
-	Operator OperatorType
-	Value    float64
+	Level    string       `yaml:"level"`
+	Operator OperatorType `yaml:"operator"`
+	Value    float64      `yaml:"value"`
 }
 
 type Presentation struct {
-	ChartType
-	CurrentValue bool
-	Frequency    int64
-	Labels       []string
-	Units        string
+	ChartType    ChartType `yaml:"chartType"`
+	CurrentValue bool      `yaml:"currentValue"`
+	Frequency    int64     `yaml:"frequency"`
+	Labels       []string  `yaml:"labels"`
+	Units        string    `yaml:"units"`
 }
 
 type ChartType string
@@ -174,14 +174,14 @@ func (e *Threshold) GetComparator() string {
 }
 
 type Layout struct {
-	Title       string
-	Description string
-	Sections    []Section
-	Owner       string
+	Title       string    `yaml:"title"`
+	Description string    `yaml:"description"`
+	Sections    []Section `yaml:"sections"`
+	Owner       string    `yaml:"owner"`
 }
 
 type Section struct {
-	Title       string
-	Description string
-	Indicators  []string
+	Title       string   `yaml:"title"`
+	Description string   `yaml:"description"`
+	Indicators  []string `yaml:"indicators"`
 }
