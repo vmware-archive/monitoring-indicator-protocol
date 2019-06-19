@@ -200,7 +200,7 @@ jobs:
       - name: env-state
       params:
         ENVIRONMENT: moonstorm
-        BBL_STATE_DIR: acceptance-bosh/claimed/moonstorm
+        BBL_STATE_DIR: acceptance-bosh/healthwatch/moonstorm
         DEPLOYMENT_NAME: cf-01234567890123456789
       run:
         path: bash
