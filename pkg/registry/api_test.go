@@ -42,7 +42,7 @@ indicators:
 		req := httptest.NewRequest("POST", "/register", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore(1 * time.Minute, time.Now)
+		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -56,7 +56,7 @@ indicators:
 			},
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{{
-					Title: "Metrics",
+					Title:      "Metrics",
 					Indicators: []string{"test_performance_indicator"},
 				}},
 			},
@@ -97,7 +97,7 @@ indicators:
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore(1 * time.Minute, time.Now)
+		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -120,7 +120,7 @@ indicators: aasdfasdf`))
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc&product=redis-tile", body)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore(1 * time.Minute, time.Now)
+		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
 		handle := registry.NewRegisterHandler(docStore)
 		handle(resp, req)
 
@@ -192,15 +192,15 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		req := httptest.NewRequest("POST", "/indicator-documents", nil)
 		resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore(1 * time.Minute, time.Now)
+		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
 		docStore.UpsertDocument(indicator.Document{
 			Product: indicator.Product{Name: "my-product-a", Version: "1"},
 			Metadata: map[string]string{
 				"deployment": "abc-123",
 			},
 			Indicators: []indicator.Indicator{{
-				Name:       "indie1",
-				PromQL:     "promql1",
+				Name:   "indie1",
+				PromQL: "promql1",
 				Alert: indicator.Alert{
 					For:  "5m",
 					Step: "10s",
@@ -208,8 +208,8 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 				ServiceLevel: nil,
 				Presentation: test_fixtures.DefaultPresentation(),
 			}, {
-				Name:       "indie2",
-				PromQL:     "promql2",
+				Name:   "indie2",
+				PromQL: "promql2",
 				Alert: indicator.Alert{
 					For:  "5m",
 					Step: "10s",
@@ -295,6 +295,84 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 						  "value": "critical",
 						  "updatedAt": "2012-12-01T16:45:19Z"
 						}
+                      }
+                    ],
+                    "layout": {
+                      "title": "",
+                      "description": "",
+					  "sections": [],
+                      "owner": ""
+                    }
+                  }
+			]`))
+	})
+
+	t.Run("allows various characters in document", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		req := httptest.NewRequest("POST", "/indicator-documents", nil)
+		resp := httptest.NewRecorder()
+
+		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
+		docStore.UpsertDocument(indicator.Document{
+			Product: indicator.Product{Name: "my-product-a", Version: "1"},
+			Metadata: map[string]string{
+				"deployment % ": "%d abc-123",
+			},
+			Indicators: []indicator.Indicator{{
+				Name:          "indie1",
+				PromQL:        "promql1",
+				Alert:         test_fixtures.DefaultAlert(),
+				Documentation: map[string]string{" % ": "{0}", "%n": "%*.*s"},
+				Presentation:  test_fixtures.DefaultPresentation(),
+			}},
+		})
+
+		statusStore := status_store.New(func() time.Time { return time.Date(2012, 12, 1, 16, 45, 19, 0, time.UTC) })
+
+		handle := registry.NewIndicatorDocumentsHandler(docStore, statusStore)
+		handle(resp, req)
+
+		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
+		g.Expect(resp.Code).To(Equal(http.StatusOK))
+
+		responseBody, err := ioutil.ReadAll(resp.Body)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(responseBody).To(MatchJSON(`
+			[
+ 				{
+                    "apiVersion": "",
+					"uid": "my-product-a-b5cf9762d7a2e7cec0d6a1e0b959149595c3c198",
+                    "product": {
+						"name": "my-product-a",
+                    	"version": "1"
+					},
+                    "metadata": {
+                      "deployment % ": "%d abc-123"
+                    },
+                    "indicators": [
+                      {
+                        "name": "indie1",
+                        "promql": "promql1",
+                        "thresholds": [],
+						"alert": {
+							"for": "1m",
+							"step": "1m"
+						},
+						"serviceLevel": null,
+                        "presentation": {
+                          "chartType": "step",
+                          "currentValue": false,
+                          "frequency": 0,
+                          "labels": [],
+                          "units": ""
+                        },
+						"documentation": {
+						  " % ": "{0}",
+						  "%n": "%*.*s"
+						},
+                        "status": null
                       }
                     ],
                     "layout": {

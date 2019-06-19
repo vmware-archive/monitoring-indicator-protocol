@@ -52,7 +52,7 @@ func NewIndicatorDocumentsHandler(store *DocumentStore, statusStore *status_stor
 		if err != nil {
 			writeErrors(w, http.StatusInternalServerError, err)
 		}
-		_, err = fmt.Fprintf(w, string(bytes))
+		_, err = fmt.Fprint(w, string(bytes))
 
 		if err != nil {
 			log.Printf("error writing /indicator-documents response: %s", err)
