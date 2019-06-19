@@ -259,7 +259,7 @@ jobs:
         UAA_URI: https://uaa.madlamp.cf-denver.com
         UAA_CLIENT_ID: healthwatch_admin
         SERVICE_ACCOUNT: ((gcp-service-account))
-        EXAMPLE_REPO_PRIVATE_KEY: ((example-repository-private-key-pair.private_key))
+        EXAMPLE_REPO_PRIVATE_KEY: ((example-repository-key-pair.private_key))
       platform: linux
       image_resource:
         type: docker-image
