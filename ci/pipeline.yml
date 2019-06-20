@@ -118,7 +118,6 @@ resources:
     location: America/Denver
     days: [Monday, Tuesday, Wednesday, Thursday, Friday]
 
-
 resource_types:
 - name: gcs-resource
   type: docker-image
@@ -259,7 +258,7 @@ jobs:
         UAA_URI: https://uaa.madlamp.cf-denver.com
         UAA_CLIENT_ID: healthwatch_admin
         SERVICE_ACCOUNT: ((gcp-service-account))
-        EXAMPLE_REPO_PRIVATE_KEY: ((example-repository-key-pair.private_key))
+        EXAMPLE_REPO_PRIVATE_KEY: ((example-repository-private-key))
       platform: linux
       image_resource:
         type: docker-image
@@ -309,6 +308,8 @@ jobs:
 
           UAA_CLIENT_SECRET=$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_cc-service-dashboards_secret -j | jq -r .value)
 
+          echo "{\"key\": \"${EXAMPLE_REPO_PRIVATE_KEY//[$'\t\r\n']}\"}" | jq .key -r > ./sample-repo-key
+
           bosh -n -d indicator-protocol deploy \
             manifests/manifest.yml \
             -o ops_files/add-examples-git-source.yml \
@@ -318,7 +319,7 @@ jobs:
             -v uaa_uri=$UAA_URI \
             -v uaa_client_id=$UAA_CLIENT_ID \
             -v uaa_client_secret=$UAA_CLIENT_SECRET \
-            -v patch_repo_private_key=$EXAMPLE_REPO_PRIVATE_KEY
+            --var-file=patch_repo_private_key=./sample-repo-key
           popd
 
           bosh -d indicator-protocol run-errand indicator-smoke-tests

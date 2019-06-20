@@ -3,5 +3,5 @@
   path: /instance_groups/name=indicator-protocol/jobs/name=indicator-registry/properties?/sources?/-
   value:
     type: git
-    repository: https://github.com/pivotal/indicator-protocol-examples
+    repository: git@github.com:pivotal/indicator-protocol-examples.git
     private_key: ((patch_repo_private_key))
