@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -10,11 +11,11 @@ import (
 
 	. "github.com/benjamintf1/unmarshalledmatchers"
 	. "github.com/onsi/gomega"
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/configuration"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
-	"gopkg.in/yaml.v2"
 )
 
 func TestIndicatorRegistry(t *testing.T) {
@@ -139,7 +140,12 @@ func withConfigServer(port, configPath string, g *GomegaWithT, testFun func(stri
 		"--config", configPath,
 	)
 
-	session, err := gexec.Start(cmd, nil, nil)
+	var outW, errW io.Writer
+	if testing.Verbose() {
+		outW = os.Stdout
+		errW = os.Stderr
+	}
+	session, err := gexec.Start(cmd, outW, errW)
 	g.Expect(err).ToNot(HaveOccurred())
 	defer session.Kill()
 	serverHost := "localhost:" + port

@@ -76,10 +76,10 @@ type Product struct {
 type Indicator struct {
 	Name          string            `yaml:"name"`
 	PromQL        string            `yaml:"promql"`
-	Thresholds    []Threshold       `yaml:"thresholds"`
+	Thresholds    []Threshold       `yaml:"thresholds,omitempty"`
 	Alert         Alert             `yaml:"alert"`
 	ServiceLevel  *ServiceLevel     `yaml:"serviceLevel"`
-	Documentation map[string]string `yaml:"documentation"`
+	Documentation map[string]string `yaml:"documentation,omitempty"`
 	Presentation  Presentation      `yaml:"presentation"`
 }
 

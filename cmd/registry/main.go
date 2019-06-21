@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"log"
 	"time"
 
+	"golang.org/x/crypto/ssh"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 
-	"gopkg.in/src-d/go-git.v4"
+	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"

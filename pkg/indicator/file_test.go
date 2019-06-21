@@ -49,7 +49,7 @@ indicators:
 			},
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{{
-					Title: "Metrics",
+					Title:      "Metrics",
 					Indicators: []string{"test_performance_indicator"},
 				}},
 			},
@@ -83,7 +83,7 @@ indicators:
 			},
 			Layout: indicator.Layout{
 				Sections: []indicator.Section{{
-					Title: "Metrics",
+					Title:      "Metrics",
 					Indicators: []string{"test_performance_indicator"},
 				}},
 			},

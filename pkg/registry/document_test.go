@@ -97,7 +97,7 @@ func TestDocumentTranslation(t *testing.T) {
 					{
 						Title:       "The performance indicator",
 						Description: "Pay attention!",
-						Indicators: []string{"performance-indicator"},
+						Indicators:  []string{"performance-indicator"},
 					},
 				},
 				Owner: "Waldo",

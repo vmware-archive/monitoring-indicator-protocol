@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg"
+	utils "github.com/pivotal/monitoring-indicator-protocol/pkg"
 )
 
 type RegistryApiClient struct {
@@ -44,8 +44,6 @@ func (c *RegistryApiClient) indicatorResponse() ([]byte, error) {
 
 	return ioutil.ReadAll(resp.Body)
 }
-
-
 
 func (c *RegistryApiClient) BulkStatusUpdate(statusUpdates []APIV0UpdateIndicatorStatus, documentId string) error {
 	updateBytes, err := json.Marshal(statusUpdates)

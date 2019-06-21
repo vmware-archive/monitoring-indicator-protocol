@@ -39,7 +39,7 @@ type APIV0Indicator struct {
 	PromQL        string                `json:"promql"`
 	Thresholds    []APIV0Threshold      `json:"thresholds"`
 	Alert         APIV0Alert            `json:"alert"`
-	ServiceLevel  *APIV0ServiceLevel	`json:"serviceLevel"`
+	ServiceLevel  *APIV0ServiceLevel    `json:"serviceLevel"`
 	Documentation map[string]string     `json:"documentation,omitempty"`
 	Presentation  APIV0Presentation     `json:"presentation"`
 	Status        *APIV0IndicatorStatus `json:"status"`

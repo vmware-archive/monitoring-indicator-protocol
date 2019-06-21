@@ -1,7 +1,10 @@
 package indicator
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"reflect"
 	"regexp"
@@ -9,10 +12,105 @@ import (
 	"strings"
 
 	"github.com/cppforlife/go-patch/patch"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
+
+func (t *Threshold) UnmarshalYAML(unmarshal func(v interface{}) error) error {
+	var threshold struct {
+		Level string   `yaml:"level"`
+		LT    *float64 `yaml:"lt"`
+		LTE   *float64 `yaml:"lte"`
+		EQ    *float64 `yaml:"eq"`
+		NEQ   *float64 `yaml:"neq"`
+		GTE   *float64 `yaml:"gte"`
+		GT    *float64 `yaml:"gt"`
+	}
+
+	err := unmarshal(&threshold)
+	if err != nil {
+		return err
+	}
+	t.Level = threshold.Level
+
+	switch {
+	case threshold.LT != nil:
+		t.Operator = LessThan
+		t.Value = *threshold.LT
+	case threshold.LTE != nil:
+		t.Operator = LessThanOrEqualTo
+		t.Value = *threshold.LTE
+	case threshold.EQ != nil:
+		t.Operator = EqualTo
+		t.Value = *threshold.EQ
+	case threshold.NEQ != nil:
+		t.Operator = NotEqualTo
+		t.Value = *threshold.NEQ
+	case threshold.GTE != nil:
+		t.Operator = GreaterThanOrEqualTo
+		t.Value = *threshold.GTE
+	case threshold.GT != nil:
+		t.Operator = GreaterThan
+		t.Value = *threshold.GT
+	default:
+		t.Operator = Undefined
+	}
+	return nil
+}
+
 type ReadOpt func(options *readOptions)
+
+func DocumentFromYAML(reader io.ReadCloser) (Document, error) {
+	var doc Document
+	err := yaml.NewDecoder(reader).Decode(&doc)
+	if err != nil {
+		return Document{}, fmt.Errorf("could not unmarshal indicators: %s", err)
+	}
+	_ = reader.Close()
+
+	populateDefaultAlert(&doc)
+	populateDefaultLayout(&doc)
+	populateDefaultPresentation(&doc)
+
+	return doc, nil
+}
+
+func populateDefaultPresentation(doc *Document) {
+	for i, indicator := range doc.Indicators {
+		if indicator.Presentation.ChartType == "" {
+			doc.Indicators[i].Presentation.ChartType = "step"
+		}
+		if indicator.Presentation.Labels == nil {
+			doc.Indicators[i].Presentation.Labels = []string{}
+		}
+	}
+}
+
+func populateDefaultLayout(doc *Document) {
+	if doc.Layout.Sections == nil {
+		indicatorNames := []string{}
+		for _, indicator := range doc.Indicators {
+			indicatorNames = append(indicatorNames, indicator.Name)
+		}
+		doc.Layout.Sections = []Section{
+			{
+				Title:      "Metrics",
+				Indicators: indicatorNames,
+			},
+		}
+	}
+}
+
+func populateDefaultAlert(doc *Document) {
+	for i, indicator := range doc.Indicators {
+		if indicator.Alert.For == "" {
+			doc.Indicators[i].Alert.For = "1m"
+		}
+		if indicator.Alert.Step == "" {
+			doc.Indicators[i].Alert.Step = "1m"
+		}
+	}
+}
 
 func SkipMetadataInterpolation(options *readOptions) {
 	options.interpolate = false
@@ -32,10 +130,12 @@ func ProcessDocument(patches []Patch, documentBytes []byte) (Document, []error) 
 		return Document{}, []error{err}
 	}
 
-	doc, err := ReadIndicatorDocument(patchedDocBytes)
+	reader := ioutil.NopCloser(bytes.NewReader(patchedDocBytes))
+	doc, err := DocumentFromYAML(reader)
 	if err != nil {
 		return Document{}, []error{err}
 	}
+	doc.Interpolate()
 
 	errs := ValidateForRegistry(doc)
 	if len(errs) > 0 {
@@ -354,16 +454,6 @@ type yamlMatch struct {
 		Version *string `yaml:"version,omitempty"`
 	} `yaml:"product,omitempty"`
 	Metadata map[string]string `yaml:"metadata,omitempty"`
-}
-
-func findIndicator(name string, indicators []Indicator) (Indicator, bool) {
-	for _, i := range indicators {
-		if i.Name == name {
-			return i, true
-		}
-	}
-
-	return Indicator{}, false
 }
 
 func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
