@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -102,7 +103,14 @@ func getAuth(s configuration.Source) transport.AuthMethod {
 	}
 	if s.Key != "" {
 		signer, _ := ssh.ParsePrivateKey([]byte(s.Key))
-		return &ssh2.PublicKeys{User: "git", Signer: signer}
+		helper := ssh2.HostKeyCallbackHelper{
+			HostKeyCallback: noopHostkeyCallback,
+		}
+		return &ssh2.PublicKeys{User: "git", Signer: signer, HostKeyCallbackHelper: helper}
 	}
+	return nil
+}
+
+func noopHostkeyCallback(_ string, _ net.Addr, _ ssh.PublicKey) error {
 	return nil
 }
