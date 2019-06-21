@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"code.cloudfoundry.org/cli/plugin"
 )
 
@@ -23,8 +25,7 @@ type ServiceHealthPlugin struct{}
 func (c *ServiceHealthPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	// Ensure that we called the command basic-plugin-command
 	if args[0] == "service-health" {
-		cliConnection.
-			fmt.Println("Running the basic-plugin-command")
+		fmt.Println(c.GetMetadata().Commands[0].UsageDetails.Usage)
 	}
 }
 
