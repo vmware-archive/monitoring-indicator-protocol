@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
@@ -133,9 +134,13 @@ func TestAlertGeneration(t *testing.T) {
 			Product:  indicator.Product{Name: "product-lol", Version: "beta.9"},
 			Metadata: map[string]string{"meta-lol": "data-lol"},
 			Indicators: []indicator.Indicator{{
-				Name:       "indicator_lol",
-				PromQL:     "super_query(promql_expression[$step])[$step]",
-				Thresholds: []indicator.Threshold{{}},
+				Name:   "indicator_lol",
+				PromQL: "super_query(promql_expression[$step])[$step]",
+				Thresholds: []indicator.Threshold{{
+					Level:    "warning",
+					Operator: indicator.LessThan,
+					Value:    0,
+				}},
 				Alert: indicator.Alert{
 					Step: "12m",
 				},
@@ -181,7 +186,7 @@ func TestAlertGeneration(t *testing.T) {
 
 		g.Expect(err).ToNot(HaveOccurred())
 		filename := prometheus_alerts.AlertDocumentFilename(docBytes, "test_product")
-		g.Expect(filename).To(Equal("test_product_39472a3a8a619a2996e221488060105dab60c3df.yml"))
+		g.Expect(filename).To(Equal("test_product_7f182926d497b04cfef62674a8d5919c6e1329d0.yml"))
 	})
 }
 

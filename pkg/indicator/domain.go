@@ -11,13 +11,13 @@ import (
 type OperatorType int
 
 const (
-	LessThan OperatorType = iota
+	Undefined OperatorType = iota
+	LessThan
 	LessThanOrEqualTo
 	EqualTo
 	NotEqualTo
 	GreaterThanOrEqualTo
 	GreaterThan
-	Undefined
 )
 
 type Document struct {
