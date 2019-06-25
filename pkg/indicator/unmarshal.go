@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
-	"reflect"
 	"strings"
 
 	"github.com/cppforlife/go-patch/patch"
 	"gopkg.in/yaml.v2"
 )
-
 
 func (t *Threshold) UnmarshalYAML(unmarshal func(v interface{}) error) error {
 	var threshold struct {
@@ -71,6 +68,65 @@ func DocumentFromYAML(reader io.ReadCloser) (Document, error) {
 	populateDefaultPresentation(&doc)
 
 	return doc, nil
+}
+
+func PatchFromYAML(reader io.ReadCloser) (Patch, error) {
+	var yamlPatch yamlPatch
+	err := yaml.NewDecoder(reader).Decode(&yamlPatch)
+	if err != nil {
+		return Patch{}, fmt.Errorf("could not unmarshal patch: %s", err)
+	}
+	_ = reader.Close()
+
+	return Patch{
+		APIVersion: yamlPatch.APIVersion,
+		Match: Match{
+			Name:     yamlPatch.Match.Product.Name,
+			Version:  yamlPatch.Match.Product.Version,
+			Metadata: yamlPatch.Match.Metadata,
+		},
+		Operations: yamlPatch.Operations,
+	}, nil
+}
+
+func ProductFromYAML(reader io.ReadCloser) (Product, error) {
+	var d struct {
+		Product Product `yaml:"product"`
+	}
+	err := yaml.NewDecoder(reader).Decode(&d)
+	if err != nil {
+		return Product{}, fmt.Errorf("could not unmarshal product information: %s", err)
+	}
+	_ = reader.Close()
+
+	return d.Product, nil
+}
+
+func MetadataFromYAML(reader io.ReadCloser) (map[string]string, error) {
+	var d struct {
+		Metadata map[string]string `yaml:"metadata"`
+	}
+	err := yaml.NewDecoder(reader).Decode(&d)
+	if err != nil {
+		return map[string]string{}, fmt.Errorf("could not unmarshal metadata: %s", err)
+	}
+	_ = reader.Close()
+
+	return d.Metadata, nil
+}
+
+type yamlPatch struct {
+	APIVersion string               `yaml:"apiVersion"`
+	Match      yamlMatch            `yaml:"match"`
+	Operations []patch.OpDefinition `yaml:"operations"`
+}
+
+type yamlMatch struct {
+	Product struct {
+		Name    *string `yaml:"name,omitempty"`
+		Version *string `yaml:"version,omitempty"`
+	} `yaml:"product,omitempty"`
+	Metadata map[string]string `yaml:"metadata,omitempty"`
 }
 
 func populateDefaultPresentation(doc *Document) {
@@ -144,90 +200,6 @@ func ProcessDocument(patches []Patch, documentBytes []byte) (Document, []error) 
 	return doc, nil
 }
 
-func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
-	_, err := readMetadata(documentBytes)
-	if err != nil {
-		return []byte{}, fmt.Errorf("could not read document metadata: %s", err)
-	}
-	var document interface{}
-	err = yaml.Unmarshal(documentBytes, &document)
-	if err != nil {
-		return []byte{}, fmt.Errorf("failed to unmarshal document for patching: %s", err)
-	}
-
-	for _, p := range patches {
-		if MatchDocument(p.Match, documentBytes) {
-			ops, err := patch.NewOpsFromDefinitions(p.Operations)
-			if err != nil {
-				log.Print(fmt.Errorf("failed to parse patch operations: %s", err))
-				continue
-			}
-			for i, o := range ops {
-				var tempDocument interface{}
-				tempDocument, err = o.Apply(document)
-				if err != nil {
-					od := p.Operations[i]
-					log.Print(fmt.Errorf("failed to apply patch operation %s %s: %s", od.Type, *od.Path, err))
-					continue
-				}
-				document = tempDocument
-			}
-		}
-	}
-
-	patched, err := yaml.Marshal(document)
-	if err != nil {
-		return []byte{}, err
-	}
-	return patched, nil
-}
-
-func MatchDocument(criteria Match, documentBytes []byte) bool {
-	product, err := readProductInfo(documentBytes)
-	if err != nil {
-		return false
-	}
-
-	if criteria.Name != nil && *criteria.Name != product.Name {
-		return false
-	}
-	if criteria.Version != nil && *criteria.Version != product.Version {
-		return false
-	}
-
-	if criteria.Metadata != nil {
-		metadata, err := readMetadata(documentBytes)
-		if err != nil {
-			return false
-		}
-
-		if !reflect.DeepEqual(metadata, criteria.Metadata) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func ReadPatchBytes(yamlBytes []byte) (Patch, error) {
-	p := yamlPatch{}
-	err := yaml.Unmarshal(yamlBytes, &p)
-
-	if err != nil {
-		return Patch{}, fmt.Errorf("unable to parse bytes: %s\n", err)
-	}
-
-	return Patch{
-		APIVersion: p.APIVersion,
-		Match: Match{
-			Name:     p.Match.Product.Name,
-			Version:  p.Match.Product.Version,
-			Metadata: p.Match.Metadata,
-		},
-		Operations: p.Operations,
-	}, nil
-}
-
 func ParseMetadata(input string) map[string]string {
 	metadata := map[string]string{}
 
@@ -245,49 +217,3 @@ type readOptions struct {
 	interpolate bool
 	overrides   map[string]string
 }
-
-type yamlProduct struct {
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
-}
-
-type yamlPatch struct {
-	APIVersion string               `yaml:"apiVersion"`
-	Match      yamlMatch            `yaml:"match"`
-	Operations []patch.OpDefinition `yaml:"operations"`
-}
-
-type yamlMatch struct {
-	Product struct {
-		Name    *string `yaml:"name,omitempty"`
-		Version *string `yaml:"version,omitempty"`
-	} `yaml:"product,omitempty"`
-	Metadata map[string]string `yaml:"metadata,omitempty"`
-}
-
-func readMetadata(document []byte) (map[string]string, error) {
-	var d struct {
-		Metadata map[string]string `yaml:"metadata"`
-	}
-
-	err := yaml.Unmarshal(document, &d)
-	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal metadata: %s", err)
-	}
-
-	return d.Metadata, nil
-}
-
-func readProductInfo(documentBytes []byte) (yamlProduct, error) {
-	var document struct {
-		Product yamlProduct `yaml:"product"`
-	}
-
-	err := yaml.Unmarshal(documentBytes, &document)
-	if err != nil {
-		return yamlProduct{}, fmt.Errorf("could not unmarshal metadata: %s", err)
-	}
-
-	return document.Product, nil
-}
-

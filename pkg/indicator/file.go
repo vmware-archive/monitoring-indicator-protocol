@@ -60,7 +60,8 @@ func ReadPatchFile(patchFile string) (Patch, error) {
 		return Patch{}, err
 	}
 
-	patch, err := ReadPatchBytes(fileBytes)
+	reader := ioutil.NopCloser(bytes.NewReader(fileBytes))
+	patch, err := PatchFromYAML(reader)
 	if err != nil {
 		return Patch{}, err
 	}

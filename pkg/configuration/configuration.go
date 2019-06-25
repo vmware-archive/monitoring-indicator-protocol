@@ -1,17 +1,19 @@
 package configuration
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
 
 	glob2 "github.com/gobwas/glob"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/yaml.v2"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
 type RepositoryGetter func(Source) (*git.Repository, error)
@@ -180,7 +182,8 @@ type unparsedPatch struct {
 func readPatches(unparsedPatches []unparsedPatch) []indicator.Patch {
 	var patches []indicator.Patch
 	for _, p := range unparsedPatches {
-		p, err := indicator.ReadPatchBytes(p.YAMLBytes)
+		reader := ioutil.NopCloser(bytes.NewReader(p.YAMLBytes))
+		p, err := indicator.PatchFromYAML(reader)
 		if err != nil {
 			log.Println(err)
 			continue
