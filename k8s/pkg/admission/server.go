@@ -15,16 +15,18 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/domain"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+
 	"k8s.io/api/admission/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 )
 
 var (
@@ -324,15 +326,15 @@ func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, requ
 	}
 
 	id := domain.Map(&k8sIndicatorDoc)
-	errors := indicator.ValidateForK8s(id)
+	errors := id.Validate("apps.pivotal.io/v1alpha1")
 
 	auditAnnotationMessage := createReviewAnnotationMap(errors)
 
 	data, err := json.Marshal(&v1beta1.AdmissionReview{
 		Response: &v1beta1.AdmissionResponse{
-			UID:              requestedAdmissionReview.Request.UID,
-			Allowed:          len(errors) == 0,
-			Result:  &metav1.Status{
+			UID:     requestedAdmissionReview.Request.UID,
+			Allowed: len(errors) == 0,
+			Result: &metav1.Status{
 				Message: auditAnnotationMessage,
 			},
 		},
@@ -371,7 +373,7 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 	}
 
 	i := domain.ToDomainIndicator(k8sIndicator.Spec)
-	errors := indicator.ValidateIndicator(i, 0)
+	errors := i.Validate(0)
 
 	auditAnnotationMessage := createReviewAnnotationMap(errors)
 
@@ -379,7 +381,7 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 		Response: &v1beta1.AdmissionResponse{
 			UID:     requestedAdmissionReview.Request.UID,
 			Allowed: len(errors) == 0,
-			Result:  &metav1.Status{
+			Result: &metav1.Status{
 				Message: auditAnnotationMessage,
 			},
 		},
@@ -397,7 +399,7 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 	}
 }
 
-func createReviewAnnotationMap(errors []error)string {
+func createReviewAnnotationMap(errors []error) string {
 	errorsString := ""
 	for _, errorString := range errors {
 		errorsString += errorString.Error() + "\n"
@@ -416,10 +418,10 @@ func marshalPatches(patchOperations []patch) ([]byte, error) {
 
 func getThresholdPatches(threshold []v1alpha1.Threshold, context string) []patch {
 	if len(threshold) == 0 {
-		return []patch {
+		return []patch{
 			{
-				Op: "add",
-				Path: fmt.Sprintf("%s/thresholds", context),
+				Op:    "add",
+				Path:  fmt.Sprintf("%s/thresholds", context),
 				Value: []v1alpha1.Threshold{},
 			},
 		}

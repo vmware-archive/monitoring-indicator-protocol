@@ -192,7 +192,7 @@ func ProcessDocument(patches []Patch, documentBytes []byte) (Document, []error) 
 	}
 	doc.Interpolate()
 
-	errs := ValidateForRegistry(doc)
+	errs := doc.Validate("v0")
 	if len(errs) > 0 {
 		return Document{}, errs
 	}

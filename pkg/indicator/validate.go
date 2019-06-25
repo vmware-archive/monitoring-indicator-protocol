@@ -7,25 +7,7 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
-func ValidateForRegistry(document Document) []error {
-	es := make([]error, 0)
-	es = append(es, validateCommon(document)...)
-	if document.APIVersion != "v0" {
-		es = append(es, fmt.Errorf("only apiVersion v0 is supported"))
-	}
-	return es
-}
-
-func ValidateForK8s(document Document) []error {
-	es := make([]error, 0)
-	es = append(es, validateCommon(document)...)
-	if document.APIVersion != "apps.pivotal.io/v1alpha1" {
-		es = append(es, fmt.Errorf("only apiVersion v1alpha1 is supported"))
-	}
-	return es
-}
-
-func validateCommon(document Document) []error {
+func (document *Document) Validate(apiVersion string) []error {
 	es := make([]error, 0)
 	if document.APIVersion == "" {
 		es = append(es, fmt.Errorf("apiVersion is required"))
@@ -46,7 +28,7 @@ func validateCommon(document Document) []error {
 	}
 
 	for idx, i := range document.Indicators {
-		es = append(es, ValidateIndicator(i, idx)...)
+		es = append(es, i.Validate(idx)...)
 	}
 
 	for sectionIdx, section := range document.Layout.Sections {
@@ -57,41 +39,46 @@ func validateCommon(document Document) []error {
 		}
 	}
 
+	if document.APIVersion != apiVersion {
+		es = append(es, fmt.Errorf("only apiVersion %s is supported", apiVersion))
+	}
+
 	return es
 }
 
-func ValidateIndicator(i Indicator, idx int) []error {
+func (indicator *Indicator) Validate(idx int) []error {
 	var es []error
-	if strings.TrimSpace(i.Name) == "" {
+	if strings.TrimSpace(indicator.Name) == "" {
 		es = append(es, fmt.Errorf("indicators[%d] name is required", idx))
 	}
-	labels, err := promql.ParseMetric(i.Name)
+	labels, err := promql.ParseMetric(indicator.Name)
 	if err != nil || labels.Len() > 1 {
 		es = append(es, fmt.Errorf("indicators[%d] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)", idx))
 	}
-	if strings.TrimSpace(i.PromQL) == "" {
+	if strings.TrimSpace(indicator.PromQL) == "" {
 		es = append(es, fmt.Errorf("indicators[%d] promql is required", idx))
 	}
-	for tdx, threshold := range i.Thresholds {
+	for tdx, threshold := range indicator.Thresholds {
 		if threshold.Operator == Undefined {
 			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float", idx, tdx))
 		}
 	}
 
-	es = validateChartType(i.Presentation.ChartType, es, idx)
+	es = append(es, indicator.Presentation.ChartType.Validate(idx)...)
 
 	return es
 }
 
-func validateChartType(chartType ChartType, es []error, idx int) []error {
+func (chartType *ChartType) Validate(idx int) []error {
+	var es []error
 	valid := false
 	for _, validChartType := range ChartTypes {
-		if chartType == validChartType {
+		if *chartType == validChartType {
 			valid = true
 		}
 	}
 	if !valid {
-		es = append(es, fmt.Errorf("indicators[%d] invalid chartType provided: '%s' - valid chart types are %v", idx, chartType, ChartTypes))
+		es = append(es, fmt.Errorf("indicators[%d] invalid chartType provided: '%s' - valid chart types are %v", idx, *chartType, ChartTypes))
 	}
 
 	return es
