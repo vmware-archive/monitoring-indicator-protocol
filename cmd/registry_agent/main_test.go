@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os/exec"
@@ -40,7 +41,8 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 			body, err := ioutil.ReadAll(r.Body)
 			g.Expect(err).To(Not(HaveOccurred()))
 
-			document, err := indicator.ReadIndicatorDocument(body)
+			reader := ioutil.NopCloser(bytes.NewReader(body))
+			document, err := indicator.DocumentFromYAML(reader)
 			g.Expect(err).To(Not(HaveOccurred()))
 
 			receivedDocuments <- document

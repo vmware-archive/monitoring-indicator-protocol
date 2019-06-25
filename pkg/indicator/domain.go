@@ -117,8 +117,8 @@ const (
 
 var ChartTypes = []ChartType{StepChart, BarChart, StatusChart, QuotaChart}
 
-func (e *Threshold) GetComparatorAbbrev() string {
-	switch e.Operator {
+func (t *Threshold) GetComparatorAbbrev() string {
+	switch t.Operator {
 	case LessThan:
 		return "lt"
 	case LessThanOrEqualTo:
@@ -154,8 +154,8 @@ func GetComparatorFromString(operator string) OperatorType {
 	}
 }
 
-func (e *Threshold) GetComparator() string {
-	switch e.Operator {
+func (t *Threshold) GetComparator() string {
+	switch t.Operator {
 	case LessThan:
 		return "<"
 	case LessThanOrEqualTo:

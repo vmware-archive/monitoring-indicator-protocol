@@ -1,6 +1,7 @@
 package indicator
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -12,12 +13,19 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
 		return Document{}, err
 	}
 
-	indicatorDocument, err := ReadIndicatorDocument(fileBytes, opts...)
+	reader := ioutil.NopCloser(bytes.NewReader(fileBytes))
+	doc, err := DocumentFromYAML(reader)
 	if err != nil {
 		return Document{}, err
 	}
 
-	validationErrors := ValidateForRegistry(indicatorDocument)
+	readOptions := getReadOpts(opts)
+	doc.OverrideMetadata(readOptions.overrides)
+	if readOptions.interpolate {
+		doc.Interpolate()
+	}
+
+	validationErrors := ValidateForRegistry(doc)
 	if len(validationErrors) > 0 {
 		var errorS strings.Builder
 		errorS.WriteString("validation for indicator document failed:\n")
@@ -30,7 +38,20 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
 		return Document{}, fmt.Errorf(errorS.String())
 	}
 
-	return indicatorDocument, nil
+	return doc, nil
+}
+
+func getReadOpts(optionsFuncs []ReadOpt) readOptions {
+	options := readOptions{
+		interpolate: true,
+		overrides:   map[string]string{},
+	}
+
+	for _, fn := range optionsFuncs {
+		fn(&options)
+	}
+
+	return options
 }
 
 func ReadPatchFile(patchFile string) (Patch, error) {

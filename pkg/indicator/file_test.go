@@ -9,22 +9,9 @@ import (
 )
 
 func TestUpdateMetadata(t *testing.T) {
-	fileBytes := []byte(`---
-apiVersion: v0
-product: 
-  name: well-performing-component
-  version: 0.0.1
-metadata:
-  deployment: well-performing-deployment
-
-indicators:
-- name: test_performance_indicator
-  promql: query_metric{source_id="$deployment"}
-`)
-
 	t.Run("it replaces promql $EXPR with metadata tags", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		d, err := indicator.ReadIndicatorDocument(fileBytes)
+		d, err := indicator.ReadFile("test_fixtures/doc.yml")
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d).To(BeEquivalentTo(indicator.Document{
@@ -58,7 +45,7 @@ indicators:
 
 	t.Run("it does not replaces promql $EXPR with metadata tags when passed flag", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		d, err := indicator.ReadIndicatorDocument(fileBytes, indicator.SkipMetadataInterpolation)
+		d, err := indicator.ReadFile("test_fixtures/doc.yml", indicator.SkipMetadataInterpolation)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d).To(Equal(indicator.Document{
