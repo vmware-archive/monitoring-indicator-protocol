@@ -2,6 +2,7 @@
 bin/
 gen/
 proto/out
+docker-compose/certs
 
 # Intellij project files
 *.iml

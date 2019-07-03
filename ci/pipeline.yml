@@ -104,6 +104,20 @@ resources:
     tag: last-build
     username: ((dockerhub-username))
     password: ((dockerhub-password))
+- name: bosh-indicator-registry-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/bosh-indicator-protocol-registry
+    tag: last-build
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+- name: bosh-indicator-registry-proxy-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/bosh-indicator-protocol-registry-proxy
+    tag: last-build
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: dev-release
   type: gcs-resource
   source:
@@ -329,7 +343,51 @@ jobs:
           bosh -n -d $CF_DEPLOYMENT_NAME deploy temp.yml
           rm temp.yml
 
-- name: create-docker-images
+- name: create-dev-docker-images
+  plan:
+  - get: monitoring-indicator-protocol
+    passed: [build-and-test]
+    trigger: true
+  - task: create-tag
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: buildpack-deps
+          tag: stretch-scm
+      inputs:
+        - name: monitoring-indicator-protocol
+      outputs:
+        - name: tag
+      run:
+        path: bash
+        args:
+          - -c
+          - |
+            #!/usr/bin/env bash
+            set -ex
+            cd monitoring-indicator-protocol
+            SHA=$(git rev-parse HEAD)
+            cd ..
+            echo ${SHA} > tag/tag
+  - in_parallel:
+    - put: bosh-indicator-registry
+      attempts: 2
+      params:
+        additional_tags: tag/tag
+        tag_as_latest: false
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/cmd/registry/Dockerfile
+    - put: bosh-indicator-registry-proxy
+      attempts: 2
+      params:
+        additional_tags: tag/tag
+        tag_as_latest: false
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/cmd/registry-proxy/Dockerfile
+
+- name: create-k8s-docker-images
   plan:
   - get: monitoring-indicator-protocol
     passed: [build-and-test]
@@ -397,23 +455,23 @@ jobs:
   plan:
   - in_parallel:
     - get: monitoring-indicator-protocol
-      passed: [create-docker-images]
+      passed: [create-k8s-docker-images]
       trigger: true
     - get: interim-k8s-grafana-controller-docker-repo
       params: {skip_download: true}
-      passed: [create-docker-images]
+      passed: [create-k8s-docker-images]
     - get: interim-k8s-prometheus-controller-docker-repo
       params: {skip_download: true}
-      passed: [create-docker-images]
+      passed: [create-k8s-docker-images]
     - get: interim-k8s-indicator-lifecycle-controller-docker-repo
       params: {skip_download: true}
-      passed: [create-docker-images]
+      passed: [create-k8s-docker-images]
     - get: interim-k8s-indicator-admission-controller-docker-repo
       params: {skip_download: true}
-      passed: [create-docker-images]
+      passed: [create-k8s-docker-images]
     - get: interim-k8s-indicator-status-controller-docker-repo
       params: {skip_download: true}
-      passed: [create-docker-images]
+      passed: [create-k8s-docker-images]
   - task: deploy-to-gke
     config:
       platform: linux
