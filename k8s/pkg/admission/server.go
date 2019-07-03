@@ -373,7 +373,7 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 	}
 
 	i := domain.ToDomainIndicator(k8sIndicator.Spec)
-	errors := i.Validate(0)
+	errors := i.Validate(0, "apps.pivotal.io/v1alpha1")
 
 	auditAnnotationMessage := createReviewAnnotationMap(errors)
 

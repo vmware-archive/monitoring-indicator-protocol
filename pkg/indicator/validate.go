@@ -28,7 +28,7 @@ func (document *Document) Validate(supportedApiVersion ...string) []error {
 	}
 
 	for idx, i := range document.Indicators {
-		es = append(es, i.Validate(idx)...)
+		es = append(es, i.Validate(idx, document.APIVersion)...)
 	}
 
 	for sectionIdx, section := range document.Layout.Sections {
@@ -52,7 +52,7 @@ func (document *Document) Validate(supportedApiVersion ...string) []error {
 	return es
 }
 
-func (indicator *Indicator) Validate(idx int) []error {
+func (indicator *Indicator) Validate(idx int, apiVersion string) []error {
 	var es []error
 	if strings.TrimSpace(indicator.Name) == "" {
 		es = append(es, fmt.Errorf("indicators[%d] name is required", idx))
@@ -65,8 +65,10 @@ func (indicator *Indicator) Validate(idx int) []error {
 		es = append(es, fmt.Errorf("indicators[%d] promql is required", idx))
 	}
 	for tdx, threshold := range indicator.Thresholds {
-		if threshold.Operator == Undefined {
+		if threshold.Operator == Undefined && (apiVersion == "apps.pivotal.io/v1alpha1" || apiVersion == "v0") {
 			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float", idx, tdx))
+		} else if threshold.Operator == Undefined && apiVersion == "v1alpha1" {
+			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] operator [lt, lte, eq, neq, gte, gt] is required", idx, tdx))
 		}
 	}
 

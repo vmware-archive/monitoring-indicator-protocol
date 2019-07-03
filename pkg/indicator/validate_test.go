@@ -272,7 +272,32 @@ func TestMetadata(t *testing.T) {
 }
 
 func TestThreshold(t *testing.T) {
-	t.Run("validation returns errors if threshold value is missing", func(t *testing.T) {
+	t.Run("validation returns errors if threshold value is missing in v0 document", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := indicator.Document{
+			APIVersion: "v0",
+			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+			Indicators: []indicator.Indicator{{
+				Name:   "my_fair_indicator",
+				PromQL: "rate(speech)",
+				Thresholds: []indicator.Threshold{{
+					Level:    "warning",
+					Operator: indicator.Undefined,
+					Value:    0,
+				}},
+				Presentation: test_fixtures.DefaultPresentation(),
+			}},
+		}
+
+		es := document.Validate("v0")
+
+		g.Expect(es).To(ConsistOf(
+			errors.New("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"),
+		))
+	})
+
+	t.Run("validation returns errors if threshold operator is missing in v1alpha1 document", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
@@ -293,7 +318,7 @@ func TestThreshold(t *testing.T) {
 		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"),
+			errors.New("indicators[0].thresholds[0] operator [lt, lte, eq, neq, gte, gt] is required"),
 		))
 	})
 }

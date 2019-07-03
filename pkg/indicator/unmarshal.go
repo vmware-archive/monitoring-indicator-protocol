@@ -67,7 +67,7 @@ func DocumentFromYAML(reader io.ReadCloser) (Document, error) {
 	} else if apiVersion == "v1alpha1" {
 		err = yaml.Unmarshal(docBytes, &doc)
 	} else {
-		err = fmt.Errorf("invalid apiVersion")
+		err = fmt.Errorf("invalid apiVersion, supported versions are: v0, v1alpha1")
 	}
 	if err != nil {
 		return Document{}, err
