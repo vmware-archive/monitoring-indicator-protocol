@@ -25,7 +25,7 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
 		doc.Interpolate()
 	}
 
-	validationErrors := doc.Validate("v0")
+	validationErrors := doc.Validate("v0", "v1alpha1")
 	if len(validationErrors) > 0 {
 		var errorS strings.Builder
 		errorS.WriteString("validation for indicator document failed:\n")

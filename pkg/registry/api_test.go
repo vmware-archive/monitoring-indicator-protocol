@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
@@ -19,10 +20,11 @@ import (
 )
 
 func TestRegisterHandler(t *testing.T) {
-	t.Run("it returns 200 if the request is valid", func(t *testing.T) {
-		g := NewGomegaWithT(t)
+	g := NewGomegaWithT(t)
 
-		body := bytes.NewBuffer([]byte(`---
+	t.Run("valid requests return 200", func(t *testing.T) {
+		t.Run("for apiVersion v0", func(t *testing.T) {
+			body := bytes.NewBuffer([]byte(`---
 apiVersion: v0
 
 product: 
@@ -39,54 +41,117 @@ indicators:
   - level: warning
     gte: 50`))
 
-		req := httptest.NewRequest("POST", "/register", body)
-		resp := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/register", body)
+			resp := httptest.NewRecorder()
 
-		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
-		handle := registry.NewRegisterHandler(docStore)
-		handle(resp, req)
+			docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
+			handle := registry.NewRegisterHandler(docStore)
+			handle(resp, req)
 
-		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
-		g.Expect(resp.Code).To(Equal(http.StatusOK))
-		g.Expect(docStore.AllDocuments()).To(ConsistOf(indicator.Document{
-			APIVersion: "v0",
-			Product:    indicator.Product{Name: "redis-tile", Version: "0.11"},
-			Metadata: map[string]string{
-				"deployment": "redis-abc-123",
-			},
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{{
-					Title:      "Metrics",
-					Indicators: []string{"test_performance_indicator"},
-				}},
-			},
-			Indicators: []indicator.Indicator{{
-				Name:   "test_performance_indicator",
-				PromQL: "prom",
-				Alert: indicator.Alert{
-					For:  "1m",
-					Step: "1m",
+			g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
+
+			g.Expect(resp.Code).To(Equal(http.StatusOK))
+			g.Expect(docStore.AllDocuments()).To(ConsistOf(indicator.Document{
+				APIVersion: "v0",
+				Product:    indicator.Product{Name: "redis-tile", Version: "0.11"},
+				Metadata: map[string]string{
+					"deployment": "redis-abc-123",
 				},
-				Presentation: indicator.Presentation{
-					CurrentValue: false,
-					ChartType:    "step",
-					Frequency:    0,
-					Labels:       []string{},
+				Layout: indicator.Layout{
+					Sections: []indicator.Section{{
+						Title:      "Metrics",
+						Indicators: []string{"test_performance_indicator"},
+					}},
 				},
-				Thresholds: []indicator.Threshold{
-					{
-						Level:    "warning",
-						Operator: indicator.GreaterThanOrEqualTo,
-						Value:    50,
+				Indicators: []indicator.Indicator{{
+					Name:   "test_performance_indicator",
+					PromQL: "prom",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
 					},
+					Presentation: indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+					Thresholds: []indicator.Threshold{
+						{
+							Level:    "warning",
+							Operator: indicator.GreaterThanOrEqualTo,
+							Value:    50,
+						},
+					},
+				}},
+			}))
+		})
+		t.Run("for apiVersion v1alpha1", func(t *testing.T) {
+			body := bytes.NewBuffer([]byte(`---
+apiVersion: v1alpha1
+
+product: 
+  name: redis-tile
+  version: 0.11
+
+metadata:
+  deployment: redis-abc-123
+
+indicators:
+- name: test_performance_indicator
+  promql: prom
+  thresholds:
+  - level: warning
+    operator: gte
+    value: 50`))
+
+			req := httptest.NewRequest("POST", "/register", body)
+			resp := httptest.NewRecorder()
+
+			docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
+			handle := registry.NewRegisterHandler(docStore)
+			handle(resp, req)
+
+			g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
+			g.Expect(resp.Code).To(Equal(http.StatusOK))
+			g.Expect(docStore.AllDocuments()).To(ConsistOf(indicator.Document{
+				APIVersion: "v1alpha1",
+				Product:    indicator.Product{Name: "redis-tile", Version: "0.11"},
+				Metadata: map[string]string{
+					"deployment": "redis-abc-123",
 				},
-			}},
-		}))
+				Layout: indicator.Layout{
+					Sections: []indicator.Section{{
+						Title:      "Metrics",
+						Indicators: []string{"test_performance_indicator"},
+					}},
+				},
+				Indicators: []indicator.Indicator{{
+					Name:   "test_performance_indicator",
+					PromQL: "prom",
+					Alert: indicator.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
+					Presentation: indicator.Presentation{
+						CurrentValue: false,
+						ChartType:    "step",
+						Frequency:    0,
+						Labels:       []string{},
+					},
+					Thresholds: []indicator.Threshold{
+						{
+							Level:    "warning",
+							Operator: indicator.GreaterThanOrEqualTo,
+							Value:    50,
+						},
+					},
+				}},
+			}))
+		})
 	})
 
 	t.Run("it returns 400 if there are validation errors", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
 		body := bytes.NewBuffer([]byte(`---
 apiVersion: v0
 indicators:
@@ -112,10 +177,9 @@ indicators:
 	})
 
 	t.Run("it returns 400 if the yml is invalid", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
 		body := bytes.NewBuffer([]byte(`---
-indicators: aasdfasdf`))
+apiVersion: {
+}`))
 
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc&product=redis-tile", body)
 		resp := httptest.NewRecorder()
@@ -131,7 +195,7 @@ indicators: aasdfasdf`))
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["could not unmarshal indicators: yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str ` + "`aasdfasdf`" + ` into []indicator.Indicator"] }`))
+		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["could not unmarshal apiVersion"] }`))
 	})
 }
 

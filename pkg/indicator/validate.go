@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
-func (document *Document) Validate(apiVersion string) []error {
+func (document *Document) Validate(supportedApiVersion ...string) []error {
 	es := make([]error, 0)
 	if document.APIVersion == "" {
 		es = append(es, fmt.Errorf("apiVersion is required"))
@@ -39,8 +39,14 @@ func (document *Document) Validate(apiVersion string) []error {
 		}
 	}
 
-	if document.APIVersion != apiVersion {
-		es = append(es, fmt.Errorf("only apiVersion %s is supported", apiVersion))
+	apiVersionValid := false
+	for _, version := range supportedApiVersion {
+		if document.APIVersion == version {
+			apiVersionValid = true
+		}
+	}
+	if !apiVersionValid {
+		es = append(es, fmt.Errorf("invalid apiVersion, supported versions are: %v", supportedApiVersion))
 	}
 
 	return es

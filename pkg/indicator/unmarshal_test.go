@@ -13,10 +13,29 @@ import (
 )
 
 func TestDocumentFromYAML(t *testing.T) {
-	t.Run("parses all document fields", func(t *testing.T) {
+	t.Run("returns empty list of indicators", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-
 		reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+indicators: []`))
+		d, err := indicator.DocumentFromYAML(reader)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(d.Indicators).To(HaveLen(0))
+	})
+
+	t.Run("returns error if YAML is bad", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		t.Run("bad document", func(t *testing.T) {
+			reader := ioutil.NopCloser(strings.NewReader(`--`))
+			_, err := indicator.DocumentFromYAML(reader)
+			g.Expect(err).To(HaveOccurred())
+		})
+	})
+
+	t.Run("apiVersion v0", func(t *testing.T) {
+		t.Run("parses all document fields", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product: 
   name: well-performing-component
@@ -58,83 +77,61 @@ layout:
     indicators:
     - test_performance_indicator
 `))
-		doc, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		indie := indicator.Indicator{
-			Name:   "test_performance_indicator",
-			PromQL: `prom{deployment="$deployment"}`,
-			Thresholds: []indicator.Threshold{{
-				Level:    "warning",
-				Operator: indicator.LessThanOrEqualTo,
-				Value:    500,
-			}},
-			Alert: indicator.Alert{
-				For:  "1m",
-				Step: "1m",
-			},
-			ServiceLevel: &indicator.ServiceLevel{
-				Objective: float64(99),
-			},
-			Presentation: indicator.Presentation{
-				CurrentValue: false,
-				ChartType:    indicator.StepChart,
-				Frequency:    5,
-				Labels:       []string{"job", "ip"},
-				Units:        "nanoseconds",
-			},
-			Documentation: map[string]string{
-				"title":               "Test Performance Indicator",
-				"description":         "This is a valid markdown description.",
-				"recommendedResponse": "Panic!",
-				"thresholdNote":       "Threshold Note Text",
-			},
-		}
-		g.Expect(doc).To(BeEquivalentTo(indicator.Document{
-			APIVersion: "v0",
-			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
-			Metadata:   map[string]string{"deployment": "well-performing-deployment"},
-			Indicators: []indicator.Indicator{
-				indie,
-			},
-			Layout: indicator.Layout{
-				Title:       "Monitoring Test Product",
-				Description: "Test description",
-				Sections: []indicator.Section{{
-					Title:       "Test Section",
-					Description: "This section includes indicators and metrics",
-					Indicators:  []string{indie.Name},
-				}},
-			},
-		}))
-	})
-
-	t.Run("returns empty list of indicators", func(t *testing.T) {
-		t.Run("bad document", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-
-			reader := ioutil.NopCloser(strings.NewReader(`---
-indicators: []`))
-			d, err := indicator.DocumentFromYAML(reader)
+			doc, err := indicator.DocumentFromYAML(reader)
 			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(d.Indicators).To(HaveLen(0))
+
+			indie := indicator.Indicator{
+				Name:   "test_performance_indicator",
+				PromQL: `prom{deployment="$deployment"}`,
+				Thresholds: []indicator.Threshold{{
+					Level:    "warning",
+					Operator: indicator.LessThanOrEqualTo,
+					Value:    500,
+				}},
+				Alert: indicator.Alert{
+					For:  "1m",
+					Step: "1m",
+				},
+				ServiceLevel: &indicator.ServiceLevel{
+					Objective: float64(99),
+				},
+				Presentation: indicator.Presentation{
+					CurrentValue: false,
+					ChartType:    indicator.StepChart,
+					Frequency:    5,
+					Labels:       []string{"job", "ip"},
+					Units:        "nanoseconds",
+				},
+				Documentation: map[string]string{
+					"title":               "Test Performance Indicator",
+					"description":         "This is a valid markdown description.",
+					"recommendedResponse": "Panic!",
+					"thresholdNote":       "Threshold Note Text",
+				},
+			}
+			g.Expect(doc).To(BeEquivalentTo(indicator.Document{
+				APIVersion: "v0",
+				Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+				Metadata:   map[string]string{"deployment": "well-performing-deployment"},
+				Indicators: []indicator.Indicator{
+					indie,
+				},
+				Layout: indicator.Layout{
+					Title:       "Monitoring Test Product",
+					Description: "Test description",
+					Sections: []indicator.Section{{
+						Title:       "Test Section",
+						Description: "This section includes indicators and metrics",
+						Indicators:  []string{indie.Name},
+					}},
+				},
+			}))
 		})
-	})
 
-	t.Run("returns error if YAML is bad", func(t *testing.T) {
-		t.Run("bad document", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-
-			reader := ioutil.NopCloser(strings.NewReader(`--`))
-			_, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).To(HaveOccurred())
-		})
-	})
-
-	t.Run("populates defaults", func(t *testing.T) {
-		t.Run("populates default alert config when no alert given", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			reader := ioutil.NopCloser(strings.NewReader(`---
+		t.Run("populates defaults", func(t *testing.T) {
+			t.Run("populates default alert config when no alert given", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
   name: well-performing-component
@@ -146,19 +143,18 @@ indicators:
 - name: test_indicator
   promql: promql_query
 `))
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].Alert).To(Equal(indicator.Alert{
-				For:  "1m",
-				Step: "1m",
-			}))
-		})
+				g.Expect(d.Indicators[0].Alert).To(Equal(indicator.Alert{
+					For:  "1m",
+					Step: "1m",
+				}))
+			})
 
-		t.Run("populates default alert 'for' k/v when no alert for given", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("populates default alert 'for' k/v when no alert for given", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
   name: well-performing-component
@@ -173,19 +169,19 @@ indicators:
     step: 5m
 `))
 
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].Alert).To(Equal(
-				indicator.Alert{
-					For:  "1m",
-					Step: "5m",
-				}))
-		})
+				g.Expect(d.Indicators[0].Alert).To(Equal(
+					indicator.Alert{
+						For:  "1m",
+						Step: "5m",
+					}))
+			})
 
-		t.Run("populates default alert 'step' k/v when no alert step given", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("populates default alert 'step' k/v when no alert step given", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
   name: well-performing-component
@@ -199,18 +195,18 @@ indicators:
   alert:
     for: 5m
 `))
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].Alert).To(Equal(indicator.Alert{
-				For:  "5m",
-				Step: "1m",
-			}))
-		})
+				g.Expect(d.Indicators[0].Alert).To(Equal(indicator.Alert{
+					For:  "5m",
+					Step: "1m",
+				}))
+			})
 
-		t.Run("sets a default layout when not provided", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("sets a default layout when not provided", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
   name: well-performing-component
@@ -224,23 +220,23 @@ indicators:
 - name: test_performance_indicator_2
   promql: promql_query
 `))
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Layout).To(Equal(indicator.Layout{
-				Sections: []indicator.Section{{
-					Title: "Metrics",
-					Indicators: []string{
-						"test_performance_indicator_1",
-						"test_performance_indicator_2",
-					},
-				}},
-			}))
-		})
+				g.Expect(d.Layout).To(Equal(indicator.Layout{
+					Sections: []indicator.Section{{
+						Title: "Metrics",
+						Indicators: []string{
+							"test_performance_indicator_1",
+							"test_performance_indicator_2",
+						},
+					}},
+				}))
+			})
 
-		t.Run("it uses defaults in the case of empty presentation data", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("it uses defaults in the case of empty presentation data", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
   name: test_product
@@ -263,26 +259,26 @@ layout:
     - test_performance_indicator
 
 `))
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].Presentation).To(BeEquivalentTo(indicator.Presentation{
-				ChartType:    "step",
-				CurrentValue: false,
-				Frequency:    0,
-				Labels:       []string{},
-			}))
-			g.Expect(d.Indicators[1].Presentation).To(BeEquivalentTo(indicator.Presentation{
-				ChartType:    "step",
-				CurrentValue: true,
-				Frequency:    0,
-				Labels:       []string{},
-			}))
-		})
+				g.Expect(d.Indicators[0].Presentation).To(BeEquivalentTo(indicator.Presentation{
+					ChartType:    "step",
+					CurrentValue: false,
+					Frequency:    0,
+					Labels:       []string{},
+				}))
+				g.Expect(d.Indicators[1].Presentation).To(BeEquivalentTo(indicator.Presentation{
+					ChartType:    "step",
+					CurrentValue: true,
+					Frequency:    0,
+					Labels:       []string{},
+				}))
+			})
 
-		t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
   name: test_product
@@ -291,18 +287,21 @@ indicators:
 - name: test_performance_indicator
   promql: prom{deployment="$deployment"}
 `))
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].ServiceLevel).To(BeNil())
+				g.Expect(d.Indicators[0].ServiceLevel).To(BeNil())
+			})
 		})
-	})
 
-	t.Run("handles thresholds", func(t *testing.T) {
-		t.Run("it handles all the operators", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-
-			reader := ioutil.NopCloser(strings.NewReader(`---
+		t.Run("handles thresholds", func(t *testing.T) {
+			t.Run("it handles all the operators", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
 indicators:
 - name: test-kpi
   promql: prom
@@ -320,48 +319,51 @@ indicators:
   - gt: 1.222225
     level: warning`))
 
-			d, err := indicator.DocumentFromYAML(reader)
+				d, err := indicator.DocumentFromYAML(reader)
 
-			g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].Thresholds).To(Equal([]indicator.Threshold{
-				{
-					Level:    "warning",
-					Operator: indicator.LessThan,
-					Value:    0,
-				},
-				{
-					Level:    "warning",
-					Operator: indicator.LessThanOrEqualTo,
-					Value:    1.2,
-				},
-				{
-					Level:    "warning",
-					Operator: indicator.EqualTo,
-					Value:    0.2,
-				},
-				{
-					Level:    "warning",
-					Operator: indicator.NotEqualTo,
-					Value:    123,
-				},
-				{
-					Level:    "warning",
-					Operator: indicator.GreaterThanOrEqualTo,
-					Value:    642,
-				},
-				{
-					Level:    "warning",
-					Operator: indicator.GreaterThan,
-					Value:    1.222225,
-				},
-			}))
-		})
+				g.Expect(d.Indicators[0].Thresholds).To(Equal([]indicator.Threshold{
+					{
+						Level:    "warning",
+						Operator: indicator.LessThan,
+						Value:    0,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.LessThanOrEqualTo,
+						Value:    1.2,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.EqualTo,
+						Value:    0.2,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.NotEqualTo,
+						Value:    123,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.GreaterThanOrEqualTo,
+						Value:    642,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.GreaterThan,
+						Value:    1.222225,
+					},
+				}))
+			})
 
-		t.Run("it returns undefined operator if there is no value", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("it returns undefined operator if there is no value", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
 indicators:
 - name: test-kpi
   description: desc
@@ -370,16 +372,19 @@ indicators:
   - level: warning
   `))
 
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(d.Indicators[0].Thresholds[0].Operator).To(Equal(indicator.Undefined))
-			g.Expect(d.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
-		})
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(d.Indicators[0].Thresholds[0].Operator).To(Equal(indicator.Undefined))
+				g.Expect(d.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
+			})
 
-		t.Run("it returns an error if value is not a number", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("it returns an error if value is not a number", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
 indicators:
 - name: test-kpi
   description: desc
@@ -389,18 +394,22 @@ indicators:
     level: warning
   `))
 
-			_, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).To(HaveOccurred())
-		})
+				_, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).To(HaveOccurred())
+			})
 
-		t.Run("it returns an error if multiple operators are provided", func(t *testing.T) {
-			// TODO: this test changes the behavior of the yaml parsing validation
-			//       it replaces "it picks one operator when multiple are provided"
-			t.Skip("not implemented")
+			t.Run("it returns an error if multiple operators are provided", func(t *testing.T) {
+				// TODO: this test changes the behavior of the yaml parsing validation
+				//       it replaces "it picks one operator when multiple are provided"
+				t.Skip("not implemented")
 
-			g := NewGomegaWithT(t)
+				g := NewGomegaWithT(t)
 
-			reader := ioutil.NopCloser(strings.NewReader(`---
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
 indicators:
 - name: test-kpi
   description: desc
@@ -411,14 +420,17 @@ indicators:
     level: warning
   `))
 
-			_, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).To(HaveOccurred())
-		})
+				_, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).To(HaveOccurred())
+			})
 
-		t.Run("it picks one operator when multiple are provided", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("it picks one operator when multiple are provided", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
 indicators:
 - name: test-kpi
   description: desc
@@ -429,20 +441,20 @@ indicators:
     level: warning
   `))
 
-			doc, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
-			g.Expect(doc.Indicators[0].Thresholds[0]).To(BeEquivalentTo(indicator.Threshold{
-				Level:    "warning",
-				Operator: indicator.LessThan,
-				Value:    20,
-			}))
+				doc, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(doc.Indicators[0].Thresholds[0]).To(BeEquivalentTo(indicator.Threshold{
+					Level:    "warning",
+					Operator: indicator.LessThan,
+					Value:    20,
+				}))
+			})
 		})
-	})
 
-	t.Run("handles presentation chart types", func(t *testing.T) {
-		t.Run("can set a step chartType", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			reader := ioutil.NopCloser(strings.NewReader(`---
+		t.Run("handles presentation chart types", func(t *testing.T) {
+			t.Run("can set a step chartType", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
  name: test_product
@@ -454,15 +466,15 @@ indicators:
   presentation:
     chartType: step
 `))
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.StepChart))
-		})
+				g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.StepChart))
+			})
 
-		t.Run("can set a bar chartType", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("can set a bar chartType", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
  name: test_product
@@ -474,15 +486,15 @@ indicators:
   presentation:
     chartType: bar
 `))
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.BarChart))
-		})
+				g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.BarChart))
+			})
 
-		t.Run("can set a status chartType", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("can set a status chartType", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
  name: test_product
@@ -494,15 +506,15 @@ indicators:
   presentation:
     chartType: status
 `))
-			d, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.StatusChart))
-		})
+				g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.StatusChart))
+			})
 
-		t.Run("can set a quota chartType", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			reader := ioutil.NopCloser(strings.NewReader(`---
+			t.Run("can set a quota chartType", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
 product:
  name: test_product
@@ -515,10 +527,498 @@ indicators:
   presentation:
     chartType: quota
 `))
-			d, err := indicator.DocumentFromYAML(reader)
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.QuotaChart))
+			})
+		})
+	})
+
+	t.Run("apiVersion v1alpha1", func(t *testing.T) {
+		t.Run("parses all document fields", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product: 
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: well-performing-deployment
+
+indicators:
+- name: test_performance_indicator
+  documentation:
+    title: Test Performance Indicator
+    description: This is a valid markdown description.
+    recommendedResponse: Panic!
+    thresholdNote: Threshold Note Text
+  thresholds:
+  - level: warning
+    operator: lte
+    value: 500
+  promql: prom{deployment="$deployment"}
+  alert:
+    for: 1m
+    step: 1m
+  presentation:
+    currentValue: false
+    chartType: step
+    frequency: 5
+    labels:
+    - job
+    - ip
+    units: nanoseconds
+  serviceLevel:
+    objective: 99
+
+layout:
+  title: Monitoring Test Product
+  description: Test description
+  sections:
+  - title: Test Section
+    description: This section includes indicators and metrics
+    indicators:
+    - test_performance_indicator
+`))
+			doc, err := indicator.DocumentFromYAML(reader)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.QuotaChart))
+			indie := indicator.Indicator{
+				Name:   "test_performance_indicator",
+				PromQL: `prom{deployment="$deployment"}`,
+				Thresholds: []indicator.Threshold{{
+					Level:    "warning",
+					Operator: indicator.LessThanOrEqualTo,
+					Value:    500,
+				}},
+				Alert: indicator.Alert{
+					For:  "1m",
+					Step: "1m",
+				},
+				ServiceLevel: &indicator.ServiceLevel{
+					Objective: float64(99),
+				},
+				Presentation: indicator.Presentation{
+					CurrentValue: false,
+					ChartType:    indicator.StepChart,
+					Frequency:    5,
+					Labels:       []string{"job", "ip"},
+					Units:        "nanoseconds",
+				},
+				Documentation: map[string]string{
+					"title":               "Test Performance Indicator",
+					"description":         "This is a valid markdown description.",
+					"recommendedResponse": "Panic!",
+					"thresholdNote":       "Threshold Note Text",
+				},
+			}
+			g.Expect(doc).To(BeEquivalentTo(indicator.Document{
+				APIVersion: "v1alpha1",
+				Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
+				Metadata:   map[string]string{"deployment": "well-performing-deployment"},
+				Indicators: []indicator.Indicator{
+					indie,
+				},
+				Layout: indicator.Layout{
+					Title:       "Monitoring Test Product",
+					Description: "Test description",
+					Sections: []indicator.Section{{
+						Title:       "Test Section",
+						Description: "This section includes indicators and metrics",
+						Indicators:  []string{indie.Name},
+					}},
+				},
+			}))
+		})
+
+		t.Run("populates defaults", func(t *testing.T) {
+			t.Run("populates default alert config when no alert given", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_indicator
+  promql: promql_query
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Alert).To(Equal(indicator.Alert{
+					For:  "1m",
+					Step: "1m",
+				}))
+			})
+
+			t.Run("populates default alert 'for' k/v when no alert for given", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_indicator
+  promql: promql_query
+  alert:
+    step: 5m
+`))
+
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Alert).To(Equal(
+					indicator.Alert{
+						For:  "1m",
+						Step: "5m",
+					}))
+			})
+
+			t.Run("populates default alert 'step' k/v when no alert step given", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_indicator
+  promql: promql_query
+  alert:
+    for: 5m
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Alert).To(Equal(indicator.Alert{
+					For:  "5m",
+					Step: "1m",
+				}))
+			})
+
+			t.Run("sets a default layout when not provided", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_performance_indicator_1
+  promql: promql_query
+- name: test_performance_indicator_2
+  promql: promql_query
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Layout).To(Equal(indicator.Layout{
+					Sections: []indicator.Section{{
+						Title: "Metrics",
+						Indicators: []string{
+							"test_performance_indicator_1",
+							"test_performance_indicator_2",
+						},
+					}},
+				}))
+			})
+
+			t.Run("it uses defaults in the case of empty presentation data", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: test_product
+  version: 0.0.1
+metadata:
+  deployment: test_deployment
+
+indicators:
+- name: test_performance_indicator_1
+  promql: prom{deployment="$deployment"}
+- name: test_performance_indicator_2
+  promql: prom{deployment="$deployment"}
+  presentation:
+    currentValue: true
+
+layout:
+  sections:
+  - title: Metrics
+    indicators:
+    - test_performance_indicator
+
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Presentation).To(BeEquivalentTo(indicator.Presentation{
+					ChartType:    "step",
+					CurrentValue: false,
+					Frequency:    0,
+					Labels:       []string{},
+				}))
+				g.Expect(d.Indicators[1].Presentation).To(BeEquivalentTo(indicator.Presentation{
+					ChartType:    "step",
+					CurrentValue: true,
+					Frequency:    0,
+					Labels:       []string{},
+				}))
+			})
+
+			t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: test_product
+  version: 0.0.1
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="$deployment"}
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].ServiceLevel).To(BeNil())
+			})
+		})
+
+		t.Run("handles thresholds", func(t *testing.T) {
+			t.Run("it handles all the operators", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: well-performing-component
+  version: 0.0.1
+indicators:
+- name: test-kpi
+  promql: prom
+  thresholds:
+  - operator: lt
+    value: 0
+    level: warning
+  - operator: lte
+    value: 1.2
+    level: warning
+  - operator: eq
+    value: 0.2
+    level: warning
+  - operator: neq
+    value: 123
+    level: warning
+  - operator: gte
+    value: 642
+    level: warning
+  - operator: gt
+    value: 1.222225
+    level: warning`))
+
+				d, err := indicator.DocumentFromYAML(reader)
+
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Thresholds).To(Equal([]indicator.Threshold{
+					{
+						Level:    "warning",
+						Operator: indicator.LessThan,
+						Value:    0,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.LessThanOrEqualTo,
+						Value:    1.2,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.EqualTo,
+						Value:    0.2,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.NotEqualTo,
+						Value:    123,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.GreaterThanOrEqualTo,
+						Value:    642,
+					},
+					{
+						Level:    "warning",
+						Operator: indicator.GreaterThan,
+						Value:    1.222225,
+					},
+				}))
+			})
+
+			t.Run("it handles unknown operator", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: well-performing-component
+  version: 0.0.1
+indicators:
+- name: test-kpi
+  description: desc
+  promql: prom
+  thresholds:
+  - level: warning
+    value: 500
+    operator: foo
+  `))
+
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(d.Indicators[0].Thresholds[0].Operator).To(Equal(indicator.Undefined))
+				g.Expect(d.Indicators[0].Thresholds[0].Value).To(Equal(float64(500)))
+			})
+
+			t.Run("it handles missing operator", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: well-performing-component
+  version: 0.0.1
+indicators:
+- name: test-kpi
+  description: desc
+  promql: prom
+  thresholds:
+  - level: warning
+  `))
+
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(d.Indicators[0].Thresholds[0].Operator).To(Equal(indicator.Undefined))
+				g.Expect(d.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
+			})
+
+			t.Run("it returns an error if value is not a number", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+  name: well-performing-component
+  version: 0.0.1
+indicators:
+- name: test-kpi
+  description: desc
+  promql: prom
+  thresholds:
+  - value: abs
+    operator: gt
+    level: warning
+  `))
+
+				_, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).To(HaveOccurred())
+			})
+		})
+
+		t.Run("handles presentation chart types", func(t *testing.T) {
+			t.Run("can set a step chartType", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+ name: test_product
+ version: 0.0.1
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="test"}
+  presentation:
+    chartType: step
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.StepChart))
+			})
+
+			t.Run("can set a bar chartType", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+ name: test_product
+ version: 0.0.1
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="test"}
+  presentation:
+    chartType: bar
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.BarChart))
+			})
+
+			t.Run("can set a status chartType", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+ name: test_product
+ version: 0.0.1
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="test"}
+  presentation:
+    chartType: status
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.StatusChart))
+			})
+
+			t.Run("can set a quota chartType", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v1alpha1
+product:
+ name: test_product
+ version: 0.0.1
+metadata:
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="test"}
+  presentation:
+    chartType: quota
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+
+				g.Expect(d.Indicators[0].Presentation.ChartType).To(Equal(indicator.QuotaChart))
+			})
 		})
 	})
 }
@@ -539,15 +1039,17 @@ operations:
   path: /indicators/0/thresholds?/-
   value:
     level: warning
-    gt: 100
+    operator: gt
+    value: 100
 `))
 		p, err := indicator.PatchFromYAML(reader)
 		g.Expect(err).ToNot(HaveOccurred())
 
 		var patchedThreshold interface{}
 		patchedThreshold = map[interface{}]interface{}{
-			"level": "warning",
-			"gt":    100,
+			"level":    "warning",
+			"operator": "gt",
+			"value":    100,
 		}
 		expectedPatch := indicator.Patch{
 			APIVersion: "v0/patch",
@@ -632,7 +1134,7 @@ metadata:
 }
 
 func TestProcessesDocument(t *testing.T) {
-	t.Run("does not mess up thresholds", func(t *testing.T) {
+	t.Run("does not mess up thresholds in apiVersion v0", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		doc := []byte(`---
 apiVersion: v0
@@ -659,4 +1161,34 @@ indicators:
 			Value:    100,
 		}))
 	})
+
+	t.Run("does not mess up thresholds in apiVersion v1alpha1", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		doc := []byte(`---
+apiVersion: v1alpha1
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+  thresholds:
+  - level: critical
+    operator: neq
+    value: 100
+`)
+		resultDoc, err := indicator.ProcessDocument([]indicator.Patch{}, doc)
+		g.Expect(err).To(HaveLen(0))
+		g.Expect(resultDoc.Indicators[0].Thresholds[0]).To(BeEquivalentTo(indicator.Threshold{
+			Level:    "critical",
+			Operator: indicator.NotEqualTo,
+			Value:    100,
+		}))
+	})
+
 }

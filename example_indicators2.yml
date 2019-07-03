@@ -1,5 +1,5 @@
 ---
-apiVersion: v0
+apiVersion: v1alpha1
 
 product:
   name: my-other-component
@@ -16,9 +16,11 @@ indicators:
   promql: avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])
   thresholds:
   - level: warning
-    gte: 50
+    operator: gte
+    value: 50
   - level: critical
-    gt: 100
+    operator: gt
+    value: 100
   serviceLevel:
     objective: 99.9
   alert:

@@ -114,7 +114,7 @@ func TestPatching(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		matchingDocument := []byte(`---
-apiVersion: test-apiversion/document
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -154,11 +154,69 @@ indicators:
 		g.Expect(d.Indicators[0].PromQL).To(BeEquivalentTo("patched_promql"))
 	})
 
+	t.Run("patches v0 thresholds", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		var patchedThreshold interface{} = map[interface{}]interface{}{
+			"level":    "warning",
+			"gt":    1000,
+		}
+
+		indicatorPatch := []indicator.Patch{{
+			APIVersion: "test-apiversion/patch",
+			Match: indicator.Match{
+				Metadata: map[string]string{
+					"deployment": "test-deployment",
+				},
+			},
+			Operations: []patch.OpDefinition{
+				{
+					Type:  "replace",
+					Path:  test_fixtures.StrPtr("/indicators/1/thresholds/1"),
+					Value: &patchedThreshold,
+				},
+			},
+		}}
+		doc := []byte(`---
+apiVersion: v0
+
+product:
+  name: testing
+  version: 123
+
+metadata:
+  deployment: test-deployment
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+- name: test_indicator_2
+  promql: test_expr
+  thresholds: 
+  - level: critical
+    gt: 1500
+  - level: warning
+    gt: 500
+`)
+
+		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
+		d, err := indicator.DocumentFromYAML(reader)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(d.Indicators[1].Thresholds[1]).To(BeEquivalentTo(indicator.Threshold{
+			Level:    "warning",
+			Operator: indicator.GreaterThan,
+			Value:    1000,
+		}))	})
+
 	t.Run("does not patch files that do not match", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		nonMatchingDocument := []byte(`---
-apiVersion: test-apiversion/document
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -202,8 +260,9 @@ indicators:
 		g := NewGomegaWithT(t)
 
 		var patchedThreshold interface{} = map[interface{}]interface{}{
-			"level": "warning",
-			"gt":    1000,
+			"level":    "warning",
+			"operator": "gt",
+			"value":    1000,
 		}
 
 		indicatorPatch := []indicator.Patch{{
@@ -222,7 +281,7 @@ indicators:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: test-apiversion/document
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -238,9 +297,11 @@ indicators:
   promql: test_expr
   thresholds: 
   - level: critical
-    gt: 1500
+    operator: gt
+    value: 1500
   - level: warning
-    gt: 500
+    operator: gt
+    value: 500
 `)
 
 		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
@@ -261,8 +322,9 @@ indicators:
 		g := NewGomegaWithT(t)
 
 		var patchedThreshold interface{} = map[interface{}]interface{}{
-			"level": "warning",
-			"gt":    800,
+			"level":    "warning",
+			"operator": "gt",
+			"value":    800,
 		}
 
 		indicatorPatch := []indicator.Patch{{
@@ -281,7 +343,7 @@ indicators:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: test-apiversion/document
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -295,9 +357,11 @@ indicators:
   promql: test_expr
   thresholds:
   - level: warning
-    gt: 500    
+    operator: gt
+    value: 500    
   - level: critical
-    gt: 1000
+    operator: gt
+    value: 1000
 `)
 
 		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
@@ -333,7 +397,7 @@ indicators:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: test-apiversion/document
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -347,9 +411,11 @@ indicators:
   promql: test_expr
   thresholds:
   - level: warning
-    gt: 500
+    operator: gt
+    value: 500
   - level: critical
-    gt: 1000
+    operator: gt
+    value: 1000
 `)
 
 		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
@@ -367,7 +433,7 @@ indicators:
 
 		var testVal interface{} = "not_test_indicator"
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -387,7 +453,7 @@ indicators:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: v0
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -401,7 +467,8 @@ indicators:
   promql: test_expr
   thresholds:
   - level: warning
-    gt: 500
+    operator: gt
+    value: 500
 `)
 
 		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
@@ -418,8 +485,9 @@ indicators:
 		g := NewGomegaWithT(t)
 
 		var newThresholds interface{} = map[interface{}]interface{}{
-			"level": "warning",
-			"gt":    10,
+			"level":    "warning",
+			"operator": "gt",
+			"value":    10,
 		}
 
 		indicatorPatch := []indicator.Patch{{
@@ -438,7 +506,7 @@ indicators:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: test-apiversion/document
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -466,7 +534,7 @@ indicators:
 		g := NewGomegaWithT(t)
 
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -481,7 +549,7 @@ indicators:
 		}}
 
 		doc := []byte(`---
-apiVersion: v0
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -509,7 +577,7 @@ indicators:
 
 		var val interface{} = "patched_threshold"
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -525,7 +593,7 @@ indicators:
 		}}
 
 		doc := []byte(`---
-apiVersion: v0
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -552,12 +620,14 @@ indicators:
 		g := NewGomegaWithT(t)
 
 		var patchedWarningThreshold interface{} = map[interface{}]interface{}{
-			"level": "warning",
-			"gt":    800,
+			"level":    "warning",
+			"operator": "gt",
+			"value":    800,
 		}
 		var patchedCriticalThreshold interface{} = map[interface{}]interface{}{
-			"level": "critical",
-			"gt":    5000,
+			"level":    "critical",
+			"operator": "gt",
+			"value":    5000,
 		}
 		var patchedPromql interface{} = "foo"
 
@@ -587,7 +657,7 @@ indicators:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: test-apiversion/document
+apiVersion: v1alpha1
 
 product:
   name: testing
@@ -601,9 +671,11 @@ indicators:
   promql: test_expr
   thresholds:
   - level: warning
-    gt: 500    
+    operator: gt
+    value: 500    
   - level: critical
-    gt: 1000
+    operator: gt
+    value: 1000
 `)
 
 		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)

@@ -220,7 +220,7 @@ jobs:
 
             cat << EOF > indicators.yml
           ---
-          apiVersion: v0
+          apiVersion: v1alpha1
           product:
             name: uaa-test
             version: 0

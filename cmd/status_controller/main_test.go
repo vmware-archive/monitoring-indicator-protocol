@@ -17,7 +17,7 @@ import (
 
 const documentsResponseBody string = `[
   {
-	"apiVersion": "v0",
+	"apiVersion": "v1alpha1",
 	"uid": "my-other-component-c2dd9",
 	"product": {
 	  "name": "my-other-component",

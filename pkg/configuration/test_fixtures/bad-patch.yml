@@ -11,4 +11,5 @@ operations:
     path: /indicators/0/thresholds
     value:
       - level: critical
-          gt: 0
+          operator: gt
+          value: 0

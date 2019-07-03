@@ -16,7 +16,7 @@ func TestValidDocument(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "valid", Version: "0.1.1"},
 			Metadata:   map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
 			Indicators: []indicator.Indicator{{
@@ -61,7 +61,7 @@ func TestValidDocument(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(BeEmpty())
 	})
@@ -72,11 +72,11 @@ func TestProduct(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "", Version: "0.0.1"},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("product name is required"),
@@ -89,11 +89,11 @@ func TestVersion(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "product", Version: ""},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("product version is required"),
@@ -109,15 +109,15 @@ func TestAPIVersion(t *testing.T) {
 			Product: indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("apiVersion is required"),
-			errors.New("only apiVersion v0 is supported"),
+			errors.New("invalid apiVersion, supported versions are: [v1alpha1]"),
 		))
 	})
 
-	t.Run("validation returns errors if APIVersion is not v0", func(t *testing.T) {
+	t.Run("validation returns errors if APIVersion is not supported", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
@@ -125,10 +125,10 @@ func TestAPIVersion(t *testing.T) {
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v0", "v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("only apiVersion v0 is supported"),
+			errors.New("invalid apiVersion, supported versions are: [v0 v1alpha1]"),
 		))
 	})
 }
@@ -139,7 +139,7 @@ func TestIndicator(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{
 				{
@@ -150,7 +150,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name is required"),
@@ -163,7 +163,7 @@ func TestIndicator(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{
 				{
@@ -174,7 +174,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
@@ -186,7 +186,7 @@ func TestIndicator(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{
 				{
@@ -197,7 +197,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
@@ -210,7 +210,7 @@ func TestLayout(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "valid", Version: "0.1.1"},
 			Metadata:   map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
 			Indicators: []indicator.Indicator{{
@@ -229,7 +229,7 @@ func TestLayout(t *testing.T) {
 				}},
 			},
 		}
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("layout sections[0] indicators[1] references a non-existent indicator: cats"),
@@ -242,12 +242,12 @@ func TestMetadata(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Metadata:   map[string]string{"step": "my-step"},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
@@ -258,12 +258,12 @@ func TestMetadata(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Metadata:   map[string]string{"StEp": "my-step"},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
@@ -276,7 +276,7 @@ func TestThreshold(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{{
 				Name:   "my_fair_indicator",
@@ -290,7 +290,7 @@ func TestThreshold(t *testing.T) {
 			}},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"),
@@ -303,7 +303,7 @@ func TestChartType(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product:    indicator.Product{Name: "well-performing-component", Version: "0.0.1"},
 			Indicators: []indicator.Indicator{{
 				Name:   "my_fair_indicator",
@@ -314,7 +314,7 @@ func TestChartType(t *testing.T) {
 			}},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] invalid chartType provided: 'fakey-fake' - valid chart types are [step bar status quota]"),

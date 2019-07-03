@@ -10,12 +10,13 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
+	"gopkg.in/src-d/go-billy.v4/memfs"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
-	"gopkg.in/src-d/go-billy.v4/memfs"
 )
 
 func TestController(t *testing.T) {
@@ -26,7 +27,7 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1),
+			Documents: createTestDocuments(1, "v1alpha1"),
 		}
 
 		mockReloader := &mockReloader{}
@@ -57,7 +58,7 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(3),
+			Documents: createTestDocuments(3, "v1alpha1"),
 		}
 
 		fs := memfs.New()
@@ -84,7 +85,39 @@ func TestController(t *testing.T) {
 		fileNames, err := go_test.GetFileNames(fs, directory)
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(fileNames).To(ConsistOf("test_product_0.yml", "test_product_1.yml", "test_product_2.yml"))
+	})
 
+	t.Run("saves v0 documents", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		registryClient := &mockRegistryClient{
+			Documents: createTestDocuments(1, "v0"),
+		}
+
+		fs := memfs.New()
+		directory := "/test"
+		err := fs.MkdirAll(directory, 0644)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		mockReloader := &mockReloader{}
+
+		c := exporter.ControllerConfig{
+			RegistryAPIClient: registryClient,
+			Filesystem:        fs,
+			OutputDirectory:   directory,
+			UpdateFrequency:   0,
+			DocType:           "",
+			Converter:         stubConverter,
+			Reloader:          mockReloader.Reload,
+		}
+
+		controller := exporter.NewController(c)
+		err = controller.Update()
+		g.Expect(err).ToNot(HaveOccurred())
+
+		fileNames, err := go_test.GetFileNames(fs, directory)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(fileNames).To(ConsistOf("test_product_0.yml"))
 	})
 
 	t.Run("Update removes outdated files from output directory", func(t *testing.T) {
@@ -92,7 +125,7 @@ func TestController(t *testing.T) {
 
 		registryClient := &mockRegistryClient{
 			Documents: []registry.APIV0Document{{
-				APIVersion: "v0",
+				APIVersion: "v1alpha1",
 				Product: registry.APIV0Product{
 					Name:    "test_product_A",
 					Version: "v1.2.3",
@@ -135,7 +168,7 @@ func TestController(t *testing.T) {
 		g.Expect(fileNames).To(ConsistOf("test_product_A.yml"))
 
 		registryClient.Documents = []registry.APIV0Document{{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product: registry.APIV0Product{
 				Name:    "test_product_B",
 				Version: "v1.2.3",
@@ -167,7 +200,7 @@ func TestController(t *testing.T) {
 
 		registryClient := &mockRegistryClient{
 			Documents: []registry.APIV0Document{{
-				APIVersion: "v0",
+				APIVersion: "v1alpha1",
 				Product: registry.APIV0Product{
 					Name:    "test_product_A",
 					Version: "v1.2.3",
@@ -228,7 +261,7 @@ func TestReloading(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1),
+			Documents: createTestDocuments(1, "v1alpha1"),
 		}
 
 		mockReloader := mockReloader{}
@@ -277,7 +310,7 @@ func TestReloading(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1),
+			Documents: createTestDocuments(1, "v1alpha1"),
 		}
 
 		mockReloader := &mockReloader{
@@ -305,12 +338,12 @@ func TestReloading(t *testing.T) {
 
 var testComparators = []string{"lt", "lte", "eq", "neq", "gte", "gt"}
 
-func createTestDocuments(count int) []registry.APIV0Document {
+func createTestDocuments(count int, apiVersion string) []registry.APIV0Document {
 	docs := make([]registry.APIV0Document, count)
 	for i := 0; i < count; i++ {
 		indicatorName := fmt.Sprintf("test_indicator_%d", i)
 		docs[i] = registry.APIV0Document{
-			APIVersion: "v0",
+			APIVersion: apiVersion,
 			Product: registry.APIV0Product{
 				Name:    fmt.Sprintf("test_product_%d", i),
 				Version: "v1.2.3",

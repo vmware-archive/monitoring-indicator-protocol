@@ -243,7 +243,7 @@ func TestDocumentToDashboard(t *testing.T) {
 	t.Run("creates a filename based on product name and contents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product: indicator.Product{
 				Name:    "test_product",
 				Version: "v1.2.3",
@@ -275,13 +275,13 @@ func TestDocumentToDashboard(t *testing.T) {
 		docBytes, err := json.Marshal(document)
 		g.Expect(err).ToNot(HaveOccurred())
 		filename := grafana_dashboard.DashboardFilename(docBytes, "test_product")
-		g.Expect(filename).To(Equal("test_product_7f182926d497b04cfef62674a8d5919c6e1329d0.json"))
+		g.Expect(filename).To(Equal("test_product_6bef3e61bbe1636c5059b20aa748c385ea3d1179.json"))
 	})
 
 	t.Run("includes annotations based on product & metadata alerts", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		document := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product: indicator.Product{
 				Name:    "test_product",
 				Version: "v1.2.3",

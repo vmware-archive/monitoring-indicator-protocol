@@ -36,6 +36,106 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 		store := registry.NewDocumentStore(time.Hour, time.Now)
 
 		doc := indicator.Document{
+			APIVersion: "v1alpha1",
+			Product: indicator.Product{
+				Name:    "test_product",
+				Version: "v1.2.3",
+			},
+			Metadata: map[string]string{"deployment": "test_deployment"},
+			Indicators: []indicator.Indicator{{
+				Name:   "test_indicator",
+				PromQL: `test_query{deployment="test_deployment"[$step]}`,
+				Thresholds: []indicator.Threshold{{
+					Level:    "critical",
+					Operator: indicator.LessThan,
+					Value:    5,
+				}},
+				Alert: indicator.Alert{
+					For:  "10m",
+					Step: "5m",
+				},
+				Documentation: map[string]string{
+					"test1": "a",
+					"test2": "b",
+				},
+				Presentation: test_fixtures.DefaultPresentation(),
+			}},
+		}
+		doc.Layout = test_fixtures.DefaultLayout(doc.Indicators)
+		store.UpsertDocument(doc)
+
+		registryAddress := "localhost:13245"
+		config := registry.WebServerConfig{
+			Address:       registryAddress,
+			DocumentStore: store,
+			StatusStore:   status_store.New(time.Now),
+		}
+
+		start, stop, err := registry.NewWebServer(config)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		done := make(chan struct{})
+		defer func() {
+			_ = stop()
+			<-done
+		}()
+		go func() {
+			defer close(done)
+			_ = start()
+		}()
+
+		prometheusServer := ghttp.NewServer()
+		defer prometheusServer.Close()
+
+		prometheusServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
+			g.Expect(r.Method).To(Equal("POST"))
+			g.Expect(r.URL.Path).To(Equal("/-/reload"))
+
+			w.WriteHeader(http.StatusOK)
+		})
+
+		directory, err := ioutil.TempDir("", "test-alerts")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		session := run(g, directory, fmt.Sprintf("http://%s", registryAddress), prometheusServer.URL())
+		defer session.Kill()
+
+		err = go_test.WaitForFiles(directory, 1)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		fs := osfs.New("/")
+		files, err := fs.ReadDir(directory)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		file, err := fs.Open(fmt.Sprintf("%s/%s", directory, files[0].Name()))
+		g.Expect(err).ToNot(HaveOccurred())
+		data, err := ioutil.ReadAll(file)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(string(data)).To(MatchYAML(`groups:
+                - name: test_product
+                  rules:
+                  - alert: test_indicator
+                    expr: test_query{deployment="test_deployment"[5m]} < 5
+                    for: 10m
+                    labels:
+                      level: critical
+                      product: test_product
+                      version: v1.2.3
+                      deployment: test_deployment
+                    annotations:
+                      test1: a
+                      test2: b`))
+
+		g.Eventually(prometheusServer.ReceivedRequests, 5*time.Second, 50*time.Millisecond).Should(HaveLen(1))
+	})
+
+	t.Run("reads v0 documents", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(time.Hour, time.Now)
+
+		doc := indicator.Document{
 			APIVersion: "v0",
 			Product: indicator.Product{
 				Name:    "test_product",

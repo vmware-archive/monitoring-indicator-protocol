@@ -160,7 +160,7 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 			switch apiVersion {
 			case "v0/patch":
 				patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
-			case "v0":
+			case "v0", "v1alpha1":
 				documentsBytes = append(documentsBytes, []byte(contents))
 			}
 		}

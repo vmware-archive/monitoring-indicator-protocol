@@ -1,5 +1,5 @@
 ---
-apiVersion: v0
+apiVersion: v1alpha1
 product:
   name: well-performing-component
   version: 0.0.1

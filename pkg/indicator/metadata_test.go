@@ -13,7 +13,7 @@ func TestMetadataOverride(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		doc := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product: indicator.Product{
 				Name:    "indicator-protocol",
 				Version: "1.0",
@@ -38,7 +38,7 @@ func TestMetadataOverride(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		doc := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product: indicator.Product{
 				Name:    "indicator-protocol",
 				Version: "1.0",
@@ -104,7 +104,7 @@ func TestMetadataInterpolation(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		doc := indicator.Document{
-			APIVersion: "v0",
+			APIVersion: "v1alpha1",
 			Product: indicator.Product{
 				Name:    "indicator-protocol",
 				Version: "1.0",
