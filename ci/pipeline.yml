@@ -108,14 +108,12 @@ resources:
   type: docker-image
   source:
     repository: indicatorprotocol/bosh-indicator-protocol-registry
-    tag: last-build
     username: ((dockerhub-username))
     password: ((dockerhub-password))
 - name: bosh-indicator-registry-proxy-docker-repo
   type: docker-image
   source:
     repository: indicatorprotocol/bosh-indicator-protocol-registry-proxy
-    tag: last-build
     username: ((dockerhub-username))
     password: ((dockerhub-password))
 - name: dev-release
@@ -376,14 +374,12 @@ jobs:
       attempts: 2
       params:
         additional_tags: tag/tag
-        tag_as_latest: false
         build: monitoring-indicator-protocol
         dockerfile: monitoring-indicator-protocol/cmd/registry/Dockerfile
     - put: bosh-indicator-registry-proxy-docker-repo
       attempts: 2
       params:
         additional_tags: tag/tag
-        tag_as_latest: false
         build: monitoring-indicator-protocol
         dockerfile: monitoring-indicator-protocol/cmd/registry_proxy/Dockerfile
 

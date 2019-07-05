@@ -3,8 +3,6 @@ services:
   indicator-registry:
     image: indicatorprotocol/bosh-indicator-protocol-registry
     expose: ["10568"]
-    # Changed this from 'port' to 'expose' to allow myself to just put it on 10568 without binding an external IP
-    # I think this makes sense, as we only really want the registry itself to be visible to the proxy
   indicator-registry-proxy:
     image: indicatorprotocol/bosh-indicator-protocol-registry-proxy
     ports: ["10567:10567"]
