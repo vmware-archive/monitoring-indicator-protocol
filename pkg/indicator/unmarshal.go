@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"strconv"
 	"strings"
 
@@ -63,6 +64,7 @@ func DocumentFromYAML(reader io.ReadCloser) (Document, error) {
 		return Document{}, err
 	}
 	if apiVersion == "v0" {
+		log.Print("WARNING: apiVersion v0 will be deprecated in future releases")
 		doc, err = v0documentFromBytes(buf.Bytes())
 	} else if apiVersion == "v1alpha1" {
 		err = yaml.Unmarshal(docBytes, &doc)
