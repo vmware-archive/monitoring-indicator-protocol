@@ -385,7 +385,7 @@ jobs:
         additional_tags: tag/tag
         tag_as_latest: false
         build: monitoring-indicator-protocol
-        dockerfile: monitoring-indicator-protocol/cmd/registry-proxy/Dockerfile
+        dockerfile: monitoring-indicator-protocol/cmd/registry_proxy/Dockerfile
 
 - name: create-k8s-docker-images
   plan:
