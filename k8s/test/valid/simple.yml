@@ -12,7 +12,8 @@ spec:
     alert: { for: 10m }
     thresholds:
     - level: critical
-      gt: 375
+      operator: gt
+      value: 375
   layout:
     title: API server
     sections:

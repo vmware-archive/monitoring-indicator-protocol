@@ -91,31 +91,31 @@ func toDomainAlert(a v1alpha1.Alert) indicator.Alert {
 func MapToDomainThreshold(ths []v1alpha1.Threshold) []indicator.Threshold {
 	thresholds := make([]indicator.Threshold, 0, len(ths))
 	for _, t := range ths {
-		op, val := resolveOperator(t)
+		op := resolveOperator(t)
 		thresholds = append(thresholds, indicator.Threshold{
 			Level:    t.Level,
 			Operator: op,
-			Value:    val,
+			Value:    t.Value,
 		})
 	}
 	return thresholds
 }
 
-func resolveOperator(t v1alpha1.Threshold) (indicator.OperatorType, float64) {
+func resolveOperator(t v1alpha1.Threshold) indicator.OperatorType {
 	switch {
-	case t.Lt != nil:
-		return indicator.LessThan, *t.Lt
-	case t.Lte != nil:
-		return indicator.LessThanOrEqualTo, *t.Lte
-	case t.Eq != nil:
-		return indicator.EqualTo, *t.Eq
-	case t.Neq != nil:
-		return indicator.NotEqualTo, *t.Neq
-	case t.Gte != nil:
-		return indicator.GreaterThanOrEqualTo, *t.Gte
-	case t.Gt != nil:
-		return indicator.GreaterThan, *t.Gt
+	case t.Operator == "lt":
+		return indicator.LessThan
+	case t.Operator == "lte":
+		return indicator.LessThanOrEqualTo
+	case t.Operator == "eq":
+		return indicator.EqualTo
+	case t.Operator == "neq":
+		return indicator.NotEqualTo
+	case t.Operator == "gte":
+		return indicator.GreaterThanOrEqualTo
+	case t.Operator == "gt":
+		return indicator.GreaterThan
 	}
 
-	return indicator.Undefined, 0
+	return indicator.Undefined
 }

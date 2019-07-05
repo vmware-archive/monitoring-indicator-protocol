@@ -16,13 +16,14 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	clientsetV1alpha1 "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned/typed/indicatordocument/v1alpha1"
@@ -175,12 +176,12 @@ func TestAdmission(t *testing.T) {
 		ns, cleanup := createNamespace(t)
 		defer cleanup()
 		id := indicatorDocument(ns)
-		id.Spec.Indicators[0].Thresholds[0].Gte = nil
+		id.Spec.Indicators[0].Thresholds[0].Operator = "foo"
 		t.Logf("Creating indicator document in namespace: %s", ns)
 		_, err := clients.idClient.IndicatorDocuments(ns).Create(id)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"))
+		g.Expect(err.Error()).To(ContainSubstring("indicators[0].thresholds[0] operator [lt, lte, eq, neq, gte, gt] is required"))
 	})
 }
 
@@ -190,7 +191,6 @@ func TestStatus(t *testing.T) {
 		ns, cleanup := createNamespace(t)
 		defer cleanup()
 
-		var threshold float64 = 10
 		timestamp := time.Now().UnixNano()
 		indicatorName := fmt.Sprintf("my-name-%d", timestamp)
 		indicator := &v1alpha1.Indicator{
@@ -207,8 +207,9 @@ func TestStatus(t *testing.T) {
 				},
 				Thresholds: []v1alpha1.Threshold{
 					{
-						Level: "critical",
-						Gte:   &threshold,
+						Level:    "critical",
+						Operator: "gte",
+						Value:    float64(10),
 					},
 				},
 			},
@@ -356,7 +357,7 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 
 	var (
 		cmAlerts map[string][]map[string]interface{}
-		cmAlert  interface{}
+		cmAlert interface{}
 	)
 	err = yaml.Unmarshal([]byte(cm.Data["alerts"]), &cmAlerts)
 	if err != nil {
@@ -396,7 +397,7 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 }
 
 func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
-	var threshold float64 = 500
+
 	indicatorName := fmt.Sprintf("e2e_test_indicator_%d", rand.Intn(math.MaxInt32))
 	return &v1alpha1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
@@ -421,8 +422,9 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 					},
 					Thresholds: []v1alpha1.Threshold{
 						{
-							Level: "critical",
-							Gte:   &threshold,
+							Level:    "critical",
+							Operator: "gte",
+							Value:    float64(500),
 						},
 					},
 				},

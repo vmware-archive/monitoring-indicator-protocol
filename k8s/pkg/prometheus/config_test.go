@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"gopkg.in/yaml.v2"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/prometheus"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
-	"gopkg.in/yaml.v2"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var indicators = []*v1alpha1.IndicatorDocument{
@@ -35,8 +36,9 @@ var indicators = []*v1alpha1.IndicatorDocument{
 					},
 					Thresholds: []v1alpha1.Threshold{
 						{
-							Level: "critical",
-							Gte:   floatVar(100.2),
+							Level:    "critical",
+							Operator: "gte",
+							Value:    float64(100.2),
 						},
 					},
 					Documentation: map[string]string{
@@ -70,8 +72,9 @@ var indicators = []*v1alpha1.IndicatorDocument{
 					},
 					Thresholds: []v1alpha1.Threshold{
 						{
-							Level: "warning",
-							Neq:   floatVar(0),
+							Level:    "warning",
+							Operator: "neq",
+							Value:    float64(0),
 						},
 					},
 					Documentation: map[string]string{
@@ -207,8 +210,4 @@ func TestConfig(t *testing.T) {
 			go p.String()
 		}
 	})
-}
-
-func floatVar(f float64) *float64 {
-	return &f
 }

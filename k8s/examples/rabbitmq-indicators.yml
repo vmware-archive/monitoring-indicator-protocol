@@ -12,26 +12,30 @@ spec:
     alert: { for: 10m }
     thresholds:
     - level: critical
-      gt: .8
+      operator: gt
+      value: .8
   - name: memory_consumption
     promql: rabbitmq_node_mem_used / rabbitmq_node_mem_limit
     alert: { for: 10m }
     thresholds:
     - level: critical
-      gt: .8
+      operator: gt
+      value: .8
   - name: disk_remaining
     promql: rabbitmq_node_disk_free - rabbitmq_node_disk_free_limit
     alert: { for: 10m }
     thresholds:
     - level: critical
-      lt: 1000000000
+      oeprator: lt
+      value: 1000000000
   - name: messages_rate
     promql: rate(rabbitmq_queue_messages_total[5m])
     alert:
       for: 10s
     thresholds:
     - level: warning
-      gt: 0.02
+      operator: gt
+      value: 0.02
   layout:
     title: RabbitMQ
     sections:

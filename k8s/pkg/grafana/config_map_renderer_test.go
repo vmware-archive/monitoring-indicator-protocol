@@ -4,9 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 
 	. "github.com/onsi/gomega"
 
@@ -42,8 +43,9 @@ func TestNoLayoutGeneratesDefaultDashboard(t *testing.T) {
 					Promql: "histogram_quantile(0.9, latency)",
 					Thresholds: []v1alpha1.Threshold{
 						{
-							Level: "critical",
-							Gte:   floatVar(100.2),
+							Level:    "critical",
+							Operator: "gte",
+							Value:    float64(100.2),
 						},
 					},
 					Documentation: map[string]string{
@@ -85,8 +87,9 @@ func TestSetsUpOwnership(t *testing.T) {
 					Promql: "histogram_quantile(0.9, latency)",
 					Thresholds: []v1alpha1.Threshold{
 						{
-							Level: "critical",
-							Gte:   floatVar(100.2),
+							Level:    "critical",
+							Operator: "gte",
+							Value:    float64(100.2),
 						},
 					},
 					Documentation: map[string]string{
@@ -123,8 +126,4 @@ func TestDashboardMapperError(t *testing.T) {
 	})
 
 	g.Expect(err).To(HaveOccurred())
-}
-
-func floatVar(f float64) *float64 {
-	return &f
 }

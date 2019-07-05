@@ -4,17 +4,17 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/domain"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestMap(t *testing.T) {
 	t.Run("works with a complete document", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		threshold := float64(100)
 		k8sDoc := v1alpha1.IndicatorDocument{
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{"level": "high"},
@@ -32,8 +32,9 @@ func TestMap(t *testing.T) {
 						Step: "1m",
 					},
 					Thresholds: []v1alpha1.Threshold{{
-						Level: "critical",
-						Eq:    &threshold,
+						Level:    "critical",
+						Operator: "eq",
+						Value:    float64(100),
 					}},
 					Documentation: map[string]string{"docs": "explained"},
 					Presentation: v1alpha1.Presentation{
@@ -48,7 +49,7 @@ func TestMap(t *testing.T) {
 					Title:       "my awesome indicators",
 					Description: "enough said",
 					Sections: []v1alpha1.Section{{
-						Title:        "my section",
+						Title:       "my section",
 						Description: "the only section",
 						Indicators:  []string{"my-indicator"},
 					}},
@@ -116,7 +117,7 @@ func TestMap(t *testing.T) {
 					Title:       "my awesome indicators",
 					Description: "enough said",
 					Sections: []v1alpha1.Section{{
-						Title:        "my section",
+						Title:       "my section",
 						Description: "the only section",
 						Indicators:  []string{"my-indicator", "my-indicator"},
 					}},
@@ -164,7 +165,7 @@ func TestMap(t *testing.T) {
 					Name:   "my-indicator",
 					Promql: "my_promql",
 					Thresholds: []v1alpha1.Threshold{{
-						Level:    "WARNING",
+						Level: "WARNING",
 					}},
 				}},
 			},

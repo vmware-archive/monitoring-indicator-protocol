@@ -57,16 +57,12 @@ spec:
               items:
                 required:
                 - level
+                - operator
+                - value
                 properties:
-                  gte:
-                    type: number
-                  gt:
-                    type: number
-                  eq:
-                    type: number
-                  neq:
-                    type: number
-                  lt:
-                    type: number
-                  lte:
+                  level:
+                    type: string
+                  operator:
+                    type: string
+                  value:
                     type: number

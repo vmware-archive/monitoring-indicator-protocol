@@ -14,8 +14,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/admission"
 	"k8s.io/api/admission/v1beta1"
+
+	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/admission"
 )
 
 func TestServer(t *testing.T) {
@@ -288,7 +289,8 @@ func TestValidators(t *testing.T) {
 				    "name": "latency",
 				    "promql": "rate(apiserver_request_count[5m]) * 60",
 				    "thresholds": [{
-					  "gt": 375,
+					  "operator": "gt",
+					  "value": 375,
 					  "level": "critical"
 				    }],
 					"presentation": {
@@ -376,7 +378,7 @@ func TestValidators(t *testing.T) {
 			}
 
 			g.Expect(actualResp.Response.Allowed).To(BeFalse())
-			g.Expect(actualResp.Response.Result.Message).To(ContainSubstring("one of [lt, lte, eq, neq, gte, gt] must be provided as a float"))
+			g.Expect(actualResp.Response.Result.Message).To(ContainSubstring("operator [lt, lte, eq, neq, gte, gt] is required"))
 		})
 
 		t.Run("return UUID in patch response", func(t *testing.T) {
@@ -461,7 +463,8 @@ func TestDefaultValues(t *testing.T) {
 							},
 							"thresholds": [
 								{
-									"gt": 12,
+									"operator": "gt",
+									"value": 12,
 									"level": "critical"
 								}
 							]
@@ -502,7 +505,8 @@ func TestDefaultValues(t *testing.T) {
 							},
 							"thresholds": [
 								{
-									"gt": 12,
+									"operator": "gt",
+									"value": 12,
 									"level": "critical"
 								}
 							]
@@ -542,7 +546,8 @@ func TestDefaultValues(t *testing.T) {
 							},
 							"thresholds": [
 								{
-									"gt": 12,
+									"operator": "gt",
+									"value": 12,
 									"level": "critical"
 								}
 							]
@@ -577,7 +582,8 @@ func TestDefaultValues(t *testing.T) {
 							"alert": { "step" : "30m", "for": "5m" },
 							"thresholds": [
 								{
-									"gt": 12,
+									"operator": "gt",
+									"value": 12,
 									"level": "critical"
 								}
 							]
@@ -622,7 +628,8 @@ func TestDefaultValues(t *testing.T) {
 							},
 							"thresholds": [
 								{
-									"gt": 12,
+									"operator": "gt",
+									"value": 12,
 									"level": "critical"
 								}
 							]
@@ -660,7 +667,8 @@ func TestDefaultValues(t *testing.T) {
 							},
 							"thresholds": [
 								{
-									"gt": 12,
+									"operator": "gt",
+									"value": 12,
 									"level": "critical"
 								}
 							]
@@ -703,7 +711,8 @@ func TestDefaultValues(t *testing.T) {
 							},
 							"thresholds": [
 								{
-									"gt": 12,
+									"operator": "gt",
+									"value": 12,
 									"level": "critical"
 								}
 							]
@@ -747,7 +756,8 @@ func TestDefaultValues(t *testing.T) {
 							},
 							"thresholds": [
 								{
-									"gt": 12,
+									"operator": "gt",
+									"value": 12,
 									"level": "critical"
 								}
 							]
@@ -808,7 +818,8 @@ func TestDefaultValues(t *testing.T) {
 								},
 								"thresholds": [
 								{
-									"gt": 12,
+									"operator": "gt",
+									"value": 12,
 									"level": "critical"
 								}
 							]
@@ -861,7 +872,8 @@ func TestDefaultValues(t *testing.T) {
 								},
 								"thresholds": [
 									{
-										"gt": 12,
+										"operator": "gt",
+										"value": 12,
 										"level": "critical"
 									}
 								]
@@ -923,7 +935,8 @@ func TestDefaultValues(t *testing.T) {
 								},
 								"thresholds": [
 									{
-										"gt": 12,
+										"operator": "gt",
+									    "value": 12,
 										"level": "critical"
 									}
 								]
@@ -939,7 +952,8 @@ func TestDefaultValues(t *testing.T) {
 								},
 								"thresholds": [
 									{
-										"gt": 12,
+										"operator": "gt",
+										"value": 12,
 										"level": "critical"
 									}
 								]
@@ -1034,7 +1048,8 @@ func TestDefaultValues(t *testing.T) {
 								},
 								"thresholds": [
 									{
-										"gt": 12,
+										"operator": "gt",
+										"value": 12,
 										"level": "critical"
 									}
 								]

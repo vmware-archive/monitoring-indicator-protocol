@@ -1,8 +1,9 @@
 package v1alpha1
 
 import (
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 // +genclient
@@ -66,13 +67,9 @@ type Alert struct {
 }
 
 type Threshold struct {
-	Level string   `json:"level,omitempty"`
-	Lt    *float64 `json:"lt,omitempty"`
-	Lte   *float64 `json:"lte,omitempty"`
-	Eq    *float64 `json:"eq,omitempty"`
-	Neq   *float64 `json:"neq,omitempty"`
-	Gte   *float64 `json:"gte,omitempty"`
-	Gt    *float64 `json:"gt,omitempty"`
+	Level    string  `json:"level,omitempty"`
+	Operator string  `json:"operator,omitempty"`
+	Value    float64 `json:"value,omitempty"`
 }
 
 type Layout struct {

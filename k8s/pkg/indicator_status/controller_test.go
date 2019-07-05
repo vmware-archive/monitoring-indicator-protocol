@@ -9,11 +9,12 @@ import (
 
 	"github.com/benbjohnson/clock"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	types "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned/typed/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/indicator_status"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestController(t *testing.T) {
@@ -206,12 +207,11 @@ func TestController(t *testing.T) {
 			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
 
-			thresholdLevel := float64(0)
-
 			newIndicator := indicator.DeepCopy()
 			newIndicator.Spec.Thresholds = []types.Threshold{{
-				Level: "critical",
-				Gt:    &thresholdLevel,
+				Level:    "critical",
+				Operator: "gt",
+				Value:    float64(0),
 			}}
 
 			fakePromqlClient.resetQueryArgs()
@@ -239,12 +239,11 @@ func TestController(t *testing.T) {
 			c.OnAdd(&indicator)
 			mockClock.Add(time.Second)
 
-			thresholdLevel := float64(0)
-
 			newIndicator := indicator.DeepCopy()
 			newIndicator.Spec.Thresholds = []types.Threshold{{
-				Level: "pamplemousse",
-				Gte:   &thresholdLevel,
+				Level:    "pamplemousse",
+				Operator: "gte",
+				Value:    float64(0),
 			}}
 
 			fakePromqlClient.resetQueryArgs()
@@ -267,7 +266,7 @@ func TestController(t *testing.T) {
 			store := indicator_status.NewIndicatorStore()
 			fakeIndicatorsGetter := &fakeIndicatorsGetter{
 				listedIndicators: []types.Indicator{indicator},
-				store: store,
+				store:            store,
 			}
 			fakePromqlClient := &fakePromqlClient{response: []float64{-1}}
 			mockClock := clock.NewMock()

@@ -119,6 +119,7 @@ func (c *indicators) Update(indicator *v1alpha1.Indicator) (result *v1alpha1.Ind
 
 // UpdateStatus was generated because the type contains a Status member.
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+
 func (c *indicators) UpdateStatus(indicator *v1alpha1.Indicator) (result *v1alpha1.Indicator, err error) {
 	result = &v1alpha1.Indicator{}
 	err = c.client.Put().
