@@ -372,14 +372,14 @@ jobs:
             cd ..
             echo ${SHA} > tag/tag
   - in_parallel:
-    - put: bosh-indicator-registry
+    - put: bosh-indicator-registry-docker-repo
       attempts: 2
       params:
         additional_tags: tag/tag
         tag_as_latest: false
         build: monitoring-indicator-protocol
         dockerfile: monitoring-indicator-protocol/cmd/registry/Dockerfile
-    - put: bosh-indicator-registry-proxy
+    - put: bosh-indicator-registry-proxy-docker-repo
       attempts: 2
       params:
         additional_tags: tag/tag
