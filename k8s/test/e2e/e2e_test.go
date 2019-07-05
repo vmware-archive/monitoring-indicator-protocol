@@ -146,7 +146,7 @@ func TestControllers(t *testing.T) {
 			g.Expect(err).ToNot(HaveOccurred())
 			// NOTE: We set this deadline to be 100s but this might not hold forever.
 			// If we see failures due to timing issues we should increase this.
-			g.Eventually(tc(id), 100).Should(BeTrue())
+			g.Eventually(tc(id), 120).Should(BeTrue())
 		})
 	}
 }
