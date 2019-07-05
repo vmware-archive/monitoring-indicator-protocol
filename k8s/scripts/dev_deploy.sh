@@ -4,55 +4,55 @@ set -eEuo pipefail
 
 pushd ~/workspace/monitoring-indicator-protocol > /dev/null
     docker build \
-        -t indicatorprotocol/grafana-indicator-controller:dev \
+        -t indicatorprotocol/k8s-grafana-indicator-controller:dev \
         -f k8s/cmd/grafana-indicator-controller/Dockerfile \
         .
 
     docker build \
-        -t indicatorprotocol/prometheus-indicator-controller:dev \
+        -t indicatorprotocol/k8s-prometheus-indicator-controller:dev \
         -f k8s/cmd/prometheus-indicator-controller/Dockerfile \
         .
 
     docker build \
-        -t indicatorprotocol/indicator-lifecycle-controller:dev \
+        -t indicatorprotocol/k8s-indicator-lifecycle-controller:dev \
         -f k8s/cmd/indicator-lifecycle-controller/Dockerfile \
         .
 
     docker build \
-        -t indicatorprotocol/indicator-admission:dev \
+        -t indicatorprotocol/k8s-indicator-admission:dev \
         -f k8s/cmd/indicator-admission/Dockerfile \
         .
 
     docker build \
-        -t indicatorprotocol/indicator-status-controller:dev \
+        -t indicatorprotocol/k8s-indicator-status-controller:dev \
         -f k8s/cmd/indicator-status-controller/Dockerfile \
         .
 
-    docker push indicatorprotocol/grafana-indicator-controller:dev
-    docker push indicatorprotocol/prometheus-indicator-controller:dev
-    docker push indicatorprotocol/indicator-lifecycle-controller:dev
-    docker push indicatorprotocol/indicator-admission:dev
-    docker push indicatorprotocol/indicator-status-controller:dev
+    docker push indicatorprotocol/k8s-grafana-indicator-controller:dev
+    docker push indicatorprotocol/k8s-prometheus-indicator-controller:dev
+    docker push indicatorprotocol/k8s-indicator-lifecycle-controller:dev
+    docker push indicatorprotocol/k8s-indicator-admission:dev
+    docker push indicatorprotocol/k8s-indicator-status-controller:dev
 
 
     grafana_digest="$(
-        docker inspect indicatorprotocol/grafana-indicator-controller:dev \
+        docker inspect indicatorprotocol/k8s-grafana-indicator-controller:dev \
             | jq .[0].RepoDigests[0] --raw-output
     )"
     prometheus_digest="$(
-        docker inspect indicatorprotocol/prometheus-indicator-controller:dev \
+        docker inspect indicatorprotocol/k8s-prometheus-indicator-controller:dev \
             | jq .[0].RepoDigests[0] --raw-output
     )"
     indicator_lifecycle_digest="$(
-        docker inspect indicatorprotocol/indicator-lifecycle-controller:dev \
+        docker inspect indicatorprotocol/k8s-indicator-lifecycle-controller:dev \
             | jq .[0].RepoDigests[0] --raw-output
     )"
     indicator_admission_digest="$(
-        docker inspect indicatorprotocol/indicator-admission:dev \
+        docker inspect indicatorprotocol/k8s-indicator-admission:dev \
             | jq .[0].RepoDigests[0] --raw-output
     )"
     indicator_status_digest="$(
-        docker inspect indicatorprotocol/indicator-status-controller:dev \
+        docker inspect indicatorprotocol/k8s-indicator-status-controller:dev \
             | jq .[0].RepoDigests[0] --raw-output
     )"
 
