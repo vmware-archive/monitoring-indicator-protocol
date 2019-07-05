@@ -18,7 +18,7 @@ See [the wiki](https://github.com/pivotal/monitoring-indicator-protocol/wiki) fo
 
 This project currently requires only the Go programming language to develop.
 Install go using `brew install go`, then proceed to the next steps. 
-If you would prefer to use a docker image instead, skip down to the [developing locally with docker section](#developing_with_docker)
+If you would prefer to use a docker image instead, skip down to the [developing locally with docker section](#developing-with-docker)
 
 Goland Setup:
 1. Preferences -> Go -> Build Tags & Vendoring -> Custom tags: `-mod=vendor`
