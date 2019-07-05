@@ -17,7 +17,8 @@ See [the wiki](https://github.com/pivotal/monitoring-indicator-protocol/wiki) fo
 ## Developing Locally
 
 This project currently requires only the Go programming language to develop.
-Install go using `brew install go`, then proceed to the next steps.
+Install go using `brew install go`, then proceed to the next steps. 
+If you would prefer to use a docker image instead, skip down to the [developing locally with docker section](#developing_with_docker)
 
 Goland Setup:
 1. Preferences -> Go -> Build Tags & Vendoring -> Custom tags: `-mod=vendor`
@@ -108,3 +109,12 @@ Use the provided script to run tests: `./scripts/test.sh`
 
    Specifically, you should get a single product called `my-component` with 3 indicators, some metadata,
    and a layout section.
+   
+## Developing with Docker
+We have provided a script to create the necessary certificates and start your docker container for you. If you have the repo cloned, run `./start_docker_compose.sh` from the root. The registry will be running on port 10567 by default. To curl this registry, reference the certs created in the certs directory within docker-compose. For example:
+
+```
+curl https://localhost:10567/v1/indicator-documents -k --key docker-compose/certs/client.key --cert docker-compose/certs/client.pem --cacert docker-compose/certs/ca.key
+```
+
+   
