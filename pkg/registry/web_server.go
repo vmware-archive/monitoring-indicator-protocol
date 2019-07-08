@@ -19,7 +19,7 @@ type WebServerConfig struct {
 	StatusStore   *status_store.Store
 }
 
-func NewWebServer(c WebServerConfig) (func() error, func() error, error) {
+func NewWebServer(c WebServerConfig) (func() error, func() error) {
 	server := &http.Server{
 		Addr:         c.Address,
 		Handler:      newRouter(c),
@@ -30,7 +30,7 @@ func NewWebServer(c WebServerConfig) (func() error, func() error, error) {
 	start := func() error { return server.ListenAndServe() }
 	stop := func() error { return server.Close() }
 
-	return start, stop, nil
+	return start, stop
 }
 
 var httpRequests = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -56,9 +56,9 @@ func newRouter(w WebServerConfig) *mux.Router {
 func notFound(counter *prometheus.CounterVec) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
-		w.Write([]byte("404 page not found"))
+		_, _ = w.Write([]byte("404 page not found"))
 
-		log.Println("404 returned for path: ", r.URL.Path)
+		log.Println("404 returned")
 		counter.WithLabelValues("invalid path", "404").Inc()
 	}
 }

@@ -60,7 +60,7 @@ func (p *indicatorPresenter) HTML() template.HTML {
 	err := indicatorTmpl.Execute(buffer, p)
 
 	if err != nil {
-		log.Fatalf("could not render indicator: %s", err.Error())
+		log.Fatal("could not render indicator")
 	}
 
 	return template.HTML(buffer.String())

@@ -26,15 +26,15 @@ func NewController(idGetter v1alpha1.IndicatorsGetter) Controller {
 func (c Controller) OnAdd(obj interface{}) {
 	doc, ok := obj.(*types.IndicatorDocument)
 	if !ok {
-		log.Printf("Invalid resource type OnAdd: %T", obj)
+		log.Print("Invalid resource type OnAdd")
 		return
 	}
-	log.Printf("Adding indicators for %s on namespace %s", doc.Name, doc.Namespace)
+	log.Print("Adding indicators")
 	for _, indicator := range doc.Spec.Indicators {
 		id := toIndicator(indicator, doc)
 		_, err := c.client.Indicators(id.Namespace).Get(id.Name, metav1.GetOptions{})
 		if err == nil {
-			log.Printf("Indicator was already created. Skipping creation of %s", id.Name)
+			log.Print("Indicator was already created. Skipping creation")
 			continue
 		}
 
@@ -45,20 +45,20 @@ func (c Controller) OnAdd(obj interface{}) {
 func (c Controller) OnUpdate(oldObj, newObj interface{}) {
 	oldDoc, ok := oldObj.(*types.IndicatorDocument)
 	if !ok {
-		log.Printf("Invalid resource type OnUpdate: %T", oldObj)
+		log.Print("Invalid resource type OnUpdate")
 		return
 	}
 	newDoc, ok := newObj.(*types.IndicatorDocument)
 	if !ok {
-		log.Printf("Invalid resource type OnUpdate: %T", newObj)
+		log.Print("Invalid resource type OnUpdate")
 		return
 	}
-	log.Printf("Updating indicators for %s on namespace %s", newDoc.Name, newDoc.Namespace)
+	log.Print("Updating indicators")
 	existingList, err := c.client.Indicators(oldDoc.Namespace).List(metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("owner=%s-%s", oldDoc.Name, oldDoc.Namespace),
 	})
 	if err != nil {
-		log.Printf("Error encountered when querying for existing Indicators by label: %s", err)
+		log.Print("Error encountered when querying for existing Indicators by label")
 	}
 	for _, newIndicatorSpec := range newDoc.Spec.Indicators {
 		foundIndicator := find(existingList.Items, newIndicatorSpec)
@@ -78,40 +78,39 @@ func (c Controller) OnUpdate(oldObj, newObj interface{}) {
 }
 
 func deleteOldIndicator(oldIndicator types.Indicator, c Controller, oldDoc *types.IndicatorDocument) {
-	log.Printf("Deleting indicator %s", oldIndicator.Name)
+	log.Print("Deleting indicator")
 	err := c.client.Indicators(oldDoc.Namespace).Delete(oldIndicator.Name, &metav1.DeleteOptions{})
 	if err != nil {
-		log.Printf("Error encountered when deleting indicator %s: %s", oldIndicator.Name, err)
+		log.Print("Error encountered when deleting indicator")
 	}
 }
 
 func updateExistingIndicator(newIndicator *types.Indicator, foundIndicator *types.Indicator, c Controller, oldDoc *types.IndicatorDocument) {
 	newIndicator.ResourceVersion = foundIndicator.ResourceVersion
 	if !reflect.DeepEqual(foundIndicator.Spec, newIndicator.Spec) {
-		log.Printf("Updating indicator %s", newIndicator.Spec.Name)
+		log.Print("Updating indicator")
 		_, err := c.client.Indicators(oldDoc.Namespace).Update(newIndicator)
 		if err != nil {
-			log.Printf("Error encountered when updating indicator %s: %s", newIndicator.Spec.Name, err)
+			log.Print("Error encountered when updating indicator")
 		}
 	}
 }
 
 func createNewIndicator(newIndicator *types.Indicator, c Controller, oldDoc *types.IndicatorDocument) {
-	log.Printf("Creating indicator %s", newIndicator.Spec.Name)
+	log.Print("Creating indicator")
 	_, err := c.client.Indicators(oldDoc.Namespace).Create(newIndicator)
 	if err != nil {
-		log.Printf("Error encountered when creating indicator %s: %s", newIndicator.Spec.Name, err)
+		log.Print("Error encountered when creating indicator")
 	}
 }
 
-// TODO: do we need to handle non-indicatordocuments?
 func (c Controller) OnDelete(obj interface{}) {
-	doc, ok := obj.(*types.IndicatorDocument)
+	_, ok := obj.(*types.IndicatorDocument)
 	if !ok {
-		log.Printf("Invalid resource type OnDelete: %T", obj)
+		log.Print("Invalid resource type OnDelete")
 		return
 	}
-	log.Printf("Deleting indicators for %s on namespace %s", doc.Name, doc.Namespace)
+	log.Print("Deleting indicators")
 }
 
 func toIndicator(is types.IndicatorSpec, parent *types.IndicatorDocument) *types.Indicator {

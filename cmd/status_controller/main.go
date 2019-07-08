@@ -31,7 +31,7 @@ func main() {
 
 	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
-		log.Fatalf("failed to create mtls http client, %s", err)
+		log.Fatal("failed to create mTLS HTTP client")
 	}
 
 	registryHttpClient := &http.Client{
@@ -54,7 +54,7 @@ func main() {
 	prometheusClient, err := prometheus_oauth_client.Build(*prometheusURI, tokenFetcher.GetClientToken, *insecure)
 
 	if err != nil {
-		log.Fatalf("failed to create Prometheus client: %s", err)
+		log.Fatal("failed to create Prometheus client")
 	}
 
 	statusController := indicator_status.NewStatusController(

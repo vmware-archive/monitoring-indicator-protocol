@@ -2,6 +2,7 @@ package grafana_dashboard
 
 import (
 	"crypto/sha1"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -105,7 +106,7 @@ func sectionToGrafanaRow(section indicator.Section, document indicator.Document)
 	for _, indicatorName := range section.Indicators {
 		i, found := document.GetIndicator(indicatorName)
 		if !found {
-			return nil, fmt.Errorf("section[%s] indicator[%s] not found", section.Title, indicatorName)
+			return nil, errors.New("indicator not found")
 		}
 		panels = append(panels, toGrafanaPanel(i, getIndicatorTitle(i)))
 	}

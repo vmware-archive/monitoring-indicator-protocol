@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -32,31 +33,43 @@ func main() {
 		l.Fatal(err)
 	}
 
+	// This will print data based on what the user provided, so it may be unsafe or contain unsanitized HTML.
 	fmt.Print(output)
-
 }
 
 func parseDocument(format string, metadata string, filePath string) (string, error) {
 	switch format {
 	case "bookbinder":
-		return docs.DocumentToBookbinder(getDocument(filePath, indicator.SkipMetadataInterpolation))
+		bookbinder, err := docs.DocumentToBookbinder(getDocument(filePath, indicator.SkipMetadataInterpolation))
+		if err != nil {
+			return "", errors.New("could not parse specified document as bookbinder")
+		}
+		return bookbinder, nil
 	case "html":
-		return docs.DocumentToHTML(getDocument(filePath, indicator.SkipMetadataInterpolation))
+		html, err := docs.DocumentToHTML(getDocument(filePath, indicator.SkipMetadataInterpolation))
+		if err != nil {
+			return "", errors.New("could not parse specified document as HTML")
+		}
+		return html, nil
+
 	case "grafana":
 		grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(getDocument(filePath,
 			indicator.OverrideMetadata(indicator.ParseMetadata(metadata))))
 		if err != nil {
-			return "", fmt.Errorf(`error converting to Grafana dashboard: %s`, err)
+			return "", errors.New("could not parse specified document as Grafana dashboard")
 		}
 		yamlOutput, err := json.Marshal(grafanaDashboard)
 		return string(yamlOutput), err
 	case "prometheus-alerts":
 		yamlOutput, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(getDocument(filePath,
 			indicator.OverrideMetadata(indicator.ParseMetadata(metadata)))))
-		return string(yamlOutput), err
+		if err != nil {
+			return "", errors.New("could not parse specified document as prometheus alert")
+		}
+		return string(yamlOutput), nil
 
 	default:
-		return "", fmt.Errorf(`format "%s" not supported`, format)
+		return "", errors.New("could not parse specified document; specified format not supported")
 	}
 }
 

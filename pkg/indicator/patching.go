@@ -2,7 +2,7 @@ package indicator
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"log"
 	"reflect"
@@ -15,22 +15,21 @@ func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 	var document interface{}
 	err := yaml.Unmarshal(documentBytes, &document)
 	if err != nil {
-		return []byte{}, fmt.Errorf("failed to unmarshal document for patching: %s", err)
+		return []byte{}, errors.New("failed to unmarshal document for patching")
 	}
 
 	for _, p := range patches {
 		if MatchDocument(p.Match, documentBytes) {
 			ops, err := patch.NewOpsFromDefinitions(p.Operations)
 			if err != nil {
-				log.Print(fmt.Errorf("failed to parse patch operations: %s", err))
+				log.Print(errors.New("failed to parse patch operations"))
 				continue
 			}
-			for i, o := range ops {
+			for _, o := range ops {
 				var tempDocument interface{}
 				tempDocument, err = o.Apply(document)
 				if err != nil {
-					od := p.Operations[i]
-					log.Print(fmt.Errorf("failed to apply patch operation %s %s: %s", od.Type, *od.Path, err))
+					log.Print(errors.New("failed to apply patch operation"))
 					continue
 				}
 				document = tempDocument
@@ -40,7 +39,7 @@ func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 
 	patched, err := yaml.Marshal(document)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, errors.New("failed to marshal patch document")
 	}
 	return patched, nil
 }

@@ -55,7 +55,7 @@ func NewIndicatorDocumentsHandler(store *DocumentStore, statusStore *status_stor
 		_, err = fmt.Fprint(w, string(bytes))
 
 		if err != nil {
-			log.Printf("error writing /indicator-documents response: %s", err)
+			log.Printf("error writing to `/indicator-documents`")
 		}
 	}
 }
@@ -67,7 +67,7 @@ func writeErrors(w http.ResponseWriter, statusCode int, errors ...error) {
 	}
 
 	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(errorResponse{Errors: errorStrings})
+	_ = json.NewEncoder(w).Encode(errorResponse{Errors: errorStrings})
 }
 
 type APIV0UpdateIndicatorStatus struct {

@@ -57,7 +57,7 @@ func TestReadGitConfigurationFile(t *testing.T) {
 	g.Expect(documents[0].Product.Name).To(Equal("my-component"))
 	g.Expect(documents[1].Product.Name).To(Equal("someone-elses-component"))
 
-	g.Expect(buffer.String()).To(ContainSubstring("Parsed 2 documents and 2 patches from https://fakegit.nope/slowens/test-repo.git git source"))
+	g.Expect(buffer.String()).To(ContainSubstring("Parsed 2 documents and 2 patches from git source"))
 }
 
 func TestGlobMatching(t *testing.T) {
@@ -83,7 +83,7 @@ func TestGlobMatching(t *testing.T) {
 		Glob:       "patch*.yml",
 	}}, fakeGetter)
 
-	g.Expect(buffer.String()).To(ContainSubstring("Parsed 0 documents and 2 patches from fake/fake/fake git source"))
+	g.Expect(buffer.String()).To(ContainSubstring("Parsed 0 documents and 2 patches from git source"))
 }
 
 func TestValidateConfigFile(t *testing.T) {
@@ -156,7 +156,7 @@ func TestNotifyWhenInvalidPatchFiles(t *testing.T) {
 		}}, fakeGetter)
 
 		g.Expect(patchesList[0].Patches).To(HaveLen(0))
-		g.Expect(buffer.String()).To(ContainSubstring("Failed to parse apiVersion for file bad-patch.yml"))
+		g.Expect(buffer.String()).To(ContainSubstring("Failed to parse apiVersion for file"))
 	})
 }
 
@@ -165,14 +165,14 @@ func TestFailToParseConfigurationFile(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		_, err := configuration.ParseSourcesFile(`files are overrated`)
-		g.Expect(err).To(MatchError(ContainSubstring("error reading configuration file:")))
+		g.Expect(err).To(MatchError(ContainSubstring("could not parse sources file, error reading configuration file")))
 	})
 
 	t.Run("returns an error if config cannot be parsed", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		_, err := configuration.ParseSourcesFile("test_fixtures/bad.yml")
-		g.Expect(err).To(MatchError(ContainSubstring("error parsing configuration file:")))
+		g.Expect(err).To(MatchError(ContainSubstring("could not parse sources file, error parsing configuration file")))
 	})
 
 	t.Run("returns a partial list if some patches cannot be read", func(t *testing.T) {
@@ -188,6 +188,6 @@ func TestFailToParseConfigurationFile(t *testing.T) {
 		g.Expect(patches).To(HaveLen(1))
 		g.Expect(*patches[0].Patches[0].Match.Name).To(Equal("my-component-1"))
 
-		g.Expect(buffer.String()).To(ContainSubstring("failed to read local patch badpath/nothing_here.yml"))
+		g.Expect(buffer.String()).To(ContainSubstring("failed to read local patch: could not read patch file"))
 	})
 }

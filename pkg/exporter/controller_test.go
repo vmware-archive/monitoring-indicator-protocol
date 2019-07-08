@@ -244,7 +244,9 @@ func TestController(t *testing.T) {
 		registryClient.Error = fmt.Errorf("registry error response test")
 
 		err = controller.Update()
-		g.Expect(err).To(MatchError(ContainSubstring("registry error response test")))
+		g.Expect(err).ToNot(MatchError(ContainSubstring("registry error response test")))
+		g.Expect(err.Error()).To(Equal("failed to fetch indicator documents"))
+
 
 		fileNames, err = go_test.GetFileNames(fs, directory)
 		g.Expect(err).ToNot(HaveOccurred())

@@ -2,6 +2,7 @@ package registry_proxy
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -88,7 +89,7 @@ func (h *Handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 func copyRequest(r *http.Request, requestBody string) (*http.Request, error) {
 	newReq, err := http.NewRequest(r.Method, r.URL.String(), ioutil.NopCloser(bytes.NewReader([]byte(requestBody))))
 	if err != nil {
-		return nil, err
+		return nil, errors.New("could not copy request to send to proxy")
 	}
 	newReq.Header = r.Header
 	newReq.Host = r.Host

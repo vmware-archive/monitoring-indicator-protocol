@@ -33,21 +33,21 @@ func main() {
 	var conf config
 	err := envstruct.Load(&conf)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to load env variables: NAMESPACE is required")
 	}
 	err = envstruct.WriteReport(&conf)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to write report using env variables")
 	}
 
 	cfg, err := rest.InClusterConfig()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to configure kubernetes cluster; make sure kubernetes is running")
 	}
 
 	client, err := versioned.NewForConfig(cfg)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to create clientSet for the given config")
 	}
 
 	controller := lifecycle.NewController(

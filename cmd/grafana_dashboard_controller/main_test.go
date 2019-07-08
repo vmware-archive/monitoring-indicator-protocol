@@ -72,8 +72,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 			StatusStore:   status_store.New(time.Now),
 		}
 
-		start, stop, err := registry.NewWebServer(config)
-		g.Expect(err).ToNot(HaveOccurred())
+		start, stop := registry.NewWebServer(config)
 
 		done := make(chan struct{})
 		defer func() {
@@ -151,8 +150,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 			StatusStore:   status_store.New(time.Now),
 		}
 
-		start, stop, err := registry.NewWebServer(config)
-		g.Expect(err).ToNot(HaveOccurred())
+		start, stop := registry.NewWebServer(config)
 
 		done := make(chan struct{})
 		defer func() {

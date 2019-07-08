@@ -2,13 +2,13 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
@@ -30,7 +30,7 @@ func main() {
 
 	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
-		log.Fatalf("failed to create mtls http client, %s", err)
+		log.Fatal("failed to create mTLS HTTP client")
 	}
 
 	registryHttpClient := &http.Client{
@@ -68,7 +68,7 @@ func (p *prometheusClient) Reload() error {
 	buffer := bytes.NewBuffer(nil)
 	resp, err := p.httpClient.Post(fmt.Sprintf("%s/-/reload", p.prometheusURI), "", buffer)
 	if err != nil {
-		return fmt.Errorf(utils.SanitizeUrl(err, p.prometheusURI, ""))
+		return errors.New("error reloading prometheus client")
 	}
 
 	if resp.StatusCode != 200 {

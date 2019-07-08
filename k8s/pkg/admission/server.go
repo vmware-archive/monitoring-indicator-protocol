@@ -133,8 +133,7 @@ func (s *Server) Addr() string {
 func (s *Server) run() {
 	lis, err := net.Listen("tcp", s.addr)
 	if err != nil {
-		log.Fatalf("Unable to start listener: %s", err)
-
+		log.Fatal("Unable to start listener")
 	}
 
 	mux := http.NewServeMux()
@@ -159,7 +158,7 @@ func (s *Server) run() {
 	}
 
 	if err != nil {
-		log.Printf("Server shutdown: %s", err)
+		log.Print("Server shutdown due to error")
 	}
 }
 
@@ -180,7 +179,7 @@ func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http
 	requestedAdmissionReview, httpErr := deserializeReview(r)
 	if httpErr != nil {
 		indicatorDocumentDefaultsReviewErrored.Inc()
-		log.Printf("Error deserializing review: %s", httpErr.message)
+		log.Printf("Error deserializing review: http error code = %d", httpErr.code)
 		httpErr.Write(responseWriter)
 		return
 	}
@@ -189,7 +188,7 @@ func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &doc)
 	if err != nil {
 		indicatorDocumentDefaultsReviewErrored.Inc()
-		log.Printf("Error unmarshaling document: %s", err)
+		log.Print("Error unmarshaling indicator document")
 		errUnableToDeserialize.Write(responseWriter)
 		return
 	}
@@ -206,7 +205,7 @@ func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http
 	patchBytes, err := marshalPatches(patchOperations)
 	if err != nil {
 		indicatorDocumentDefaultsReviewErrored.Inc()
-		log.Printf("Error marshaling patches: %s", err)
+		log.Print("Error marshaling patches")
 		errInternal.Write(responseWriter)
 		return
 	}
@@ -220,14 +219,14 @@ func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http
 	})
 	if err != nil {
 		indicatorDocumentDefaultsReviewErrored.Inc()
-		log.Printf("Error marshaling resp: %s", err)
+		log.Print("Error marshaling response")
 		errInternal.Write(responseWriter)
 		return
 	}
 	_, err = responseWriter.Write(data)
 	if err != nil {
 		indicatorDocumentDefaultsReviewErrored.Inc()
-		log.Printf("Error writing resp: %s", err)
+		log.Print("Error writing response")
 	}
 }
 
@@ -259,7 +258,7 @@ func indicatorDefaultHandler(responseWriter http.ResponseWriter, request *http.R
 	requestedAdmissionReview, httpErr := deserializeReview(request)
 	if httpErr != nil {
 		indicatorDefaultsReviewErrored.Inc()
-		log.Printf("Error deserializing review: %s", httpErr.message)
+		log.Printf("Error deserializing review: http error code = %d", httpErr.code)
 		httpErr.Write(responseWriter)
 		return
 	}
@@ -268,7 +267,7 @@ func indicatorDefaultHandler(responseWriter http.ResponseWriter, request *http.R
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicator)
 	if err != nil {
 		indicatorDefaultsReviewErrored.Inc()
-		log.Printf("Error unmarshalling indicator: %s", err)
+		log.Print("Error unmarshalling indicator")
 		errUnableToDeserialize.Write(responseWriter)
 		return
 	}
@@ -281,7 +280,7 @@ func indicatorDefaultHandler(responseWriter http.ResponseWriter, request *http.R
 	patchBytes, err := marshalPatches(patchOperations)
 	if err != nil {
 		indicatorDefaultsReviewErrored.Inc()
-		log.Printf("Error marshaling patches: %s", err)
+		log.Print("Error marshaling patches")
 		errInternal.Write(responseWriter)
 		return
 	}
@@ -295,14 +294,14 @@ func indicatorDefaultHandler(responseWriter http.ResponseWriter, request *http.R
 	})
 	if err != nil {
 		indicatorDefaultsReviewErrored.Inc()
-		log.Printf("Unable to marshal resp: %s", err)
+		log.Print("Unable to marshal response")
 		errInternal.Write(responseWriter)
 		return
 	}
 	_, err = responseWriter.Write(data)
 	if err != nil {
 		indicatorDefaultsReviewErrored.Inc()
-		log.Printf("Unable to write resp: %s", err)
+		log.Print("Unable to write response")
 	}
 }
 
@@ -311,7 +310,7 @@ func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, requ
 	requestedAdmissionReview, httpErr := deserializeReview(request)
 	if httpErr != nil {
 		indicatorDocumentValidationReviewErrored.Inc()
-		log.Printf("Error deserializing review: %s", httpErr.message)
+		log.Print("Error deserializing review")
 		httpErr.Write(responseWriter)
 		return
 	}
@@ -320,7 +319,7 @@ func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, requ
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicatorDoc)
 	if err != nil {
 		indicatorDocumentValidationReviewErrored.Inc()
-		log.Printf("Error unmarshalling indicator document: %s", err)
+		log.Print("Error unmarshalling indicator document")
 		errUnableToDeserialize.Write(responseWriter)
 		return
 	}
@@ -341,14 +340,14 @@ func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, requ
 	})
 	if err != nil {
 		indicatorDocumentValidationReviewErrored.Inc()
-		log.Printf("Unable to marshal resp: %s", err)
+		log.Print("Unable to marshal response")
 		errInternal.Write(responseWriter)
 		return
 	}
 	_, err = responseWriter.Write(data)
 	if err != nil {
 		indicatorDocumentValidationReviewErrored.Inc()
-		log.Printf("Unable to write resp: %s", err)
+		log.Print("Unable to write response")
 	}
 }
 
@@ -358,7 +357,7 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 	requestedAdmissionReview, httpErr := deserializeReview(request)
 	if httpErr != nil {
 		indicatorValidationReviewErrored.Inc()
-		log.Printf("Error deserializing review: %s", httpErr.message)
+		log.Print("Error deserializing review")
 		httpErr.Write(responseWriter)
 		return
 	}
@@ -367,7 +366,7 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicator)
 	if err != nil {
 		indicatorValidationReviewErrored.Inc()
-		log.Printf("Error unmarshalling indicator: %s", err)
+		log.Print("Error unmarshalling indicator")
 		errUnableToDeserialize.Write(responseWriter)
 		return
 	}
@@ -388,14 +387,14 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 	})
 	if err != nil {
 		indicatorValidationReviewErrored.Inc()
-		log.Printf("Unable to marshal resp: %s", err)
+		log.Print("Unable to marshal response")
 		errInternal.Write(responseWriter)
 		return
 	}
 	_, err = responseWriter.Write(data)
 	if err != nil {
 		indicatorValidationReviewErrored.Inc()
-		log.Printf("Unable to write resp: %s", err)
+		log.Print("Unable to write response")
 	}
 }
 
@@ -518,7 +517,7 @@ func deserializeReview(r *http.Request) (*v1beta1.AdmissionReview, *httpError) {
 	}
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			log.Printf("Error closing body: %v\n", err)
+			log.Print("Error closing body")
 		}
 	}()
 

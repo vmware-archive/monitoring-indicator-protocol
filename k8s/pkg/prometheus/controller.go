@@ -75,12 +75,12 @@ func (c *Controller) patch() {
 
 	data, err := json.Marshal(patches)
 	if err != nil {
-		log.Printf("unable to marshal JSON: %s", err)
+		log.Print("unable to marshal JSON")
 		return
 	}
 
 	_, err = c.patcher.Patch("prometheus-server", types.JSONPatchType, data)
 	if err != nil {
-		log.Printf("unable to patch config map: %s", err)
+		log.Print("unable to patch config map")
 	}
 }

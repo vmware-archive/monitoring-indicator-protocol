@@ -33,24 +33,23 @@ func main() {
 
 	prometheusClient, err := prometheus_oauth_client.Build(*prometheusURI, tokenFetcher, *insecure)
 	if err != nil {
-		l.Fatalf("could not create prometheus client: %s\n", err)
+		l.Fatal("could not create prometheus client")
 	}
 
-	stdOut.Println("---------------------------------------------------------------------------------------------")
+	printHorizontalLine(stdOut)
 	stdOut.Printf("Querying current value for %d indicators in Prometheus compliant store \n", len(document.Indicators))
-	stdOut.Println("---------------------------------------------------------------------------------------------")
+	printHorizontalLine(stdOut)
 
 	failedIndicators := make([]indicator.Indicator, 0)
 
 	for _, ind := range document.Indicators {
 		stdOut.Println()
 
-		stdOut.Printf("Querying for indicator with name \"%s\"", ind.Name)
-		stdOut.Printf("  query: %s", ind.PromQL)
+		stdOut.Printf("Querying for indicator in prometheus…")
 
 		result, err := verification.VerifyIndicator(ind, prometheusClient)
 		if err != nil {
-			stdErr.Println("  " + err.Error())
+			stdErr.Println("  error finding indicator")
 			failedIndicators = append(failedIndicators, ind)
 			continue
 		}
@@ -67,22 +66,22 @@ func main() {
 
 	if len(failedIndicators) > 0 {
 		separator(stdOut)
-		stdErr.Println("---------------------------------------------------------------------------------------------")
+		printHorizontalLine(stdErr)
 		stdErr.Println("VALIDATION FAILURE")
-		stdErr.Printf("  Could not find %d indicators in %s \n", len(failedIndicators), *prometheusURI)
+		stdErr.Printf("  Could not find %d indicators \n", len(failedIndicators))
 		stdErr.Println("  Both operators and platform observability tools such as PCF Healthwatch rely on the")
 		stdErr.Println("  existence of this data. Perhaps a metric name changed, or refactored code")
 		stdErr.Println("  is failing to emit.")
-		stdErr.Println("---------------------------------------------------------------------------------------------")
+		printHorizontalLine(stdErr)
 		separator(stdOut)
 
 		os.Exit(1)
 	}
 
 	separator(stdOut)
-	stdOut.Println("---------------------------------------------------------------------------------------------")
+	printHorizontalLine(stdOut)
 	stdOut.Println("  All indicator data found")
-	stdOut.Println("---------------------------------------------------------------------------------------------")
+	printHorizontalLine(stdOut)
 	separator(stdOut)
 }
 
@@ -103,7 +102,11 @@ func checkRequiredFlagsArePresent(indicatorsFilePath string, prometheusURI strin
 	exitOnEmpty(prometheusAuthorization, "authorization")
 }
 
-func separator(stdOut *log.Logger) {
-	stdOut.Println()
-	stdOut.Println()
+func separator(logger *log.Logger) {
+	logger.Println()
+	logger.Println()
+}
+
+func printHorizontalLine(logger *log.Logger) {
+	logger.Println("---------------------------------------------------------------------------------------------")
 }

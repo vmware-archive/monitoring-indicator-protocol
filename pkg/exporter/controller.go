@@ -1,6 +1,7 @@
 package exporter
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -78,17 +79,17 @@ func (c *Controller) Update() error {
 
 	err := fs.MkdirAll(outputDir, os.ModeDir)
 	if err != nil {
-		return fmt.Errorf("failed to create directory %s: %s\n", outputDir, err)
+		return errors.New("failed to create output directory")
 	}
 
 	apiDocuments, err := c.Config.RegistryAPIClient.IndicatorDocuments()
 	if err != nil {
-		return fmt.Errorf("failed to fetch indicator documents, %s", err)
+		return errors.New("failed to fetch indicator documents")
 	}
 
 	err = clearDirectory(fs, outputDir)
 	if err != nil {
-		return fmt.Errorf("failed to read directory %s: %s\n", outputDir, err)
+		return fmt.Errorf("failed to delete contents of directory: %s", err)
 	}
 	writeDocuments(formatDocuments(apiDocuments), c.Config)
 
@@ -107,13 +108,14 @@ func formatDocuments(documents []registry.APIV0Document) []indicator.Document {
 func clearDirectory(fs billy.Filesystem, d string) error {
 	files, err := fs.ReadDir(d)
 	if err != nil {
-		return err
+		return errors.New("failed to read directory")
 	}
 
+	// Note that this will not return an error if some documents are not deleted, it will just print a log statement.
 	for _, f := range files {
 		err = fs.Remove(fmt.Sprintf("%s/%s", d, f.Name()))
 		if err != nil {
-			log.Printf("failed to delete document %s: %s\n", f.Name(), err)
+			log.Print("failed to delete a document")
 		}
 	}
 
@@ -121,22 +123,22 @@ func clearDirectory(fs billy.Filesystem, d string) error {
 }
 
 func writeDocuments(documents []indicator.Document, config ControllerConfig) {
-	log.Printf("writing %s to %s for %d indicator documents", config.DocType, config.OutputDirectory, len(documents))
+	log.Printf("writing %d indicator documents to output directory", len(documents))
 
 	for _, d := range documents {
 		file, err := config.Converter(d)
 		if err != nil {
-			log.Printf("error converting document: %s\n", err)
+			log.Print("error converting document")
 		}
 
 		f, err := config.Filesystem.Create(fmt.Sprintf("%s/%s", config.OutputDirectory, file.Name))
 		if err != nil {
-			log.Printf("error creating file: %s\n", err)
+			log.Print("error creating file")
 		}
 
 		_, err = f.Write(file.Contents)
 		if err != nil {
-			log.Printf("error writing file: %s\n", err)
+			log.Print("error writing file")
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package indicator
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,20 +11,20 @@ import (
 func (document *Document) Validate(supportedApiVersion ...string) []error {
 	es := make([]error, 0)
 	if document.APIVersion == "" {
-		es = append(es, fmt.Errorf("apiVersion is required"))
+		es = append(es, errors.New("apiVersion is required"))
 	}
 
 	if document.Product.Name == "" {
-		es = append(es, fmt.Errorf("product name is required"))
+		es = append(es, errors.New("product name is required"))
 	}
 
 	if document.Product.Version == "" {
-		es = append(es, fmt.Errorf("product version is required"))
+		es = append(es, errors.New("product version is required"))
 	}
 
 	for k := range document.Metadata {
 		if strings.ToLower(k) == "step" {
-			es = append(es, fmt.Errorf("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"))
+			es = append(es, errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"))
 		}
 	}
 
@@ -34,7 +35,7 @@ func (document *Document) Validate(supportedApiVersion ...string) []error {
 	for sectionIdx, section := range document.Layout.Sections {
 		for idx, i := range section.Indicators {
 			if _, found := document.GetIndicator(i); !found {
-				es = append(es, fmt.Errorf("layout sections[%d] indicators[%d] references a non-existent indicator: %s", sectionIdx, idx, i))
+				es = append(es, fmt.Errorf("layout sections[%d] indicators[%d] references a non-existent indicator", sectionIdx, idx))
 			}
 		}
 	}
@@ -86,7 +87,7 @@ func (chartType *ChartType) Validate(idx int) []error {
 		}
 	}
 	if !valid {
-		es = append(es, fmt.Errorf("indicators[%d] invalid chartType provided: '%s' - valid chart types are %v", idx, *chartType, ChartTypes))
+		es = append(es, fmt.Errorf("indicators[%d] invalid chartType provided - valid chart types are %v", idx, ChartTypes))
 	}
 
 	return es

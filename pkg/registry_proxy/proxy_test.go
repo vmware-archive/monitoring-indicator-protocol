@@ -10,7 +10,7 @@ import (
 )
 
 func TestRegistryProxy(t *testing.T) {
-	t.Run("it broadcast POST requests to every registry", func(t *testing.T) {
+	t.Run("it broadcasts POST requests to every registry", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		rw := httptest.NewRecorder()
 		r := httptest.NewRequest("POST", "/foo", nil)

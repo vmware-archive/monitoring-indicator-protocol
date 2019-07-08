@@ -3,11 +3,10 @@ package prometheus_oauth_client
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
+	"errors"
 	"net/http"
 	"net/url"
 
-	utils "github.com/pivotal/monitoring-indicator-protocol/pkg"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_client"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -25,7 +24,7 @@ func (c wrappedClient) URL(ep string, args map[string]string) *url.URL {
 func (c wrappedClient) Do(ctx context.Context, req *http.Request) (*http.Response, []byte, error) {
 	token, err := c.fetchToken()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.New("could not fetch prometheus OAuth token")
 	}
 
 	req.Header.Set("Authorization", token)
@@ -46,7 +45,7 @@ func Build(url string, fetchToken TokenFetcherFunc, insecure bool) (*prometheus_
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf(utils.SanitizeUrl(err, url, ""))
+		return nil, errors.New("could not build prometheus client")
 	}
 
 	prometheusAPI := v1.NewAPI(wrappedClient{fetchToken, prometheusClient})

@@ -54,7 +54,7 @@ func (c *Config) String() string {
 
 	out, err := yaml.Marshal(prometheus_alerts.Document{Groups: groups})
 	if err != nil {
-		log.Printf("Could not marshal alert rules: %s", err)
+		log.Print("Could not marshal alert rules")
 		return "groups: []"
 	}
 

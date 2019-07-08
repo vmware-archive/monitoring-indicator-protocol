@@ -232,7 +232,7 @@ func TestLayout(t *testing.T) {
 		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("layout sections[0] indicators[1] references a non-existent indicator: cats"),
+			errors.New("layout sections[0] indicators[1] references a non-existent indicator"),
 		))
 	})
 }
@@ -342,7 +342,7 @@ func TestChartType(t *testing.T) {
 		es := document.Validate("v1alpha1")
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("indicators[0] invalid chartType provided: 'fakey-fake' - valid chart types are [step bar status quota]"),
+			errors.New("indicators[0] invalid chartType provided - valid chart types are [step bar status quota]"),
 		))
 	})
 }

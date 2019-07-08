@@ -2,6 +2,7 @@ package docs
 
 import (
 	"bytes"
+	"errors"
 	"html/template"
 	"strings"
 
@@ -14,10 +15,10 @@ func docToTemplate(d indicator.Document, t *template.Template) (string, error) {
 	err := t.Execute(buffer, documentPresenter{d.Layout, d.Indicators})
 
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to convert document to template")
 	}
 
-	return buffer.String(), err
+	return buffer.String(), nil
 }
 
 type documentPresenter struct {
@@ -53,32 +54,27 @@ func (sp sectionPresenter) Description() template.HTML {
 func (sp sectionPresenter) Indicators() ([]indicatorPresenter, error) {
 	var indicatorPresenters []indicatorPresenter
 	for _, i := range sp.Section.Indicators {
-		indie, err := findIndicator(i, sp.indicators)
-		if err != nil {
-			return nil, err
-		}
+		indie := findIndicator(i, sp.indicators)
+
 		indicatorPresenters = append(indicatorPresenters, indicatorPresenter{*indie})
 	}
 	return indicatorPresenters, nil
 }
 
-func findIndicator(name string, indicators []indicator.Indicator) (*indicator.Indicator, error) {
+func findIndicator(name string, indicators []indicator.Indicator) *indicator.Indicator {
 	for _, i := range indicators {
 		if i.Name == name {
-			return &i, nil
+			return &i
 		}
 	}
 
-	return nil, nil
+	return nil
 }
 
 func (sp sectionPresenter) HTMLIndicators() ([]indicatorPresenter, error) {
 	var renderedIndicators []indicatorPresenter
 	for _, i := range sp.Section.Indicators {
-		indie, err := findIndicator(i, sp.indicators)
-		if err != nil {
-			return nil, err
-		}
+		indie := findIndicator(i, sp.indicators)
 		renderedIndicators = append(renderedIndicators, indicatorPresenter{*indie})
 	}
 	return renderedIndicators, nil

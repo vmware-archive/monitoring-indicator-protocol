@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -21,17 +22,17 @@ type RepositoryGetter func(Source) (*git.Repository, error)
 func ParseSourcesFile(filePath string) ([]Source, error) {
 	fileBytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("error reading configuration file: %s\n", err)
+		return nil, errors.New("could not parse sources file, error reading configuration file")
 	}
 
 	var f SourcesFile
 	err = yaml.Unmarshal(fileBytes, &f)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing configuration file: %s\n", err)
+		return nil, errors.New("could not parse sources file, error parsing configuration file yaml")
 	}
 
 	if err := Validate(f); err != nil {
-		return nil, fmt.Errorf("configuration is not valid: %s\n", err)
+		return nil, fmt.Errorf("could not parse sources file, configuration is not valid: %s", err)
 	}
 
 	return f.Sources, nil
@@ -46,7 +47,7 @@ func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.Patch
 		case "local":
 			patch, err := indicator.ReadPatchFile(source.Path)
 			if err != nil {
-				log.Printf("failed to read local patch %s: %s\n", source.Path, err)
+				log.Printf("failed to read local patch: %s", err)
 				continue
 			}
 
@@ -54,16 +55,16 @@ func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.Patch
 				Source:  source.Path,
 				Patches: []indicator.Patch{patch},
 			})
-			log.Printf("Parsed %d patches from local source %s", len(patches), source.Path)
+			log.Printf("Parsed %d patches from local sources", len(patches))
 		case "git":
 			repository, err := repositoryGetter(source)
 			if err != nil {
-				log.Printf("failed to initialize repository in %s: %s\n", source.Repository, err)
+				log.Print("failed to initialize git repository")
 				continue
 			}
 			gitPatches, gitDocuments, err := parseRepositoryHead(source, repository)
 			if err != nil {
-				log.Printf("failed to read patches in %s: %s\n", source.Repository, err)
+				log.Print("failed to read patches in repository")
 				continue
 			}
 			patches = append(patches, registry.PatchList{
@@ -71,9 +72,9 @@ func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.Patch
 				Patches: gitPatches,
 			})
 			documents = append(documents, gitDocuments...)
-			log.Printf("Parsed %d documents and %d patches from %s git source", len(gitDocuments), len(gitPatches), source.Repository)
+			log.Printf("Parsed %d documents and %d patches from git source", len(gitDocuments), len(gitPatches))
 		default:
-			log.Printf("invalid source type [%s]\n", source.Type)
+			log.Print("invalid source type, must be either \"local\" or \"git\"")
 			continue
 		}
 	}
@@ -134,6 +135,7 @@ func parseRepositoryHead(s Source, r *git.Repository) ([]indicator.Patch, []indi
 	return retrievePatchesAndDocuments(tree.Files(), s.Glob)
 }
 
+// The error returned is always nil, but keeping this signature allows us to return it directly in parseRepositoryHead
 func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicator.Patch, []indicator.Document, error) {
 	var patchesBytes []unparsedPatch
 	var documentsBytes [][]byte
@@ -147,13 +149,13 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 		if g.Match(f.Name) {
 			contents, err := f.Contents()
 			if err != nil {
-				log.Println(err)
+				log.Print("Error reading contents of patch or document file")
 				return nil
 			}
 
 			apiVersion, err := getAPIVersion([]byte(contents))
 			if err != nil {
-				log.Printf("Failed to parse apiVersion for file %s: %s", f.Name, err)
+				log.Print("Failed to parse apiVersion for file")
 				return nil
 			}
 
@@ -166,9 +168,7 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 		}
 		return nil
 	})
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to traverse git tree: %s\n", err)
-	}
+
 	patches := readPatches(patchesBytes)
 	documents := processDocuments(documentsBytes, patches)
 	return patches, documents, err
@@ -198,11 +198,7 @@ func processDocuments(documentsBytes [][]byte, patches []indicator.Patch) []indi
 	for _, documentBytes := range documentsBytes {
 		doc, errs := indicator.ProcessDocument(patches, documentBytes)
 		if len(errs) > 0 {
-			for _, e := range errs {
-				log.Printf("- %s \n", e.Error())
-			}
-
-			log.Printf("validation for indicator file failed - [%+v]\n", errs)
+			log.Printf("validation for indicator file failed - %d errors", len(errs))
 			continue
 		}
 

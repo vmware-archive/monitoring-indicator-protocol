@@ -1,9 +1,7 @@
 package registry
 
 import (
-	"fmt"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
@@ -63,9 +61,7 @@ func (d *DocumentStore) UpsertPatches(patchList PatchList) {
 
 	d.patchesBySource[patchList.Source] = patchList.Patches
 
-	for _, p := range patchList.Patches {
-		logPatchInsert(p)
-	}
+	log.Printf("registered %d patches", len(patchList.Patches))
 }
 
 func (d *DocumentStore) AllDocuments() []indicator.Document {
@@ -135,19 +131,4 @@ func (d *DocumentStore) getPosition(indicatorDocument indicator.Document) int {
 	}
 
 	return -1
-}
-
-func logPatchInsert(p indicator.Patch) {
-	logLine := strings.Builder{}
-	logLine.Write([]byte("registered patch for"))
-	if p.Match.Name != nil {
-		logLine.WriteString(" name: " + *p.Match.Name)
-	}
-	if p.Match.Version != nil {
-		logLine.WriteString(" version: " + *p.Match.Version)
-	}
-	if p.Match.Metadata != nil {
-		logLine.WriteString(fmt.Sprintf(" metadata: %v", p.Match.Metadata))
-	}
-	log.Println(logLine.String())
 }

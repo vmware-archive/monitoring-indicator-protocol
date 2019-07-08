@@ -44,16 +44,13 @@ func main() {
 		StatusStore:   status_store.New(time.Now),
 	}
 
-	start, stop, err := registry.NewWebServer(config)
+	start, stop := registry.NewWebServer(config)
 
-	if err != nil {
-		log.Fatalf("failed to create server: %s\n", err)
-	}
 	defer stop()
 
-	err = start()
+	err := start()
 	if err != nil {
-		log.Fatalf("failed to create server: %s\n", err)
+		log.Fatal("failed to start registry server")
 	}
 }
 
@@ -71,7 +68,7 @@ func readConfigEachMinute(configFile string, store *registry.DocumentStore) {
 func upsertFromConfig(configFile string, store *registry.DocumentStore) {
 	sources, err := configuration.ParseSourcesFile(configFile)
 	if err != nil {
-		log.Fatalf("failed to parse configuration file: %s\n", err)
+		log.Fatal("failed to parse configuration file")
 	}
 	patches, documents := configuration.Read(sources, getRealRepository)
 

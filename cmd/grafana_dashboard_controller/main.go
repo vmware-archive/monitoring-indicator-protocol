@@ -26,7 +26,7 @@ func main() {
 
 	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
-		log.Fatalf("failed to create mtls http client, %s", err)
+		log.Fatal("construction of grafana_dashboard_controller failed, could not create mTLS HTTP client")
 	}
 
 	registryHttpClient := &http.Client{

@@ -21,8 +21,7 @@ func TestServingMetrics(t *testing.T) {
 	conf := registry.WebServerConfig{
 		Address: "localhost:12345",
 	}
-	start, stop, err := registry.NewWebServer(conf)
-	g.Expect(err).ToNot(HaveOccurred())
+	start, stop := registry.NewWebServer(conf)
 	defer stop()
 
 	go start()
@@ -51,8 +50,7 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 		DocumentStore: registry.NewDocumentStore(time.Second, time.Now),
 		StatusStore:   status_store.New(time.Now),
 	}
-	start, stop, err := registry.NewWebServer(conf)
-	g.Expect(err).ToNot(HaveOccurred())
+	start, stop := registry.NewWebServer(conf)
 	defer stop()
 
 	go start()
@@ -76,7 +74,7 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 	}
 	g.Eventually(f).ShouldNot(HaveOccurred())
 
-	resp, err = http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", conf.Address))
+	resp, err := http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", conf.Address))
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, err := ioutil.ReadAll(resp.Body)
@@ -92,8 +90,7 @@ func TestWritingAndReadingStatus(t *testing.T) {
 		DocumentStore: registry.NewDocumentStore(time.Second, time.Now),
 		StatusStore:   status_store.New(time.Now),
 	}
-	start, stop, err := registry.NewWebServer(conf)
-	g.Expect(err).ToNot(HaveOccurred())
+	start, stop := registry.NewWebServer(conf)
 	defer stop()
 
 	go start()
@@ -119,7 +116,7 @@ func TestWritingAndReadingStatus(t *testing.T) {
 
 	// make our status update request
 	const documentUID = `my-product-a-a902332065d69c1787f419e235a1f1843d98c884`
-	resp, err = http.Post(
+	resp, err := http.Post(
 		fmt.Sprintf("http://%s/v1/indicator-documents/%s/bulk_status", conf.Address, documentUID),
 		"application/json",
 		bytes.NewReader([]byte(statusRequest)),

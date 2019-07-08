@@ -200,11 +200,6 @@ func ToAPIV0Document(doc indicator.Document, getStatus func(string) *APIV0Indica
 	sections := make([]APIV0Section, 0)
 
 	for _, s := range doc.Layout.Sections {
-		//indicatorNames := make([]string, 0)
-		//for _, i := range s.Indicators {
-		//	indicatorNames = append(indicatorNames, i)
-		//}
-
 		sections = append(sections, APIV0Section{
 			Title:       s.Title,
 			Description: s.Description,

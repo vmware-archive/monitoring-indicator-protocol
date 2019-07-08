@@ -42,14 +42,14 @@ func NewStatusController(
 func (c StatusController) Start() {
 	err := c.updateStatuses()
 	if err != nil {
-		log.Printf("Failed to update indicator statuses: %s", err)
+		log.Print("Failed to update indicator statuses")
 	}
 
 	for {
 		time.Sleep(c.interval)
 		err := c.updateStatuses()
 		if err != nil {
-			log.Printf("Failed to update indicator statuses: %s", err)
+			log.Print("Failed to update indicator statuses")
 		}
 	}
 }
@@ -69,7 +69,7 @@ func (c StatusController) updateStatuses() error {
 
 			values, err := c.promQLClient.QueryVectorValues(indicator.PromQL)
 			if err != nil {
-				log.Printf("Error querying Prometheus: %s", err)
+				log.Print("Error querying Prometheus")
 				continue
 			}
 			thresholds := registry.ConvertThresholds(indicator.Thresholds)

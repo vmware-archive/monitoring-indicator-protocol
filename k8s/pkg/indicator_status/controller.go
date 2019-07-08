@@ -53,7 +53,7 @@ func NewController(
 func (c *Controller) Start() {
 	existingList, err := c.indicatorClient.Indicators(c.namespace).List(v1.ListOptions{})
 	if err != nil {
-		log.Printf("Could not load existing indicators on Start: %s", err)
+		log.Print("Could not load existing indicators on Start")
 	}
 	if existingList.Items != nil {
 		for _, indicator := range existingList.Items {
@@ -70,7 +70,7 @@ func (c *Controller) Start() {
 func (c *Controller) OnAdd(obj interface{}) {
 	indicator, ok := obj.(*types.Indicator)
 	if !ok {
-		log.Printf("Invalid resource type OnAdd: %T", obj)
+		log.Print("Invalid resource type OnAdd")
 		return
 	}
 
@@ -80,7 +80,7 @@ func (c *Controller) OnAdd(obj interface{}) {
 func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 	indicator, ok := newObj.(*types.Indicator)
 	if !ok {
-		log.Printf("Invalid resource type OnUpdate: %T", indicator)
+		log.Print("Invalid resource type OnUpdate")
 		return
 	}
 
@@ -90,7 +90,7 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 func (c *Controller) OnDelete(obj interface{}) {
 	indicator, ok := obj.(*types.Indicator)
 	if !ok {
-		log.Printf("Invalid resource type OnDelete: %T", obj)
+		log.Print("Invalid resource type OnDelete")
 		return
 	}
 
@@ -101,7 +101,7 @@ func (c *Controller) updateStatuses() {
 	for _, indicator := range c.indicatorStore.GetIndicators() {
 		status, err := c.getStatus(indicator)
 		if err != nil {
-			log.Printf("Error getting status: %s", err)
+			log.Print("Error getting status for indicator")
 			continue
 		}
 
@@ -115,7 +115,7 @@ func (c *Controller) updateStatuses() {
 		_, err = c.indicatorClient.Indicators(indicator.Namespace).Update(&indicator)
 
 		if err != nil {
-			log.Printf("Error updating indicator %s: %s", indicator.Name, err)
+			log.Print("Error updating indicator")
 		}
 	}
 }
@@ -127,7 +127,7 @@ func (c *Controller) getStatus(indicator types.Indicator) (string, error) {
 	}
 	values, err := c.promqlClient.QueryVectorValues(indicator.Spec.Promql)
 	if err != nil {
-		log.Print(err)
+		log.Print("Error querying Prometheus")
 		return "", err
 	}
 

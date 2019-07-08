@@ -3,11 +3,10 @@ package registry
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	utils "github.com/pivotal/monitoring-indicator-protocol/pkg"
 )
 
 type RegistryApiClient struct {
@@ -25,8 +24,7 @@ func NewAPIClient(serverURL string, client *http.Client) *RegistryApiClient {
 func (c *RegistryApiClient) IndicatorDocuments() ([]APIV0Document, error) {
 	payload, e := c.indicatorResponse()
 	if e != nil {
-		errString := utils.SanitizeUrl(e, c.serverURL, "failed to get indicator documents")
-		return nil, fmt.Errorf(errString)
+		return nil, errors.New("failed to get indicator documents")
 	}
 
 	var d []APIV0Document
@@ -58,8 +56,7 @@ func (c *RegistryApiClient) BulkStatusUpdate(statusUpdates []APIV0UpdateIndicato
 	)
 
 	if err != nil {
-		errMessage := utils.SanitizeUrl(err, c.serverURL, "Error sending status updates")
-		return fmt.Errorf(errMessage)
+		return errors.New("error sending status updates")
 	}
 
 	if resp.StatusCode != 200 {

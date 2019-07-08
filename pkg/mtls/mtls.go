@@ -3,7 +3,7 @@ package mtls
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
+	"errors"
 	"io/ioutil"
 )
 
@@ -22,7 +22,7 @@ var supportedCipherSuites = []uint16{
 func NewServerConfig(caPath string) (*tls.Config, error) {
 	caCert, err := ioutil.ReadFile(caPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read root CA certificate: %s\n", err)
+		return nil, errors.New("failed to read root CA certificate file")
 	}
 
 	caCertPool := x509.NewCertPool()

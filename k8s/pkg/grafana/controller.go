@@ -33,21 +33,21 @@ func (c *Controller) OnAdd(obj interface{}) {
 	}
 	configMap, err := ConfigMap(doc, nil)
 	if err != nil {
-		log.Printf("Failed to generate ConfigMap: %s", err)
+		log.Print("Failed to generate ConfigMap")
 		return
 	}
 
 	if c.configMapAlreadyExists(configMap) {
 		_, err = c.cmEditor.Update(configMap)
 		if err != nil {
-			log.Printf("Failed to update while adding ConfigMap: %s", err)
+			log.Print("Failed to update while adding ConfigMap")
 		}
 		return
 	}
 
 	_, err = c.cmEditor.Create(configMap)
 	if err != nil {
-		log.Printf("Failed to create ConfigMap: %s", err)
+		log.Print("Failed to create ConfigMap")
 		return
 	}
 }
@@ -69,12 +69,12 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 	}
 	configMap, err := ConfigMap(newDoc, nil)
 	if err != nil {
-		log.Printf("Failed to generate ConfigMap: %s", err)
+		log.Print("Failed to generate ConfigMap")
 		return
 	}
 	_, err = c.cmEditor.Update(configMap)
 	if err != nil {
-		log.Printf("Failed to update ConfigMap: %s", err)
+		log.Print("Failed to update ConfigMap")
 		return
 	}
 }
@@ -82,12 +82,12 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 // TODO: evaluate edge case where object might not exist
 // TODO: do we need to handle non-indicatordocuments?
 func (c *Controller) OnDelete(obj interface{}) {
-	doc, ok := obj.(*v1alpha1.IndicatorDocument)
+	_, ok := obj.(*v1alpha1.IndicatorDocument)
 	if !ok {
-		log.Printf("OnDelete received a non-indicatordocument: %T", obj)
+		log.Print("OnDelete received a non-indicatordocument")
 		return
 	}
-	log.Printf("Deleting Grafana config map for %s on namespace %s", doc.Name, doc.Namespace)
+	log.Print("Deleting Grafana config map")
 }
 
 func (c *Controller) configMapAlreadyExists(configMap *v1.ConfigMap) bool {
