@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+mkdir certs
 openssl genrsa -out certs/ca.key 4096
 openssl req -x509 -new -nodes -key certs/ca.key -subj "/CN=localhost" -sha256 -days 1024 -out certs/ca.pem
 openssl genrsa -out certs/server.key 2048
