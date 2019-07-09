@@ -2,11 +2,11 @@
 resources:
 - name: monitoring-indicator-protocol
   type: git
+  icon: package-variant-closed
   source:
-    uri: https://github.com/pivotal/monitoring-indicator-protocol
+    uri: git@github.com:pivotal/monitoring-indicator-protocol.git
     branch: master
-    username: git
-    password: ((indicator-protocol-access-token))
+    private_key: ((bot-github-ssh-key.private_key))
     ignore_paths:
     - README.md
     - ci
@@ -18,7 +18,7 @@ resources:
   source:
     branch: master
     uri: git@github.com:pivotal-cf/denver-locks.git
-    private_key: ((event-producer-github-key))
+    private_key: ((bot-github-ssh-key.private_key))
 - name: release-version
   type: semver
   source:
@@ -32,7 +32,7 @@ resources:
   source:
     user: pivotal
     repository: monitoring-indicator-protocol
-    access_token: ((indicator-protocol-access-token))
+    access_token: ((bot-github-access-token))
     drafts: true
 - name: k8s-grafana-controller-docker-repo
   type: docker-image
@@ -210,7 +210,7 @@ jobs:
       - name: monitoring-indicator-protocol
       - name: env-state
       params:
-        ENVIRONMENT: moonstorm
+        ENVIRONMENT: moonstorm #TODO: do this on madlamp and with our real indicator doc
         BBL_STATE_DIR: acceptance-bosh/healthwatch/moonstorm
         DEPLOYMENT_NAME: cf-01234567890123456789
       run:
@@ -355,20 +355,20 @@ jobs:
           repository: buildpack-deps
           tag: stretch-scm
       inputs:
-        - name: monitoring-indicator-protocol
+      - name: monitoring-indicator-protocol
       outputs:
-        - name: tag
+      - name: tag
       run:
         path: bash
         args:
-          - -c
-          - |
-            #!/usr/bin/env bash
-            set -ex
-            cd monitoring-indicator-protocol
-            SHA=$(git rev-parse HEAD)
-            cd ..
-            echo ${SHA} > tag/tag
+        - -c
+        - |
+          #!/usr/bin/env bash
+          set -ex
+          cd monitoring-indicator-protocol
+          SHA=$(git rev-parse HEAD)
+          cd ..
+          echo ${SHA} > tag/tag
   - in_parallel:
     - put: bosh-indicator-registry-docker-repo
       attempts: 2
@@ -882,8 +882,8 @@ jobs:
               releases/monitoring-indicator-protocol/monitoring-indicator-protocol-${BUILD_NUMBER}.yml
 
             git add .
-            git config --global user.email "cf-event-producer@pivotal.io"
-            git config --global user.name "event-producer-cibot"
+            git config --global user.email "indicator-protocol@pivotal.io"
+            git config --global user.name "indicator-protocol-bot"
             git commit -m "Create final release\
 
             [ci skip]"
