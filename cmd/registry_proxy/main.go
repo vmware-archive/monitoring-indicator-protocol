@@ -65,8 +65,9 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	log.Printf("Listening for request via: https://%s\n", address)
-	log.Fatalf("Listen unblocked: %s", server.ListenAndServeTLS(*serverPEM, *serverKey))
+	log.Printf("Listening for request on port %d", port)
+	_ = server.ListenAndServeTLS(*serverPEM, *serverKey)
+	log.Fatalf("Listen unblocked")
 }
 
 func createHandlers(localRegistryAddr string, registryAddrs []string, tlsConfig *tls.Config) (http.Handler, []http.Handler, error) {

@@ -116,6 +116,12 @@ resources:
     repository: indicatorprotocol/bosh-indicator-protocol-registry-proxy
     username: ((dockerhub-username))
     password: ((dockerhub-password))
+- name: bosh-indicator-registry-agent-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/bosh-indicator-protocol-registry-agent
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: dev-release
   type: gcs-resource
   source:
@@ -382,6 +388,12 @@ jobs:
         additional_tags: tag/tag
         build: monitoring-indicator-protocol
         dockerfile: monitoring-indicator-protocol/cmd/registry_proxy/Dockerfile
+    - put: bosh-indicator-registry-agent-docker-repo
+      attempts: 2
+      params:
+        additional_tags: tag/tag
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/cmd/registry_agent/Dockerfile
 
 - name: create-k8s-docker-images
   plan:
