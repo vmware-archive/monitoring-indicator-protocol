@@ -12,7 +12,7 @@ metadata:
 indicators:
 - name: registry_http_request_frequency
   description: HTTP request rate to the indicator registry over the prior 5 minutes, broken down by response status
-  promql: sum by(status)(rate(registry_http_requests{source_id=$source_id,deployment=$deployment}[5m])) * 60
+  promql: sum by(status)(rate(registry_http_requests{source_id="$source_id",deployment="$deployment"}[5m])) * 60
   presentation:
     units: requests/minute
   documentation:
@@ -21,7 +21,7 @@ indicators:
 
 - name: registry_http_error_percentage
   description: Percentage of HTTP requests to the registry resulting in a non 200 response
-  promql: (sum (rate(registry_http_requests{source_id=$source_id,deployment=$deployment,status!="200"}[5m])) / sum (rate(registry_http_requests{source_id=$source_id,deployment=$deployment}[5m]))) * 100
+  promql: (sum (rate(registry_http_requests{source_id="$source_id",deployment="$deployment",status!="200"}[5m])) / sum (rate(registry_http_requests{source_id="$source_id",deployment="$deployment"}[5m]))) * 100
   presentation:
     units: "%"
   documentation:
@@ -31,7 +31,7 @@ indicators:
 
 - name: registry_http_request_frequency_by_vm
   description: HTTP request rate to the indicator registry over the prior 5 minutes, broken down by VM
-  promql: sum by(ip)(rate(registry_http_requests{source_id=$source_id,deployment=$deployment}[5m])) * 60
+  promql: sum by(ip)(rate(registry_http_requests{source_id="$source_id",deployment="$deployment"}[5m])) * 60
   presentation:
     units: requests/minute
   documentation:
@@ -40,7 +40,7 @@ indicators:
 
 - name: registry_http_error_percentage_by_vm
   description: Percentage of HTTP requests to the registry resulting in a non 200 response, broken down by VM
-  promql: (sum by(ip)(rate(registry_http_requests{source_id=$source_id,deployment=$deployment,status!="200"}[5m])) / sum by(ip)(rate(registry_http_requests{source_id=$source_id,deployment=$deployment}[5m]))) * 100
+  promql: (sum by(ip)(rate(registry_http_requests{source_id="$source_id",deployment="$deployment",status!="200"}[5m])) / sum by(ip)(rate(registry_http_requests{source_id="$source_id",deployment="$deployment"}[5m]))) * 100
   presentation:
     units: "%"
   documentation:
