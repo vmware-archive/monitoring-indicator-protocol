@@ -77,7 +77,7 @@ helm install stable/prometheus --name prometheus --namespace prometheus
 After setting up your cluster,
 you can deploy the SRE resources by:
 
-```
+```bash
 kubectl apply -k config
 ```
 
@@ -85,7 +85,7 @@ This will install the controllers using the `latest` tag in Docker.
 
 After deploying the SRE resources you can deploy indicatordocument resources:
 
-```
+```bash
 kubectl apply -f test/valid/simple.yml
 ```
 
