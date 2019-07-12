@@ -9,9 +9,9 @@ services:
     ports: ["10567:10567"]
     volumes: ["./certs:/srv/certs"]
     depends_on:
-      - indicator-registry
-  indicator-registration-agent:
+    - indicator-registry
+  indicator-registry-agent:
     image: indicatorprotocol/bosh-indicator-protocol-registry-agent
     volumes: ["./certs:/srv/certs", "./resources:/srv/resources"]
     depends_on:
-      - indicator-registry-proxy
+    - indicator-registry-proxy
