@@ -83,7 +83,11 @@ kubectl apply -k config
 
 This will install the controllers using the `latest` tag in Docker.
 
-After deploying the SRE resources you can deploy indicatordocument resources:
+After deploying the SRE resources you can deploy indicatordocument resources. It may take a bit, so if you see the error message:
+```
+no endpoints available for service "indicator-admission"
+```
+give it a few minutes.
 
 ```bash
 kubectl apply -f test/valid/simple.yml

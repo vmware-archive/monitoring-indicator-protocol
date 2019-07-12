@@ -84,71 +84,90 @@ func init() {
 }
 
 func TestControllers(t *testing.T) {
-	testCases := map[string]func(*v1alpha1.IndicatorDocument) func() bool{
-		"grafana": func(id *v1alpha1.IndicatorDocument) func() bool {
-			return func() bool {
-				cm, err := clients.k8sClientset.CoreV1().
-					ConfigMaps("grafana").
-					Get(grafanaDashboardFilename(id), metav1.GetOptions{})
+	const testTimeout = 120 * time.Second
 
-				if err != nil {
-					t.Logf("Unable to get config map, retrying: %s", err)
-					return false
-				}
-				match := grafanaConfigMapMatch(t, grafanaDashboardFilename(id)+".json", cm, id)
-				if !match {
-					t.Logf("Unable to match grafana config")
-					return false
-				}
-				return grafanaApiResponseMatch(t, id)
-			}
-		},
-		"prometheus": func(id *v1alpha1.IndicatorDocument) func() bool {
-			return func() bool {
-				cm, err := clients.k8sClientset.CoreV1().
-					ConfigMaps("prometheus").
-					Get("prometheus-server", metav1.GetOptions{})
-				if err != nil {
-					t.Logf("Unable to get config map, retrying: %s", err)
-					return false
-				}
-				match := prometheusConfigMapMatch(t, cm, id)
-				if !match {
-					t.Logf("Unable to match prometheus config")
-					return false
-				}
-				return prometheusApiResponseMatch(t, id)
-			}
-		},
-		"lifecycle": func(id *v1alpha1.IndicatorDocument) func() bool {
-			return func() bool {
-				resources := clients.idClient.Indicators(id.Namespace)
-				resource, err := getIndicator(resources, id.Name, id.Spec.Indicators[0].Name)
-				if err != nil {
-					t.Logf("Unable to get new indicator, retrying: %s", err)
-					return false
-				}
-				return resource != nil
-			}
-		},
+	setup := func (t *testing.T) (func(), *v1alpha1.IndicatorDocument) {
+		t.Parallel()
+
+		ns, cleanup := createNamespace(t)
+		indiDoc := indicatorDocument(ns)
+		t.Logf("Creating indicator document in namespace: %s", ns)
+		_, err := clients.idClient.IndicatorDocuments(ns).Create(indiDoc)
+		if err != nil {
+			t.Log(err)
+			t.Fail()
+		}
+
+		return cleanup, indiDoc
 	}
 
-	for tn, tc := range testCases {
-		t.Run(tn, func(t *testing.T) {
-			g := NewGomegaWithT(t)
-			ns, cleanup := createNamespace(t)
-			defer cleanup()
-			id := indicatorDocument(ns)
+	t.Run("grafana", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		cleanup, indiDoc := setup(t)
+		defer cleanup()
 
-			t.Logf("Creating indicator document in namespace: %s", ns)
-			_, err := clients.idClient.IndicatorDocuments(ns).Create(id)
+		grafanaMatches := func() bool {
+			cm, err := clients.k8sClientset.CoreV1().
+				ConfigMaps("grafana").
+				Get(grafanaDashboardFilename(indiDoc), metav1.GetOptions{})
 
-			g.Expect(err).ToNot(HaveOccurred())
-			// NOTE: We set this deadline to be 150s but this might not hold forever.
-			// If we see failures due to timing issues we should increase this.
-			g.Eventually(tc(id), 150).Should(BeTrue())
-		})
-	}
+			if err != nil {
+				t.Logf("Unable to get config map, retrying: %s", err)
+				return false
+			}
+			match := grafanaConfigMapMatch(t, grafanaDashboardFilename(indiDoc)+".json", cm, indiDoc)
+			if !match {
+				t.Logf("Unable to match grafana config")
+				return false
+			}
+
+			return grafanaApiResponseMatch(t, indiDoc)
+		}
+
+		g.Eventually(grafanaMatches, testTimeout).Should(BeTrue())
+	})
+
+	t.Run("prometheus", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		cleanup, indiDoc := setup(t)
+		defer cleanup()
+
+		prometheusMatches := func() bool {
+			cm, err := clients.k8sClientset.CoreV1().
+				ConfigMaps("prometheus").
+				Get("prometheus-server", metav1.GetOptions{})
+			if err != nil {
+				t.Logf("Unable to get config map, retrying: %s", err)
+				return false
+			}
+			match := prometheusConfigMapMatch(t, cm, indiDoc)
+			if !match {
+				t.Logf("Unable to match prometheus config")
+				return false
+			}
+			return prometheusApiResponseMatch(t, indiDoc)
+		}
+		g.Eventually(prometheusMatches, testTimeout).Should(BeTrue())
+	})
+
+	t.Run("lifecycle", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		cleanup, indiDoc := setup(t)
+		defer cleanup()
+
+		lifecycleExisting := func() bool {
+			resources := clients.idClient.Indicators(indiDoc.Namespace)
+			resource, err := getIndicator(resources, indiDoc.Name, indiDoc.Spec.Indicators[0].Name)
+			if err != nil {
+				t.Logf("Unable to get new indicator, retrying: %s", err)
+				return false
+			}
+			return resource != nil
+		}
+
+		g.Eventually(lifecycleExisting, testTimeout).Should(BeTrue())
+	})
+
 }
 
 func TestAdmission(t *testing.T) {
@@ -271,6 +290,11 @@ func grafanaApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocument)
 	err = json.Unmarshal(body, &results)
 	if err != nil {
 		t.Logf("Unable to unmarshal Grafana config response body, retrying: %s", err)
+		return false
+	}
+
+	if len(results) == 0 {
+		t.Log("Grafana API returned 0 results")
 		return false
 	}
 	return len(results) == 1
@@ -401,7 +425,7 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 	indicatorName := fmt.Sprintf("e2e_test_indicator_%d", rand.Intn(math.MaxInt32))
 	return &v1alpha1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("e2e-test-%d", rand.Intn(math.MaxInt32)),
+			Name:      fmt.Sprintf("e2etest%d", rand.Intn(math.MaxInt32)),
 			Namespace: ns,
 		},
 		TypeMeta: metav1.TypeMeta{
@@ -409,7 +433,7 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 		},
 		Spec: v1alpha1.IndicatorDocumentSpec{
 			Product: v1alpha1.Product{
-				Name:    fmt.Sprintf("e2e-test-product-%d", rand.Intn(math.MaxInt32)),
+				Name:    fmt.Sprintf("e2etestproduct%d", rand.Intn(math.MaxInt32)),
 				Version: "v1.2.3-rc1",
 			},
 			Indicators: []v1alpha1.IndicatorSpec{
