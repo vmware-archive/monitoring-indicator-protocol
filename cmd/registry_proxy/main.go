@@ -65,7 +65,7 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
-	log.Printf("Listening for request on port %d", port)
+	log.Printf("Listening for request on port %d", *port)
 	_ = server.ListenAndServeTLS(*serverPEM, *serverKey)
 	log.Fatalf("Listen unblocked")
 }

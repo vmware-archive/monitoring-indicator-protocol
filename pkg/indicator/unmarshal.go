@@ -2,6 +2,7 @@ package indicator
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,69 +11,39 @@ import (
 	"strings"
 
 	"github.com/cppforlife/go-patch/patch"
-	"gopkg.in/yaml.v2"
+	"github.com/ghodss/yaml"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 )
-
-func (t *Threshold) UnmarshalYAML(unmarshal func(v interface{}) error) error {
-	var threshold struct {
-		Level    string  `yaml:"level"`
-		Operator string  `yaml:"operator"`
-		Value    float64 `yaml:"value"`
-	}
-
-	err := unmarshal(&threshold)
-	if err != nil {
-		return err
-	}
-	t.Level = threshold.Level
-	t.Value = threshold.Value
-
-	switch {
-	case threshold.Operator == "lt":
-		t.Operator = LessThan
-	case threshold.Operator == "lte":
-		t.Operator = LessThanOrEqualTo
-	case threshold.Operator == "eq":
-		t.Operator = EqualTo
-	case threshold.Operator == "neq":
-		t.Operator = NotEqualTo
-	case threshold.Operator == "gte":
-		t.Operator = GreaterThanOrEqualTo
-	case threshold.Operator == "gt":
-		t.Operator = GreaterThan
-	default:
-		t.Operator = Undefined
-	}
-	return nil
-}
 
 type ReadOpt func(options *readOptions)
 
-func DocumentFromYAML(reader io.ReadCloser) (Document, error) {
-	var doc Document
-
-	buf := new(bytes.Buffer)
-	_, err := buf.ReadFrom(reader)
+func DocumentFromYAML(r io.ReadCloser) (v1alpha1.IndicatorDocument, error) {
+	docBytes, err := ioutil.ReadAll(r)
 	if err != nil {
-		return Document{}, fmt.Errorf("could not read indicator document")
+		return v1alpha1.IndicatorDocument{}, err
 	}
-	docBytes := buf.Bytes()
-	_ = reader.Close()
 
-	apiVersion, err := v0apiVersionFromYAML(docBytes)
+	apiVersion, err := apiVersionFromYAML(docBytes)
 	if err != nil {
-		return Document{}, err
+		return v1alpha1.IndicatorDocument{}, err
 	}
-	if apiVersion == "v0" {
+
+	var doc v1alpha1.IndicatorDocument
+	switch apiVersion {
+	case "v0":
 		log.Print("WARNING: apiVersion v0 will be deprecated in future releases")
-		doc, err = v0documentFromBytes(buf.Bytes())
-	} else if apiVersion == "v1alpha1" {
+		doc, err = v0documentFromBytes(docBytes)
+	case "apps.pivotal.io/v1alpha1":
 		err = yaml.Unmarshal(docBytes, &doc)
-	} else {
-		err = fmt.Errorf("invalid apiVersion, supported versions are: v0, v1alpha1")
+	default:
+		err = fmt.Errorf("invalid apiVersion, supported versions are: v0, apps.pivotal.io/v1alpha1")
 	}
+
 	if err != nil {
-		return Document{}, err
+		return v1alpha1.IndicatorDocument{}, err
 	}
 
 	populateDefaultAlert(&doc)
@@ -82,21 +53,21 @@ func DocumentFromYAML(reader io.ReadCloser) (Document, error) {
 	return doc, nil
 }
 
-func v0documentFromBytes(yamlBytes []byte) (Document, error) {
+func v0documentFromBytes(yamlBytes []byte) (v1alpha1.IndicatorDocument, error) {
 	var d v0yamlDocument
 
 	err := yaml.Unmarshal(yamlBytes, &d)
 	if err != nil {
-		return Document{}, fmt.Errorf("could not unmarshal indicator document")
+		return v1alpha1.IndicatorDocument{}, fmt.Errorf("could not unmarshal indicator document")
 	}
 
-	var indicators []Indicator
+	var indicators []v1alpha1.IndicatorSpec
 	for indicatorIndex, yamlIndicator := range d.Indicators {
-		var thresholds []Threshold
+		var thresholds []v1alpha1.Threshold
 		for thresholdIndex, yamlThreshold := range yamlIndicator.Thresholds {
 			threshold, err := v0thresholdFromYAML(yamlThreshold)
 			if err != nil {
-				return Document{}, fmt.Errorf("could not unmarshal threshold %v in indicator %v", thresholdIndex, indicatorIndex)
+				return v1alpha1.IndicatorDocument{}, fmt.Errorf("could not unmarshal threshold %v in indicator %v", thresholdIndex, indicatorIndex)
 			}
 
 			thresholds = append(thresholds, threshold)
@@ -104,7 +75,7 @@ func v0documentFromBytes(yamlBytes []byte) (Document, error) {
 
 		p := v0presentationFromYAML(yamlIndicator.Presentation)
 
-		indicators = append(indicators, Indicator{
+		indicators = append(indicators, v1alpha1.IndicatorSpec{
 			Name:          yamlIndicator.Name,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
@@ -117,33 +88,40 @@ func v0documentFromBytes(yamlBytes []byte) (Document, error) {
 
 	layout := getLayout(d.YAMLLayout)
 
-	return Document{
-		APIVersion: d.APIVersion,
-		Product: Product{
-			Name:    d.Product.Name,
-			Version: d.Product.Version,
+	return v1alpha1.IndicatorDocument{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v0",
+			Kind:       "IndicatorDocument",
 		},
-		Metadata:   d.Metadata,
-		Indicators: indicators,
-		Layout:     layout,
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: d.Metadata,
+		},
+		Spec: v1alpha1.IndicatorDocumentSpec{
+			Product: v1alpha1.Product{
+				Name:    d.Product.Name,
+				Version: d.Product.Version,
+			},
+			Indicators: indicators,
+			Layout:     layout,
+		},
 	}, nil
 }
 
-func getLayout(l *v0yamlLayout) Layout {
-	var sections []Section
+func getLayout(l *v0yamlLayout) v1alpha1.Layout {
 	if l == nil {
-		return Layout{}
+		return v1alpha1.Layout{}
 	}
+	sections := make([]v1alpha1.Section, 0)
 
 	for _, s := range l.Sections {
-		sections = append(sections, Section{
+		sections = append(sections, v1alpha1.Section{
 			Title:       s.Title,
 			Description: s.Description,
 			Indicators:  s.IndicatorRefs,
 		})
 	}
 
-	return Layout{
+	return v1alpha1.Layout{
 		Title:       l.Title,
 		Description: l.Description,
 		Owner:       l.Owner,
@@ -151,49 +129,49 @@ func getLayout(l *v0yamlLayout) Layout {
 	}
 }
 
-func v0thresholdFromYAML(threshold v0yamlThreshold) (Threshold, error) {
-	var operator OperatorType
+func v0thresholdFromYAML(threshold v0yamlThreshold) (v1alpha1.Threshold, error) {
+	var operator v1alpha1.ThresholdOperator
 	var value float64
 	var err error
 
 	switch {
 	case threshold.LT != "":
-		operator = LessThan
+		operator = v1alpha1.LessThan
 		value, err = strconv.ParseFloat(threshold.LT, 64)
 	case threshold.LTE != "":
-		operator = LessThanOrEqualTo
+		operator = v1alpha1.LessThanOrEqualTo
 		value, err = strconv.ParseFloat(threshold.LTE, 64)
 	case threshold.EQ != "":
-		operator = EqualTo
+		operator = v1alpha1.EqualTo
 		value, err = strconv.ParseFloat(threshold.EQ, 64)
 	case threshold.NEQ != "":
-		operator = NotEqualTo
+		operator = v1alpha1.NotEqualTo
 		value, err = strconv.ParseFloat(threshold.NEQ, 64)
 	case threshold.GTE != "":
-		operator = GreaterThanOrEqualTo
+		operator = v1alpha1.GreaterThanOrEqualTo
 		value, err = strconv.ParseFloat(threshold.GTE, 64)
 	case threshold.GT != "":
-		operator = GreaterThan
+		operator = v1alpha1.GreaterThan
 		value, err = strconv.ParseFloat(threshold.GT, 64)
 	default:
-		operator = Undefined
+		operator = v1alpha1.Undefined
 	}
 
 	if err != nil {
-		return Threshold{}, err
+		return v1alpha1.Threshold{}, err
 	}
 
-	return Threshold{
+	return v1alpha1.Threshold{
 		Level:    threshold.Level,
 		Operator: operator,
 		Value:    value,
 	}, nil
 }
 
-func v0presentationFromYAML(p *v0yamlPresentation) Presentation {
+func v0presentationFromYAML(p *v0yamlPresentation) v1alpha1.Presentation {
 	if p == nil {
-		return Presentation{
-			ChartType:    StepChart,
+		return v1alpha1.Presentation{
+			ChartType:    v1alpha1.StepChart,
 			CurrentValue: false,
 			Frequency:    0,
 			Labels:       []string{},
@@ -203,10 +181,10 @@ func v0presentationFromYAML(p *v0yamlPresentation) Presentation {
 
 	chartType := p.ChartType
 	if chartType == "" {
-		chartType = StepChart
+		chartType = v1alpha1.StepChart
 	}
 
-	return Presentation{
+	return v1alpha1.Presentation{
 		ChartType:    chartType,
 		CurrentValue: p.CurrentValue,
 		Frequency:    p.Frequency,
@@ -215,7 +193,7 @@ func v0presentationFromYAML(p *v0yamlPresentation) Presentation {
 	}
 }
 
-func v0alertFromYAML(a v0yamlAlert) Alert {
+func v0alertFromYAML(a v0yamlAlert) v1alpha1.Alert {
 	alertFor, alertStep := a.For, a.Step
 	if alertFor == "" {
 		alertFor = "1m"
@@ -224,59 +202,59 @@ func v0alertFromYAML(a v0yamlAlert) Alert {
 		alertStep = "1m"
 	}
 
-	return Alert{
+	return v1alpha1.Alert{
 		For:  alertFor,
 		Step: alertStep,
 	}
 }
 
-func v0serviceLevelFromYAML(level *v0yamlServiceLevel) *ServiceLevel {
+func v0serviceLevelFromYAML(level *v0yamlServiceLevel) *v1alpha1.ServiceLevel {
 	if level == nil {
 		return nil
 	}
-	return &ServiceLevel{
+	return &v1alpha1.ServiceLevel{
 		Objective: level.Objective,
 	}
 }
 
 type v0yamlDocument struct {
-	APIVersion string            `yaml:"apiVersion"`
-	Product    v0yamlProduct     `yaml:"product"`
-	Metadata   map[string]string `yaml:"metadata"`
-	Indicators []v0yamlIndicator `yaml:"indicators"`
-	YAMLLayout *v0yamlLayout     `yaml:"layout"`
+	APIVersion string            `json:"apiVersion"`
+	Product    v0yamlProduct     `json:"product"`
+	Metadata   map[string]string `json:"metadata"`
+	Indicators []v0yamlIndicator `json:"indicators"`
+	YAMLLayout *v0yamlLayout     `json:"layout"`
 }
 
 type v0yamlProduct struct {
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
 type v0yamlLayout struct {
-	Title       string          `yaml:"title"`
-	Description string          `yaml:"description"`
-	Sections    []v0yamlSection `yaml:"sections"`
-	Owner       string          `yaml:"owner"`
+	Title       string          `json:"title"`
+	Description string          `json:"description"`
+	Sections    []v0yamlSection `json:"sections"`
+	Owner       string          `json:"owner"`
 }
 
 type v0yamlSection struct {
-	Title         string   `yaml:"title"`
-	Description   string   `yaml:"description"`
-	IndicatorRefs []string `yaml:"indicators"`
+	Title         string   `json:"title"`
+	Description   string   `json:"description"`
+	IndicatorRefs []string `json:"indicators"`
 }
 
 type v0yamlIndicator struct {
-	Name          string              `yaml:"name"`
-	Promql        string              `yaml:"promql"`
-	Thresholds    []v0yamlThreshold   `yaml:"thresholds"`
-	Alert         v0yamlAlert         `yaml:"alert"`
-	ServiceLevel  *v0yamlServiceLevel `yaml:"serviceLevel"`
-	Documentation map[string]string   `yaml:"documentation"`
-	Presentation  *v0yamlPresentation `yaml:"presentation"`
+	Name          string              `json:"name"`
+	Promql        string              `json:"promql"`
+	Thresholds    []v0yamlThreshold   `json:"thresholds"`
+	Alert         v0yamlAlert         `json:"alert"`
+	ServiceLevel  *v0yamlServiceLevel `json:"serviceLevel"`
+	Documentation map[string]string   `json:"documentation"`
+	Presentation  *v0yamlPresentation `json:"presentation"`
 }
 
 type v0yamlServiceLevel struct {
-	Objective float64 `yaml:"objective"`
+	Objective float64 `json:"objective"`
 }
 
 type v0yamlAlert struct {
@@ -285,24 +263,24 @@ type v0yamlAlert struct {
 }
 
 type v0yamlThreshold struct {
-	Level string `yaml:"level"`
-	LT    string `yaml:"lt"`
-	LTE   string `yaml:"lte"`
-	EQ    string `yaml:"eq"`
-	NEQ   string `yaml:"neq"`
-	GTE   string `yaml:"gte"`
-	GT    string `yaml:"gt"`
+	Level string `json:"level"`
+	LT    string `json:"lt"`
+	LTE   string `json:"lte"`
+	EQ    string `json:"eq"`
+	NEQ   string `json:"neq"`
+	GTE   string `json:"gte"`
+	GT    string `json:"gt"`
 }
 
 type v0yamlPresentation struct {
-	ChartType    ChartType `yaml:"chartType"`
-	CurrentValue bool      `yaml:"currentValue"`
-	Frequency    int64     `yaml:"frequency"`
-	Labels       []string  `yaml:"labels"`
-	Units        string    `yaml:"units"`
+	ChartType    v1alpha1.ChartType `json:"chartType"`
+	CurrentValue bool      `json:"currentValue"`
+	Frequency    int64     `json:"frequency"`
+	Labels       []string  `json:"labels"`
+	Units        string    `json:"units"`
 }
 
-func v0apiVersionFromYAML(docBytes []byte) (string, error) {
+func apiVersionFromYAML(docBytes []byte) (string, error) {
 	var d struct {
 		ApiVersion string `yaml:"apiVersion"`
 	}
@@ -315,7 +293,11 @@ func v0apiVersionFromYAML(docBytes []byte) (string, error) {
 
 func PatchFromYAML(reader io.ReadCloser) (Patch, error) {
 	var yamlPatch yamlPatch
-	err := yaml.NewDecoder(reader).Decode(&yamlPatch)
+	bytes, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return Patch{}, fmt.Errorf("could not read patch: %s", err)
+	}
+	err = yaml.Unmarshal(bytes, &yamlPatch)
 	if err != nil {
 		return Patch{}, fmt.Errorf("could not unmarshal patch: %s", err)
 	}
@@ -332,30 +314,71 @@ func PatchFromYAML(reader io.ReadCloser) (Patch, error) {
 	}, nil
 }
 
-func ProductFromYAML(reader io.ReadCloser) (Product, error) {
-	var d struct {
-		Product Product `yaml:"product"`
-	}
-	err := yaml.NewDecoder(reader).Decode(&d)
-	if err != nil {
-		return Product{}, fmt.Errorf("could not unmarshal product information: %s", err)
-	}
+func ProductFromYAML(reader io.ReadCloser) (v1alpha1.Product, error) {
+	docBytes, err := ioutil.ReadAll(reader)
 	_ = reader.Close()
+	if err != nil {
+		return v1alpha1.Product{}, fmt.Errorf("could not read document")
+	}
 
-	return d.Product, nil
+	apiVersion, err := apiVersionFromYAML(docBytes)
+	var product v1alpha1.Product
+	switch apiVersion {
+	case "v0":
+		var d struct {
+			Product v1alpha1.Product
+		}
+		err = yaml.Unmarshal(docBytes, &d)
+		product = d.Product
+	case "apps.pivotal.io/v1alpha1":
+		var d struct {
+			Spec struct {
+				Product v1alpha1.Product
+			}
+		}
+		err = yaml.Unmarshal(docBytes, &d)
+		product = d.Spec.Product
+	}
+
+	if err != nil {
+		return v1alpha1.Product{}, errors.New("could not unmarshal product information")
+	}
+
+	return product, nil
 }
 
 func MetadataFromYAML(reader io.ReadCloser) (map[string]string, error) {
-	var d struct {
-		Metadata map[string]string `yaml:"metadata"`
-	}
-	err := yaml.NewDecoder(reader).Decode(&d)
+	docBytes, err := ioutil.ReadAll(reader)
+	_ = reader.Close()
 	if err != nil {
-		return map[string]string{}, fmt.Errorf("could not unmarshal metadata: %s", err)
+		return nil, fmt.Errorf("could not read document")
+	}
+
+	apiVersion, err := apiVersionFromYAML(docBytes)
+	var metadata map[string]string
+	switch apiVersion {
+	case "v0":
+		var d struct {
+			Metadata map[string]string
+		}
+		err = yaml.Unmarshal(docBytes, &d)
+		metadata = d.Metadata
+	case "apps.pivotal.io/v1alpha1":
+		var d struct {
+			Metadata struct {
+				Labels map[string]string
+			}
+		}
+		err = yaml.Unmarshal(docBytes, &d)
+		metadata = d.Metadata.Labels
+	}
+
+	if err != nil {
+		return map[string]string{}, fmt.Errorf("could not unmarshal metadata")
 	}
 	_ = reader.Close()
 
-	return d.Metadata, nil
+	return metadata, nil
 }
 
 type yamlPatch struct {
@@ -372,25 +395,24 @@ type yamlMatch struct {
 	Metadata map[string]string `yaml:"metadata,omitempty"`
 }
 
-func populateDefaultPresentation(doc *Document) {
-	for i, indicator := range doc.Indicators {
+func populateDefaultPresentation(doc *v1alpha1.IndicatorDocument) {
+	for i, indicator := range doc.Spec.Indicators {
 		if indicator.Presentation.ChartType == "" {
-			doc.Indicators[i].Presentation.ChartType = "step"
+			doc.Spec.Indicators[i].Presentation.ChartType = "step"
 		}
 		if indicator.Presentation.Labels == nil {
-			doc.Indicators[i].Presentation.Labels = []string{}
+			doc.Spec.Indicators[i].Presentation.Labels = []string{}
 		}
 	}
 }
 
-func populateDefaultLayout(doc *Document) {
-	if doc.Layout.Sections == nil {
-		//noinspection GoPreferNilSlice
-		indicatorNames := []string{}
-		for _, indicator := range doc.Indicators {
+func populateDefaultLayout(doc *v1alpha1.IndicatorDocument) {
+	if doc.Spec.Layout.Sections == nil {
+		indicatorNames := make([]string, 0)
+		for _, indicator := range doc.Spec.Indicators {
 			indicatorNames = append(indicatorNames, indicator.Name)
 		}
-		doc.Layout.Sections = []Section{
+		doc.Spec.Layout.Sections = []v1alpha1.Section{
 			{
 				Title:      "Metrics",
 				Indicators: indicatorNames,
@@ -399,13 +421,13 @@ func populateDefaultLayout(doc *Document) {
 	}
 }
 
-func populateDefaultAlert(doc *Document) {
-	for i, indicator := range doc.Indicators {
+func populateDefaultAlert(doc *v1alpha1.IndicatorDocument) {
+	for i, indicator := range doc.Spec.Indicators {
 		if indicator.Alert.For == "" {
-			doc.Indicators[i].Alert.For = "1m"
+			doc.Spec.Indicators[i].Alert.For = "1m"
 		}
 		if indicator.Alert.Step == "" {
-			doc.Indicators[i].Alert.Step = "1m"
+			doc.Spec.Indicators[i].Alert.Step = "1m"
 		}
 	}
 }
@@ -422,22 +444,22 @@ func OverrideMetadata(overrideMetadata map[string]string) func(options *readOpti
 	}
 }
 
-func ProcessDocument(patches []Patch, documentBytes []byte) (Document, []error) {
+func ProcessDocument(patches []Patch, documentBytes []byte) (v1alpha1.IndicatorDocument, []error) {
 	patchedDocBytes, err := ApplyPatches(patches, documentBytes)
 	if err != nil {
-		return Document{}, []error{err}
+		return v1alpha1.IndicatorDocument{}, []error{err}
 	}
 
-	reader := ioutil.NopCloser(bytes.NewReader(patchedDocBytes))
-	doc, err := DocumentFromYAML(reader)
+	reader2 := ioutil.NopCloser(bytes.NewReader(patchedDocBytes))
+	doc, err := DocumentFromYAML(reader2)
 	if err != nil {
-		return Document{}, []error{err}
+		return v1alpha1.IndicatorDocument{}, []error{err}
 	}
 	doc.Interpolate()
 
-	errs := doc.Validate("v0", "v1alpha1")
+	errs := doc.Validate("v0", "apps.pivotal.io/v1alpha1")
 	if len(errs) > 0 {
-		return Document{}, errs
+		return v1alpha1.IndicatorDocument{}, errs
 	}
 
 	return doc, nil

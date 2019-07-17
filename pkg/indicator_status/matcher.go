@@ -3,7 +3,7 @@ package indicator_status
 import (
 	"sort"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 )
 
 const healthy = "HEALTHY"
@@ -12,7 +12,7 @@ const unknown = "UNKNOWN"
 
 // Match takes thresholds and values and determines what threshold has been
 // breached. It returns nil if nothing was breached.
-func Match(thresholds []indicator.Threshold, values []float64) string {
+func Match(thresholds []v1alpha1.Threshold, values []float64) string {
 	if len(thresholds) == 0 {
 		return Undefined
 	}
@@ -40,19 +40,19 @@ func selectThreshold(thresholdLevels []string) string {
 	return thresholdLevels[0]
 }
 
-func isBreached(threshold indicator.Threshold, value float64) bool {
+func isBreached(threshold v1alpha1.Threshold, value float64) bool {
 	switch threshold.Operator {
-	case indicator.LessThanOrEqualTo:
+	case v1alpha1.LessThanOrEqualTo:
 		return value <= threshold.Value
-	case indicator.LessThan:
+	case v1alpha1.LessThan:
 		return value < threshold.Value
-	case indicator.GreaterThanOrEqualTo:
+	case v1alpha1.GreaterThanOrEqualTo:
 		return value >= threshold.Value
-	case indicator.GreaterThan:
+	case v1alpha1.GreaterThan:
 		return value > threshold.Value
-	case indicator.NotEqualTo:
+	case v1alpha1.NotEqualTo:
 		return value != threshold.Value
-	case indicator.EqualTo:
+	case v1alpha1.EqualTo:
 		return value == threshold.Value
 
 	default:

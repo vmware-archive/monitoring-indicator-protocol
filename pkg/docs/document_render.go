@@ -6,13 +6,14 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+
 	"gopkg.in/russross/blackfriday.v2"
 )
 
-func docToTemplate(d indicator.Document, t *template.Template) (string, error) {
+func docToTemplate(d v1alpha1.IndicatorDocument, t *template.Template) (string, error) {
 	buffer := bytes.NewBuffer(nil)
-	err := t.Execute(buffer, documentPresenter{d.Layout, d.Indicators})
+	err := t.Execute(buffer, documentPresenter{d.Spec.Layout, d.Spec.Indicators})
 
 	if err != nil {
 		return "", errors.New("failed to convert document to template")
@@ -22,8 +23,8 @@ func docToTemplate(d indicator.Document, t *template.Template) (string, error) {
 }
 
 type documentPresenter struct {
-	indicator.Layout
-	indicators []indicator.Indicator
+	v1alpha1.Layout
+	indicators []v1alpha1.IndicatorSpec
 }
 
 func (dp documentPresenter) Description() template.HTML {
@@ -39,8 +40,8 @@ func (dp documentPresenter) Sections() []sectionPresenter {
 }
 
 type sectionPresenter struct {
-	indicator.Section
-	indicators []indicator.Indicator
+	v1alpha1.Section
+	indicators []v1alpha1.IndicatorSpec
 }
 
 func (sp sectionPresenter) TitleID() string {
@@ -61,7 +62,7 @@ func (sp sectionPresenter) Indicators() ([]indicatorPresenter, error) {
 	return indicatorPresenters, nil
 }
 
-func findIndicator(name string, indicators []indicator.Indicator) *indicator.Indicator {
+func findIndicator(name string, indicators []v1alpha1.IndicatorSpec) *v1alpha1.IndicatorSpec {
 	for _, i := range indicators {
 		if i.Name == name {
 			return &i

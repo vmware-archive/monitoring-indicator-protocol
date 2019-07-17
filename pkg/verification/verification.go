@@ -7,7 +7,7 @@ import (
 
 	"github.com/prometheus/common/model"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 )
 
 type Result struct {
@@ -24,7 +24,7 @@ type promQLClient interface {
 	Query(ctx context.Context, query string, ts time.Time) (model.Value, error)
 }
 
-func VerifyIndicator(i indicator.Indicator, client promQLClient) (Result, error) {
+func VerifyIndicator(i v1alpha1.IndicatorSpec, client promQLClient) (Result, error) {
 	value, err := client.Query(context.Background(), i.PromQL, time.Time{})
 
 	if err != nil {

@@ -1,17 +1,23 @@
 ---
-apiVersion: v1alpha1
-product:
-  name: my-product
-  version: 0.1.1
+apiVersion: apps.pivotal.io/v1alpha1
+
+kind: IndicatorDocument
+
+spec:
+  product:
+    name: my-product
+    version: 0.1.1
+
+  indicators:
+  - name: latency
+    promql: avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])
+  - name: saturation
+    promql: saturation{source_id="$source_id",deployment="$deployment"}
+
+  layout: {}
+
 
 metadata:
-  deployment: spec.deployment
-  source_id: demo_component
-
-indicators:
-- name: latency
-  promql: avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])
-- name: saturation
-  promql: saturation{source_id="$source_id",deployment="$deployment"}
-
-layout: {}
+  labels:
+    deployment: spec.deployment
+    source_id: demo_component

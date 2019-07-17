@@ -6,8 +6,10 @@ import (
 
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -63,44 +65,63 @@ func TestStore(t *testing.T) {
 		}},
 	}
 
-	productAVersion1Document := indicator.Document{
-		Product: indicator.Product{Name: "my-product-a", Version: "1"},
-		Metadata: map[string]string{
-			"deployment": "abc-123",
+	productAVersion1Document := v1alpha1.IndicatorDocument{
+		ObjectMeta: v1.ObjectMeta{
+	Labels: map[string]string{
+				"deployment": "abc-123",
+			},
 		},
-		Indicators: []indicator.Indicator{{
-			Name: "test_errors",
-		}},
+		Spec: v1alpha1.IndicatorDocumentSpec{
+			Product: v1alpha1.Product{Name: "my-product-a", Version: "1"},
+			Indicators: []v1alpha1.IndicatorSpec{{
+				Name: "test_errors",
+			}},
+		},
 	}
 
-	productAVersion2Document := indicator.Document{
-		Product: indicator.Product{Name: "my-product-a", Version: "2"},
-		Metadata: map[string]string{
-			"deployment": "abc-123",
+	productAVersion2Document := v1alpha1.IndicatorDocument{
+		TypeMeta: v1.TypeMeta{},
+		ObjectMeta: v1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "abc-123",
+			},
 		},
-		Indicators: []indicator.Indicator{{
-			Name: "test_error_ratio",
-		}},
+		Spec: v1alpha1.IndicatorDocumentSpec{
+			Product: v1alpha1.Product{Name: "my-product-a", Version: "2"},
+			Indicators: []v1alpha1.IndicatorSpec{{
+				Name: "test_error_ratio",
+			}},
+		},
 	}
 
-	productADeployment2Document := indicator.Document{
-		Product: indicator.Product{Name: "my-product-a", Version: "2"},
-		Metadata: map[string]string{
-			"deployment": "def-456",
+	productADeployment2Document := v1alpha1.IndicatorDocument{
+		TypeMeta: v1.TypeMeta{},
+		ObjectMeta: v1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "def-456",
+			},
 		},
-		Indicators: []indicator.Indicator{{
-			Name: "test_error_ratio",
-		}},
+		Spec: v1alpha1.IndicatorDocumentSpec{
+			Product: v1alpha1.Product{Name: "my-product-a", Version: "2"},
+			Indicators: []v1alpha1.IndicatorSpec{{
+				Name: "test_error_ratio",
+			}},
+		},
 	}
 
-	productBDocument := indicator.Document{
-		Product: indicator.Product{Name: "my-product-b", Version: "1"},
-		Metadata: map[string]string{
-			"deployment": "def-456",
+	productBDocument := v1alpha1.IndicatorDocument{
+		TypeMeta: v1.TypeMeta{},
+		ObjectMeta: v1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "def-456",
+			},
 		},
-		Indicators: []indicator.Indicator{{
-			Name: "test_latency",
-		}},
+		Spec: v1alpha1.IndicatorDocumentSpec{
+			Product: v1alpha1.Product{Name: "my-product-b", Version: "1"},
+			Indicators: []v1alpha1.IndicatorSpec{{
+				Name: "test_latency",
+			}},
+		},
 	}
 
 	t.Run("it upserts patchesBySource in bulk by source", func(t *testing.T) {

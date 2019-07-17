@@ -9,13 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/lifecycle"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/lifecycle"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
 	"code.cloudfoundry.org/go-envstruct"
-	informers "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/informers/externalversions"
+	informers "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/informers/externalversions"
 )
 
 type config struct {

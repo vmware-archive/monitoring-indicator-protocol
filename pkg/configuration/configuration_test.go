@@ -37,7 +37,8 @@ func TestReadGitConfigurationFile(t *testing.T) {
 		"test_fixtures/patch1.yml",
 		"test_fixtures/patch2.yml",
 		"test_fixtures/indicators1.yml",
-		"test_fixtures/indicators2.yml")
+		"test_fixtures/indicators2.yml",
+	)
 
 	fakeGetter := func(s configuration.Source) (*git.Repository, error) {
 		return fakeRepository, nil
@@ -54,8 +55,8 @@ func TestReadGitConfigurationFile(t *testing.T) {
 	g.Expect(*patches[0].Patches[1].Match.Name).To(Equal("my-component-2"))
 
 	g.Expect(documents).To(HaveLen(2))
-	g.Expect(documents[0].Product.Name).To(Equal("my-component"))
-	g.Expect(documents[1].Product.Name).To(Equal("someone-elses-component"))
+	g.Expect(documents[0].Spec.Product.Name).To(Equal("my-component"))
+	g.Expect(documents[1].Spec.Product.Name).To(Equal("someone-elses-component"))
 
 	g.Expect(buffer.String()).To(ContainSubstring("Parsed 2 documents and 2 patches from git source"))
 }

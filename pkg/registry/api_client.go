@@ -21,7 +21,7 @@ func NewAPIClient(serverURL string, client *http.Client) *RegistryApiClient {
 	}
 }
 
-func (c *RegistryApiClient) IndicatorDocuments() ([]APIV0Document, error) {
+func (c *RegistryApiClient) IndicatorDocuments() ([] APIV0Document, error) {
 	payload, e := c.indicatorResponse()
 	if e != nil {
 		return nil, errors.New("failed to get indicator documents")

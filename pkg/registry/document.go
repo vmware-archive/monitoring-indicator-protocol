@@ -3,8 +3,15 @@ package registry
 import (
 	"time"
 
+	"k8s.io/apimachinery/pkg/types"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// TODO: remove this (once we don't need it...)
 
 type APIV0Document struct {
 	APIVersion string            `json:"apiVersion"`
@@ -72,39 +79,51 @@ type APIV0Section struct {
 	Indicators  []string `json:"indicators"`
 }
 
-func ToIndicatorDocument(d APIV0Document) indicator.Document {
-	indicators := make([]indicator.Indicator, 0)
+func ToIndicatorDocument(d APIV0Document) v1alpha1.IndicatorDocument {
+	indicators := make([]v1alpha1.IndicatorSpec, 0)
 	for _, i := range d.Indicators {
 		indicators = append(indicators, convertIndicator(i))
 	}
 
-	return indicator.Document{
-		APIVersion: d.APIVersion,
-		Product: indicator.Product{
-			Name:    d.Product.Name,
-			Version: d.Product.Version,
+	return v1alpha1.IndicatorDocument{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: d.APIVersion,
+			Kind:       "IndicatorDocument",
 		},
-		Metadata:   d.Metadata,
-		Indicators: indicators,
-		Layout:     convertLayout(d.Layout),
+		ObjectMeta: metav1.ObjectMeta{
+			UID:    types.UID(d.UID),
+			Labels: d.Metadata,
+		},
+
+		Spec: v1alpha1.IndicatorDocumentSpec{
+			Product: v1alpha1.Product{
+				Name:    d.Product.Name,
+				Version: d.Product.Version,
+			},
+			Indicators: indicators,
+			Layout:     convertLayout(d.Layout),
+		},
 	}
 }
 
-func convertIndicator(i APIV0Indicator) indicator.Indicator {
+func convertIndicator(i APIV0Indicator) v1alpha1.IndicatorSpec {
 	apiv0Thresholds := i.Thresholds
 	thresholds := ConvertThresholds(apiv0Thresholds)
 
-	return indicator.Indicator{
-		Name:       i.Name,
-		PromQL:     i.PromQL,
-		Thresholds: thresholds,
-		Alert: indicator.Alert{
+	return v1alpha1.IndicatorSpec{
+		Name:   i.Name,
+		PromQL: i.PromQL,
+		Alert: v1alpha1.Alert{
 			For:  i.Alert.For,
 			Step: i.Alert.Step,
 		},
+		Thresholds: thresholds,
+		//ServiceLevel: &v1alpha1.ServiceLevel{
+		//	Objective: i.ServiceLevel.Objective,
+		//},
 		Documentation: i.Documentation,
-		Presentation: indicator.Presentation{
-			ChartType:    indicator.ChartType(i.Presentation.ChartType),
+		Presentation: v1alpha1.Presentation{
+			ChartType:    v1alpha1.ChartType(i.Presentation.ChartType),
 			CurrentValue: i.Presentation.CurrentValue,
 			Frequency:    i.Presentation.Frequency,
 			Labels:       i.Presentation.Labels,
@@ -112,24 +131,24 @@ func convertIndicator(i APIV0Indicator) indicator.Indicator {
 	}
 }
 
-func ConvertThresholds(apiv0Thresholds []APIV0Threshold) []indicator.Threshold {
-	thresholds := make([]indicator.Threshold, 0)
+func ConvertThresholds(apiv0Thresholds []APIV0Threshold) []v1alpha1.Threshold {
+	thresholds := make([]v1alpha1.Threshold, 0)
 	for _, t := range apiv0Thresholds {
 		thresholds = append(thresholds, convertThreshold(t))
 	}
 	return thresholds
 }
 
-func convertThreshold(t APIV0Threshold) indicator.Threshold {
-	return indicator.Threshold{
+func convertThreshold(t APIV0Threshold) v1alpha1.Threshold {
+	return v1alpha1.Threshold{
 		Level:    t.Level,
 		Operator: indicator.GetComparatorFromString(t.Operator),
 		Value:    t.Value,
 	}
 }
 
-func convertLayout(l APIV0Layout) indicator.Layout {
-	return indicator.Layout{
+func convertLayout(l APIV0Layout) v1alpha1.Layout {
+	return v1alpha1.Layout{
 		Title:       l.Title,
 		Description: l.Description,
 		Sections:    convertLayoutSections(l.Sections),
@@ -137,8 +156,8 @@ func convertLayout(l APIV0Layout) indicator.Layout {
 	}
 }
 
-func convertLayoutSections(sections []APIV0Section) []indicator.Section {
-	apiSections := make([]indicator.Section, 0)
+func convertLayoutSections(sections []APIV0Section) []v1alpha1.Section {
+	apiSections := make([]v1alpha1.Section, 0)
 
 	for _, s := range sections {
 		apiSections = append(apiSections, convertLayoutSection(s))
@@ -147,23 +166,23 @@ func convertLayoutSections(sections []APIV0Section) []indicator.Section {
 	return apiSections
 }
 
-func convertLayoutSection(s APIV0Section) indicator.Section {
-	return indicator.Section{
+func convertLayoutSection(s APIV0Section) v1alpha1.Section {
+	return v1alpha1.Section{
 		Title:       s.Title,
 		Description: s.Description,
 		Indicators:  s.Indicators,
 	}
 }
 
-func ToAPIV0Document(doc indicator.Document, getStatus func(string) *APIV0IndicatorStatus) APIV0Document {
+func ToAPIV0Document(doc v1alpha1.IndicatorDocument) APIV0Document {
 	indicators := make([]APIV0Indicator, 0)
 
-	for _, i := range doc.Indicators {
+	for _, i := range doc.Spec.Indicators {
 		thresholds := make([]APIV0Threshold, 0)
 		for _, t := range i.Thresholds {
 			thresholds = append(thresholds, APIV0Threshold{
 				Level:    t.Level,
-				Operator: t.GetComparatorAbbrev(),
+				Operator: indicator.GetComparatorAbbrev(t.Operator),
 				Value:    t.Value,
 			})
 		}
@@ -193,13 +212,13 @@ func ToAPIV0Document(doc indicator.Document, getStatus func(string) *APIV0Indica
 			ServiceLevel:  serviceLevel,
 			Documentation: i.Documentation,
 			Presentation:  presentation,
-			Status:        getStatus(i.Name),
+			Status:        getStatus(doc, i),
 		})
 	}
 
 	sections := make([]APIV0Section, 0)
 
-	for _, s := range doc.Layout.Sections {
+	for _, s := range doc.Spec.Layout.Sections {
 		sections = append(sections, APIV0Section{
 			Title:       s.Title,
 			Description: s.Description,
@@ -209,23 +228,31 @@ func ToAPIV0Document(doc indicator.Document, getStatus func(string) *APIV0Indica
 
 	return APIV0Document{
 		APIVersion: doc.APIVersion,
-		UID:        doc.UID(),
+		UID:        doc.BoshUID(),
 		Product: APIV0Product{
-			Name:    doc.Product.Name,
-			Version: doc.Product.Version,
+			Name:    doc.Spec.Product.Name,
+			Version: doc.Spec.Product.Version,
 		},
-		Metadata:   doc.Metadata,
+		Metadata:   doc.ObjectMeta.Labels,
 		Indicators: indicators,
 		Layout: APIV0Layout{
-			Title:       doc.Layout.Title,
-			Description: doc.Layout.Description,
+			Title:       doc.Spec.Layout.Title,
+			Description: doc.Spec.Layout.Description,
 			Sections:    sections,
-			Owner:       doc.Layout.Owner,
+			Owner:       doc.Spec.Layout.Owner,
 		},
 	}
 }
 
-func convertServiceLevel(level *indicator.ServiceLevel) *APIV0ServiceLevel {
+func getStatus(doc v1alpha1.IndicatorDocument, i v1alpha1.IndicatorSpec) *APIV0IndicatorStatus {
+	status, ok := doc.Status[i.Name]
+	if !ok {
+		return nil
+	}
+	return &APIV0IndicatorStatus{Value: &status.Phase}
+}
+
+func convertServiceLevel(level *v1alpha1.ServiceLevel) *APIV0ServiceLevel {
 	if level == nil {
 		return nil
 	}

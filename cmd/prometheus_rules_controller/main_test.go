@@ -12,12 +12,14 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/onsi/gomega/ghttp"
+	"gopkg.in/src-d/go-billy.v4/osfs"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
-	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
 var (
@@ -35,33 +37,41 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 
 		store := registry.NewDocumentStore(time.Hour, time.Now)
 
-		doc := indicator.Document{
-			APIVersion: "v1alpha1",
-			Product: indicator.Product{
-				Name:    "test_product",
-				Version: "v1.2.3",
+		doc := v1alpha1.IndicatorDocument{
+			TypeMeta: v1.TypeMeta{
+				APIVersion: "apps.pivotal.io/v1alpha1",
+				Kind:       "IndicatorDocument",
 			},
-			Metadata: map[string]string{"deployment": "test_deployment"},
-			Indicators: []indicator.Indicator{{
-				Name:   "test_indicator",
-				PromQL: `test_query{deployment="test_deployment"[$step]}`,
-				Thresholds: []indicator.Threshold{{
-					Level:    "critical",
-					Operator: indicator.LessThan,
-					Value:    5,
+			ObjectMeta: v1.ObjectMeta{
+				Labels: map[string]string{"deployment": "test_deployment"},
+			},
+			Spec: v1alpha1.IndicatorDocumentSpec{
+
+				Product: v1alpha1.Product{
+					Name:    "test_product",
+					Version: "v1.2.3",
+				},
+				Indicators: []v1alpha1.IndicatorSpec{{
+					Name:   "test_indicator",
+					PromQL: `test_query{deployment="test_deployment"[$step]}`,
+					Thresholds: []v1alpha1.Threshold{{
+						Level:    "critical",
+						Operator: v1alpha1.LessThan,
+						Value:    5,
+					}},
+					Alert: v1alpha1.Alert{
+						For:  "10m",
+						Step: "5m",
+					},
+					Documentation: map[string]string{
+						"test1": "a",
+						"test2": "b",
+					},
+					Presentation: test_fixtures.DefaultPresentation(),
 				}},
-				Alert: indicator.Alert{
-					For:  "10m",
-					Step: "5m",
-				},
-				Documentation: map[string]string{
-					"test1": "a",
-					"test2": "b",
-				},
-				Presentation: test_fixtures.DefaultPresentation(),
-			}},
+			},
 		}
-		doc.Layout = test_fixtures.DefaultLayout(doc.Indicators)
+		doc.Spec.Layout = test_fixtures.DefaultLayout(doc.Spec.Indicators)
 		store.UpsertDocument(doc)
 
 		registryAddress := "localhost:13245"
@@ -134,33 +144,40 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 
 		store := registry.NewDocumentStore(time.Hour, time.Now)
 
-		doc := indicator.Document{
-			APIVersion: "v0",
-			Product: indicator.Product{
-				Name:    "test_product",
-				Version: "v1.2.3",
+		doc := v1alpha1.IndicatorDocument{
+			TypeMeta: v1.TypeMeta{
+				APIVersion: "v0",
 			},
-			Metadata: map[string]string{"deployment": "test_deployment"},
-			Indicators: []indicator.Indicator{{
-				Name:   "test_indicator",
-				PromQL: `test_query{deployment="test_deployment"[$step]}`,
-				Thresholds: []indicator.Threshold{{
-					Level:    "critical",
-					Operator: indicator.LessThan,
-					Value:    5,
+			ObjectMeta: v1.ObjectMeta{
+				Labels: map[string]string{"deployment": "test_deployment"},
+			},
+			Spec: v1alpha1.IndicatorDocumentSpec{
+
+				Product: v1alpha1.Product{
+					Name:    "test_product",
+					Version: "v1.2.3",
+				},
+				Indicators: []v1alpha1.IndicatorSpec{{
+					Name:   "test_indicator",
+					PromQL: `test_query{deployment="test_deployment"[$step]}`,
+					Thresholds: []v1alpha1.Threshold{{
+						Level:    "critical",
+						Operator: v1alpha1.LessThan,
+						Value:    5,
+					}},
+					Alert: v1alpha1.Alert{
+						For:  "10m",
+						Step: "5m",
+					},
+					Documentation: map[string]string{
+						"test1": "a",
+						"test2": "b",
+					},
+					Presentation: test_fixtures.DefaultPresentation(),
 				}},
-				Alert: indicator.Alert{
-					For:  "10m",
-					Step: "5m",
-				},
-				Documentation: map[string]string{
-					"test1": "a",
-					"test2": "b",
-				},
-				Presentation: test_fixtures.DefaultPresentation(),
-			}},
+			},
 		}
-		doc.Layout = test_fixtures.DefaultLayout(doc.Indicators)
+		doc.Spec.Layout = test_fixtures.DefaultLayout(doc.Spec.Indicators)
 		store.UpsertDocument(doc)
 
 		registryAddress := "localhost:13245"

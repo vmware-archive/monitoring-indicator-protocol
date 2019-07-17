@@ -14,7 +14,7 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
@@ -247,15 +247,14 @@ func TestController(t *testing.T) {
 		g.Expect(err).ToNot(MatchError(ContainSubstring("registry error response test")))
 		g.Expect(err.Error()).To(Equal("failed to fetch indicator documents"))
 
-
 		fileNames, err = go_test.GetFileNames(fs, directory)
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(fileNames).To(ConsistOf("test_product_A.yml"))
 	})
 }
 
-var stubConverter = func(document indicator.Document) (*exporter.File, error) {
-	return &exporter.File{Name: fmt.Sprintf("%s.yml", document.Product.Name), Contents: []byte("")}, nil
+var stubConverter = func(document v1alpha1.IndicatorDocument) (*exporter.File, error) {
+	return &exporter.File{Name: fmt.Sprintf("%s.yml", document.Spec.Product.Name), Contents: []byte("")}, nil
 }
 
 func TestReloading(t *testing.T) {

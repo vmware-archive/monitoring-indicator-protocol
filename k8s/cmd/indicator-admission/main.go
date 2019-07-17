@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"code.cloudfoundry.org/go-envstruct"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/admission"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/admission"
 )
 
 type config struct {

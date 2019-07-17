@@ -7,10 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
 type APIClient interface {
@@ -27,7 +28,7 @@ type ControllerConfig struct {
 	Reloader          Reloader
 }
 
-type DocumentConverter func(indicator.Document) (*File, error)
+type DocumentConverter func(v1alpha1.IndicatorDocument) (*File, error)
 type File struct {
 	Name     string
 	Contents []byte
@@ -91,18 +92,9 @@ func (c *Controller) Update() error {
 	if err != nil {
 		return fmt.Errorf("failed to delete contents of directory: %s", err)
 	}
-	writeDocuments(formatDocuments(apiDocuments), c.Config)
+	writeDocuments(apiDocuments, c.Config)
 
 	return c.Config.Reloader()
-}
-
-func formatDocuments(documents []registry.APIV0Document) []indicator.Document {
-	formattedDocuments := make([]indicator.Document, 0)
-	for _, d := range documents {
-		formattedDocuments = append(formattedDocuments, registry.ToIndicatorDocument(d))
-	}
-
-	return formattedDocuments
 }
 
 func clearDirectory(fs billy.Filesystem, d string) error {
@@ -111,7 +103,8 @@ func clearDirectory(fs billy.Filesystem, d string) error {
 		return errors.New("failed to read directory")
 	}
 
-	// Note that this will not return an error if some documents are not deleted, it will just print a log statement.
+	// Note that this will not return an error if some documents are not deleted,
+	// it will just print a log statement.
 	for _, f := range files {
 		err = fs.Remove(fmt.Sprintf("%s/%s", d, f.Name()))
 		if err != nil {
@@ -122,11 +115,11 @@ func clearDirectory(fs billy.Filesystem, d string) error {
 	return nil
 }
 
-func writeDocuments(documents []indicator.Document, config ControllerConfig) {
+func writeDocuments(documents []registry.APIV0Document, config ControllerConfig) {
 	log.Printf("writing %d indicator documents to output directory", len(documents))
 
 	for _, d := range documents {
-		file, err := config.Converter(d)
+		file, err := config.Converter(registry.ToIndicatorDocument(d))
 		if err != nil {
 			log.Print("error converting document")
 		}

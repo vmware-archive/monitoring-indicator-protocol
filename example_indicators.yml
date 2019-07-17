@@ -1,58 +1,61 @@
 ---
-apiVersion: v1alpha1
+apiVersion: apps.pivotal.io/v1alpha1
 
-product:
-  name: my-component
-  version: 1.2.3
+kind: IndicatorDocument
 
 metadata:
-  deployment: my-service-deployment
-  source_id: my-metric-source
+  labels:
+    deployment: my-service-deployment
+    source_id: my-metric-source
 
-indicators:
-- name: only_in_example_yml
-  promql: test_query
-- name: doc_performance_indicator
-  promql: avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])
-  thresholds:
-  - level: warning
-    operator: gte
-    value: 50
-  - level: critical
-    operator: gt
-    value: 100
-  serviceLevel:
-    objective: 99.9
-  alert:
-    for: 5m
-    step: 10s
-  presentation:
-    chartType: step
-    currentValue: false
-    frequency: 60
-    labels:
-    - job
-    - ip
-    - index
-  documentation:
-    title: Doc Performance Indicator
-    measurement: Average latency over last 5 minutes per instance
-    description: |
-      This is a valid markdown description.
+spec:
+  product:
+    name: my-component
+    version: 1.2.3
+  indicators:
+  - name: only_in_example_yml
+    promql: test_query
+  - name: doc_performance_indicator
+    promql: avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])
+    thresholds:
+    - level: warning
+      operator: gte
+      value: 50
+    - level: critical
+      operator: gt
+      value: 100
+    serviceLevel:
+      objective: 99.9
+    alert:
+      for: 5m
+      step: 10s
+    presentation:
+      chartType: step
+      currentValue: false
+      frequency: 60
+      labels:
+      - job
+      - ip
+      - index
+    documentation:
+      title: Doc Performance Indicator
+      measurement: Average latency over last 5 minutes per instance
+      description: |
+        This is a valid markdown description.
 
-      **Use**: This indicates nothing. It is placeholder text.
+        **Use**: This indicates nothing. It is placeholder text.
 
-      **Type**: Gauge
-      **Frequency**: 60 s
-    recommendedResponse: Panic! Run around in circles flailing your arms.
-    thresholdNote: These are environment specific
+        **Type**: Gauge
+        **Frequency**: 60 s
+      recommendedResponse: Panic! Run around in circles flailing your arms.
+      thresholdNote: These are environment specific
 
-layout:
-  owner: Example Team
-  title: Monitoring Document Product
-  description: Document description
-  sections:
-  - title: Indicators
-    description: This section includes indicators
-    indicators:
-    - doc_performance_indicator
+  layout:
+    owner: Example Team
+    title: Monitoring Document Product
+    description: Document description
+    sections:
+    - title: Indicators
+      description: This section includes indicators
+      indicators:
+      - doc_performance_indicator

@@ -1,10 +1,11 @@
 ---
-apiVersion: v1alpha1
+apiVersion: apps.pivotal.io/v1alpha1
 
-product:
-  name: someone-elses-component
-  version: 1.2.3
+spec:
+  product:
+    name: someone-elses-component
+    version: 1.2.3
 
-indicators:
-- name: only_in_example_yml
-  promql: test_query
+  indicators:
+  - name: only_in_example_yml
+    promql: test_query

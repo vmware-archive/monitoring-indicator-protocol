@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"github.com/benbjohnson/clock"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/indicator_status"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/indicator_status"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
 	"code.cloudfoundry.org/go-envstruct"
-	informers "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/informers/externalversions"
+	informers "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/informers/externalversions"
 )
 
 type config struct {

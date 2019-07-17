@@ -13,6 +13,7 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 )
 
@@ -34,7 +35,7 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 	t.Run("it sends indicator documents to the registry on an interval", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		receivedDocuments := make(chan indicator.Document, 2)
+		receivedDocuments := make(chan v1alpha1.IndicatorDocument, 2)
 
 		handler := func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
@@ -92,7 +93,7 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		defer session.Kill()
 
-		g.Expect((<-receivedDocuments).Product.Name).To(Equal("job-a-product"))
-		g.Expect((<-receivedDocuments).Product.Name).To(Equal("job-b-product"))
+		g.Expect((<-receivedDocuments).Spec.Product.Name).To(Equal("job-a-product"))
+		g.Expect((<-receivedDocuments).Spec.Product.Name).To(Equal("job-b-product"))
 	})
 }

@@ -23,11 +23,10 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	clientsetV1alpha1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
-	clientsetV1alpha1 "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned/typed/indicatordocument/v1alpha1"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/domain"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
 )
 
@@ -195,7 +194,7 @@ func TestAdmission(t *testing.T) {
 		ns, cleanup := createNamespace(t)
 		defer cleanup()
 		id := indicatorDocument(ns)
-		id.Spec.Indicators[0].Thresholds[0].Operator = "foo"
+		id.Spec.Indicators[0].Thresholds[0].Operator = v1alpha1.ThresholdOperator(0)
 		t.Logf("Creating indicator document in namespace: %s", ns)
 		_, err := clients.idClient.IndicatorDocuments(ns).Create(id)
 
@@ -219,7 +218,7 @@ func TestStatus(t *testing.T) {
 			},
 			Spec: v1alpha1.IndicatorSpec{
 				Name:   "my_cool_name",
-				Promql: `prometheus_http_request_duration_seconds_sum{handler="/-/healthy"}`,
+				PromQL: `prometheus_http_request_duration_seconds_sum{handler="/-/healthy"}`,
 				Alert: v1alpha1.Alert{
 					For:  "5m",
 					Step: "2m",
@@ -227,7 +226,7 @@ func TestStatus(t *testing.T) {
 				Thresholds: []v1alpha1.Threshold{
 					{
 						Level:    "critical",
-						Operator: "gte",
+						Operator: v1alpha1.GreaterThan,
 						Value:    float64(10),
 					},
 				},
@@ -330,7 +329,7 @@ func prometheusApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocume
 	for _, g := range result.Data.Groups {
 		for _, r := range g.Rules {
 			if r.Name == document.Spec.Indicators[0].Name &&
-				strings.Contains(r.Query, document.Spec.Indicators[0].Promql) {
+				strings.Contains(r.Query, document.Spec.Indicators[0].PromQL) {
 				return true
 			}
 		}
@@ -350,7 +349,7 @@ type promResult struct {
 }
 
 func grafanaConfigMapMatch(t *testing.T, dashboardFilename string, cm *v1.ConfigMap, id *v1alpha1.IndicatorDocument) bool {
-	grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(domain.Map(id))
+	grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(*id)
 	if err != nil {
 		t.Logf("Unable to convert to grafana dashboard: %s", err)
 		return false
@@ -371,7 +370,7 @@ func grafanaConfigMapMatch(t *testing.T, dashboardFilename string, cm *v1.Config
 }
 
 func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.IndicatorDocument) bool {
-	alerts := prometheus_alerts.AlertDocumentFrom(domain.Map(id))
+	alerts := prometheus_alerts.AlertDocumentFrom(*id)
 	alerts.Groups[0].Name = id.Namespace + "/" + id.Name
 	expected, err := yaml.Marshal(alerts)
 	if err != nil {
@@ -439,7 +438,7 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 			Indicators: []v1alpha1.IndicatorSpec{
 				{
 					Name:   indicatorName,
-					Promql: "rate(some_metric[10m])",
+					PromQL: "rate(some_metric[10m])",
 					Alert: v1alpha1.Alert{
 						For:  "5m",
 						Step: "2m",
@@ -447,7 +446,7 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 					Thresholds: []v1alpha1.Threshold{
 						{
 							Level:    "critical",
-							Operator: "gte",
+							Operator: v1alpha1.GreaterThanOrEqualTo,
 							Value:    float64(500),
 						},
 					},

@@ -246,7 +246,7 @@ jobs:
 
             cat << EOF > indicators.yml
           ---
-          apiVersion: v1alpha1
+          apiVersion: apps.pivotal.io/v1alpha1
           product:
             name: uaa-test
             version: 0

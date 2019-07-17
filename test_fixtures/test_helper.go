@@ -3,13 +3,12 @@ package test_fixtures
 import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
-func DefaultPresentation() indicator.Presentation {
-	return indicator.Presentation{
+func DefaultPresentation() v1alpha1.Presentation {
+	return v1alpha1.Presentation{
 		ChartType:    "step",
 		CurrentValue: false,
 		Frequency:    0,
@@ -28,15 +27,15 @@ func DefaultAPIV0Presentation() registry.APIV0Presentation {
 	}
 }
 
-func DefaultLayout(indicators []indicator.Indicator) indicator.Layout {
+func DefaultLayout(indicators []v1alpha1.IndicatorSpec) v1alpha1.Layout {
 	indicatorNames := make([]string, 0, len(indicators))
 	for _, i := range indicators {
 		indicatorNames = append(indicatorNames, i.Name)
 	}
-	return indicator.Layout{
+	return v1alpha1.Layout{
 		Title:       "",
 		Description: "",
-		Sections: []indicator.Section{{
+		Sections: []v1alpha1.Section{{
 			Title:       "",
 			Description: "",
 			Indicators:  indicatorNames,
@@ -58,8 +57,8 @@ func DefaultAPIV0Layout(indicatorNames []string) registry.APIV0Layout {
 	}
 }
 
-func DefaultAlert() indicator.Alert {
-	return indicator.Alert{
+func DefaultAlert() v1alpha1.Alert {
+	return v1alpha1.Alert{
 		For:  "1m",
 		Step: "1m",
 	}
@@ -84,10 +83,10 @@ func Indicator(name string, promql string) v1alpha1.Indicator {
 		Spec: v1alpha1.IndicatorSpec{
 			Product: "CF",
 			Name:    "test",
-			Promql:  promql,
+			PromQL:  promql,
 			Thresholds: []v1alpha1.Threshold{{
 				Level:    "critical",
-				Operator: "lt",
+				Operator: v1alpha1.LessThan,
 				Value:    float64(0),
 			}},
 		},

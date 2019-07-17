@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
 	. "github.com/onsi/gomega"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -24,7 +25,8 @@ func TestRegisterHandler(t *testing.T) {
 
 	t.Run("valid requests return 200", func(t *testing.T) {
 		t.Run("for apiVersion v0", func(t *testing.T) {
-			body := bytes.NewBuffer([]byte(`---
+			body := bytes.NewBuffer([]byte(`
+---
 apiVersion: v0
 
 product: 
@@ -39,7 +41,8 @@ indicators:
   promql: prom
   thresholds:
   - level: warning
-    gte: 50`))
+    gte: 50
+`))
 
 			req := httptest.NewRequest("POST", "/register", body)
 			resp := httptest.NewRecorder()
@@ -51,59 +54,73 @@ indicators:
 			g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
 
 			g.Expect(resp.Code).To(Equal(http.StatusOK))
-			g.Expect(docStore.AllDocuments()).To(ConsistOf(indicator.Document{
-				APIVersion: "v0",
-				Product:    indicator.Product{Name: "redis-tile", Version: "0.11"},
-				Metadata: map[string]string{
-					"deployment": "redis-abc-123",
+			g.Expect(docStore.AllDocuments()).To(ConsistOf(v1alpha1.IndicatorDocument{
+				TypeMeta: v1.TypeMeta{
+					Kind: "IndicatorDocument",
+					APIVersion: "v0",
 				},
-				Layout: indicator.Layout{
-					Sections: []indicator.Section{{
-						Title:      "Metrics",
-						Indicators: []string{"test_performance_indicator"},
-					}},
+				ObjectMeta: v1.ObjectMeta{
+					UID: "redis-tile-3c14d91f5c07bd4627a0c518fa14d5f1af0c3e1f",
+					Labels: map[string]string{
+						"deployment": "redis-abc-123",
+					},
 				},
-				Indicators: []indicator.Indicator{{
-					Name:   "test_performance_indicator",
-					PromQL: "prom",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
+
+				Spec: v1alpha1.IndicatorDocumentSpec{
+					Product: v1alpha1.Product{Name: "redis-tile", Version: "0.11"},
+					Layout: v1alpha1.Layout{
+						Sections: []v1alpha1.Section{{
+							Title:      "Metrics",
+							Indicators: []string{"test_performance_indicator"},
+						}},
 					},
-					Presentation: indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-					Thresholds: []indicator.Threshold{
-						{
-							Level:    "warning",
-							Operator: indicator.GreaterThanOrEqualTo,
-							Value:    50,
+					Indicators: []v1alpha1.IndicatorSpec{{
+						Name:   "test_performance_indicator",
+						PromQL: "prom",
+						Alert: v1alpha1.Alert{
+							For:  "1m",
+							Step: "1m",
+						},
+						Presentation: v1alpha1.Presentation{
+							CurrentValue: false,
+							ChartType:    "step",
+							Frequency:    0,
+							Labels:       []string{},
+						},
+						Thresholds: []v1alpha1.Threshold{
+							{
+								Level:    "warning",
+								Operator: v1alpha1.GreaterThanOrEqualTo,
+								Value:    50,
+							},
 						},
 					},
-				}},
+					}},
 			}))
 		})
 		t.Run("for apiVersion v1alpha1", func(t *testing.T) {
 			body := bytes.NewBuffer([]byte(`---
-apiVersion: v1alpha1
+apiVersion: apps.pivotal.io/v1alpha1
 
-product: 
-  name: redis-tile
-  version: 0.11
+kind: IndicatorDocument
+
 
 metadata:
-  deployment: redis-abc-123
+  labels:
+    deployment: redis-abc-123
 
-indicators:
-- name: test_performance_indicator
-  promql: prom
-  thresholds:
-  - level: warning
-    operator: gte
-    value: 50`))
+spec:
+  product: 
+    name: redis-tile
+    version: 0.11
+  
+  indicators:
+  - name: test_performance_indicator
+    promql: prom
+    thresholds:
+    - level: warning
+      operator: gte
+      value: 50`))
 
 			req := httptest.NewRequest("POST", "/register", body)
 			resp := httptest.NewRecorder()
@@ -114,39 +131,47 @@ indicators:
 
 			g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
 			g.Expect(resp.Code).To(Equal(http.StatusOK))
-			g.Expect(docStore.AllDocuments()).To(ConsistOf(indicator.Document{
-				APIVersion: "v1alpha1",
-				Product:    indicator.Product{Name: "redis-tile", Version: "0.11"},
-				Metadata: map[string]string{
-					"deployment": "redis-abc-123",
+			g.Expect(docStore.AllDocuments()).To(ConsistOf(v1alpha1.IndicatorDocument{
+				TypeMeta: v1.TypeMeta{
+					Kind: "IndicatorDocument",
+					APIVersion: "apps.pivotal.io/v1alpha1",
 				},
-				Layout: indicator.Layout{
-					Sections: []indicator.Section{{
-						Title:      "Metrics",
-						Indicators: []string{"test_performance_indicator"},
-					}},
+				ObjectMeta: v1.ObjectMeta{
+					UID: "redis-tile-3c14d91f5c07bd4627a0c518fa14d5f1af0c3e1f",
+					Labels: map[string]string{
+						"deployment": "redis-abc-123",
+					},
 				},
-				Indicators: []indicator.Indicator{{
-					Name:   "test_performance_indicator",
-					PromQL: "prom",
-					Alert: indicator.Alert{
-						For:  "1m",
-						Step: "1m",
+				Spec: v1alpha1.IndicatorDocumentSpec{
+					Product: v1alpha1.Product{Name: "redis-tile", Version: "0.11"},
+					Layout: v1alpha1.Layout{
+						Sections: []v1alpha1.Section{{
+							Title:      "Metrics",
+							Indicators: []string{"test_performance_indicator"},
+						}},
 					},
-					Presentation: indicator.Presentation{
-						CurrentValue: false,
-						ChartType:    "step",
-						Frequency:    0,
-						Labels:       []string{},
-					},
-					Thresholds: []indicator.Threshold{
-						{
-							Level:    "warning",
-							Operator: indicator.GreaterThanOrEqualTo,
-							Value:    50,
+					Indicators: []v1alpha1.IndicatorSpec{{
+						Name:   "test_performance_indicator",
+						PromQL: "prom",
+						Alert: v1alpha1.Alert{
+							For:  "1m",
+							Step: "1m",
+						},
+						Presentation: v1alpha1.Presentation{
+							CurrentValue: false,
+							ChartType:    "step",
+							Frequency:    0,
+							Labels:       []string{},
+						},
+						Thresholds: []v1alpha1.Threshold{
+							{
+								Level:    "warning",
+								Operator: v1alpha1.GreaterThanOrEqualTo,
+								Value:    50,
+							},
 						},
 					},
-				}},
+					}},
 			}))
 		})
 	})
@@ -257,37 +282,44 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		resp := httptest.NewRecorder()
 
 		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
-		docStore.UpsertDocument(indicator.Document{
-			Product: indicator.Product{Name: "my-product-a", Version: "1"},
-			Metadata: map[string]string{
-				"deployment": "abc-123",
+		docStore.UpsertDocument(v1alpha1.IndicatorDocument{
+			TypeMeta: v1.TypeMeta{
+				APIVersion: "apps.pivotal.io/v1alpha1",
 			},
-			Indicators: []indicator.Indicator{{
-				Name:   "indie1",
-				PromQL: "promql1",
-				Alert: indicator.Alert{
-					For:  "5m",
-					Step: "10s",
+			ObjectMeta: v1.ObjectMeta{
+				Labels: map[string]string{
+					"deployment": "abc-123",
 				},
-				ServiceLevel: nil,
-				Presentation: test_fixtures.DefaultPresentation(),
-			}, {
-				Name:   "indie2",
-				PromQL: "promql2",
-				Alert: indicator.Alert{
-					For:  "5m",
-					Step: "10s",
-				},
-				ServiceLevel: &indicator.ServiceLevel{
-					Objective: float64(99.99),
-				},
-				Presentation: indicator.Presentation{
-					ChartType:    "status",
-					CurrentValue: false,
-					Frequency:    0,
-					Units:        "nanoseconds",
-				},
-			}},
+			},
+			Spec: v1alpha1.IndicatorDocumentSpec{
+				Product: v1alpha1.Product{Name: "my-product-a", Version: "1"},
+				Indicators: []v1alpha1.IndicatorSpec{{
+					Name:   "indie1",
+					PromQL: "promql1",
+					Alert: v1alpha1.Alert{
+						For:  "5m",
+						Step: "10s",
+					},
+					ServiceLevel: nil,
+					Presentation: test_fixtures.DefaultPresentation(),
+				}, {
+					Name:   "indie2",
+					PromQL: "promql2",
+					Alert: v1alpha1.Alert{
+						For:  "5m",
+						Step: "10s",
+					},
+					ServiceLevel: &v1alpha1.ServiceLevel{
+						Objective: float64(99.99),
+					},
+					Presentation: v1alpha1.Presentation{
+						ChartType:    "status",
+						CurrentValue: false,
+						Frequency:    0,
+						Units:        "nanoseconds",
+					},
+				}},
+			},
 		})
 
 		statusStore := status_store.New(func() time.Time { return time.Date(2012, 12, 1, 16, 45, 19, 0, time.UTC) })
@@ -309,7 +341,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		g.Expect(responseBody).To(MatchJSON(`
 			[
  				{
-                    "apiVersion": "",
+                    "apiVersion": "apps.pivotal.io/v1alpha1",
 					"uid": "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
                     "product": {
 						"name": "my-product-a",
@@ -357,7 +389,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
                         },
 						"status": {
 						  "value": "critical",
-						  "updatedAt": "2012-12-01T16:45:19Z"
+						  "updatedAt": "0001-01-01T00:00:00Z"
 						}
                       }
                     ],
@@ -378,18 +410,24 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		resp := httptest.NewRecorder()
 
 		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
-		docStore.UpsertDocument(indicator.Document{
-			Product: indicator.Product{Name: "my-product-a", Version: "1"},
-			Metadata: map[string]string{
-				"deployment % ": "%d abc-123",
+		docStore.UpsertDocument(v1alpha1.IndicatorDocument{
+			TypeMeta: v1.TypeMeta{
 			},
-			Indicators: []indicator.Indicator{{
-				Name:          "indie1",
-				PromQL:        "promql1",
-				Alert:         test_fixtures.DefaultAlert(),
-				Documentation: map[string]string{" % ": "{0}", "%n": "%*.*s"},
-				Presentation:  test_fixtures.DefaultPresentation(),
-			}},
+			ObjectMeta: v1.ObjectMeta{
+				Labels: map[string]string{
+					"deployment % ": "%d abc-123",
+				},
+			},
+			Spec: v1alpha1.IndicatorDocumentSpec{
+				Product: v1alpha1.Product{Name: "my-product-a", Version: "1"},
+				Indicators: []v1alpha1.IndicatorSpec{{
+					Name:          "indie1",
+					PromQL:        "promql1",
+					Alert:         test_fixtures.DefaultAlert(),
+					Documentation: map[string]string{" % ": "{0}", "%n": "%*.*s"},
+					Presentation:  test_fixtures.DefaultPresentation(),
+				}},
+			},
 		})
 
 		statusStore := status_store.New(func() time.Time { return time.Date(2012, 12, 1, 16, 45, 19, 0, time.UTC) })

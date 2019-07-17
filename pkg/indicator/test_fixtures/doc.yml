@@ -1,11 +1,16 @@
 ---
-apiVersion: v1alpha1
-product:
-  name: well-performing-component
-  version: 0.0.1
-metadata:
-  deployment: well-performing-deployment
+apiVersion: apps.pivotal.io/v1alpha1
+kind: IndicatorDocument
 
-indicators:
-- name: test_performance_indicator
-  promql: query_metric{source_id="$deployment"}
+spec:
+  product:
+    name: well-performing-component
+    version: 0.0.1
+
+  indicators:
+  - name: test_performance_indicator
+    promql: query_metric{source_id="$deployment"}
+
+metadata:
+  labels:
+    deployment: well-performing-deployment

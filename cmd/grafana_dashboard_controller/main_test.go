@@ -10,9 +10,10 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
@@ -33,31 +34,37 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 
 		store := registry.NewDocumentStore(time.Hour, time.Now)
 
-		document := indicator.Document{
-			APIVersion: "v1alpha1",
-			Product: indicator.Product{
-				Name:    "test_product",
-				Version: "v1.2.3",
+		document := v1alpha1.IndicatorDocument{
+			TypeMeta: v1.TypeMeta{
+				APIVersion: "apps.pivotal.io/v1alpha1",
 			},
-			Metadata: map[string]string{"deployment": "test_deployment"},
-			Indicators: []indicator.Indicator{{
-				Name:   "test_indicator",
-				PromQL: `test_query{deployment="test_deployment"}`,
-				Alert:  test_fixtures.DefaultAlert(),
-				Thresholds: []indicator.Threshold{{
-					Level:    "critical",
-					Operator: indicator.LessThan,
-					Value:    5,
+			ObjectMeta: v1.ObjectMeta{
+				Labels: map[string]string{"deployment": "test_deployment"},
+			},
+			Spec: v1alpha1.IndicatorDocumentSpec{
+				Product: v1alpha1.Product{
+					Name:    "test_product",
+					Version: "v1.2.3",
+				},
+				Indicators: []v1alpha1.IndicatorSpec{{
+					Name:   "test_indicator",
+					PromQL: `test_query{deployment="test_deployment"}`,
+					Alert:  test_fixtures.DefaultAlert(),
+					Thresholds: []v1alpha1.Threshold{{
+						Level:    "critical",
+						Operator: v1alpha1.LessThan,
+						Value:    5,
+					}},
+					Presentation:  test_fixtures.DefaultPresentation(),
+					Documentation: map[string]string{"title": "Test Indicator Title"},
 				}},
-				Presentation:  test_fixtures.DefaultPresentation(),
-				Documentation: map[string]string{"title": "Test Indicator Title"},
-			}},
-			Layout: indicator.Layout{
-				Title: "Test Dashboard",
-				Sections: []indicator.Section{
-					{
-						Title:      "Test Section Title",
-						Indicators: []string{"test_indicator"},
+				Layout: v1alpha1.Layout{
+					Title: "Test Dashboard",
+					Sections: []v1alpha1.Section{
+						{
+							Title:      "Test Section Title",
+							Indicators: []string{"test_indicator"},
+						},
 					},
 				},
 			},
@@ -111,31 +118,36 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 
 		store := registry.NewDocumentStore(time.Hour, time.Now)
 
-		document := indicator.Document{
-			APIVersion: "v0",
-			Product: indicator.Product{
-				Name:    "test_product",
-				Version: "v1.2.3",
+		document := v1alpha1.IndicatorDocument{
+			TypeMeta: v1.TypeMeta{
+				APIVersion: "apps.pivotal.io/v1alpha1",
 			},
-			Metadata: map[string]string{"deployment": "test_deployment"},
-			Indicators: []indicator.Indicator{{
-				Name:   "test_indicator",
-				PromQL: `test_query{deployment="test_deployment"}`,
-				Alert:  test_fixtures.DefaultAlert(),
-				Thresholds: []indicator.Threshold{{
-					Level:    "critical",
-					Operator: indicator.LessThan,
-					Value:    5,
+			ObjectMeta: v1.ObjectMeta{Labels: map[string]string{"deployment": "test_deployment"}},
+			Spec: v1alpha1.IndicatorDocumentSpec{
+
+				Product: v1alpha1.Product{
+					Name:    "test_product",
+					Version: "v1.2.3",
+				},
+				Indicators: []v1alpha1.IndicatorSpec{{
+					Name:   "test_indicator",
+					PromQL: `test_query{deployment="test_deployment"}`,
+					Alert:  test_fixtures.DefaultAlert(),
+					Thresholds: []v1alpha1.Threshold{{
+						Level:    "critical",
+						Operator: v1alpha1.LessThan,
+						Value:    5,
+					}},
+					Presentation:  test_fixtures.DefaultPresentation(),
+					Documentation: map[string]string{"title": "Test Indicator Title"},
 				}},
-				Presentation:  test_fixtures.DefaultPresentation(),
-				Documentation: map[string]string{"title": "Test Indicator Title"},
-			}},
-			Layout: indicator.Layout{
-				Title: "Test Dashboard",
-				Sections: []indicator.Section{
-					{
-						Title:      "Test Section Title",
-						Indicators: []string{"test_indicator"},
+				Layout: v1alpha1.Layout{
+					Title: "Test Dashboard",
+					Sections: []v1alpha1.Section{
+						{
+							Title:      "Test Section Title",
+							Indicators: []string{"test_indicator"},
+						},
 					},
 				},
 			},

@@ -52,7 +52,63 @@ func TestIndicatorRegistryProxy(t *testing.T) {
 
 		createDocumentUrl := fmt.Sprintf("https://localhost:%s/v1/register", proxy1Port)
 
-		indicatorDocument := `{"apiVersion": "v1alpha1","uid": "my-product-a-a902332065d69c1787f419e235a1f1843d98c884","product": {"name": "my-product-a","version": "1"},"metadata": {"deployment": "abc-123"},"indicators": [{"name": "indie1","promql": "promql1","thresholds": [],"alert": {"for": "5m","step": "10s"},"serviceLevel": null,"presentation": {"chartType": "step","currentValue": false,"frequency": 0,"labels": [],"units": ""},"status": null},{"name": "indie2","promql": "promql2","thresholds": [],"alert": {"for": "5m","step": "10s"},"serviceLevel": {"objective": 99.99},"presentation": {"chartType": "status","currentValue": false,"frequency": 0,"labels": [],"units": "nanoseconds"},"status": null}],"layout": {"title": "","description": "","sections": [],"owner": ""}}`
+		indicatorDocument := `{
+  "apiVersion": "v0",
+  "uid": "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
+  "product": {
+    "name": "my-product-a",
+    "version": "1"
+  },
+  "metadata": {
+    "deployment": "abc-123"
+  },
+  "indicators": [
+    {
+      "name": "indie1",
+      "promql": "promql1",
+      "thresholds": [],
+      "alert": {
+        "for": "5m",
+        "step": "10s"
+      },
+      "serviceLevel": null,
+      "presentation": {
+        "chartType": "step",
+        "currentValue": false,
+        "frequency": 0,
+        "labels": [],
+        "units": ""
+      },
+      "status": null
+    },
+    {
+      "name": "indie2",
+      "promql": "promql2",
+      "thresholds": [],
+      "alert": {
+        "for": "5m",
+        "step": "10s"
+      },
+      "serviceLevel": {
+        "objective": 99.99
+      },
+      "presentation": {
+        "chartType": "status",
+        "currentValue": false,
+        "frequency": 0,
+        "labels": [],
+        "units": "nanoseconds"
+      },
+      "status": null
+    }
+  ],
+  "layout": {
+    "title": "",
+    "description": "",
+    "sections": [],
+    "owner": ""
+  }
+}`
 
 		buffer := bytes.NewBuffer([]byte(indicatorDocument))
 		_, err = client.Post(createDocumentUrl, "application/json", buffer)

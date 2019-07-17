@@ -6,18 +6,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+
+	. "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 )
 
-func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
+func ReadFile(indicatorsFile string, opts ...ReadOpt) (IndicatorDocument, error) {
 	fileBytes, err := ioutil.ReadFile(indicatorsFile)
 	if err != nil {
-		return Document{}, err
+		return IndicatorDocument{}, err
 	}
 
 	reader := ioutil.NopCloser(bytes.NewReader(fileBytes))
 	doc, err := DocumentFromYAML(reader)
 	if err != nil {
-		return Document{}, err
+		return IndicatorDocument{}, err
 	}
 
 	readOptions := getReadOpts(opts)
@@ -26,7 +28,7 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
 		doc.Interpolate()
 	}
 
-	validationErrors := doc.Validate("v0", "v1alpha1")
+	validationErrors := doc.Validate("v0", "apps.pivotal.io/v1alpha1")
 	if len(validationErrors) > 0 {
 		var errorString strings.Builder
 		errorString.WriteString("validation for indicator document failed:\n")
@@ -36,7 +38,7 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (Document, error) {
 				errorString.WriteString("failed to parse error\n")
 			}
 		}
-		return Document{}, errors.New(errorString.String())
+		return IndicatorDocument{}, errors.New(errorString.String())
 	}
 
 	return doc, nil

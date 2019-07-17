@@ -8,6 +8,7 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/evanphx/json-patch v4.1.0+incompatible // indirect
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0 // indirect
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect

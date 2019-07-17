@@ -35,6 +35,7 @@ func TestIndicatorRegistry(t *testing.T) {
 		configBytes, err := yaml.Marshal(config)
 
 		f, err := ioutil.TempFile("", "test_config.yml")
+		g.Expect(err).ToNot(HaveOccurred())
 		_, err = f.Write(configBytes)
 		g.Expect(err).ToNot(HaveOccurred())
 
@@ -45,7 +46,7 @@ func TestIndicatorRegistry(t *testing.T) {
 			file, err := os.Open("test_fixtures/indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err := http.Post(serverUrl+"/v1/register", "text/plain", file)
+			resp, err := http.Post(serverUrl + "/v1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(resp.StatusCode, resp.Body).To(Equal(http.StatusOK))
