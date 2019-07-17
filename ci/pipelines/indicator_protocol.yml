@@ -104,7 +104,7 @@ jobs:
 
 - name: indicator-verification
   plan:
-  - aggregate:
+  - in_parallel:
     - get: monitoring-indicator-protocol
       passed: [build-and-test]
       trigger: true
@@ -163,7 +163,7 @@ jobs:
 
 - name: deploy-indicator-registry
   plan:
-  - aggregate:
+  - in_parallel:
     - get: env-state
     - get: monitoring-indicator-protocol
       trigger: true
@@ -244,7 +244,7 @@ jobs:
 
 - name: create-dev-release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: monitoring-indicator-protocol
       passed: [indicator-verification,indicator-docs,deploy-indicator-registry]
       trigger: true
@@ -296,7 +296,7 @@ jobs:
               --version ${BUILD_NUMBER} \
               --tarball ../../created-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz
           popd
-  - aggregate:
+  - in_parallel:
     - put: dev-release
       params:
         file: created-release/*.tgz
@@ -306,7 +306,7 @@ jobs:
 
 - name: finalize-release
   plan:
-  - aggregate:
+  - in_parallel:
     - get: monitoring-indicator-protocol
       passed:
       - create-dev-release
