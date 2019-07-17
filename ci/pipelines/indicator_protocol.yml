@@ -3,10 +3,9 @@ resources:
 - name: monitoring-indicator-protocol
   type: git
   source:
-    uri: https://github.com/pivotal/monitoring-indicator-protocol
+    uri: git@github.com:pivotal/monitoring-indicator-protocol.git
     branch: v0.7
-    username: git
-    password: ((indicator-protocol-access-token))
+    private_key: ((bot-github-ssh-key.private_key))
     ignore_paths:
     - README.md
     - ci
@@ -18,7 +17,7 @@ resources:
   source:
     branch: master
     uri: git@github.com:pivotal-cf/denver-locks.git
-    private_key: ((event-producer-github-key))
+    private_key: ((bot-github-ssh-key.private_key))
 - name: release-version
   type: semver
   source:
@@ -32,7 +31,7 @@ resources:
   source:
     user: pivotal
     repository: monitoring-indicator-protocol
-    access_token: ((indicator-protocol-access-token))
+    access_token: ((bot-github-access-token))
     drafts: true
 - name: dev-release
   type: gcs-resource
