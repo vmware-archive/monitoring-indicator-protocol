@@ -332,7 +332,6 @@ jobs:
             manifests/manifest.yml \
             -o ops_files/add-examples-git-source.yml \
             -o ops_files/configure-status-controller.yml \
-            -o ops_files/add-loggregator-agents.yml \
             -v prometheus_uri=$PROMETHEUS_URI \
             -v uaa_uri=$UAA_URI \
             -v uaa_client_id=$UAA_CLIENT_ID \
