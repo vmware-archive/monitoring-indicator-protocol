@@ -135,12 +135,20 @@ resources:
     stop: 12:00 AM
     location: America/Denver
     days: [Monday, Tuesday, Wednesday, Thursday, Friday]
+- name: notify
+  type: slack-notification
+  source:
+    url: ((slack-webhook-url))
 
 resource_types:
 - name: gcs-resource
   type: docker-image
   source:
     repository: frodenas/gcs-resource
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
 
 jobs:
 - name: build-and-test
@@ -948,6 +956,7 @@ jobs:
       - name: release-version
       outputs:
       - name: prefixed-release-version
+      - name: slack-message
       run:
         path: bash
         args:
@@ -957,6 +966,7 @@ jobs:
           set -ex
           number=$(cat "./release-version/number")
           echo v${number} > prefixed-release-version/version
+          echo "Indicator Protocol v${number} has been released :indipro:" > slack-message/text.txt
   - put: monitoring-indicator-protocol
     params:
       repository: monitoring-indicator-protocol
@@ -1003,6 +1013,10 @@ jobs:
         additional_tags: prefixed-release-version/version
         tag_as_latest: true
         load: k8s-indicator-status-controller-docker-repo
+  - put: notify
+    params:
+      text_file: ./slack-message/text.txt
+
 - name: bump-patch-version
   plan:
   - put: release-version
