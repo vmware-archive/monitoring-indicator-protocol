@@ -6,7 +6,7 @@ resources:
   source:
     uri: git@github.com:pivotal/monitoring-indicator-protocol.git
     branch: master
-    private_key: ((bot-github-ssh-key.private_key))
+    private_key: ((mip-deploy-key.private_key))
     ignore_paths:
     - README.md
     - ci
@@ -18,7 +18,7 @@ resources:
   source:
     branch: master
     uri: git@github.com:pivotal-cf/denver-locks.git
-    private_key: ((bot-github-ssh-key.private_key))
+    private_key: ((denver-locks-deploy-key.private_key))
 - name: release-version
   type: semver
   source:
