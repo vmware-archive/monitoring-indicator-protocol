@@ -5,7 +5,7 @@ resources:
   source:
     uri: git@github.com:pivotal/monitoring-indicator-protocol.git
     branch: v0.7
-    private_key: ((bot-github-ssh-key.private_key))
+    private_key: ((mip-deploy-key.private_key))
     ignore_paths:
     - README.md
     - ci
@@ -17,7 +17,7 @@ resources:
   source:
     branch: master
     uri: git@github.com:pivotal-cf/denver-locks.git
-    private_key: ((bot-github-ssh-key.private_key))
+    private_key: ((denver-locks-deploy-key.private_key))
 - name: release-version
   type: semver
   source:
@@ -375,8 +375,8 @@ jobs:
               releases/indicator-protocol/indicator-protocol-${BUILD_NUMBER}.yml
 
             git add .
-            git config --global user.email "cf-event-producer@pivotal.io"
-            git config --global user.name "event-producer-cibot"
+            git config --global user.email "indicartor-protocol@pivotal.io"
+            git config --global user.name "indicator-protocol-bot"
             git commit -m "Create final release\
 
             [ci skip]"
