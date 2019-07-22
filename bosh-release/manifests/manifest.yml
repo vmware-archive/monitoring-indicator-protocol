@@ -15,7 +15,7 @@ releases:
 instance_groups:
 - name: indicator-protocol
   azs:
-    - z1
+  - z1
   instances: 3
   vm_type: minimal
   stemcell: default
@@ -29,7 +29,10 @@ instance_groups:
   - name: indicator-registry-proxy
     release: monitoring-indicator-protocol
     provides:
-      indicator-registry: {shared: true}
+      indicator-registry:
+        shared: true
+        aliases:
+        - domain: "indicator-registry.service.internal"
     properties:
       tls:
         ca_cert: ((indicator_protocol_ca.ca))
@@ -38,6 +41,22 @@ instance_groups:
         server_common_name: indicator-registry
         client_cert: ((indicator_registration_agent_ssl.certificate))
         client_key: ((indicator_registration_agent_ssl.private_key))
+  - name: indicator-cf-auth-proxy
+    release: monitoring-indicator-protocol
+    consumes:
+      indicator-registry: {deployment: indicator-protocol}
+    provides:
+      cf-auth-proxy:
+        shared: true
+        aliases:
+        - domain: "cf-auth-proxy.service.internal"
+    properties:
+      uaa:
+        addr: "https://uaa.madlamp.cf-denver.com"
+      tls:
+        server_cert: ((indicator_auth_proxy_ssl.certificate))
+        server_key: ((indicator_auth_proxy_ssl.private_key))
+        server_common_name: indicator-registry
   - name: grafana-dashboard-controller
     release: monitoring-indicator-protocol
     properties:
@@ -76,6 +95,13 @@ variables:
   options:
     ca: indicator_protocol_ca
     common_name: indicator-registry
+    extended_key_usage:
+    - server_auth
+- name: indicator_auth_proxy_ssl
+  type: certificate
+  options:
+    ca: indicator_protocol_ca
+    common_name: cf-auth-proxy.service.internal
     extended_key_usage:
     - server_auth
 - name: indicator_registration_agent_ssl

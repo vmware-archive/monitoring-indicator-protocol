@@ -130,8 +130,11 @@ helm install stable/prometheus --values helm_config/e2e_prometheus_values.yml --
 
 #### Running the tests
 
-The tests can be run with a shell script from the root directory of this
-repository: `./scripts/test.sh e2e`.
+The k8s tests can be run with a shell script from the root directory of this
+repository: `./scripts/test.sh k8s_e2e`.
 The tests use the current Kubernetes auth context,
 so you must be logged into a cluster to run them.
 The cluster must be set up for E2E tests as detailed above.
+
+
+To run both bosh and k8s e2e tests, run `./scripts/test.sh e2e`

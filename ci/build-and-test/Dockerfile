@@ -8,8 +8,12 @@ RUN apt-get install -y --no-install-recommends rsync jq lsb-core
 RUN echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -c -s) main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 
 RUN curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+
 RUN apt-get update
-RUN apt-get install --yes google-cloud-sdk
+RUN apt-get install -y google-cloud-sdk
+
+RUN apt-get update
+RUN apt-get install netcat-openbsd -y
 
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 RUN chmod +x kubectl

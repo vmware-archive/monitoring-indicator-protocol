@@ -13,6 +13,13 @@ resources:
     - bosh-release/.final_builds
     - bosh-release/releases
     - k8s/examples
+- name: indicator-protocol-acceptance-proxy
+  type: git
+  icon: package-variant-closed
+  source:
+    uri: git@github.com:pivotal/indicator-protocol-acceptance-proxy.git
+    branch: master
+    private_key: ((acceptance-proxy-deploy-key.private_key))
 - name: env-state
   type: git
   source:
@@ -171,10 +178,52 @@ jobs:
         - |
           #!/usr/bin/env bash
 
-          set -exu
+          set -eu
 
           pushd monitoring-indicator-protocol
             scripts/test.sh
+          popd
+
+- name: test-bosh-e2e
+  plan:
+  - in_parallel:
+    - get: env-state
+    - get: monitoring-indicator-protocol
+      trigger: true
+      passed: [build-and-test]
+  - task: test-bosh-e2e
+    config:
+      params:
+        BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
+        CF_ADMIN_PASSWORD: ((madlamp-cf-admin-password))
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: indicatorprotocol/test-base
+      inputs:
+      - name: monitoring-indicator-protocol
+      - name: env-state
+
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          #!/usr/bin/env bash
+          set -eu
+
+          pushd "env-state/${BBL_STATE_DIR}"
+            eval "$(bbl print-env)"
+          popd
+
+          pushd monitoring-indicator-protocol
+            cf login \
+              -a https://api.madlamp.cf-denver.com \
+              -u admin -p $CF_ADMIN_PASSWORD \
+              -o test \
+              -s test
+            ./scripts/test.sh bosh_e2e
           popd
 
 - name: indicator-docs
@@ -198,7 +247,7 @@ jobs:
         - |
           #!/usr/bin/env bash
 
-          set -exu
+          set -eu
 
           export GO111MODULE=on
 
@@ -264,10 +313,9 @@ jobs:
                                                         -authorization="bearer ${access_token}" \
                                                         -query-endpoint=https://metric-store.${ENVIRONMENT}.cf-denver.com \
                                                         -k
-
           popd
 
-- name: deploy-indicator-registry
+- name: deploy-indicator-registry-to-madlamp
   serial: true
   plan:
   - in_parallel:
@@ -275,8 +323,9 @@ jobs:
     - get: monitoring-indicator-protocol
       trigger: true
       passed: [build-and-test]
+    - get: indicator-protocol-acceptance-proxy
     - get: release-version
-  - task: deploy
+  - task: deploy-registry
     config:
       params:
         ENVIRONMENT: madlamp
@@ -301,7 +350,6 @@ jobs:
         args:
         - -c
         - |
-          #!/bin/bash
           set -e
 
           pushd "env-state/${BBL_STATE_DIR}"
@@ -358,6 +406,39 @@ jobs:
           bosh -n -d $CF_DEPLOYMENT_NAME deploy temp.yml
           rm temp.yml
 
+
+  - task: deploy-external-proxy
+    config:
+      params:
+        CF_ADMIN_PASSWORD: ((madlamp-cf-admin-password))
+        BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: indicatorprotocol/test-base
+      inputs:
+      - name: indicator-protocol-acceptance-proxy
+      - name: env-state
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -e
+
+          pushd "env-state/${BBL_STATE_DIR}"
+            eval "$(bbl print-env)"
+          popd
+
+          pushd indicator-protocol-acceptance-proxy
+            bosh -d indicator-protocol scp indicator-protocol:/var/vcap/jobs/indicator-registry-proxy/certs/indicator_protocol_ca.crt ca.crt
+            cf login -a https://api.madlamp.cf-denver.com -u admin -p $CF_ADMIN_PASSWORD -o test -s test
+            cf push
+            ./test_acceptance_proxy.sh
+          popd
+
+
 - name: create-dev-docker-images
   plan:
   - get: monitoring-indicator-protocol
@@ -381,7 +462,7 @@ jobs:
         - -c
         - |
           #!/usr/bin/env bash
-          set -ex
+          set -e
           cd monitoring-indicator-protocol
           SHA=$(git rev-parse HEAD)
           cd ..
@@ -429,7 +510,7 @@ jobs:
         - -c
         - |
           #!/usr/bin/env bash
-          set -ex
+          set -e
           cd monitoring-indicator-protocol
           SHA=$(git rev-parse HEAD)
           cd ..
@@ -601,7 +682,7 @@ jobs:
 
           function test {
               cd monitoring-indicator-protocol
-              ./scripts/test.sh e2e
+              ./scripts/test.sh k8s_e2e
           }
 
           function main {
@@ -740,7 +821,7 @@ jobs:
     - get: evening
       trigger: true
     - get: monitoring-indicator-protocol
-      passed: [indicator-verification,indicator-docs,deploy-indicator-registry,promote-docker-images]
+      passed: [indicator-verification,indicator-docs,deploy-indicator-registry-to-madlamp,promote-docker-images]
       trigger: false
     - get: release-version
       params:
@@ -782,7 +863,7 @@ jobs:
         - -c
         - |
           #!/usr/bin/env bash
-          set -ex
+          set -e
 
           BUILD_NUMBER="$(cat release-version/number)"
 
@@ -870,7 +951,7 @@ jobs:
         - -c
         - |
           #!/usr/bin/env bash
-          set -ex
+          set -e
 
           BUILD_NUMBER=$(cat release-version/number)
           tag_name="v$BUILD_NUMBER"
@@ -933,7 +1014,7 @@ jobs:
         - -c
         - |
           #!/usr/bin/env bash
-          set -ex
+          set -e
 
           cp github-release/* github-release-output/
 
@@ -967,7 +1048,7 @@ jobs:
         - -c
         - |
           #!/usr/bin/env bash
-          set -ex
+          set -e
           number=$(cat "./release-version/number")
           echo v${number} > prefixed-release-version/version
           echo "Indicator Protocol v${number} has been released :indipro:" > slack-message/text.txt

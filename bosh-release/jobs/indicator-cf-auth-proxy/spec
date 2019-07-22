@@ -1,13 +1,13 @@
 ---
-name: indicator-registry-proxy
+name: indicator-cf-auth-proxy
 
 templates:
   bpm.yml.erb: config/bpm.yml
   client.crt.erb: certs/client.crt
   client.key.erb: certs/client.key
   indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
-  server.crt.erb: certs/server.crt
   server.key.erb: certs/server.key
+  server.crt.erb: certs/server.crt
 
 packages:
   - indicator-protocol
@@ -15,23 +15,25 @@ packages:
 consumes:
   - name: indicator-registry
     type: indicator-registry
+    optional: true
 
 provides:
-  - name: indicator-registry
-    type: indicator-registry
-    properties:
-      - port
-      - tls.ca_cert
-      - tls.client_cert
-      - tls.client_key
-      - tls.server_common_name
-      - tls.server_key
-      - tls.server_cert
+- name: cf-auth-proxy
+  type: cf-auth-proxy
+  properties:
+  - port
+  - tls.ca_cert
+  - tls.client_cert
+  - tls.client_key
+  - tls.server_common_name
+  - tls.server_key
+  - tls.server_cert
+  - uaa.addr
 
 properties:
   port:
-    description: "Port to expose registration endpoints"
-    default: 10567
+    description: "Port to expose cf-auth endpoints"
+    default: 10569
 
   tls.ca_cert:
     description: "CA root required for key/cert verification"
@@ -45,3 +47,6 @@ properties:
     description: "TLS Client private key"
   tls.server_common_name:
     description: "TLS Server common name"
+  uaa.addr:
+    description: "Address of a UAA Service against which to validate tokens"
+    default: "https://uaa.service.cf.internal:8443"

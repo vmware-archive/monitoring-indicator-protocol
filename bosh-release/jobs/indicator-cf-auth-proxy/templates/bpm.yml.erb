@@ -1,0 +1,33 @@
+---
+processes:
+  - name: indicator-cf-auth-proxy
+    executable: /var/vcap/packages/indicator-protocol/cf_auth_proxy
+    ephemeral_disk: true
+    args:
+      - --port
+      - <%= p('port') %>
+      - --tls-pem-path
+      - /var/vcap/jobs/indicator-cf-auth-proxy/certs/server.crt
+      - --tls-key-path
+      - /var/vcap/jobs/indicator-cf-auth-proxy/certs/server.key
+      - --tls-root-ca-pem
+      - /var/vcap/jobs/indicator-cf-auth-proxy/certs/indicator_protocol_ca.crt
+      - --tls-client-pem-path
+      - /var/vcap/jobs/indicator-cf-auth-proxy/certs/client.crt
+      - --tls-client-key-path
+      - /var/vcap/jobs/indicator-cf-auth-proxy/certs/client.key
+      - --tls-server-cn
+      - <%= p('tls.server_common_name') %>
+      - --uaa-addr
+      - <%= p('uaa.addr') %>
+  <% if_link('indicator-registry') do |ir| %>
+      - --registry-addr
+      - https://<%= ir.address %>:<%= ir.p('port') %>
+      - --tls-server-cn
+      - <%= ir.p('tls.server_common_name') %>
+  <% end.else do %>
+      - --registry
+      - none
+      - --tls-server-cn
+      - none
+  <% end %>

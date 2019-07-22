@@ -2,6 +2,14 @@
 cloud.google.com/go/compute/metadata
 # code.cloudfoundry.org/go-envstruct v1.4.0
 code.cloudfoundry.org/go-envstruct
+# code.cloudfoundry.org/lager v2.0.0+incompatible
+code.cloudfoundry.org/lager
+# code.cloudfoundry.org/trace-logger v0.0.0-20170119230301-107ef08a939d
+code.cloudfoundry.org/trace-logger
+# code.cloudfoundry.org/uaa-go-client v0.0.0-20190422235229-b72622d8ac6f
+code.cloudfoundry.org/uaa-go-client
+code.cloudfoundry.org/uaa-go-client/config
+code.cloudfoundry.org/uaa-go-client/schema
 # github.com/benbjohnson/clock v0.0.0-20161215174838-7dc76406b6d3
 github.com/benbjohnson/clock
 # github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
@@ -14,6 +22,8 @@ github.com/cespare/xxhash
 github.com/cppforlife/go-patch/patch
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
+# github.com/dgrijalva/jwt-go v3.2.0+incompatible
+github.com/dgrijalva/jwt-go
 # github.com/emirpasic/gods v1.9.0
 github.com/emirpasic/gods/trees/binaryheap
 github.com/emirpasic/gods/containers

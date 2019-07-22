@@ -1,5 +1,6 @@
 package mtls
 
+// TODO rename to TLS, SingleAuthClient is not mutual TLS
 import (
 	"crypto/tls"
 	"crypto/x509"
@@ -56,6 +57,22 @@ func NewClientConfig(clientCert, clientKey, rootCACert, serverCommonName string)
 		RootCAs:                  caCertPool,
 		MinVersion:               tls.VersionTLS12,
 		PreferServerCipherSuites: true,
+		CipherSuites:             supportedCipherSuites,
+		ServerName:               serverCommonName,
+	}, nil
+}
+
+func NewSingleAuthClientConfig(rootCACert, serverCommonName string) (*tls.Config, error) {
+	caCert, err := ioutil.ReadFile(rootCACert)
+	if err != nil {
+		return nil, err
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	return &tls.Config{
+		RootCAs:                  caCertPool,
 		CipherSuites:             supportedCipherSuites,
 		ServerName:               serverCommonName,
 	}, nil
