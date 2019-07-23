@@ -247,12 +247,14 @@ jobs:
             cat << EOF > indicators.yml
           ---
           apiVersion: apps.pivotal.io/v1alpha1
-          product:
-            name: uaa-test
-            version: 0
-          indicators:
-          - name: uaa_request_rate
-            promql: rate(requests_global_status_2xx_count{source_id="uaa"}[10m])
+          kind: IndicatorDocument
+          spec:
+            product:
+              name: uaa-test
+              version: 0
+            indicators:
+            - name: uaa_request_rate
+              promql: rate(requests_global_status_2xx_count{source_id="uaa"}[10m])
           EOF
 
             uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_firehose_exporter_secret -j | jq -r .value)"
@@ -329,7 +331,7 @@ jobs:
 
             bosh update-runtime-config -n \
               --name indicator-document-registration-agent \
-              --var=indicator-protocol-version=$(bosh releases | grep monitoring-indicator-protocol -m1 | cut -f2) \
+              --var=indicator-protocol-version=${BUILD_NUMBER} \
               manifests/agent_runtime_config.yml
 
           UAA_CLIENT_SECRET=$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_cc-service-dashboards_secret -j | jq -r .value)
@@ -340,10 +342,12 @@ jobs:
             manifests/manifest.yml \
             -o ops_files/add-examples-git-source.yml \
             -o ops_files/configure-status-controller.yml \
+            -o ops_files/set-indicator-protocol-version.yml \
             -v prometheus_uri=$PROMETHEUS_URI \
             -v uaa_uri=$UAA_URI \
             -v uaa_client_id=$UAA_CLIENT_ID \
             -v uaa_client_secret=$UAA_CLIENT_SECRET \
+            -v indicator-protocol-version=$BUILD_NUMBER
             --var-file=patch_repo_private_key=./sample-repo-key
           popd
 
