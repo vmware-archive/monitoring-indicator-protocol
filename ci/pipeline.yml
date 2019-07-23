@@ -347,7 +347,7 @@ jobs:
             -v uaa_uri=$UAA_URI \
             -v uaa_client_id=$UAA_CLIENT_ID \
             -v uaa_client_secret=$UAA_CLIENT_SECRET \
-            -v indicator-protocol-version=$BUILD_NUMBER
+            -v indicator-protocol-version=$BUILD_NUMBER \
             --var-file=patch_repo_private_key=./sample-repo-key
           popd
 
