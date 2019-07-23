@@ -14,6 +14,7 @@ operations:
     promql: success_percentage_promql{source_id="origin"}
     thresholds:
     - level: warning
-      gte: 150
+      operator: gte
+      value: 150
     documentation:
       title: Success Percentage
