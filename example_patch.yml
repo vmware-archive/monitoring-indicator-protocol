@@ -3,7 +3,7 @@ apiVersion: v0/patch
 
 match:
   product:
-    name: my-other-component-5
+    name: my-other-component
     version: 1.2.3
 
 operations:
