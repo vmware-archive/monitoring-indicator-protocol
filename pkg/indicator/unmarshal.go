@@ -447,18 +447,24 @@ func OverrideMetadata(overrideMetadata map[string]string) func(options *readOpti
 func ProcessDocument(patches []Patch, documentBytes []byte) (v1alpha1.IndicatorDocument, []error) {
 	patchedDocBytes, err := ApplyPatches(patches, documentBytes)
 	if err != nil {
+		log.Print("failed to apply patches to document")
 		return v1alpha1.IndicatorDocument{}, []error{err}
 	}
 
 	reader2 := ioutil.NopCloser(bytes.NewReader(patchedDocBytes))
 	doc, err := DocumentFromYAML(reader2)
 	if err != nil {
+		log.Print("failed to unmarshal document")
 		return v1alpha1.IndicatorDocument{}, []error{err}
 	}
 	doc.Interpolate()
 
 	errs := doc.Validate("v0", "apps.pivotal.io/v1alpha1")
 	if len(errs) > 0 {
+		log.Print("document validation failed")
+		for _, e := range errs {
+			log.Printf("- %s \n", e.Error())
+		}
 		return v1alpha1.IndicatorDocument{}, errs
 	}
 

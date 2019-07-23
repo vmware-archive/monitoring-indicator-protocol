@@ -199,7 +199,6 @@ func processDocuments(documentsBytes [][]byte, patches []indicator.Patch) []v1al
 	for _, documentBytes := range documentsBytes {
 		doc, errs := indicator.ProcessDocument(patches, documentBytes)
 		if len(errs) > 0 {
-			log.Printf("validation for indicator file failed - %d errors", len(errs))
 			continue
 		}
 
