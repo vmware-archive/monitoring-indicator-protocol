@@ -56,10 +56,10 @@ func NewIndicatorDocumentsHandler(store *DocumentStore, statusStore *status_stor
 			documents = store.FilteredDocuments(productName)
 		}
 
-		returnedDocuments := make([]APIV0Document, len(documents))
+		returnedDocuments := make([]APIDocumentResponse, len(documents))
 		for i, doc := range documents {
 			statusStore.FillStatuses(&doc)
-			returnedDocuments[i] = ToAPIV0Document(doc)
+			returnedDocuments[i] = ToAPIDocumentResponse(doc)
 		}
 		bytes, err := json.Marshal(returnedDocuments)
 		if err != nil {

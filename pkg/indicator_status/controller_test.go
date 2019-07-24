@@ -26,11 +26,11 @@ func TestStatusController(t *testing.T) {
 			"rate(happies[1m])": {9},
 		})
 
-		fakeRegistryClient := setupFakeRegistryClient([]registry.APIV0Indicator{
+		fakeRegistryClient := setupFakeRegistryClient([]registry.APIIndicatorResponse{
 			{
 				Name:   "error_rate",
 				PromQL: "rate(errors[5m])",
-				Thresholds: []registry.APIV0Threshold{
+				Thresholds: []registry.APIThresholdResponse{
 					{
 						Level:    "critical",
 						Operator: "gte",
@@ -40,7 +40,7 @@ func TestStatusController(t *testing.T) {
 			}, {
 				Name:   "happiness_rate",
 				PromQL: "rate(happies[1m])",
-				Thresholds: []registry.APIV0Threshold{
+				Thresholds: []registry.APIThresholdResponse{
 					{
 						Level:    "warning",
 						Operator: "lt",
@@ -79,11 +79,11 @@ func TestStatusController(t *testing.T) {
 		fakeQueryClient := setupFakeQueryClientWithVectorResponses(map[string][]float64{
 			"rate(errors[5m])": {40, 51},
 		})
-		fakeRegistryClient := setupFakeRegistryClient([]registry.APIV0Indicator{
+		fakeRegistryClient := setupFakeRegistryClient([]registry.APIIndicatorResponse{
 			{
 				Name:   "error_rate",
 				PromQL: "rate(errors[5m])",
-				Thresholds: []registry.APIV0Threshold{
+				Thresholds: []registry.APIThresholdResponse{
 					{
 						Level:    "critical",
 						Operator: "gte",
@@ -126,11 +126,11 @@ func TestStatusController(t *testing.T) {
 			"rate(happies[1m])": {9},
 		})
 
-		fakeRegistryClient := setupFakeRegistryClient([]registry.APIV0Indicator{
+		fakeRegistryClient := setupFakeRegistryClient([]registry.APIIndicatorResponse{
 			{
 				Name:       "happiness_rate",
 				PromQL:     "rate(happies[1m])",
-				Thresholds: []registry.APIV0Threshold{},
+				Thresholds: []registry.APIThresholdResponse{},
 			},
 		})
 
@@ -155,14 +155,14 @@ func setupFakeQueryClientWithVectorResponses(responses map[string][]float64) *fa
 	return fakeQueryClient
 }
 
-func setupFakeRegistryClient(indicators []registry.APIV0Indicator) *fakeRegistryClient {
+func setupFakeRegistryClient(indicators []registry.APIIndicatorResponse) *fakeRegistryClient {
 	var fakeRegistryClient = &fakeRegistryClient{
 		receivedStatuses: map[string][]registry.APIV0UpdateIndicatorStatus{},
 		bulkUpdates:      0,
-		indicatorDocuments: []registry.APIV0Document{
+		indicatorDocuments: []registry.APIDocumentResponse{
 			{
-				UID:        "uaa-abc-123",
-				Indicators: indicators,
+				UID:  "uaa-abc-123",
+				Spec: registry.APIDocumentSpecResponse{Indicators: indicators},
 			},
 		},
 	}
@@ -190,14 +190,14 @@ func (s *fakeQueryClient) GetQueries() []string {
 }
 
 type fakeRegistryClient struct {
-	indicatorDocuments []registry.APIV0Document
+	indicatorDocuments []registry.APIDocumentResponse
 
 	sync.Mutex
 	bulkUpdates      int
 	receivedStatuses map[string][]registry.APIV0UpdateIndicatorStatus
 }
 
-func (f *fakeRegistryClient) IndicatorDocuments() ([]registry.APIV0Document, error) {
+func (f *fakeRegistryClient) IndicatorDocuments() ([]registry.APIDocumentResponse, error) {
 	return f.indicatorDocuments, nil
 }
 

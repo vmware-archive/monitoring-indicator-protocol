@@ -53,7 +53,7 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 
 		serverUrl := "127.0.0.1:34534"
 		r := mux.NewRouter()
-		r.HandleFunc("/v1/register", handler).Methods("POST")
+		r.HandleFunc("/v1alpha1/register", handler).Methods("POST")
 
 		tlsConfig, err := mtls.NewServerConfig(rootCACert)
 		g.Expect(err).NotTo(HaveOccurred())

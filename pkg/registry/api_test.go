@@ -285,6 +285,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		docStore.UpsertDocument(v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
 				APIVersion: "apps.pivotal.io/v1alpha1",
+				Kind: "IndicatorDocument",
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{
@@ -338,69 +339,8 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`
-			[
- 				{
-                    "apiVersion": "apps.pivotal.io/v1alpha1",
-					"uid": "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
-                    "product": {
-						"name": "my-product-a",
-                    	"version": "1"
-					},
-                    "metadata": {
-                      "deployment": "abc-123"
-                    },
-                    "indicators": [
-                      {
-                        "name": "indie1",
-                        "promql": "promql1",
-                        "thresholds": [],
-						"alert": {
-							"for": "5m",
-							"step": "10s"
-						},
-						"serviceLevel": null,
-                        "presentation": {
-                          "chartType": "step",
-                          "currentValue": false,
-                          "frequency": 0,
-                          "labels": [],
-                          "units": ""
-                        },
-                        "status": null
-                      },
-                      {
-                        "name": "indie2",
-                        "promql": "promql2",
-                        "thresholds": [],
-						"alert": {
-							"for": "5m",
-							"step": "10s"
-						},
-						"serviceLevel": {
-							"objective": 99.99
-						},
-                        "presentation": {
-                          "chartType": "status",
-                          "currentValue": false,
-                          "frequency": 0,
-                          "labels": [],
-                          "units": "nanoseconds"
-                        },
-						"status": {
-						  "value": "critical",
-						  "updatedAt": "0001-01-01T00:00:00Z"
-						}
-                      }
-                    ],
-                    "layout": {
-                      "title": "",
-                      "description": "",
-					  "sections": [],
-                      "owner": ""
-                    }
-                  }
-			]`))
+		expectedJSON, err := ioutil.ReadFile("test_fixtures/example_response2.json")
+		g.Expect(responseBody).To(MatchJSON(expectedJSON))
 	})
 
 	t.Run("allows various characters in document", func(t *testing.T) {
@@ -412,6 +352,8 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
 		docStore.UpsertDocument(v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
+				APIVersion: "apps.pivotal.io/v1alpha1",
+				Kind: "IndicatorDocument",
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{
@@ -441,49 +383,8 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`
-			[
- 				{
-                    "apiVersion": "",
-					"uid": "my-product-a-b5cf9762d7a2e7cec0d6a1e0b959149595c3c198",
-                    "product": {
-						"name": "my-product-a",
-                    	"version": "1"
-					},
-                    "metadata": {
-                      "deployment % ": "%d abc-123"
-                    },
-                    "indicators": [
-                      {
-                        "name": "indie1",
-                        "promql": "promql1",
-                        "thresholds": [],
-						"alert": {
-							"for": "1m",
-							"step": "1m"
-						},
-						"serviceLevel": null,
-                        "presentation": {
-                          "chartType": "step",
-                          "currentValue": false,
-                          "frequency": 0,
-                          "labels": [],
-                          "units": ""
-                        },
-						"documentation": {
-						  " % ": "{0}",
-						  "%n": "%*.*s"
-						},
-                        "status": null
-                      }
-                    ],
-                    "layout": {
-                      "title": "",
-                      "description": "",
-					  "sections": [],
-                      "owner": ""
-                    }
-                  }
-			]`))
+		expectedJSON, err := ioutil.ReadFile("test_fixtures/example_response3.json")
+		g.Expect(responseBody).To(MatchJSON(expectedJSON))
+
 	})
 }

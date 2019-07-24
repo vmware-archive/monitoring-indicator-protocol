@@ -14,7 +14,7 @@ export PROMETHEUS_URI="https://metric-store.${ENVIRONMENT}.cf-denver.com "
 export UAA_URI="https://login.${ENVIRONMENT}.cf-denver.com"
 export UAA_CLIENT_ID="firehose_exporter"
 export UAA_CLIENT_SECRET=$(credhub g -n /bosh-${ENVIRONMENT}/cf-01234567890123456789/uaa_clients_firehose_exporter_secret -j | jq -r .value)
-export INTERVAL=1m
+export INTERVAL=20s
 
 echo "Running status controller"
 go run cmd/status_controller/main.go \

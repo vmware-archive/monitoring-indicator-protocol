@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -55,13 +56,16 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 
 	go start()
 
+	file, err := os.Open("test_fixtures/doc.yml")
+	g.Expect(err).ToNot(HaveOccurred())
+
 	var resp *http.Response
 	f := func() error {
 		var err error
 		resp, err = http.Post(
-			fmt.Sprintf("http://%s/v1/register", conf.Address),
-			"application/json",
-			bytes.NewReader([]byte(document)),
+			fmt.Sprintf("http://%s/v1alpha1/register", conf.Address),
+			"application/yml",
+			file,
 		)
 		if err != nil {
 			return err
@@ -74,12 +78,13 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 	}
 	g.Eventually(f).ShouldNot(HaveOccurred())
 
-	resp, err := http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", conf.Address))
+	resp, err = http.Get(fmt.Sprintf("http://%s/v1alpha1/indicator-documents", conf.Address))
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, err := ioutil.ReadAll(resp.Body)
 	g.Expect(err).ToNot(HaveOccurred())
-	g.Expect(body).To(MatchJSON(fmt.Sprintf("[%s]", document)))
+	expectedJSON, err := ioutil.ReadFile("test_fixtures/example_response4.json")
+	g.Expect(body).To(MatchJSON(expectedJSON))
 }
 
 func TestWritingAndReadingStatus(t *testing.T) {
@@ -95,13 +100,16 @@ func TestWritingAndReadingStatus(t *testing.T) {
 
 	go start()
 
+	file, err := os.Open("test_fixtures/doc.yml")
+	g.Expect(err).ToNot(HaveOccurred())
+
 	var resp *http.Response
 	f := func() error {
 		var err error
 		resp, err = http.Post(
-			fmt.Sprintf("http://%s/v1/register", conf.Address),
-			"application/json",
-			bytes.NewReader([]byte(document)),
+			fmt.Sprintf("http://%s/v1alpha1/register", conf.Address),
+			"application/yml",
+			file,
 		)
 		if err != nil {
 			return err
@@ -116,8 +124,8 @@ func TestWritingAndReadingStatus(t *testing.T) {
 
 	// make our status update request
 	const documentUID = `my-product-a-a902332065d69c1787f419e235a1f1843d98c884`
-	resp, err := http.Post(
-		fmt.Sprintf("http://%s/v1/indicator-documents/%s/bulk_status", conf.Address, documentUID),
+	resp, err = http.Post(
+		fmt.Sprintf("http://%s/v1alpha1/indicator-documents/%s/bulk_status", conf.Address, documentUID),
 		"application/json",
 		bytes.NewReader([]byte(statusRequest)),
 	)
@@ -125,13 +133,13 @@ func TestWritingAndReadingStatus(t *testing.T) {
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	// get document
-	resp, err = http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", conf.Address))
+	resp, err = http.Get(fmt.Sprintf("http://%s/v1alpha1/indicator-documents", conf.Address))
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, err := ioutil.ReadAll(resp.Body)
 	g.Expect(err).ToNot(HaveOccurred())
 
-	var documents []registry.APIV0Document
+	var documents []registry.APIDocumentResponse
 	err = json.Unmarshal(body, &documents)
 	g.Expect(err).ToNot(HaveOccurred())
 
@@ -141,7 +149,7 @@ func TestWritingAndReadingStatus(t *testing.T) {
 	)
 	for _, doc := range documents {
 		if doc.UID == documentUID {
-			for _, ind := range doc.Indicators {
+			for _, ind := range doc.Spec.Indicators {
 				switch ind.Name {
 				case "indie1":
 					indie1Status = ind.Status.Value
@@ -167,106 +175,4 @@ const (
 				"status": "warning"
 			}
 		]`
-	document = `{
-		  "apiVersion": "v0",
-		  "uid": "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
-		  "product": {
-			"name": "my-product-a",
-			"version": "1"
-		  },
-		  "metadata": {
-			"deployment": "abc-123"
-		  },
-		  "indicators": [
-			{
-			  "name": "indie1",
-			  "promql": "promql1",
-			  "thresholds": [],
-			  "alert": {
-				"for": "5m",
-				"step": "10s"
-			  },
-			  "serviceLevel": null,
-			  "presentation": {
-				"chartType": "step",
-				"currentValue": false,
-				"frequency": 0,
-				"labels": [],
-				"units": ""
-			  },
-			  "status": null
-			},
-			{
-			  "name": "indie2",
-			  "promql": "promql2",
-			  "thresholds": [],
-			  "alert": {
-				"for": "5m",
-				"step": "10s"
-			  },
-			  "serviceLevel": {
-				"objective": 99.99
-			  },
-			  "presentation": {
-				"chartType": "status",
-				"currentValue": false,
-				"frequency": 0,
-				"labels": [],
-				"units": "nanoseconds"
-			  },
-			  "status": null
-			}
-		  ],
-		  "layout": {
-			"title": "Layout!",
-			"description": "",
-			"sections": [],
-			"owner": ""
-		  }
-		}`
-
-	documentYaml = `---
-apiVersion: v0
-uid: my-product-a-a902332065d69c1787f419e235a1f1843d98c884
-product:
-  name: my-product-a
-  version: '1'
-metadata:
-  deployment: abc-123
-indicators:
-- name: indie1
-  promql: promql1
-  thresholds: []
-  alert:
-    for: 5m
-    step: 10s
-  serviceLevel: 
-  presentation:
-    chartType: step
-    currentValue: false
-    frequency: 0
-    labels: []
-    units: ''
-  status: 
-- name: indie2
-  promql: promql2
-  thresholds: []
-  alert:
-    for: 5m
-    step: 10s
-  serviceLevel:
-    objective: 99.99
-  presentation:
-    chartType: status
-    currentValue: false
-    frequency: 0
-    labels: []
-    units: nanoseconds
-layout:
-  title: Layout!
-  description: ''
-  sections: []
-  owner: ''
-`
-
 )

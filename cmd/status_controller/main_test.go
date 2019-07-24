@@ -19,24 +19,29 @@ const documentsResponseBody string = `[
   {
 	"apiVersion": "v1alpha1",
 	"uid": "my-other-component-c2dd9",
-	"product": {
-	  "name": "my-other-component",
-	  "version": "1.2.3"
-	},
-	"metadata": {},
-	"indicators": [
-	  {
-		"name": "very_good_indicator",
-		"promql": "avg_over_time(latency[5m])",
-		"thresholds": [
-			{"level": "critical", "operator": "gte", "value": 11},
-			{"level": "warning", "operator": "gt", "value": 9}
-		],
-		"alert": {
-		  "step": "10m"
-		}
-	  }
-	]
+    "kind": "IndicatorDocument",
+	"metadata": {
+      "labels": {}
+    },
+    "spec" : {
+	  "product": {
+	    "name": "my-other-component",
+	    "version": "1.2.3"
+	  },
+	  "indicators": [
+	    {
+		  "name": "very_good_indicator",
+		  "promql": "avg_over_time(latency[5m])",
+		  "thresholds": [
+			  {"level": "critical", "operator": "gte", "value": 11},
+			  {"level": "warning", "operator": "gt", "value": 9}
+		  ],
+		  "alert": {
+		    "step": "10m"
+		  }
+	    }
+	  ]
+    }
   }
 ]`
 
@@ -111,14 +116,14 @@ func setupFakeRegistry(g *GomegaWithT) *ghttp.Server {
 		func(w http.ResponseWriter, r *http.Request) {
 			g.Expect(r.Method).To(Equal("GET"))
 
-			g.Expect(r.URL.Path).To(Equal("/v1/indicator-documents"))
+			g.Expect(r.URL.Path).To(Equal("/v1alpha1/indicator-documents"))
 			body := []byte(documentsResponseBody)
 			_, err := w.Write(body)
 			g.Expect(err).NotTo(HaveOccurred())
 		},
 		func(w http.ResponseWriter, r *http.Request) {
 			g.Expect(r.Method).To(Equal("POST"))
-			g.Expect(r.URL.Path).To(Equal("/v1/indicator-documents/my-other-component-c2dd9/bulk_status"))
+			g.Expect(r.URL.Path).To(Equal("/v1alpha1/indicator-documents/my-other-component-c2dd9/bulk_status"))
 			var indicatorStatuses []registry.APIV0UpdateIndicatorStatus
 			err := json.NewDecoder(r.Body).Decode(&indicatorStatuses)
 			g.Expect(err).NotTo(HaveOccurred())

@@ -62,7 +62,7 @@ func (a Agent) registerIndicatorDocuments() {
 }
 
 func (a Agent) registerIndicatorDocument(indicatorsDocument document) {
-	registry := fmt.Sprintf(a.RegistryURI + "/v1/register")
+	registry := fmt.Sprintf(a.RegistryURI + "/v1alpha1/register")
 
 	body := bytes.NewBuffer(indicatorsDocument)
 

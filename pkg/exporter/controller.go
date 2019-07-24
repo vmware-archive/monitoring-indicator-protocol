@@ -15,7 +15,7 @@ import (
 )
 
 type APIClient interface {
-	IndicatorDocuments() ([]registry.APIV0Document, error)
+	IndicatorDocuments() ([]registry.APIDocumentResponse, error)
 }
 
 type ControllerConfig struct {
@@ -115,7 +115,7 @@ func clearDirectory(fs billy.Filesystem, d string) error {
 	return nil
 }
 
-func writeDocuments(documents []registry.APIV0Document, config ControllerConfig) {
+func writeDocuments(documents []registry.APIDocumentResponse, config ControllerConfig) {
 	log.Printf("writing %d indicator documents to output directory", len(documents))
 
 	for _, d := range documents {

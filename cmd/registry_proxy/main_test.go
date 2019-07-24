@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -50,83 +49,31 @@ func TestIndicatorRegistryProxy(t *testing.T) {
 		defer session2.Kill()
 		defer regSession2.Kill()
 
-		createDocumentUrl := fmt.Sprintf("https://localhost:%s/v1/register", proxy1Port)
+		createDocumentUrl := fmt.Sprintf("https://localhost:%s/v1alpha1/register", proxy1Port)
+		getDocumentsUrl := "https://localhost:%s/v1alpha1/indicator-documents"
 
-		indicatorDocument := `{
-  "apiVersion": "v0",
-  "uid": "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
-  "product": {
-    "name": "my-product-a",
-    "version": "1"
-  },
-  "metadata": {
-    "deployment": "abc-123"
-  },
-  "indicators": [
-    {
-      "name": "indie1",
-      "promql": "promql1",
-      "thresholds": [],
-      "alert": {
-        "for": "5m",
-        "step": "10s"
-      },
-      "serviceLevel": null,
-      "presentation": {
-        "chartType": "step",
-        "currentValue": false,
-        "frequency": 0,
-        "labels": [],
-        "units": ""
-      },
-      "status": null
-    },
-    {
-      "name": "indie2",
-      "promql": "promql2",
-      "thresholds": [],
-      "alert": {
-        "for": "5m",
-        "step": "10s"
-      },
-      "serviceLevel": {
-        "objective": 99.99
-      },
-      "presentation": {
-        "chartType": "status",
-        "currentValue": false,
-        "frequency": 0,
-        "labels": [],
-        "units": "nanoseconds"
-      },
-      "status": null
-    }
-  ],
-  "layout": {
-    "title": "",
-    "description": "",
-    "sections": [],
-    "owner": ""
-  }
-}`
-
-		buffer := bytes.NewBuffer([]byte(indicatorDocument))
-		_, err = client.Post(createDocumentUrl, "application/json", buffer)
+		file, err := os.Open("test_fixtures/indicators.yml")
 		g.Expect(err).ToNot(HaveOccurred())
 
-		getDocumentsUrl := "https://localhost:%s/v1/indicator-documents"
+		resp, err := client.Post(createDocumentUrl, "application/yml", file)
+		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 		response1, err := client.Get(fmt.Sprintf(getDocumentsUrl, proxy1Port))
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(response1.StatusCode).To(Equal(http.StatusOK))
 		response1Bytes, err := ioutil.ReadAll(response1.Body)
-		g.Expect(response1Bytes).To(MatchJSON([]byte(fmt.Sprintf("[%s]", indicatorDocument))))
+		expectedJSON, err := ioutil.ReadFile("test_fixtures/response.json")
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(response1Bytes).Should(MatchJSON(expectedJSON))
 
 		response2, err := client.Get(fmt.Sprintf(getDocumentsUrl, proxy2Port))
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(response2.StatusCode).To(Equal(http.StatusOK))
 		response2Bytes, err := ioutil.ReadAll(response2.Body)
-		g.Expect(response2Bytes).To(MatchJSON([]byte(fmt.Sprintf("[%s]", indicatorDocument))))
+
+		g.Expect(response2Bytes).Should(MatchJSON(expectedJSON))
 	})
 }
 

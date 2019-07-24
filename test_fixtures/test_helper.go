@@ -17,8 +17,8 @@ func DefaultPresentation() v1alpha1.Presentation {
 	}
 }
 
-func DefaultAPIV0Presentation() registry.APIV0Presentation {
-	return registry.APIV0Presentation{
+func DefaultAPIPresentationResponse() registry.APIPresentationResponse {
+	return registry.APIPresentationResponse{
 		ChartType:    "step",
 		CurrentValue: false,
 		Frequency:    0,
@@ -44,11 +44,11 @@ func DefaultLayout(indicators []v1alpha1.IndicatorSpec) v1alpha1.Layout {
 	}
 }
 
-func DefaultAPIV0Layout(indicatorNames []string) registry.APIV0Layout {
-	return registry.APIV0Layout{
+func DefaultAPILayoutResponse(indicatorNames []string) registry.APILayoutResponse {
+	return registry.APILayoutResponse{
 		Title:       "",
 		Description: "",
-		Sections: []registry.APIV0Section{{
+		Sections: []registry.APISectionResponse{{
 			Title:       "",
 			Description: "",
 			Indicators:  indicatorNames,
@@ -64,8 +64,8 @@ func DefaultAlert() v1alpha1.Alert {
 	}
 }
 
-func DefaultAPIV0Alert() registry.APIV0Alert {
-	return registry.APIV0Alert{
+func DefaultAPIAlertResponse() registry.APIAlertResponse {
+	return registry.APIAlertResponse{
 		For:  "1m",
 		Step: "1m",
 	}

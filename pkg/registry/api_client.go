@@ -21,20 +21,20 @@ func NewAPIClient(serverURL string, client *http.Client) *RegistryApiClient {
 	}
 }
 
-func (c *RegistryApiClient) IndicatorDocuments() ([] APIV0Document, error) {
+func (c *RegistryApiClient) IndicatorDocuments() ([] APIDocumentResponse, error) {
 	payload, e := c.indicatorResponse()
 	if e != nil {
 		return nil, errors.New("failed to get indicator documents")
 	}
 
-	var d []APIV0Document
+	var d []APIDocumentResponse
 	err := json.Unmarshal(payload, &d)
 
 	return d, err
 }
 
 func (c *RegistryApiClient) indicatorResponse() ([]byte, error) {
-	resp, err := c.client.Get(c.serverURL + "/v1/indicator-documents")
+	resp, err := c.client.Get(c.serverURL + "/v1alpha1/indicator-documents")
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *RegistryApiClient) BulkStatusUpdate(statusUpdates []APIV0UpdateIndicato
 		return fmt.Errorf("error marshaling status updates: %s", err)
 	}
 	resp, err := c.client.Post(
-		fmt.Sprintf("%s/v1/indicator-documents/%s/bulk_status", c.serverURL, documentId),
+		fmt.Sprintf("%s/v1alpha1/indicator-documents/%s/bulk_status", c.serverURL, documentId),
 		"application/json",
 		body,
 	)

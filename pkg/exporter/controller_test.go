@@ -124,24 +124,26 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: []registry.APIV0Document{{
+			Documents: []registry.APIDocumentResponse{{
 				APIVersion: "v1alpha1",
-				Product: registry.APIV0Product{
-					Name:    "test_product_A",
-					Version: "v1.2.3",
-				},
-				Indicators: []registry.APIV0Indicator{{
-					Name:         "test_indicator",
-					PromQL:       `test_query{deployment="test_deployment"}`,
-					Alert:        test_fixtures.DefaultAPIV0Alert(),
-					Presentation: test_fixtures.DefaultAPIV0Presentation(),
-					Thresholds: []registry.APIV0Threshold{{
-						Level:    "critical",
-						Operator: "lt",
-						Value:    5,
+				Spec: registry.APIDocumentSpecResponse{
+					Product: registry.APIProductResponse{
+						Name:    "test_product_A",
+						Version: "v1.2.3",
+					},
+					Indicators: []registry.APIIndicatorResponse{{
+						Name:         "test_indicator",
+						PromQL:       `test_query{deployment="test_deployment"}`,
+						Alert:        test_fixtures.DefaultAPIAlertResponse(),
+						Presentation: test_fixtures.DefaultAPIPresentationResponse(),
+						Thresholds: []registry.APIThresholdResponse{{
+							Level:    "critical",
+							Operator: "lt",
+							Value:    5,
+						}},
 					}},
-				}},
-				Layout: test_fixtures.DefaultAPIV0Layout([]string{"test_indicator"}),
+					Layout: test_fixtures.DefaultAPILayoutResponse([]string{"test_indicator"}),
+				},
 			}},
 		}
 
@@ -167,24 +169,26 @@ func TestController(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(fileNames).To(ConsistOf("test_product_A.yml"))
 
-		registryClient.Documents = []registry.APIV0Document{{
+		registryClient.Documents = []registry.APIDocumentResponse{{
 			APIVersion: "v1alpha1",
-			Product: registry.APIV0Product{
-				Name:    "test_product_B",
-				Version: "v1.2.3",
-			},
-			Indicators: []registry.APIV0Indicator{{
-				Name:         "test_indicator",
-				PromQL:       `test_query{deployment="test_deployment"}`,
-				Alert:        test_fixtures.DefaultAPIV0Alert(),
-				Presentation: test_fixtures.DefaultAPIV0Presentation(),
-				Thresholds: []registry.APIV0Threshold{{
-					Level:    "critical",
-					Operator: "lt",
-					Value:    5,
+			Spec: registry.APIDocumentSpecResponse{
+				Product: registry.APIProductResponse{
+					Name:    "test_product_B",
+					Version: "v1.2.3",
+				},
+				Indicators: []registry.APIIndicatorResponse{{
+					Name:         "test_indicator",
+					PromQL:       `test_query{deployment="test_deployment"}`,
+					Alert:        test_fixtures.DefaultAPIAlertResponse(),
+					Presentation: test_fixtures.DefaultAPIPresentationResponse(),
+					Thresholds: []registry.APIThresholdResponse{{
+						Level:    "critical",
+						Operator: "lt",
+						Value:    5,
+					}},
 				}},
-			}},
-			Layout: test_fixtures.DefaultAPIV0Layout([]string{"test_indicator"}),
+				Layout: test_fixtures.DefaultAPILayoutResponse([]string{"test_indicator"}),
+			},
 		}}
 
 		err = controller.Update()
@@ -199,24 +203,27 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: []registry.APIV0Document{{
+			Documents: []registry.APIDocumentResponse{{
 				APIVersion: "v1alpha1",
-				Product: registry.APIV0Product{
-					Name:    "test_product_A",
-					Version: "v1.2.3",
-				},
-				Indicators: []registry.APIV0Indicator{{
-					Name:         "test_indicator",
-					PromQL:       `test_query{deployment="test_deployment"}`,
-					Alert:        test_fixtures.DefaultAPIV0Alert(),
-					Presentation: test_fixtures.DefaultAPIV0Presentation(),
-					Thresholds: []registry.APIV0Threshold{{
-						Level:    "critical",
-						Operator: "lt",
-						Value:    5,
+				Spec: registry.APIDocumentSpecResponse{
+
+					Product: registry.APIProductResponse{
+						Name:    "test_product_A",
+						Version: "v1.2.3",
+					},
+					Indicators: []registry.APIIndicatorResponse{{
+						Name:         "test_indicator",
+						PromQL:       `test_query{deployment="test_deployment"}`,
+						Alert:        test_fixtures.DefaultAPIAlertResponse(),
+						Presentation: test_fixtures.DefaultAPIPresentationResponse(),
+						Thresholds: []registry.APIThresholdResponse{{
+							Level:    "critical",
+							Operator: "lt",
+							Value:    5,
+						}},
 					}},
-				}},
-				Layout: test_fixtures.DefaultAPIV0Layout([]string{"test_indicator"}),
+					Layout: test_fixtures.DefaultAPILayoutResponse([]string{"test_indicator"}),
+				},
 			}},
 		}
 
@@ -339,47 +346,51 @@ func TestReloading(t *testing.T) {
 
 var testComparators = []string{"lt", "lte", "eq", "neq", "gte", "gt"}
 
-func createTestDocuments(count int, apiVersion string) []registry.APIV0Document {
-	docs := make([]registry.APIV0Document, count)
+func createTestDocuments(count int, apiVersion string) []registry.APIDocumentResponse {
+	docs := make([]registry.APIDocumentResponse, count)
 	for i := 0; i < count; i++ {
 		indicatorName := fmt.Sprintf("test_indicator_%d", i)
-		docs[i] = registry.APIV0Document{
+		docs[i] = registry.APIDocumentResponse{
 			APIVersion: apiVersion,
-			Product: registry.APIV0Product{
-				Name:    fmt.Sprintf("test_product_%d", i),
-				Version: "v1.2.3",
+			Metadata: registry.APIMetadataResponse{
+				Labels: map[string]string{"deployment": "test_deployment"},
 			},
-			Metadata: map[string]string{"deployment": "test_deployment"},
-			Indicators: []registry.APIV0Indicator{{
-				Name:   indicatorName,
-				PromQL: `test_query{deployment="test_deployment"}`,
-				Alert:  test_fixtures.DefaultAPIV0Alert(),
-				Thresholds: []registry.APIV0Threshold{{
-					Level:    "critical",
-					Operator: testComparators[i],
-					Value:    5,
-				}},
-				Presentation: test_fixtures.DefaultAPIV0Presentation(),
-				Documentation: map[string]string{
-					"test1": "a",
-					"test2": "b",
+			Spec: registry.APIDocumentSpecResponse{
+				Product: registry.APIProductResponse{
+					Name:    fmt.Sprintf("test_product_%d", i),
+					Version: "v1.2.3",
 				},
-			}},
-			Layout: test_fixtures.DefaultAPIV0Layout([]string{indicatorName}),
+				Indicators: []registry.APIIndicatorResponse{{
+					Name:   indicatorName,
+					PromQL: `test_query{deployment="test_deployment"}`,
+					Alert:  test_fixtures.DefaultAPIAlertResponse(),
+					Thresholds: []registry.APIThresholdResponse{{
+						Level:    "critical",
+						Operator: testComparators[i],
+						Value:    5,
+					}},
+					Presentation: test_fixtures.DefaultAPIPresentationResponse(),
+					Documentation: map[string]string{
+						"test1": "a",
+						"test2": "b",
+					},
+				}},
+				Layout: test_fixtures.DefaultAPILayoutResponse([]string{indicatorName}),
+			},
 		}
 	}
 	return docs
 }
 
 type mockRegistryClient struct {
-	Documents []registry.APIV0Document
+	Documents []registry.APIDocumentResponse
 	Error     error
 
 	mu     sync.Mutex
 	calls_ int
 }
 
-func (a *mockRegistryClient) IndicatorDocuments() ([]registry.APIV0Document, error) {
+func (a *mockRegistryClient) IndicatorDocuments() ([]registry.APIDocumentResponse, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.calls_ = a.calls_ + 1

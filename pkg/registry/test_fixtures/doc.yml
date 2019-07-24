@@ -1,0 +1,42 @@
+---
+apiVersion: v0
+uid: my-product-a-a902332065d69c1787f419e235a1f1843d98c884
+product:
+  name: my-product-a
+  version: '1'
+metadata:
+  deployment: abc-123
+indicators:
+- name: indie1
+  promql: promql1
+  thresholds: []
+  alert:
+    for: 5m
+    step: 10s
+  serviceLevel:
+  presentation:
+    chartType: step
+    currentValue: false
+    frequency: 0
+    labels: []
+    units: ''
+  status:
+- name: indie2
+  promql: promql2
+  thresholds: []
+  alert:
+    for: 5m
+    step: 10s
+  serviceLevel:
+    objective: 99.99
+  presentation:
+    chartType: status
+    currentValue: false
+    frequency: 0
+    labels: []
+    units: nanoseconds
+layout:
+  title: Layout!
+  description: ''
+  sections: []
+  owner: ''

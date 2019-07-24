@@ -1197,26 +1197,20 @@ metadata:
 
 func TestProcessesDocument(t *testing.T) {
 	t.Run("does not mess up thresholds in apiVersion v0", func(t *testing.T) {
-		t.Skip()
 		g := NewGomegaWithT(t)
 		doc := []byte(`---
-
-metadata:
-  apiVersion: v0
-  labels:
-	deployment: test-deployment
-
-spec:
-  product:
+apiVersion: v0
+product:
   name: testing
   version: 123
-  
-  indicators:
-  - name: test_indicator
-    promql: test_expr
-    thresholds:
-    - level: critical
-      neq: 100
+metadata:
+  deployment: test-deployment
+indicators:
+- name: test_indicator
+  promql: test_expr
+  thresholds:
+  - level: critical
+    neq: 100
 `)
 		resultDoc, err := indicator.ProcessDocument([]indicator.Patch{}, doc)
 		g.Expect(err).To(HaveLen(0))

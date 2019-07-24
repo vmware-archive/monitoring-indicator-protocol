@@ -2,7 +2,7 @@
 We have provided a script to create the necessary certificates and start your docker container for you. If you have the repo cloned, run `./scripts/start_docker_compose.sh` from the root. The registry will be running on port 10567 by default. To curl this registry, reference the certs created in the certs directory within docker-compose. For example:
 
 ```bash
-curl https://localhost:10567/v1/indicator-documents -k --key docker-compose/certs/client.key --cert docker-compose/certs/client.pem --cacert docker-compose/certs/ca.key
+curl https://localhost:10567/v1alpha1/indicator-documents -k --key docker-compose/certs/client.key --cert docker-compose/certs/client.pem --cacert docker-compose/certs/ca.key
 ```
 
 Any indicator document, patch or config files you're working with need to be added to docker-compose/resources. The images are mounted with config.yml and indicators.yml specifically.

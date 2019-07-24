@@ -15,50 +15,58 @@ func TestDocumentTranslation(t *testing.T) {
 	t.Run("it translates", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		indicatorDoc := registry.APIV0Document{
+		indicatorDoc := registry.APIDocumentResponse{
 			APIVersion: "apps.pivotal.io/v1alpha1",
-			Metadata: map[string]string{
-				"someKey": "someValue",
+			Metadata: registry.APIMetadataResponse{
+				Labels: map[string]string{
+					"someKey": "someValue",
+				},
+			},
+			Kind: "IndicatorDocument",
+			Spec: registry.APIDocumentSpecResponse{
+				Product: registry.APIProductResponse{
+					Name:    "important-application",
+					Version: "1.0",
+				},
+				Indicators: []registry.APIIndicatorResponse{{
+					Name:   "performance-indicator",
+					PromQL: "someQuery",
+					Thresholds: []registry.APIThresholdResponse{{
+						Level:    "warning",
+						Operator: "lte",
+						Value:    100,
+					}},
+					Alert: registry.APIAlertResponse{
+						For:  "30s",
+						Step: "5s",
+					},
+					Documentation: map[string]string{
+						"anotherKey": "anotherValue",
+					},
+					Presentation: registry.APIPresentationResponse{
+						ChartType:    "bar",
+						CurrentValue: false,
+						Frequency:    50,
+						Labels:       []string{"radical"},
+					},
+					ServiceLevel: &registry.APIServiceLevelResponse{
+						Objective: 100,
+					},
+				}},
+				Layout: registry.APILayoutResponse{
+					Title:       "The Important App",
+					Description: "???",
+					Sections: []registry.APISectionResponse{
+						{
+							Title:       "The performance indicator",
+							Description: "Pay attention!",
+							Indicators:  []string{"performance-indicator"},
+						},
+					},
+					Owner: "Waldo",
+				},
 			},
 
-			Product: registry.APIV0Product{
-				Name:    "important-application",
-				Version: "1.0",
-			},
-			Indicators: []registry.APIV0Indicator{{
-				Name:   "performance-indicator",
-				PromQL: "someQuery",
-				Thresholds: []registry.APIV0Threshold{{
-					Level:    "warning",
-					Operator: "lte",
-					Value:    100,
-				}},
-				Alert: registry.APIV0Alert{
-					For:  "30s",
-					Step: "5s",
-				},
-				Documentation: map[string]string{
-					"anotherKey": "anotherValue",
-				},
-				Presentation: registry.APIV0Presentation{
-					ChartType:    "bar",
-					CurrentValue: false,
-					Frequency:    50,
-					Labels:       []string{"radical"},
-				},
-			}},
-			Layout: registry.APIV0Layout{
-				Title:       "The Important App",
-				Description: "???",
-				Sections: []registry.APIV0Section{
-					{
-						Title:       "The performance indicator",
-						Description: "Pay attention!",
-						Indicators:  []string{"performance-indicator"},
-					},
-				},
-				Owner: "Waldo",
-			},
 		}
 
 		g.Expect(registry.ToIndicatorDocument(indicatorDoc)).To(Equal(v1alpha1.IndicatorDocument{
@@ -77,16 +85,19 @@ func TestDocumentTranslation(t *testing.T) {
 					Version: "1.0",
 				},
 				Indicators: []v1alpha1.IndicatorSpec{{
-					Name:   "performance-indicator",
-					PromQL: "someQuery",
+					Name:    "performance-indicator",
+					PromQL:  "someQuery",
+					Alert: v1alpha1.Alert{
+						For:  "30s",
+						Step: "5s",
+					},
 					Thresholds: []v1alpha1.Threshold{{
 						Level:    "warning",
 						Operator: v1alpha1.LessThanOrEqualTo,
 						Value:    100,
 					}},
-					Alert: v1alpha1.Alert{
-						For:  "30s",
-						Step: "5s",
+					ServiceLevel: &v1alpha1.ServiceLevel{
+						Objective: 100,
 					},
 					Documentation: map[string]string{
 						"anotherKey": "anotherValue",

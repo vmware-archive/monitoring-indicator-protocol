@@ -46,12 +46,12 @@ func TestIndicatorRegistry(t *testing.T) {
 			file, err := os.Open("test_fixtures/indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err := http.Post(serverUrl + "/v1/register", "text/plain", file)
+			resp, err := http.Post(serverUrl + "/v1alpha1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(resp.StatusCode, resp.Body).To(Equal(http.StatusOK))
 
-			resp, err = http.Get(serverUrl + "/v1/indicator-documents")
+			resp, err = http.Get(serverUrl + "/v1alpha1/indicator-documents")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
@@ -72,18 +72,18 @@ func TestIndicatorRegistry(t *testing.T) {
 			file, err := os.Open("test_fixtures/indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err := http.Post(serverUrl+"/v1/register", "text/plain", file)
+			resp, err := http.Post(serverUrl+"/v1alpha1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			file, err = os.Open("test_fixtures/bulk_status_request.json")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err = http.Post(serverUrl+"/v1/indicator-documents/my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf/bulk_status", "text/plain", file)
+			resp, err = http.Post(serverUrl+"/v1alpha1/indicator-documents/my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf/bulk_status", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-			resp, err = http.Get(serverUrl + "/v1/indicator-documents")
+			resp, err = http.Get(serverUrl + "/v1alpha1/indicator-documents")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
@@ -104,18 +104,18 @@ func TestIndicatorRegistry(t *testing.T) {
 			file, err := os.Open("test_fixtures/indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err := http.Post(serverUrl+"/v1/register", "text/plain", file)
+			resp, err := http.Post(serverUrl+"/v1alpha1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			file, err = os.Open("test_fixtures/indicators2.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err = http.Post(serverUrl+"/v1/register", "text/plain", file)
+			resp, err = http.Post(serverUrl+"/v1alpha1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-			resp, err = http.Get(serverUrl + "/v1/indicator-documents?product-name=my-other-other-component")
+			resp, err = http.Get(serverUrl + "/v1alpha1/indicator-documents?product-name=my-other-other-component")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 

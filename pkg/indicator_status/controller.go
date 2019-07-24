@@ -8,7 +8,7 @@ import (
 )
 
 type DocumentGetter interface {
-	IndicatorDocuments() ([]registry.APIV0Document, error)
+	IndicatorDocuments() ([]registry.APIDocumentResponse, error)
 }
 type StatusUpdater interface {
 	BulkStatusUpdate(statusUpdates []registry.APIV0UpdateIndicatorStatus, documentId string) error
@@ -62,7 +62,7 @@ func (c StatusController) updateStatuses() error {
 		return err
 	}
 	for _, indicatorDocument := range apiv0Documents {
-		for _, indicator := range indicatorDocument.Indicators {
+		for _, indicator := range indicatorDocument.Spec.Indicators {
 			if len(indicator.Thresholds) == 0 {
 				continue
 			}

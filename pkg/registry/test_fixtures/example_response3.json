@@ -1,0 +1,48 @@
+[
+  {
+    "apiVersion": "apps.pivotal.io/v1alpha1",
+    "uid": "my-product-a-b5cf9762d7a2e7cec0d6a1e0b959149595c3c198",
+    "kind": "IndicatorDocument",
+    "metadata": {
+      "labels": {
+        "deployment % ": "%d abc-123"
+      }
+    },
+    "spec": {
+      "product": {
+        "name": "my-product-a",
+        "version": "1"
+      },
+      "indicators": [
+        {
+          "name": "indie1",
+          "promql": "promql1",
+          "thresholds": [],
+          "alert": {
+            "for": "1m",
+            "step": "1m"
+          },
+          "serviceLevel": null,
+          "presentation": {
+            "chartType": "step",
+            "currentValue": false,
+            "frequency": 0,
+            "labels": [],
+            "units": ""
+          },
+          "documentation": {
+            " % ": "{0}",
+            "%n": "%*.*s"
+          },
+          "status": null
+        }
+      ],
+      "layout": {
+        "title": "",
+        "description": "",
+        "sections": [],
+        "owner": ""
+      }
+    }
+  }
+]

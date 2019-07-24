@@ -72,7 +72,7 @@ func TestIndicatorRegistry(t *testing.T) {
 	})
 }
 
-func retrieveIndicatorDocs() []registry.APIV0Document {
+func retrieveIndicatorDocs() []registry.APIDocumentResponse {
 	apiv0Documents, e := registryClient.IndicatorDocuments()
 	if e != nil {
 		panic(fmt.Errorf("oh no! Could not query the registry: %s", e))
@@ -80,9 +80,9 @@ func retrieveIndicatorDocs() []registry.APIV0Document {
 	return apiv0Documents
 }
 
-func containsProductName(documents []registry.APIV0Document, name string) bool {
+func containsProductName(documents []registry.APIDocumentResponse, name string) bool {
 	for _, listItem := range documents {
-		if listItem.Product.Name == name {
+		if listItem.Spec.Product.Name == name {
 			return true
 		}
 	}
