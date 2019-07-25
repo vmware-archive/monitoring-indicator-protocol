@@ -85,9 +85,8 @@ type IndicatorSpec struct {
 }
 
 type IndicatorStatus struct {
-	Phase string `json:"phase"`
-	// TODO: add UpdatedAt field
-	//UpdatedAt time.Time `json:"updatedAt"`
+	Phase     string  `json:"phase"`
+	UpdatedAt metav1.Time `json:"updatedAt"`
 }
 
 //DeepCopyObject() Object
