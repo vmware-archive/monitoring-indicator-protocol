@@ -10,6 +10,7 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"gopkg.in/src-d/go-billy.v4/memfs"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
@@ -27,7 +28,7 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1, "v1alpha1"),
+			Documents: createTestDocuments(1, api_versions.V1alpha1),
 		}
 
 		mockReloader := &mockReloader{}
@@ -58,7 +59,7 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(3, "v1alpha1"),
+			Documents: createTestDocuments(3, api_versions.V1alpha1),
 		}
 
 		fs := memfs.New()
@@ -91,7 +92,7 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1, "v0"),
+			Documents: createTestDocuments(1, api_versions.V0),
 		}
 
 		fs := memfs.New()
@@ -125,7 +126,7 @@ func TestController(t *testing.T) {
 
 		registryClient := &mockRegistryClient{
 			Documents: []registry.APIDocumentResponse{{
-				APIVersion: "v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 				Spec: registry.APIDocumentSpecResponse{
 					Product: registry.APIProductResponse{
 						Name:    "test_product_A",
@@ -170,7 +171,7 @@ func TestController(t *testing.T) {
 		g.Expect(fileNames).To(ConsistOf("test_product_A.yml"))
 
 		registryClient.Documents = []registry.APIDocumentResponse{{
-			APIVersion: "v1alpha1",
+			APIVersion: api_versions.V1alpha1,
 			Spec: registry.APIDocumentSpecResponse{
 				Product: registry.APIProductResponse{
 					Name:    "test_product_B",
@@ -204,7 +205,7 @@ func TestController(t *testing.T) {
 
 		registryClient := &mockRegistryClient{
 			Documents: []registry.APIDocumentResponse{{
-				APIVersion: "v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 				Spec: registry.APIDocumentSpecResponse{
 
 					Product: registry.APIProductResponse{
@@ -269,7 +270,7 @@ func TestReloading(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1, "v1alpha1"),
+			Documents: createTestDocuments(1, api_versions.V1alpha1,),
 		}
 
 		mockReloader := mockReloader{}
@@ -318,7 +319,7 @@ func TestReloading(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1, "v1alpha1"),
+			Documents: createTestDocuments(1, api_versions.V1alpha1),
 		}
 
 		mockReloader := &mockReloader{

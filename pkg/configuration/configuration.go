@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	glob2 "github.com/gobwas/glob"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/yaml.v2"
@@ -163,7 +164,7 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 			switch apiVersion {
 			case "v0/patch":
 				patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
-			case "v0", "apps.pivotal.io/v1alpha1":
+			case api_versions.V0, api_versions.V1alpha1:
 				documentsBytes = append(documentsBytes, []byte(contents))
 			}
 		}

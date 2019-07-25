@@ -39,18 +39,18 @@ func TestRenderDocumentHTML(t *testing.T) {
 	}
 	document := v1alpha1.IndicatorDocument{
 		Spec: v1alpha1.IndicatorDocumentSpec{
-		Indicators: indicators,
-		Layout: v1alpha1.Layout{
-			Title:       "Test Document",
-			Owner:       "Test Owner",
-			Description: "This is a document for testing `code`",
-			Sections: []v1alpha1.Section{
-				{
-					Title:       "Test Indicators Section",
-					Description: "This is a section of indicator documentation for testing `other code`",
-					Indicators:  []string{"test_indicator"},
+			Indicators: indicators,
+			Layout: v1alpha1.Layout{
+				Title:       "Test Document",
+				Owner:       "Test Owner",
+				Description: "This is a document for testing `code`",
+				Sections: []v1alpha1.Section{
+					{
+						Title:       "Test Indicators Section",
+						Description: "This is a section of indicator documentation for testing `other code`",
+						Indicators:  []string{"test_indicator"},
+					},
 				},
-			},
 			},
 		},
 	}

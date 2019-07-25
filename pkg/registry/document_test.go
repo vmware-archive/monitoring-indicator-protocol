@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -16,7 +17,7 @@ func TestDocumentTranslation(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		indicatorDoc := registry.APIDocumentResponse{
-			APIVersion: "apps.pivotal.io/v1alpha1",
+			APIVersion: api_versions.V1alpha1,
 			Metadata: registry.APIMetadataResponse{
 				Labels: map[string]string{
 					"someKey": "someValue",
@@ -66,13 +67,12 @@ func TestDocumentTranslation(t *testing.T) {
 					Owner: "Waldo",
 				},
 			},
-
 		}
 
 		g.Expect(registry.ToIndicatorDocument(indicatorDoc)).To(Equal(v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
 				Kind:       "IndicatorDocument",
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{
@@ -85,8 +85,8 @@ func TestDocumentTranslation(t *testing.T) {
 					Version: "1.0",
 				},
 				Indicators: []v1alpha1.IndicatorSpec{{
-					Name:    "performance-indicator",
-					PromQL:  "someQuery",
+					Name:   "performance-indicator",
+					PromQL: "someQuery",
 					Alert: v1alpha1.Alert{
 						For:  "30s",
 						Step: "5s",

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/prometheus/prometheus/promql"
 )
 
@@ -67,9 +68,9 @@ func (is *IndicatorSpec) Validate(idx int, apiVersion string) []error {
 		es = append(es, fmt.Errorf("indicators[%d] promql is required", idx))
 	}
 	for tdx, threshold := range is.Thresholds {
-		if threshold.Operator == Undefined && apiVersion == "v0" {
+		if threshold.Operator == Undefined && apiVersion == api_versions.V0 {
 			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float", idx, tdx))
-		} else if threshold.Operator == Undefined && (apiVersion == "apps.pivotal.io/v1alpha1") {
+		} else if threshold.Operator == Undefined && apiVersion == api_versions.V1alpha1 {
 			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] operator [lt, lte, eq, neq, gte, gt] is required", idx, tdx))
 		}
 	}

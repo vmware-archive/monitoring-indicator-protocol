@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -154,7 +155,7 @@ func (s *Server) run() {
 	}
 
 	if err != nil {
-		log.Print("Server shutdown due to error")
+		log.Printf("Server shutdown due to error: %s\n", err)
 	}
 }
 
@@ -320,7 +321,7 @@ func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	errors := k8sIndicatorDoc.Validate("apps.pivotal.io/v1alpha1")
+	errors := k8sIndicatorDoc.Validate(api_versions.V1alpha1)
 
 	auditAnnotationMessage := createReviewAnnotationMap(errors)
 
@@ -366,7 +367,7 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 		return
 	}
 
-	errors := k8sIndicator.Spec.Validate(0, "apps.pivotal.io/v1alpha1")
+	errors := k8sIndicator.Spec.Validate(0, api_versions.V1alpha1)
 
 	auditAnnotationMessage := createReviewAnnotationMap(errors)
 

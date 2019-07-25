@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	v1 "k8s.io/api/core/v1"
 
-	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -51,7 +52,7 @@ func ConfigMap(doc *v1alpha1.IndicatorDocument, m mapper) (*v1.ConfigMap, error)
 				"owner":             doc.Name + "-" + doc.Namespace,
 			},
 			OwnerReferences: []metav1.OwnerReference{{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 				Kind:       "IndicatorDocument",
 				Name:       doc.Name,
 				UID:        doc.UID,

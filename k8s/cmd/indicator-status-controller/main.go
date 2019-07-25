@@ -45,7 +45,7 @@ func main() {
 	}
 
 	cfg, err := rest.InClusterConfig()
-	cfg.Timeout = 5*time.Second
+	cfg.Timeout = 5 * time.Second
 	if err != nil {
 		log.Fatal("failed to configure kubernetes cluster; make sure kubernetes is running")
 	}

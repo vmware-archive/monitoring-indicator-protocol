@@ -6,6 +6,7 @@ import (
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
@@ -18,7 +19,7 @@ func TestValidDocument(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
@@ -68,7 +69,7 @@ func TestValidDocument(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(BeEmpty())
 	})
@@ -80,14 +81,14 @@ func TestProduct(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			Spec: v1alpha1.IndicatorDocumentSpec{
 				Product: v1alpha1.Product{Name: "", Version: "0.0.1"},
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("product name is required"),
@@ -101,14 +102,14 @@ func TestVersion(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			Spec: v1alpha1.IndicatorDocumentSpec{
 				Product: v1alpha1.Product{Name: "product", Version: ""},
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("product version is required"),
@@ -126,7 +127,7 @@ func TestAPIVersion(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("apiVersion is required"),
@@ -146,7 +147,7 @@ func TestAPIVersion(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("v0", "apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V0, api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("invalid apiVersion, supported versions are: [v0 apps.pivotal.io/v1alpha1]"),
@@ -161,7 +162,7 @@ func TestIndicator(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			Spec: v1alpha1.IndicatorDocumentSpec{
 				Product: v1alpha1.Product{Name: "well-performing-component", Version: "0.0.1"},
@@ -175,7 +176,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name is required"),
@@ -189,7 +190,7 @@ func TestIndicator(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			Spec: v1alpha1.IndicatorDocumentSpec{
 				Product: v1alpha1.Product{Name: "well-performing-component", Version: "0.0.1"},
@@ -203,7 +204,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
@@ -216,7 +217,7 @@ func TestIndicator(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			Spec: v1alpha1.IndicatorDocumentSpec{
 				Product: v1alpha1.Product{Name: "well-performing-component", Version: "0.0.1"},
@@ -230,7 +231,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
@@ -244,7 +245,7 @@ func TestLayout(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
@@ -268,7 +269,7 @@ func TestLayout(t *testing.T) {
 				},
 			},
 		}
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("layout sections[0] indicators[1] references a non-existent indicator"),
@@ -282,7 +283,7 @@ func TestMetadata(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{"step": "my-step"},
@@ -292,7 +293,7 @@ func TestMetadata(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
@@ -304,7 +305,7 @@ func TestMetadata(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{"StEp": "my-step"},
@@ -314,7 +315,7 @@ func TestMetadata(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
@@ -328,7 +329,7 @@ func TestThreshold(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "v0",
+				APIVersion: api_versions.V0,
 			},
 			ObjectMeta: v1.ObjectMeta{},
 			Spec: v1alpha1.IndicatorDocumentSpec{
@@ -346,7 +347,7 @@ func TestThreshold(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("v0")
+		es := document.Validate(api_versions.V0)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"),
@@ -358,7 +359,7 @@ func TestThreshold(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			Spec: v1alpha1.IndicatorDocumentSpec{
 				Product: v1alpha1.Product{Name: "well-performing-component", Version: "0.0.1"},
@@ -375,7 +376,7 @@ func TestThreshold(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0].thresholds[0] operator [lt, lte, eq, neq, gte, gt] is required"),
@@ -389,7 +390,7 @@ func TestChartType(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			Spec: v1alpha1.IndicatorDocumentSpec{
 				Product: v1alpha1.Product{Name: "well-performing-component", Version: "0.0.1"},
@@ -403,7 +404,7 @@ func TestChartType(t *testing.T) {
 			},
 		}
 
-		es := document.Validate("apps.pivotal.io/v1alpha1")
+		es := document.Validate(api_versions.V1alpha1)
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("indicators[0] invalid chartType provided - valid chart types are [step bar status quota]"),

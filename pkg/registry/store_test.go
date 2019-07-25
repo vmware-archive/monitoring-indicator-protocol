@@ -67,7 +67,7 @@ func TestStore(t *testing.T) {
 
 	productAVersion1Document := v1alpha1.IndicatorDocument{
 		ObjectMeta: v1.ObjectMeta{
-	Labels: map[string]string{
+			Labels: map[string]string{
 				"deployment": "abc-123",
 			},
 		},

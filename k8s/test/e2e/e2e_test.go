@@ -428,7 +428,7 @@ func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
 			Namespace: ns,
 		},
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "apps.pivotal.io/v1alpha1",
+			APIVersion: api_versions.V1alpha1,
 		},
 		Spec: v1alpha1.IndicatorDocumentSpec{
 			Product: v1alpha1.Product{

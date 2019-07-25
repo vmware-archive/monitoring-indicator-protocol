@@ -12,6 +12,7 @@ import (
 
 	"github.com/cppforlife/go-patch/patch"
 	"github.com/ghodss/yaml"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -33,10 +34,10 @@ func DocumentFromYAML(r io.ReadCloser) (v1alpha1.IndicatorDocument, error) {
 
 	var doc v1alpha1.IndicatorDocument
 	switch apiVersion {
-	case "v0":
+	case api_versions.V0:
 		log.Print("WARNING: apiVersion v0 will be deprecated in future releases")
 		doc, err = v0documentFromBytes(docBytes)
-	case "apps.pivotal.io/v1alpha1":
+	case api_versions.V1alpha1:
 		err = yaml.Unmarshal(docBytes, &doc)
 	default:
 		err = fmt.Errorf("invalid apiVersion, supported versions are: v0, apps.pivotal.io/v1alpha1")
@@ -90,7 +91,7 @@ func v0documentFromBytes(yamlBytes []byte) (v1alpha1.IndicatorDocument, error) {
 
 	return v1alpha1.IndicatorDocument{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v0",
+			APIVersion: api_versions.V0,
 			Kind:       "IndicatorDocument",
 		},
 		ObjectMeta: metav1.ObjectMeta{
@@ -274,10 +275,10 @@ type v0yamlThreshold struct {
 
 type v0yamlPresentation struct {
 	ChartType    v1alpha1.ChartType `json:"chartType"`
-	CurrentValue bool      `json:"currentValue"`
-	Frequency    int64     `json:"frequency"`
-	Labels       []string  `json:"labels"`
-	Units        string    `json:"units"`
+	CurrentValue bool               `json:"currentValue"`
+	Frequency    int64              `json:"frequency"`
+	Labels       []string           `json:"labels"`
+	Units        string             `json:"units"`
 }
 
 func apiVersionFromYAML(docBytes []byte) (string, error) {
@@ -324,13 +325,13 @@ func ProductFromYAML(reader io.ReadCloser) (v1alpha1.Product, error) {
 	apiVersion, err := apiVersionFromYAML(docBytes)
 	var product v1alpha1.Product
 	switch apiVersion {
-	case "v0":
+	case api_versions.V0:
 		var d struct {
 			Product v1alpha1.Product
 		}
 		err = yaml.Unmarshal(docBytes, &d)
 		product = d.Product
-	case "apps.pivotal.io/v1alpha1":
+	case api_versions.V1alpha1:
 		var d struct {
 			Spec struct {
 				Product v1alpha1.Product
@@ -357,13 +358,13 @@ func MetadataFromYAML(reader io.ReadCloser) (map[string]string, error) {
 	apiVersion, err := apiVersionFromYAML(docBytes)
 	var metadata map[string]string
 	switch apiVersion {
-	case "v0":
+	case api_versions.V0:
 		var d struct {
 			Metadata map[string]string
 		}
 		err = yaml.Unmarshal(docBytes, &d)
 		metadata = d.Metadata
-	case "apps.pivotal.io/v1alpha1":
+	case api_versions.V1alpha1:
 		var d struct {
 			Metadata struct {
 				Labels map[string]string
@@ -459,7 +460,7 @@ func ProcessDocument(patches []Patch, documentBytes []byte) (v1alpha1.IndicatorD
 	}
 	doc.Interpolate()
 
-	errs := doc.Validate("v0", "apps.pivotal.io/v1alpha1")
+	errs := doc.Validate(api_versions.V0, api_versions.V1alpha1)
 	if len(errs) > 0 {
 		log.Print("document validation failed")
 		for _, e := range errs {

@@ -268,7 +268,6 @@ type IndicatorDocumentList struct {
 	Items []IndicatorDocument `json:"items"`
 }
 
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // IndicatorList is a list of Indicator resources
 type IndicatorList struct {

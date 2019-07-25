@@ -169,9 +169,9 @@ spec:
 		g := NewGomegaWithT(t)
 
 		var patchedThreshold interface{} = map[interface{}]interface{}{
-			"level": "warning",
+			"level":    "warning",
 			"operator": "gt",
-			"value": 1000,
+			"value":    1000,
 		}
 
 		indicatorPatch := []indicator.Patch{{
@@ -224,7 +224,8 @@ spec:
 			Level:    "warning",
 			Operator: v1alpha1.GreaterThan,
 			Value:    1000,
-		}))	})
+		}))
+	})
 
 	t.Run("does not patch files that do not match", func(t *testing.T) {
 		g := NewGomegaWithT(t)

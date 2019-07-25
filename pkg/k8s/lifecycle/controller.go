@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	types "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
@@ -127,7 +128,7 @@ func toIndicator(is types.IndicatorSpec, parent *types.IndicatorDocument) *types
 			},
 			OwnerReferences: []metav1.OwnerReference{
 				{
-					APIVersion:         "apps.pivotal.io/v1alpha1",
+					APIVersion:         api_versions.V1alpha1,
 					Kind:               "IndicatorDocument",
 					Name:               parent.Name,
 					UID:                parent.UID,

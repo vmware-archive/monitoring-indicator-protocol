@@ -79,7 +79,7 @@ func (s *Store) FillStatuses(doc *v1alpha1.IndicatorDocument) {
 			var newStatus v1alpha1.IndicatorStatus
 			if status.Status != nil {
 				newStatus.Phase = *status.Status
-				newStatus.UpdatedAt = v1.Time {Time: status.UpdatedAt}
+				newStatus.UpdatedAt = v1.Time{Time: status.UpdatedAt}
 			}
 			docStatus[status.IndicatorName] = newStatus
 		}

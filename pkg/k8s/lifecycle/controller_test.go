@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	types "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1alpha1"
@@ -77,7 +78,7 @@ func TestController(t *testing.T) {
 
 			truePtr := true
 			g.Expect(spyIndicatorsGetter.createCalls[0].OwnerReferences).To(ConsistOf(v1.OwnerReference{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 				Kind:       "IndicatorDocument",
 				Name:       id.Name,
 				UID:        id.UID,

@@ -46,7 +46,7 @@ func TestIndicatorRegistry(t *testing.T) {
 			file, err := os.Open("test_fixtures/indicators.yml")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err := http.Post(serverUrl + "/v1alpha1/register", "text/plain", file)
+			resp, err := http.Post(serverUrl+"/v1alpha1/register", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(resp.StatusCode, resp.Body).To(Equal(http.StatusOK))

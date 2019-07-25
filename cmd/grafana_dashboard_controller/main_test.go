@@ -10,6 +10,7 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
@@ -36,7 +37,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{"deployment": "test_deployment"},
@@ -120,7 +121,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			ObjectMeta: v1.ObjectMeta{Labels: map[string]string{"deployment": "test_deployment"}},
 			Spec: v1alpha1.IndicatorDocumentSpec{

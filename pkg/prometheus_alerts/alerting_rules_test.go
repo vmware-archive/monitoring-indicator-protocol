@@ -150,8 +150,7 @@ func TestAlertGeneration(t *testing.T) {
 		g = NewGomegaWithT(t)
 
 		doc := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
-			},
+			TypeMeta: v1.TypeMeta{},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{"meta-lol": "data-lol"},
 			},
@@ -179,10 +178,10 @@ func TestAlertGeneration(t *testing.T) {
 		g := NewGomegaWithT(t)
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-			APIVersion: "v1alpha1",
+				APIVersion: "v1alpha1",
 			},
 			ObjectMeta: v1.ObjectMeta{
-					Labels: map[string]string{"deployment": "test_deployment"},
+				Labels: map[string]string{"deployment": "test_deployment"},
 			},
 			Spec: v1alpha1.IndicatorDocumentSpec{
 				Product: v1alpha1.Product{

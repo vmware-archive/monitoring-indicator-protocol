@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -106,7 +107,7 @@ func TestSetsUpOwnership(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(cm.Labels["owner"]).To(Equal("test-name-test-namespace"))
 	g.Expect(cm.OwnerReferences).To(ConsistOf(metav1.OwnerReference{
-		APIVersion: "apps.pivotal.io/v1alpha1",
+		APIVersion: api_versions.V1alpha1,
 		Kind:       "IndicatorDocument",
 		Name:       "test-name",
 		UID:        uid,

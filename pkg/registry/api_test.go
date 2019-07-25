@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
@@ -56,8 +57,8 @@ indicators:
 			g.Expect(resp.Code).To(Equal(http.StatusOK))
 			g.Expect(docStore.AllDocuments()).To(ConsistOf(v1alpha1.IndicatorDocument{
 				TypeMeta: v1.TypeMeta{
-					Kind: "IndicatorDocument",
-					APIVersion: "v0",
+					Kind:       "IndicatorDocument",
+					APIVersion: api_versions.V0,
 				},
 				ObjectMeta: v1.ObjectMeta{
 					Labels: map[string]string{
@@ -132,8 +133,8 @@ spec:
 			g.Expect(resp.Code).To(Equal(http.StatusOK))
 			g.Expect(docStore.AllDocuments()).To(ConsistOf(v1alpha1.IndicatorDocument{
 				TypeMeta: v1.TypeMeta{
-					Kind: "IndicatorDocument",
-					APIVersion: "apps.pivotal.io/v1alpha1",
+					Kind:       "IndicatorDocument",
+					APIVersion: api_versions.V1alpha1,
 				},
 				ObjectMeta: v1.ObjectMeta{
 					Labels: map[string]string{
@@ -282,8 +283,8 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
 		docStore.UpsertDocument(v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
-				Kind: "IndicatorDocument",
+				APIVersion: api_versions.V1alpha1,
+				Kind:       "IndicatorDocument",
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{
@@ -350,8 +351,8 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
 		docStore.UpsertDocument(v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
-				Kind: "IndicatorDocument",
+				APIVersion: api_versions.V1alpha1,
+				Kind:       "IndicatorDocument",
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{

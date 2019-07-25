@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 )
@@ -18,8 +19,8 @@ func TestUpdateMetadata(t *testing.T) {
 
 		g.Expect(d).To(BeEquivalentTo(v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				Kind: "IndicatorDocument",
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				Kind:       "IndicatorDocument",
+				APIVersion: api_versions.V1alpha1,
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{"deployment": "well-performing-deployment"},
@@ -59,8 +60,8 @@ func TestUpdateMetadata(t *testing.T) {
 
 		g.Expect(d).To(Equal(v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
-				APIVersion: "apps.pivotal.io/v1alpha1",
-				Kind: "IndicatorDocument",
+				APIVersion: api_versions.V1alpha1,
+				Kind:       "IndicatorDocument",
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{"deployment": "well-performing-deployment"},

@@ -2,10 +2,11 @@ package status_store_test
 
 import (
 	. "github.com/onsi/gomega"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"testing"
 	"time"
@@ -106,7 +107,7 @@ func TestFillingStatuses(t *testing.T) {
 		document := v1alpha1.IndicatorDocument{
 			TypeMeta: v1.TypeMeta{
 				Kind:       "IndicatorDocument",
-				APIVersion: "apps.pivotal.io/v1alpha1",
+				APIVersion: api_versions.V1alpha1,
 			},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{

@@ -103,8 +103,7 @@ func TestMetadataInterpolation(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		doc := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
-			},
+			TypeMeta: v1.TypeMeta{},
 			ObjectMeta: v1.ObjectMeta{
 				Labels: map[string]string{
 					"foo": "bar",
