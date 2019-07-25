@@ -60,7 +60,6 @@ indicators:
 					APIVersion: "v0",
 				},
 				ObjectMeta: v1.ObjectMeta{
-					UID: "redis-tile-3c14d91f5c07bd4627a0c518fa14d5f1af0c3e1f",
 					Labels: map[string]string{
 						"deployment": "redis-abc-123",
 					},
@@ -137,7 +136,6 @@ spec:
 					APIVersion: "apps.pivotal.io/v1alpha1",
 				},
 				ObjectMeta: v1.ObjectMeta{
-					UID: "redis-tile-3c14d91f5c07bd4627a0c518fa14d5f1af0c3e1f",
 					Labels: map[string]string{
 						"deployment": "redis-abc-123",
 					},

@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/prometheus/promql"
 )
 
+// TODO This can be simplified once we remove v0
 func (id *IndicatorDocument) Validate(supportedApiVersion ...string) []error {
 	es := make([]error, 0)
 	if id.APIVersion == "" {
@@ -33,8 +34,8 @@ func (id *IndicatorDocument) Validate(supportedApiVersion ...string) []error {
 	}
 
 	for sectionIdx, section := range id.Spec.Layout.Sections {
-		for idx, i := range section.Indicators {
-			if _, found := id.Indicator(i); !found {
+		for idx, indicatorName := range section.Indicators {
+			if indicator := id.Indicator(indicatorName); indicator == nil {
 				es = append(es, fmt.Errorf("layout sections[%d] indicators[%d] references a non-existent indicator", sectionIdx, idx))
 			}
 		}
@@ -68,7 +69,7 @@ func (is *IndicatorSpec) Validate(idx int, apiVersion string) []error {
 	for tdx, threshold := range is.Thresholds {
 		if threshold.Operator == Undefined && apiVersion == "v0" {
 			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float", idx, tdx))
-		} else if threshold.Operator == Undefined && (apiVersion == "v1alpha1" || apiVersion == "apps.pivotal.io/v1alpha1") {
+		} else if threshold.Operator == Undefined && (apiVersion == "apps.pivotal.io/v1alpha1") {
 			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] operator [lt, lte, eq, neq, gte, gt] is required", idx, tdx))
 		}
 	}

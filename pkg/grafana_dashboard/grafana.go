@@ -104,11 +104,11 @@ func sectionToGrafanaRow(section v1alpha1.Section, document v1alpha1.IndicatorDo
 	var panels []GrafanaPanel
 
 	for _, indicatorName := range section.Indicators {
-		i, found := document.Indicator(indicatorName)
-		if !found {
+		i := document.Indicator(indicatorName)
+		if i == nil {
 			return nil, errors.New("indicator not found")
 		}
-		panels = append(panels, toGrafanaPanel(i, getIndicatorTitle(i)))
+		panels = append(panels, toGrafanaPanel(*i, getIndicatorTitle(*i)))
 	}
 
 	return &GrafanaRow{
@@ -122,10 +122,9 @@ func toGrafanaThresholds(thresholds []v1alpha1.Threshold) []GrafanaThreshold {
 	for _, t := range thresholds {
 		var comparator string
 		switch {
-		// TODO should use direct equality instead of relative ordering
-		case t.Operator <= v1alpha1.LessThanOrEqualTo:
+		case t.Operator == v1alpha1.LessThanOrEqualTo || t.Operator == v1alpha1.LessThan:
 			comparator = "lt"
-		case t.Operator >= v1alpha1.GreaterThanOrEqualTo:
+		case t.Operator == v1alpha1.GreaterThanOrEqualTo || t.Operator == v1alpha1.GreaterThan:
 			comparator = "gt"
 		default:
 			log.Printf("grafana dashboards only support lt/gt thresholds, threshold skipped: %v\n", t)

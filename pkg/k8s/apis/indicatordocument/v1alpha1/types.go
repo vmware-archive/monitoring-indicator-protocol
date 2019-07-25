@@ -20,19 +20,17 @@ type IndicatorDocument struct {
 	Status IndicatorDocumentStatus `json:"status,omitempty"`
 }
 
-// TODO: populate UID field on ingress
 func (id IndicatorDocument) BoshUID() string {
 	return fmt.Sprintf("%s-%x", id.Spec.Product.Name, getMetadataSHA(id.Labels))
 }
 
-// TODO: return pointer vs (IndicatorSpec, bool) ?
-func (id IndicatorDocument) Indicator(name string) (IndicatorSpec, bool) {
+func (id IndicatorDocument) Indicator(name string) *IndicatorSpec {
 	for _, indicator := range id.Spec.Indicators {
 		if indicator.Name == name {
-			return indicator, true
+			return &indicator
 		}
 	}
-	return IndicatorSpec{}, false
+	return nil
 }
 
 func getMetadataSHA(metadata map[string]string) [20]byte {
@@ -73,7 +71,7 @@ type Indicator struct {
 }
 
 type IndicatorSpec struct {
-	// TODO: remove denormalization for product
+	// Product duplicated between here and indicator documents for the `kubectl get indicators` display
 	Product       string            `json:"product,omitempty"`
 	Name          string            `json:"name"`
 	PromQL        string            `json:"promql"`
@@ -85,11 +83,9 @@ type IndicatorSpec struct {
 }
 
 type IndicatorStatus struct {
-	Phase     string  `json:"phase"`
+	Phase     string      `json:"phase"`
 	UpdatedAt metav1.Time `json:"updatedAt"`
 }
-
-//DeepCopyObject() Object
 
 type Presentation struct {
 	ChartType    ChartType `json:"chartType,omitempty"`

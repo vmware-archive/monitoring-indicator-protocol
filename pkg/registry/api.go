@@ -8,8 +8,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"k8s.io/apimachinery/pkg/types"
-
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 
@@ -33,11 +31,7 @@ func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 			return
 		}
 
-		// We can derive this UID at any point, but we want to store it
-		// in the document itself so it is there when marshalling.
-		doc.UID = types.UID(doc.BoshUID())
 		store.UpsertDocument(doc)
-
 		w.WriteHeader(http.StatusOK)
 	}
 }
