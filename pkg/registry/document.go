@@ -5,7 +5,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -157,7 +156,7 @@ func ConvertThresholds(apiv0Thresholds []APIThresholdResponse) []v1alpha1.Thresh
 func convertThreshold(t APIThresholdResponse) v1alpha1.Threshold {
 	return v1alpha1.Threshold{
 		Level:    t.Level,
-		Operator: indicator.GetComparatorFromString(t.Operator),
+		Operator: v1alpha1.GetComparatorFromString(t.Operator),
 		Value:    t.Value,
 	}
 }
@@ -197,7 +196,7 @@ func ToAPIDocumentResponse(doc v1alpha1.IndicatorDocument) APIDocumentResponse {
 		for _, t := range i.Thresholds {
 			thresholds = append(thresholds, APIThresholdResponse{
 				Level:    t.Level,
-				Operator: indicator.GetComparatorAbbrev(t.Operator),
+				Operator: v1alpha1.GetComparatorAbbrev(t.Operator),
 				Value:    t.Value,
 			})
 		}

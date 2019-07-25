@@ -1,16 +1,14 @@
 package docs
 
 import (
+	"bytes"
+	"fmt"
+	"html/template"
 	"log"
 	"strings"
 	"unicode"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
-
-	"bytes"
-	"fmt"
-	"html/template"
 
 	"gopkg.in/russross/blackfriday.v2"
 )
@@ -161,7 +159,7 @@ func (t thresholdPresenter) Level() string {
 }
 
 func (t thresholdPresenter) Operator() string {
-	return indicator.GetComparator(t.threshold.Operator)
+	return v1alpha1.GetComparatorSymbol(t.threshold.Operator)
 }
 
 func (t thresholdPresenter) Value() string {

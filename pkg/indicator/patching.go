@@ -11,6 +11,18 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type Patch struct {
+	APIVersion string
+	Match      Match
+	Operations []patch.OpDefinition
+}
+
+type Match struct {
+	Name     *string
+	Version  *string
+	Metadata map[string]string
+}
+
 func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 	var document interface{}
 	err := yaml.Unmarshal(documentBytes, &document)

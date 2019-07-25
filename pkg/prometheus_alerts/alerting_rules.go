@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
 )
 
@@ -62,7 +61,7 @@ func ruleFrom(document v1alpha1.IndicatorDocument, i v1alpha1.IndicatorSpec, thr
 
 	return Rule{
 		Alert:       i.Name,
-		Expr:        fmt.Sprintf("%s %s %+v", interpolatedPromQl, indicator.GetComparator(threshold.Operator), threshold.Value),
+		Expr:        fmt.Sprintf("%s %s %+v", interpolatedPromQl, v1alpha1.GetComparatorSymbol(threshold.Operator), threshold.Value),
 		For:         i.Alert.For,
 		Labels:      labels,
 		Annotations: i.Documentation,

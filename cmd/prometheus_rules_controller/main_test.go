@@ -23,8 +23,6 @@ import (
 )
 
 var (
-	serverCert = "../../test_fixtures/server.pem"
-	serverKey  = "../../test_fixtures/server.key"
 	rootCACert = "../../test_fixtures/ca.pem"
 
 	clientKey  = "../../test_fixtures/client.key"

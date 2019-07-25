@@ -139,7 +139,7 @@ type Threshold struct {
 type ThresholdOperator int
 
 func (ot ThresholdOperator) MarshalJSON() ([]byte, error) {
-	operatorString := comparatorToString(ot)
+	operatorString := GetComparatorAbbrev(ot)
 	if operatorString == "" {
 		return []byte("null"), nil
 	}
@@ -148,7 +148,7 @@ func (ot ThresholdOperator) MarshalJSON() ([]byte, error) {
 }
 
 func (ot *ThresholdOperator) UnmarshalJSON(data []byte) error {
-	*ot = comparatorFromString(string(data))
+	*ot = unmarshalComparatorFromString(string(data))
 	if *ot == -1 {
 		*ot = Undefined
 		return nil
@@ -166,7 +166,7 @@ const (
 	GreaterThan
 )
 
-func comparatorFromString(operator string) ThresholdOperator {
+func unmarshalComparatorFromString(operator string) ThresholdOperator {
 	switch operator {
 	case `"lt"`:
 		return LessThan
@@ -181,11 +181,30 @@ func comparatorFromString(operator string) ThresholdOperator {
 	case `"gt"`:
 		return GreaterThan
 	default:
-		return -1
+		return Undefined
 	}
 }
 
-func comparatorToString(op ThresholdOperator) string {
+func GetComparatorFromString(operator string) ThresholdOperator {
+	switch operator {
+	case "lt":
+		return LessThan
+	case "lte":
+		return LessThanOrEqualTo
+	case "eq":
+		return EqualTo
+	case "neq":
+		return NotEqualTo
+	case "gte":
+		return GreaterThanOrEqualTo
+	case "gt":
+		return GreaterThan
+	default:
+		return Undefined
+	}
+}
+
+func GetComparatorAbbrev(op ThresholdOperator) string {
 	switch op {
 	case LessThan:
 		return "lt"
@@ -199,6 +218,25 @@ func comparatorToString(op ThresholdOperator) string {
 		return "gte"
 	case GreaterThan:
 		return "gt"
+	default:
+		return ""
+	}
+}
+
+func GetComparatorSymbol(op ThresholdOperator) string {
+	switch op {
+	case LessThan:
+		return "<"
+	case LessThanOrEqualTo:
+		return "<="
+	case EqualTo:
+		return "=="
+	case NotEqualTo:
+		return "!="
+	case GreaterThanOrEqualTo:
+		return ">="
+	case GreaterThan:
+		return ">"
 	default:
 		return ""
 	}
@@ -229,6 +267,7 @@ type IndicatorDocumentList struct {
 
 	Items []IndicatorDocument `json:"items"`
 }
+
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // IndicatorList is a list of Indicator resources
