@@ -4,4 +4,4 @@
   value:
     type: git
     repository: git@github.com:pivotal/indicator-protocol-examples.git
-    private_key: ((patch_repo_private_key))
+    private_key: ((example-repository-private-key))
