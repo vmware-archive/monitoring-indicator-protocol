@@ -49,8 +49,8 @@ func TestIndicatorRegistryProxy(t *testing.T) {
 		defer session2.Kill()
 		defer regSession2.Kill()
 
-		createDocumentUrl := fmt.Sprintf("https://localhost:%s/v1alpha1/register", proxy1Port)
-		getDocumentsUrl := "https://localhost:%s/v1alpha1/indicator-documents"
+		createDocumentUrl := fmt.Sprintf("https://localhost:%s/v1/register", proxy1Port)
+		getDocumentsUrl := "https://localhost:%s/v1/indicator-documents"
 
 		file, err := os.Open("test_fixtures/indicators.yml")
 		g.Expect(err).ToNot(HaveOccurred())

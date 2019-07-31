@@ -15,7 +15,7 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
@@ -28,7 +28,7 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1, api_versions.V1alpha1),
+			Documents: createTestDocuments(1, api_versions.V1),
 		}
 
 		mockReloader := &mockReloader{}
@@ -59,7 +59,7 @@ func TestController(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(3, api_versions.V1alpha1),
+			Documents: createTestDocuments(3, api_versions.V1),
 		}
 
 		fs := memfs.New()
@@ -126,7 +126,7 @@ func TestController(t *testing.T) {
 
 		registryClient := &mockRegistryClient{
 			Documents: []registry.APIDocumentResponse{{
-				APIVersion: api_versions.V1alpha1,
+				APIVersion: api_versions.V1,
 				Spec: registry.APIDocumentSpecResponse{
 					Product: registry.APIProductResponse{
 						Name:    "test_product_A",
@@ -171,7 +171,7 @@ func TestController(t *testing.T) {
 		g.Expect(fileNames).To(ConsistOf("test_product_A.yml"))
 
 		registryClient.Documents = []registry.APIDocumentResponse{{
-			APIVersion: api_versions.V1alpha1,
+			APIVersion: api_versions.V1,
 			Spec: registry.APIDocumentSpecResponse{
 				Product: registry.APIProductResponse{
 					Name:    "test_product_B",
@@ -205,7 +205,7 @@ func TestController(t *testing.T) {
 
 		registryClient := &mockRegistryClient{
 			Documents: []registry.APIDocumentResponse{{
-				APIVersion: api_versions.V1alpha1,
+				APIVersion: api_versions.V1,
 				Spec: registry.APIDocumentSpecResponse{
 
 					Product: registry.APIProductResponse{
@@ -261,7 +261,7 @@ func TestController(t *testing.T) {
 	})
 }
 
-var stubConverter = func(document v1alpha1.IndicatorDocument) (*exporter.File, error) {
+var stubConverter = func(document v1.IndicatorDocument) (*exporter.File, error) {
 	return &exporter.File{Name: fmt.Sprintf("%s.yml", document.Spec.Product.Name), Contents: []byte("")}, nil
 }
 
@@ -270,7 +270,7 @@ func TestReloading(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1, api_versions.V1alpha1,),
+			Documents: createTestDocuments(1, api_versions.V1,),
 		}
 
 		mockReloader := mockReloader{}
@@ -319,7 +319,7 @@ func TestReloading(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1, api_versions.V1alpha1),
+			Documents: createTestDocuments(1, api_versions.V1),
 		}
 
 		mockReloader := &mockReloader{

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
-	. "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	. "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 func ReadFile(indicatorsFile string, opts ...ReadOpt) (IndicatorDocument, error) {
@@ -29,7 +29,7 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (IndicatorDocument, error)
 		doc.Interpolate()
 	}
 
-	validationErrors := doc.Validate(api_versions.V0, api_versions.V1alpha1)
+	validationErrors := doc.Validate(api_versions.V0, api_versions.V1)
 	if len(validationErrors) > 0 {
 		var errorString strings.Builder
 		errorString.WriteString("validation for indicator document failed:\n")

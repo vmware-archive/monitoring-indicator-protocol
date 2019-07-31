@@ -38,7 +38,7 @@ Use the provided script to run tests: `./scripts/test.sh`
    ```json
    [
      {
-       "apiVersion": "apps.pivotal.io/v1alpha1",
+       "apiVersion": "apps.pivotal.io/v1",
        "product": {
          "name": "my-component",
          "version": "1.2.3"
@@ -114,7 +114,7 @@ Use the provided script to run tests: `./scripts/test.sh`
 We have provided a script to create the necessary certificates and start your docker container for you. If you have the repo cloned, run `./scripts/start_docker_compose.sh` from the root. The registry will be running on port 10567 by default. To curl this registry, reference the certs created in the certs directory within docker-compose. For example:
 
 ```
-curl https://localhost:10567/v1alpha1/indicator-documents -k --key docker-compose/certs/client.key --cert docker-compose/certs/client.pem --cacert docker-compose/certs/ca.key
+curl https://localhost:10567/v1/indicator-documents -k --key docker-compose/certs/client.key --cert docker-compose/certs/client.pem --cacert docker-compose/certs/ca.key
 ```
 
    

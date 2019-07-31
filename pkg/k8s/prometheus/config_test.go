@@ -5,39 +5,39 @@ import (
 
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/prometheus"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 )
 
-var indicators = []*v1alpha1.IndicatorDocument{
+var indicators = []*v1.IndicatorDocument{
 	{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta:metav1.ObjectMeta{
 			Name:      "my_app_indicators",
 			Namespace: "monitoring",
 			Labels: map[string]string{
 				"environment": "staging",
 			},
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{
 				Name:    "my_app",
 				Version: "1.0.1",
 			},
-			Indicators: []v1alpha1.IndicatorSpec{
+			Indicators: []v1.IndicatorSpec{
 				{
 					Name:   "latency",
 					PromQL: "histogram_quantile(0.9, latency)",
-					Alert: v1alpha1.Alert{
+					Alert: v1.Alert{
 						For:  "5m",
 						Step: "10s",
 					},
-					Thresholds: []v1alpha1.Threshold{
+					Thresholds: []v1.Threshold{
 						{
 							Level:    "critical",
-							Operator: v1alpha1.GreaterThanOrEqualTo,
+							Operator: v1.GreaterThanOrEqualTo,
 							Value:    float64(100.2),
 						},
 					},
@@ -46,34 +46,34 @@ var indicators = []*v1alpha1.IndicatorDocument{
 					},
 				},
 			},
-			Layout: v1alpha1.Layout{},
+			Layout: v1.Layout{},
 		},
 	},
 	{
-		ObjectMeta: v1.ObjectMeta{
+		ObjectMeta:metav1.ObjectMeta{
 			Name:      "my_production_app_indicators",
 			Namespace: "monitoring",
 			Labels: map[string]string{
 				"environment": "production",
 			},
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{
 				Name:    "my_app",
 				Version: "1.0.1",
 			},
-			Indicators: []v1alpha1.IndicatorSpec{
+			Indicators: []v1.IndicatorSpec{
 				{
 					Name:   "average_latency",
 					PromQL: "average(latency)",
-					Alert: v1alpha1.Alert{
+					Alert: v1.Alert{
 						For:  "10m",
 						Step: "10s",
 					},
-					Thresholds: []v1alpha1.Threshold{
+					Thresholds: []v1.Threshold{
 						{
 							Level:    "warning",
-							Operator: v1alpha1.NotEqualTo,
+							Operator: v1.NotEqualTo,
 							Value:    float64(0),
 						},
 					},
@@ -82,7 +82,7 @@ var indicators = []*v1alpha1.IndicatorDocument{
 					},
 				},
 			},
-			Layout: v1alpha1.Layout{},
+			Layout: v1.Layout{},
 		},
 	},
 }
@@ -97,11 +97,11 @@ func TestConfig(t *testing.T) {
 
 	t.Run("it renders a group for each indicator document", func(t *testing.T) {
 		testCases := map[string]struct {
-			Indicators []*v1alpha1.IndicatorDocument
+			Indicators []*v1.IndicatorDocument
 			Expected   string
 		}{
 			"1 document": {
-				Indicators: []*v1alpha1.IndicatorDocument{indicators[0]},
+				Indicators: []*v1.IndicatorDocument{indicators[0]},
 				Expected: `
                     groups:
                     - name: monitoring/my_app_indicators

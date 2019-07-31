@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/grafana"
 
 	. "github.com/onsi/gomega"
@@ -17,7 +17,7 @@ import (
 func TestEmptyIndicatorDocument(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	var doc *v1alpha1.IndicatorDocument
+	var doc *v1.IndicatorDocument
 	_, err := grafana.ConfigMap(doc, nil)
 	g.Expect(err).To(HaveOccurred())
 }
@@ -25,25 +25,25 @@ func TestEmptyIndicatorDocument(t *testing.T) {
 func TestNoLayoutGeneratesDefaultDashboard(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	doc := &v1alpha1.IndicatorDocument{
+	doc := &v1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-name",
 			Namespace: "test-namespace",
 			UID:       types.UID("test-uid"),
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{
 				Name:    "my_app",
 				Version: "1.0.1",
 			},
-			Indicators: []v1alpha1.IndicatorSpec{
+			Indicators: []v1.IndicatorSpec{
 				{
 					Name:   "latency",
 					PromQL: "histogram_quantile(0.9, latency)",
-					Thresholds: []v1alpha1.Threshold{
+					Thresholds: []v1.Threshold{
 						{
 							Level:    "critical",
-							Operator: v1alpha1.GreaterThanOrEqualTo,
+							Operator: v1.GreaterThanOrEqualTo,
 							Value:    float64(100.2),
 						},
 					},
@@ -55,7 +55,7 @@ func TestNoLayoutGeneratesDefaultDashboard(t *testing.T) {
 		},
 	}
 
-	cm, err := grafana.ConfigMap(doc, func(document v1alpha1.IndicatorDocument) ([]byte, error) {
+	cm, err := grafana.ConfigMap(doc, func(document v1.IndicatorDocument) ([]byte, error) {
 		return []byte("the-expected-json"), nil
 	})
 
@@ -69,25 +69,25 @@ func TestSetsUpOwnership(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	uid := types.UID("test-uid")
-	doc := &v1alpha1.IndicatorDocument{
+	doc := &v1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-name",
 			Namespace: "test-namespace",
 			UID:       uid,
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{
 				Name:    "my_app",
 				Version: "1.0.1",
 			},
-			Indicators: []v1alpha1.IndicatorSpec{
+			Indicators: []v1.IndicatorSpec{
 				{
 					Name:   "latency",
 					PromQL: "histogram_quantile(0.9, latency)",
-					Thresholds: []v1alpha1.Threshold{
+					Thresholds: []v1.Threshold{
 						{
 							Level:    "critical",
-							Operator: v1alpha1.GreaterThanOrEqualTo,
+							Operator: v1.GreaterThanOrEqualTo,
 							Value:    float64(100.2),
 						},
 					},
@@ -99,7 +99,7 @@ func TestSetsUpOwnership(t *testing.T) {
 		},
 	}
 
-	cm, err := grafana.ConfigMap(doc, func(document v1alpha1.IndicatorDocument) ([]byte, error) {
+	cm, err := grafana.ConfigMap(doc, func(document v1.IndicatorDocument) ([]byte, error) {
 		return []byte("the-expected-json"), nil
 	})
 
@@ -107,7 +107,7 @@ func TestSetsUpOwnership(t *testing.T) {
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(cm.Labels["owner"]).To(Equal("test-name-test-namespace"))
 	g.Expect(cm.OwnerReferences).To(ConsistOf(metav1.OwnerReference{
-		APIVersion: api_versions.V1alpha1,
+		APIVersion: api_versions.V1,
 		Kind:       "IndicatorDocument",
 		Name:       "test-name",
 		UID:        uid,
@@ -118,9 +118,9 @@ func TestSetsUpOwnership(t *testing.T) {
 func TestDashboardMapperError(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	doc := &v1alpha1.IndicatorDocument{}
+	doc := &v1.IndicatorDocument{}
 
-	_, err := grafana.ConfigMap(doc, func(document v1alpha1.IndicatorDocument) ([]byte, error) {
+	_, err := grafana.ConfigMap(doc, func(document v1.IndicatorDocument) ([]byte, error) {
 		return nil, errors.New("some-error")
 	})
 

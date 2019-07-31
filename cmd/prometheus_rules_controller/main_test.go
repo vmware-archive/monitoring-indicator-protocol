@@ -14,10 +14,10 @@ import (
 	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"gopkg.in/src-d/go-billy.v4/osfs"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
@@ -36,29 +36,29 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 
 		store := registry.NewDocumentStore(time.Hour, time.Now)
 
-		doc := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
-				APIVersion: api_versions.V1alpha1,
+		doc := v1.IndicatorDocument{
+			TypeMeta: metaV1.TypeMeta{
+				APIVersion: api_versions.V1,
 				Kind:       "IndicatorDocument",
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metaV1.ObjectMeta{
 				Labels: map[string]string{"deployment": "test_deployment"},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
+			Spec: v1.IndicatorDocumentSpec{
 
-				Product: v1alpha1.Product{
+				Product: v1.Product{
 					Name:    "test_product",
 					Version: "v1.2.3",
 				},
-				Indicators: []v1alpha1.IndicatorSpec{{
+				Indicators: []v1.IndicatorSpec{{
 					Name:   "test_indicator",
 					PromQL: `test_query{deployment="test_deployment"[$step]}`,
-					Thresholds: []v1alpha1.Threshold{{
+					Thresholds: []v1.Threshold{{
 						Level:    "critical",
-						Operator: v1alpha1.LessThan,
+						Operator: v1.LessThan,
 						Value:    5,
 					}},
-					Alert: v1alpha1.Alert{
+					Alert: v1.Alert{
 						For:  "10m",
 						Step: "5m",
 					},
@@ -143,28 +143,28 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 
 		store := registry.NewDocumentStore(time.Hour, time.Now)
 
-		doc := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
+		doc := v1.IndicatorDocument{
+			TypeMeta: metaV1.TypeMeta{
 				APIVersion: api_versions.V0,
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metaV1.ObjectMeta{
 				Labels: map[string]string{"deployment": "test_deployment"},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
+			Spec: v1.IndicatorDocumentSpec{
 
-				Product: v1alpha1.Product{
+				Product: v1.Product{
 					Name:    "test_product",
 					Version: "v1.2.3",
 				},
-				Indicators: []v1alpha1.IndicatorSpec{{
+				Indicators: []v1.IndicatorSpec{{
 					Name:   "test_indicator",
 					PromQL: `test_query{deployment="test_deployment"[$step]}`,
-					Thresholds: []v1alpha1.Threshold{{
+					Thresholds: []v1.Threshold{{
 						Level:    "critical",
-						Operator: v1alpha1.LessThan,
+						Operator: v1.LessThan,
 						Value:    5,
 					}},
-					Alert: v1alpha1.Alert{
+					Alert: v1.Alert{
 						For:  "10m",
 						Step: "5m",
 					},

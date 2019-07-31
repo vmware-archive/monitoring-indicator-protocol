@@ -15,7 +15,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -40,9 +40,9 @@ func ParseSourcesFile(filePath string) ([]Source, error) {
 	return f.Sources, nil
 }
 
-func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.PatchList, []v1alpha1.IndicatorDocument) {
+func Read(sources []Source, repositoryGetter RepositoryGetter) ([]registry.PatchList, []v1.IndicatorDocument) {
 	var patches []registry.PatchList
-	var documents []v1alpha1.IndicatorDocument
+	var documents []v1.IndicatorDocument
 	for _, source := range sources {
 
 		switch source.Type {
@@ -118,7 +118,7 @@ type Source struct {
 	Glob       string `yaml:"glob"`
 }
 
-func parseRepositoryHead(s Source, r *git.Repository) ([]indicator.Patch, []v1alpha1.IndicatorDocument, error) {
+func parseRepositoryHead(s Source, r *git.Repository) ([]indicator.Patch, []v1.IndicatorDocument, error) {
 	ref, err := r.Head()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch repo head: %s\n", err)
@@ -138,7 +138,7 @@ func parseRepositoryHead(s Source, r *git.Repository) ([]indicator.Patch, []v1al
 }
 
 // The error returned is always nil, but keeping this signature allows us to return it directly in parseRepositoryHead
-func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicator.Patch, []v1alpha1.IndicatorDocument, error) {
+func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicator.Patch, []v1.IndicatorDocument, error) {
 	var patchesBytes []unparsedPatch
 	var documentsBytes [][]byte
 
@@ -164,7 +164,7 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 			switch apiVersion {
 			case "v0/patch":
 				patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
-			case api_versions.V0, api_versions.V1alpha1:
+			case api_versions.V0, api_versions.V1:
 				documentsBytes = append(documentsBytes, []byte(contents))
 			}
 		}
@@ -195,8 +195,8 @@ func readPatches(unparsedPatches []unparsedPatch) []indicator.Patch {
 	return patches
 }
 
-func processDocuments(documentsBytes [][]byte, patches []indicator.Patch) []v1alpha1.IndicatorDocument {
-	var documents []v1alpha1.IndicatorDocument
+func processDocuments(documentsBytes [][]byte, patches []indicator.Patch) []v1.IndicatorDocument {
+	var documents []v1.IndicatorDocument
 	for _, documentBytes := range documentsBytes {
 		doc, errs := indicator.ProcessDocument(patches, documentBytes)
 		if len(errs) > 0 {

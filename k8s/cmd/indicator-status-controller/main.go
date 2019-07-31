@@ -62,7 +62,7 @@ func main() {
 	}
 
 	controller := indicator_status.NewController(
-		client.AppsV1alpha1(),
+		client.AppsV1(),
 		prometheusClient,
 		30*time.Second,
 		clock.New(),
@@ -76,7 +76,7 @@ func main() {
 	)
 
 	indicatorInformer := informerFactory.Apps().
-		V1alpha1().
+		V1().
 		Indicators().
 		Informer()
 	indicatorInformer.AddEventHandler(controller)

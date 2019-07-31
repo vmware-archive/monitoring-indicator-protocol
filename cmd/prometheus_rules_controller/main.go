@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
@@ -78,7 +78,7 @@ func (p *prometheusClient) Reload() error {
 	return nil
 }
 
-func Convert(document v1alpha1.IndicatorDocument) (*exporter.File, error) {
+func Convert(document v1.IndicatorDocument) (*exporter.File, error) {
 	documentBytes, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(document))
 	if err != nil {
 		return nil, err

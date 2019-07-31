@@ -7,18 +7,18 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 func DashboardFilename(documentBytes []byte, productName string) string {
 	return fmt.Sprintf("%s_%x.json", productName, sha1.Sum(documentBytes))
 }
 
-func DocumentToDashboard(document v1alpha1.IndicatorDocument) (*GrafanaDashboard, error) {
+func DocumentToDashboard(document v1.IndicatorDocument) (*GrafanaDashboard, error) {
 	return toGrafanaDashboard(document)
 }
 
-func toGrafanaDashboard(d v1alpha1.IndicatorDocument) (*GrafanaDashboard, error) {
+func toGrafanaDashboard(d v1.IndicatorDocument) (*GrafanaDashboard, error) {
 	rows, err := toGrafanaRows(d)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func toGrafanaDashboard(d v1alpha1.IndicatorDocument) (*GrafanaDashboard, error)
 	}, nil
 }
 
-func toGrafanaAnnotations(product v1alpha1.Product, metadata map[string]string) GrafanaAnnotations {
+func toGrafanaAnnotations(product v1.Product, metadata map[string]string) GrafanaAnnotations {
 	return GrafanaAnnotations{
 		List: []GrafanaAnnotation{
 			{
@@ -52,14 +52,14 @@ func metadataToLabelSelector(metadata map[string]string) interface{} {
 	return selector
 }
 
-func getDashboardTitle(d v1alpha1.IndicatorDocument) string {
+func getDashboardTitle(d v1.IndicatorDocument) string {
 	if d.Spec.Layout.Title == "" {
 		return fmt.Sprintf("%s - %s", d.Spec.Product.Name, d.Spec.Product.Version)
 	}
 	return d.Spec.Layout.Title
 }
 
-func toGrafanaRows(document v1alpha1.IndicatorDocument) ([]GrafanaRow, error) {
+func toGrafanaRows(document v1.IndicatorDocument) ([]GrafanaRow, error) {
 	var rows []GrafanaRow
 
 	for _, i := range document.Spec.Layout.Sections {
@@ -73,7 +73,7 @@ func toGrafanaRows(document v1alpha1.IndicatorDocument) ([]GrafanaRow, error) {
 	return rows, nil
 }
 
-func getIndicatorTitle(i v1alpha1.IndicatorSpec) string {
+func getIndicatorTitle(i v1.IndicatorSpec) string {
 	if t, ok := i.Documentation["title"]; ok {
 		return t
 	}
@@ -81,7 +81,7 @@ func getIndicatorTitle(i v1alpha1.IndicatorSpec) string {
 	return i.Name
 }
 
-func toGrafanaPanel(i v1alpha1.IndicatorSpec, title string) GrafanaPanel {
+func toGrafanaPanel(i v1.IndicatorSpec, title string) GrafanaPanel {
 	replacementString := replaceStep(i.PromQL)
 	return GrafanaPanel{
 		Title: title,
@@ -98,7 +98,7 @@ func replaceStep(str string) string {
 	return reg.ReplaceAllString(str, `$$__interval`)
 }
 
-func sectionToGrafanaRow(section v1alpha1.Section, document v1alpha1.IndicatorDocument) (*GrafanaRow, error) {
+func sectionToGrafanaRow(section v1.Section, document v1.IndicatorDocument) (*GrafanaRow, error) {
 	title := section.Title
 
 	var panels []GrafanaPanel
@@ -117,14 +117,14 @@ func sectionToGrafanaRow(section v1alpha1.Section, document v1alpha1.IndicatorDo
 	}, nil
 }
 
-func toGrafanaThresholds(thresholds []v1alpha1.Threshold) []GrafanaThreshold {
+func toGrafanaThresholds(thresholds []v1.Threshold) []GrafanaThreshold {
 	var grafanaThresholds []GrafanaThreshold
 	for _, t := range thresholds {
 		var comparator string
 		switch {
-		case t.Operator == v1alpha1.LessThanOrEqualTo || t.Operator == v1alpha1.LessThan:
+		case t.Operator == v1.LessThanOrEqualTo || t.Operator == v1.LessThan:
 			comparator = "lt"
-		case t.Operator == v1alpha1.GreaterThanOrEqualTo || t.Operator == v1alpha1.GreaterThan:
+		case t.Operator == v1.GreaterThanOrEqualTo || t.Operator == v1.GreaterThan:
 			comparator = "gt"
 		default:
 			log.Printf("grafana dashboards only support lt/gt thresholds, threshold skipped: %v\n", t)

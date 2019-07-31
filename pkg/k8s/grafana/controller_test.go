@@ -6,11 +6,11 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/grafana"
 )
 
@@ -22,7 +22,7 @@ func TestController(t *testing.T) {
 
 		controller.OnAdd(indicatorDocument())
 
-		spyConfigMapEditor.expectCreated([]*v1.ConfigMap{
+		spyConfigMapEditor.expectCreated([]*corev1.ConfigMap{
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
@@ -45,7 +45,7 @@ func TestController(t *testing.T) {
 		controller.OnAdd(indicatorDocument())
 
 		spyConfigMapEditor.expectThatNothingWasCreated()
-		spyConfigMapEditor.expectUpdated([]*v1.ConfigMap{
+		spyConfigMapEditor.expectUpdated([]*corev1.ConfigMap{
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
@@ -76,7 +76,7 @@ func TestController(t *testing.T) {
 
 		p.OnUpdate(nil, indicatorDocument())
 
-		spyConfigMapEditor.expectUpdated([]*v1.ConfigMap{
+		spyConfigMapEditor.expectUpdated([]*corev1.ConfigMap{
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name",
@@ -119,21 +119,21 @@ type spyConfigMapEditor struct {
 	g *GomegaWithT
 
 	getExists   bool
-	createCalls []*v1.ConfigMap
-	updateCalls []*v1.ConfigMap
+	createCalls []*corev1.ConfigMap
+	updateCalls []*corev1.ConfigMap
 }
 
-func (s *spyConfigMapEditor) Create(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
+func (s *spyConfigMapEditor) Create(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
 	s.createCalls = append(s.createCalls, cm)
 	return nil, nil
 }
 
-func (s *spyConfigMapEditor) Update(cm *v1.ConfigMap) (*v1.ConfigMap, error) {
+func (s *spyConfigMapEditor) Update(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
 	s.updateCalls = append(s.updateCalls, cm)
 	return nil, nil
 }
 
-func (s *spyConfigMapEditor) Get(name string, options metav1.GetOptions) (*v1.ConfigMap, error) {
+func (s *spyConfigMapEditor) Get(name string, options metav1.GetOptions) (*corev1.ConfigMap, error) {
 	if s.getExists {
 		return nil, nil
 	}
@@ -144,7 +144,7 @@ func (s *spyConfigMapEditor) alreadyCreated() {
 	s.getExists = true
 }
 
-func (s *spyConfigMapEditor) expectCreated(cms []*v1.ConfigMap) {
+func (s *spyConfigMapEditor) expectCreated(cms []*corev1.ConfigMap) {
 	s.g.Expect(s.createCalls).To(HaveLen(len(cms)))
 	for i, cm := range cms {
 		s.g.Expect(s.createCalls[i].Name).To(Equal(cm.Name))
@@ -155,7 +155,7 @@ func (s *spyConfigMapEditor) expectCreated(cms []*v1.ConfigMap) {
 	}
 }
 
-func (s *spyConfigMapEditor) expectUpdated(cms []*v1.ConfigMap) {
+func (s *spyConfigMapEditor) expectUpdated(cms []*corev1.ConfigMap) {
 	s.g.Expect(s.updateCalls).To(HaveLen(len(cms)))
 	for i, cm := range cms {
 		s.g.Expect(s.updateCalls[i].Name).To(Equal(cm.Name))
@@ -173,27 +173,27 @@ func (s *spyConfigMapEditor) expectThatNothingWasUpdated() {
 	s.g.Expect(s.updateCalls).To(BeNil())
 }
 
-func indicatorDocument() *v1alpha1.IndicatorDocument {
-	return &v1alpha1.IndicatorDocument{
+func indicatorDocument() *v1.IndicatorDocument {
+	return &v1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "rabbit-mq-resource-name",
 			Namespace: "default",
 			UID:       types.UID("some-uid"),
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{
 				Name:    "rabbit-mq-product-name",
 				Version: "v1.0",
 			},
-			Indicators: []v1alpha1.IndicatorSpec{
+			Indicators: []v1.IndicatorSpec{
 				{
 					Name:   "qps",
 					PromQL: "rate(qps)",
 				},
 			},
-			Layout: v1alpha1.Layout{
+			Layout: v1.Layout{
 				Title: "rabbit-mq-layout-title",
-				Sections: []v1alpha1.Section{
+				Sections: []v1.Section{
 					{
 						Title:       "qps section",
 						Description: "",

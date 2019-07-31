@@ -6,19 +6,19 @@ import (
 	"log"
 	"reflect"
 
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 type ConfigMapPatcher interface {
-	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1.ConfigMap, err error)
+	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *corev1.ConfigMap, err error)
 }
 
 type ConfigRenderer interface {
-	Upsert(i *v1alpha1.IndicatorDocument)
-	Delete(i *v1alpha1.IndicatorDocument)
+	Upsert(i *v1.IndicatorDocument)
+	Delete(i *v1.IndicatorDocument)
 
 	fmt.Stringer
 }
@@ -42,7 +42,7 @@ type patch struct {
 }
 
 func (c *Controller) OnAdd(obj interface{}) {
-	i, ok := obj.(*v1alpha1.IndicatorDocument)
+	i, ok := obj.(*v1.IndicatorDocument)
 	if !ok {
 		return
 	}
@@ -57,7 +57,7 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 }
 
 func (c *Controller) OnDelete(obj interface{}) {
-	i, ok := obj.(*v1alpha1.IndicatorDocument)
+	i, ok := obj.(*v1.IndicatorDocument)
 	if !ok {
 		return
 	}

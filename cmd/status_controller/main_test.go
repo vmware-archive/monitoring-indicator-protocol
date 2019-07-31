@@ -17,7 +17,7 @@ import (
 
 const documentsResponseBody string = `[
   {
-	"apiVersion": "v1alpha1",
+	"apiVersion": "v1",
 	"uid": "my-other-component-c2dd9",
     "kind": "IndicatorDocument",
 	"metadata": {
@@ -116,14 +116,14 @@ func setupFakeRegistry(g *GomegaWithT) *ghttp.Server {
 		func(w http.ResponseWriter, r *http.Request) {
 			g.Expect(r.Method).To(Equal("GET"))
 
-			g.Expect(r.URL.Path).To(Equal("/v1alpha1/indicator-documents"))
+			g.Expect(r.URL.Path).To(Equal("/v1/indicator-documents"))
 			body := []byte(documentsResponseBody)
 			_, err := w.Write(body)
 			g.Expect(err).NotTo(HaveOccurred())
 		},
 		func(w http.ResponseWriter, r *http.Request) {
 			g.Expect(r.Method).To(Equal("POST"))
-			g.Expect(r.URL.Path).To(Equal("/v1alpha1/indicator-documents/my-other-component-c2dd9/bulk_status"))
+			g.Expect(r.URL.Path).To(Equal("/v1/indicator-documents/my-other-component-c2dd9/bulk_status"))
 			var indicatorStatuses []registry.APIV0UpdateIndicatorStatus
 			err := json.NewDecoder(r.Body).Decode(&indicatorStatuses)
 			g.Expect(err).NotTo(HaveOccurred())

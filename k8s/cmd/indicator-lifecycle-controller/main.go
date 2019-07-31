@@ -51,7 +51,7 @@ func main() {
 	}
 
 	controller := lifecycle.NewController(
-		client.AppsV1alpha1(),
+		client.AppsV1(),
 	)
 
 	informerFactory := informers.NewSharedInformerFactory(
@@ -60,7 +60,7 @@ func main() {
 	)
 
 	indicatorInformer := informerFactory.Apps().
-		V1alpha1().
+		V1().
 		IndicatorDocuments().
 		Informer()
 	indicatorInformer.AddEventHandler(controller)

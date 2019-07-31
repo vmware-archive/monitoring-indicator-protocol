@@ -1,6 +1,6 @@
 [
   {
-    "apiVersion": "apps.pivotal.io/v1alpha1",
+    "apiVersion": "apps.pivotal.io/v1",
     "uid": "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
     "kind": "IndicatorDocument",
     "metadata": {

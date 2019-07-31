@@ -8,8 +8,8 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator_status"
 
-	types "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1alpha1"
+	types "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+	clientSetV1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -28,14 +28,14 @@ type indicatorStore interface {
 type Controller struct {
 	interval        time.Duration
 	promqlClient    PromQLClient
-	indicatorClient v1alpha1.IndicatorsGetter
+	indicatorClient clientSetV1.IndicatorsGetter
 	clock           clock.Clock
 	namespace       string
 	indicatorStore  indicatorStore
 }
 
 func NewController(
-	indicatorClient v1alpha1.IndicatorsGetter,
+	indicatorClient clientSetV1.IndicatorsGetter,
 	promqlClient PromQLClient,
 	interval time.Duration,
 	clock clock.Clock,

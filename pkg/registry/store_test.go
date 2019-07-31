@@ -6,10 +6,10 @@ import (
 
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -65,60 +65,60 @@ func TestStore(t *testing.T) {
 		}},
 	}
 
-	productAVersion1Document := v1alpha1.IndicatorDocument{
-		ObjectMeta: v1.ObjectMeta{
+	productAVersion1Document := v1.IndicatorDocument{
+		ObjectMeta: metaV1.ObjectMeta{
 			Labels: map[string]string{
 				"deployment": "abc-123",
 			},
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{Name: "my-product-a", Version: "1"},
-			Indicators: []v1alpha1.IndicatorSpec{{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-a", Version: "1"},
+			Indicators: []v1.IndicatorSpec{{
 				Name: "test_errors",
 			}},
 		},
 	}
 
-	productAVersion2Document := v1alpha1.IndicatorDocument{
-		TypeMeta: v1.TypeMeta{},
-		ObjectMeta: v1.ObjectMeta{
+	productAVersion2Document := v1.IndicatorDocument{
+		TypeMeta: metaV1.TypeMeta{},
+		ObjectMeta: metaV1.ObjectMeta{
 			Labels: map[string]string{
 				"deployment": "abc-123",
 			},
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{Name: "my-product-a", Version: "2"},
-			Indicators: []v1alpha1.IndicatorSpec{{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-a", Version: "2"},
+			Indicators: []v1.IndicatorSpec{{
 				Name: "test_error_ratio",
 			}},
 		},
 	}
 
-	productADeployment2Document := v1alpha1.IndicatorDocument{
-		TypeMeta: v1.TypeMeta{},
-		ObjectMeta: v1.ObjectMeta{
+	productADeployment2Document := v1.IndicatorDocument{
+		TypeMeta: metaV1.TypeMeta{},
+		ObjectMeta: metaV1.ObjectMeta{
 			Labels: map[string]string{
 				"deployment": "def-456",
 			},
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{Name: "my-product-a", Version: "2"},
-			Indicators: []v1alpha1.IndicatorSpec{{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-a", Version: "2"},
+			Indicators: []v1.IndicatorSpec{{
 				Name: "test_error_ratio",
 			}},
 		},
 	}
 
-	productBDocument := v1alpha1.IndicatorDocument{
-		TypeMeta: v1.TypeMeta{},
-		ObjectMeta: v1.ObjectMeta{
+	productBDocument := v1.IndicatorDocument{
+		TypeMeta: metaV1.TypeMeta{},
+		ObjectMeta: metaV1.ObjectMeta{
 			Labels: map[string]string{
 				"deployment": "def-456",
 			},
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{Name: "my-product-b", Version: "1"},
-			Indicators: []v1alpha1.IndicatorSpec{{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-b", Version: "1"},
+			Indicators: []v1.IndicatorSpec{{
 				Name: "test_latency",
 			}},
 		},

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 type clock func() time.Time
@@ -21,7 +21,7 @@ func NewDocumentStore(timeout time.Duration, c clock) *DocumentStore {
 }
 
 type registeredDocument struct {
-	indicatorDocument v1alpha1.IndicatorDocument
+	indicatorDocument v1.IndicatorDocument
 	registeredAt      time.Time
 }
 
@@ -38,7 +38,7 @@ type PatchList struct {
 	Patches []indicator.Patch
 }
 
-func (d *DocumentStore) UpsertDocument(doc v1alpha1.IndicatorDocument) {
+func (d *DocumentStore) UpsertDocument(doc v1.IndicatorDocument) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -65,13 +65,13 @@ func (d *DocumentStore) UpsertPatches(patchList PatchList) {
 	log.Printf("registered %d patches", len(patchList.Patches))
 }
 
-func (d *DocumentStore) AllDocuments() []v1alpha1.IndicatorDocument {
+func (d *DocumentStore) AllDocuments() []v1.IndicatorDocument {
 	d.expireDocuments()
 
 	d.RLock()
 	defer d.RUnlock()
 
-	documents := make([]v1alpha1.IndicatorDocument, 0)
+	documents := make([]v1.IndicatorDocument, 0)
 
 	for _, doc := range d.documents {
 		documents = append(documents, doc.indicatorDocument)
@@ -80,13 +80,13 @@ func (d *DocumentStore) AllDocuments() []v1alpha1.IndicatorDocument {
 	return documents
 }
 
-func (d *DocumentStore) FilteredDocuments(productName string) []v1alpha1.IndicatorDocument {
+func (d *DocumentStore) FilteredDocuments(productName string) []v1.IndicatorDocument {
 	d.expireDocuments()
 
 	d.RLock()
 	defer d.RUnlock()
 
-	documents := make([]v1alpha1.IndicatorDocument, 0)
+	documents := make([]v1.IndicatorDocument, 0)
 
 	for _, doc := range d.documents {
 		if doc.indicatorDocument.Spec.Product.Name == productName {
@@ -124,7 +124,7 @@ func (d *DocumentStore) expireDocuments() {
 	d.documents = unexpiredDocuments
 }
 
-func (d *DocumentStore) getPosition(indicatorDocument v1alpha1.IndicatorDocument) int {
+func (d *DocumentStore) getPosition(indicatorDocument v1.IndicatorDocument) int {
 	for idx, doc := range d.documents {
 		if doc.indicatorDocument.BoshUID() == indicatorDocument.BoshUID() {
 			return idx

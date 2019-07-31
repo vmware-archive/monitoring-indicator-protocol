@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
 	"gopkg.in/russross/blackfriday.v2"
 )
@@ -47,10 +47,10 @@ var indicatorTmpl = template.Must(template.New("Indicator").Parse(`
 </table>`))
 
 type indicatorPresenter struct {
-	v1alpha1.IndicatorSpec
+	v1.IndicatorSpec
 }
 
-func NewIndicatorPresenter(i v1alpha1.IndicatorSpec) indicatorPresenter {
+func NewIndicatorPresenter(i v1.IndicatorSpec) indicatorPresenter {
 	return indicatorPresenter{i}
 }
 
@@ -136,7 +136,7 @@ func (p indicatorPresenter) markdownDocumentationField(field string) template.HT
 }
 
 type thresholdPresenter struct {
-	threshold v1alpha1.Threshold
+	threshold v1.Threshold
 }
 
 func (p indicatorPresenter) Thresholds() []thresholdPresenter {
@@ -159,7 +159,7 @@ func (t thresholdPresenter) Level() string {
 }
 
 func (t thresholdPresenter) Operator() string {
-	return v1alpha1.GetComparatorSymbol(t.threshold.Operator)
+	return v1.GetComparatorSymbol(t.threshold.Operator)
 }
 
 func (t thresholdPresenter) Value() string {

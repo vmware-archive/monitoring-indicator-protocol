@@ -246,7 +246,7 @@ jobs:
 
             cat << EOF > indicators.yml
           ---
-          apiVersion: apps.pivotal.io/v1alpha1
+          apiVersion: apps.pivotal.io/v1
           kind: IndicatorDocument
           spec:
             product:

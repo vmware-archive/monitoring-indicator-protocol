@@ -10,7 +10,7 @@ import (
 	"gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -28,7 +28,7 @@ type ControllerConfig struct {
 	Reloader          Reloader
 }
 
-type DocumentConverter func(v1alpha1.IndicatorDocument) (*File, error)
+type DocumentConverter func(v1.IndicatorDocument) (*File, error)
 type File struct {
 	Name     string
 	Contents []byte

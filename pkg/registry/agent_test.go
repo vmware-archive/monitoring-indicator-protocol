@@ -12,7 +12,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -26,7 +26,7 @@ func TestRegistryAgent(t *testing.T) {
 		registryServer := ghttp.NewServer()
 		defer registryServer.Close()
 
-		receivedDocument := make(chan v1alpha1.IndicatorDocument, 1)
+		receivedDocument := make(chan v1.IndicatorDocument, 1)
 
 		registryServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()

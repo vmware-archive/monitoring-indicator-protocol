@@ -34,7 +34,7 @@ func (c *RegistryApiClient) IndicatorDocuments() ([]APIDocumentResponse, error) 
 }
 
 func (c *RegistryApiClient) indicatorResponse() ([]byte, error) {
-	resp, err := c.client.Get(c.serverURL + "/v1alpha1/indicator-documents")
+	resp, err := c.client.Get(c.serverURL + "/v1/indicator-documents")
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *RegistryApiClient) BulkStatusUpdate(statusUpdates []APIV0UpdateIndicato
 		return fmt.Errorf("error marshaling status updates: %s", err)
 	}
 	resp, err := c.client.Post(
-		fmt.Sprintf("%s/v1alpha1/indicator-documents/%s/bulk_status", c.serverURL, documentId),
+		fmt.Sprintf("%s/v1/indicator-documents/%s/bulk_status", c.serverURL, documentId),
 		"application/json",
 		body,
 	)

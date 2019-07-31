@@ -64,7 +64,7 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 			return err
 		}
 		resp, err = http.Post(
-			fmt.Sprintf("http://%s/v1alpha1/register", conf.Address),
+			fmt.Sprintf("http://%s/v1/register", conf.Address),
 			"application/yml",
 			file,
 		)
@@ -79,7 +79,7 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 	}
 	g.Eventually(f).ShouldNot(HaveOccurred())
 
-	resp, err := http.Get(fmt.Sprintf("http://%s/v1alpha1/indicator-documents", conf.Address))
+	resp, err := http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", conf.Address))
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, err := ioutil.ReadAll(resp.Body)
@@ -109,7 +109,7 @@ func TestWritingAndReadingStatus(t *testing.T) {
 			return err
 		}
 		resp, err = http.Post(
-			fmt.Sprintf("http://%s/v1alpha1/register", conf.Address),
+			fmt.Sprintf("http://%s/v1/register", conf.Address),
 			"application/yml",
 			file,
 		)
@@ -127,7 +127,7 @@ func TestWritingAndReadingStatus(t *testing.T) {
 	// make our status update request
 	const documentUID = `my-product-a-a902332065d69c1787f419e235a1f1843d98c884`
 	resp, err := http.Post(
-		fmt.Sprintf("http://%s/v1alpha1/indicator-documents/%s/bulk_status", conf.Address, documentUID),
+		fmt.Sprintf("http://%s/v1/indicator-documents/%s/bulk_status", conf.Address, documentUID),
 		"application/json",
 		bytes.NewReader([]byte(statusRequest)),
 	)
@@ -135,7 +135,7 @@ func TestWritingAndReadingStatus(t *testing.T) {
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	// get document
-	resp, err = http.Get(fmt.Sprintf("http://%s/v1alpha1/indicator-documents", conf.Address))
+	resp, err = http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", conf.Address))
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, err := ioutil.ReadAll(resp.Body)

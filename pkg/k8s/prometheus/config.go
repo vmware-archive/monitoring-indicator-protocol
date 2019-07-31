@@ -6,36 +6,36 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 )
 
 type Config struct {
 	mu                 sync.Mutex
-	indicatorDocuments map[string]*v1alpha1.IndicatorDocument
+	indicatorDocuments map[string]*v1.IndicatorDocument
 }
 
 func NewConfig() *Config {
 	return &Config{
-		indicatorDocuments: map[string]*v1alpha1.IndicatorDocument{},
+		indicatorDocuments: map[string]*v1.IndicatorDocument{},
 	}
 }
 
-func (c *Config) Upsert(i *v1alpha1.IndicatorDocument) {
+func (c *Config) Upsert(i *v1.IndicatorDocument) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	c.indicatorDocuments[key(i)] = i
 }
 
-func (c *Config) Delete(i *v1alpha1.IndicatorDocument) {
+func (c *Config) Delete(i *v1.IndicatorDocument) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	delete(c.indicatorDocuments, key(i))
 }
 
-func key(i *v1alpha1.IndicatorDocument) string {
+func key(i *v1.IndicatorDocument) string {
 	return i.Namespace + "/" + i.Name
 }
 

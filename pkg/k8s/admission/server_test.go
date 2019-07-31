@@ -268,18 +268,18 @@ func TestValidators(t *testing.T) {
 				"uid": "f70772c9-572a-11e9-904e-42010a80018d",
 				"kind": {
 				  "group": "apps.pivotal.io",
-				  "version": "v1alpha1",
+				  "version": "v1",
 				  "kind": "Indicator"
 				},
 				"resource": {
 				  "group": "apps.pivotal.io",
-				  "version": "v1alpha1",
+				  "version": "v1",
 				  "resource": "indicators"
 				},
 				"namespace": "monitoring-indicator-protocol",
 				"operation": "CREATE",
 				"object": {
-				  "apiVersion": "apps.pivotal.io/v1alpha1",
+				  "apiVersion": "apps.pivotal.io/v1",
 				  "kind": "Indicator",
 				  "metadata": {
 					"name": "test-indicator",
@@ -335,18 +335,18 @@ func TestValidators(t *testing.T) {
 				"uid": "f70772c9-572a-11e9-904e-42010a80018d",
 				"kind": {
 				  "group": "apps.pivotal.io",
-				  "version": "v1alpha1",
+				  "version": "v1",
 				  "kind": "Indicator"
 				},
 				"resource": {
 				  "group": "apps.pivotal.io",
-				  "version": "v1alpha1",
+				  "version": "v1",
 				  "resource": "indicators"
 				},
 				"namespace": "monitoring-indicator-protocol",
 				"operation": "CREATE",
 				"object": {
-				  "apiVersion": "apps.pivotal.io/v1alpha1",
+				  "apiVersion": "apps.pivotal.io/v1",
 				  "kind": "Indicator",
 				  "metadata": {
 					"name": "test-indicator",
@@ -1163,18 +1163,18 @@ func newIndicatorRequest(operation string, indicatorSpec string) *strings.Reader
 						"uid": "f70772c9-572a-11e9-904e-42010a80018d",
 						"kind": {
 						  "group": "apps.pivotal.io",
-						  "version": "v1alpha1",
+						  "version": "v1",
 						  "kind": "Indicator"
 						},
 						"resource": {
 						  "group": "apps.pivotal.io",
-						  "version": "v1alpha1",
+						  "version": "v1",
 						  "resource": "indicators"
 						},
 						"namespace": "monitoring-indicator-protocol",
 						"operation": "%s",
 						"object": {
-						  "apiVersion": "apps.pivotal.io/v1alpha1",
+						  "apiVersion": "apps.pivotal.io/v1",
 						  "kind": "Indicator",
 						  "metadata": {
 							"name": "test-indicator",
@@ -1197,18 +1197,18 @@ func newIndicatorDocumentRequest(operation string, indicatorDocumentSpec string,
 							"uid": "f70772c9-572a-11e9-904e-42010a80018e",
 							"kind": {
 							  "group": "apps.pivotal.io",
-							  "version": "v1alpha1",
+							  "version": "v1",
 							  "kind": "IndicatorDocument"
 							},
 							"resource": {
 							  "group": "apps.pivotal.io",
-							  "version": "v1alpha1",
+							  "version": "v1",
 							  "resource": "indicatordocuments"
 							},
 							"namespace": "monitoring-indicator-protocol",
 							"operation": "%s",
 							"object": {
-							  "apiVersion": "apps.pivotal.io/v1alpha1",
+							  "apiVersion": "apps.pivotal.io/v1",
 							  "kind": "IndicatorDocument",
 							  "metadata": {
 								"labels": %s

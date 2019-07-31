@@ -1,4 +1,4 @@
-package v1alpha1
+package v1
 
 import (
 	"errors"
@@ -70,7 +70,7 @@ func (is *IndicatorSpec) Validate(idx int, apiVersion string) []error {
 	for tdx, threshold := range is.Thresholds {
 		if threshold.Operator == Undefined && apiVersion == api_versions.V0 {
 			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float", idx, tdx))
-		} else if threshold.Operator == Undefined && apiVersion == api_versions.V1alpha1 {
+		} else if threshold.Operator == Undefined && apiVersion == api_versions.V1 {
 			es = append(es, fmt.Errorf("indicators[%d].thresholds[%d] operator [lt, lte, eq, neq, gte, gt] is required", idx, tdx))
 		}
 	}

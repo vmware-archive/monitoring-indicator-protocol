@@ -19,7 +19,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
 	"k8s.io/api/admission/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -181,7 +181,7 @@ func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http
 		return
 	}
 
-	var doc v1alpha1.IndicatorDocument
+	var doc v1.IndicatorDocument
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &doc)
 	if err != nil {
 		indicatorDocumentDefaultsReviewErrored.Inc()
@@ -227,9 +227,9 @@ func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http
 	}
 }
 
-func getLayoutPatches(doc v1alpha1.IndicatorDocument) []patch {
+func getLayoutPatches(doc v1.IndicatorDocument) []patch {
 	var patchOperations []patch
-	if (reflect.DeepEqual(doc.Spec.Layout, v1alpha1.Layout{})) {
+	if (reflect.DeepEqual(doc.Spec.Layout, v1.Layout{})) {
 		var names []string
 		for _, i := range doc.Spec.Indicators {
 			names = append(names, i.Name)
@@ -238,8 +238,8 @@ func getLayoutPatches(doc v1alpha1.IndicatorDocument) []patch {
 		patchOperations = append(patchOperations, patch{
 			Op:   "add",
 			Path: "/spec/layout",
-			Value: v1alpha1.Layout{
-				Sections: []v1alpha1.Section{{
+			Value: v1.Layout{
+				Sections: []v1.Section{{
 					Title:      "Metrics",
 					Indicators: names,
 				}},
@@ -260,7 +260,7 @@ func indicatorDefaultHandler(responseWriter http.ResponseWriter, request *http.R
 		return
 	}
 
-	var k8sIndicator v1alpha1.Indicator
+	var k8sIndicator v1.Indicator
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicator)
 	if err != nil {
 		indicatorDefaultsReviewErrored.Inc()
@@ -312,7 +312,7 @@ func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	var k8sIndicatorDoc v1alpha1.IndicatorDocument
+	var k8sIndicatorDoc v1.IndicatorDocument
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicatorDoc)
 	if err != nil {
 		indicatorDocumentValidationReviewErrored.Inc()
@@ -321,7 +321,7 @@ func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	errors := k8sIndicatorDoc.Validate(api_versions.V1alpha1)
+	errors := k8sIndicatorDoc.Validate(api_versions.V1)
 
 	auditAnnotationMessage := createReviewAnnotationMap(errors)
 
@@ -358,7 +358,7 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 		return
 	}
 
-	var k8sIndicator v1alpha1.Indicator
+	var k8sIndicator v1.Indicator
 	err := json.Unmarshal(requestedAdmissionReview.Request.Object.Raw, &k8sIndicator)
 	if err != nil {
 		indicatorValidationReviewErrored.Inc()
@@ -367,7 +367,7 @@ func indicatorValidationHandler(responseWriter http.ResponseWriter, request *htt
 		return
 	}
 
-	errors := k8sIndicator.Spec.Validate(0, api_versions.V1alpha1)
+	errors := k8sIndicator.Spec.Validate(0, api_versions.V1)
 
 	auditAnnotationMessage := createReviewAnnotationMap(errors)
 
@@ -410,26 +410,26 @@ func marshalPatches(patchOperations []patch) ([]byte, error) {
 	return patchBytes, err
 }
 
-func getThresholdPatches(threshold []v1alpha1.Threshold, context string) []patch {
+func getThresholdPatches(threshold []v1.Threshold, context string) []patch {
 	if len(threshold) == 0 {
 		return []patch{
 			{
 				Op:    "add",
 				Path:  fmt.Sprintf("%s/thresholds", context),
-				Value: []v1alpha1.Threshold{},
+				Value: []v1.Threshold{},
 			},
 		}
 	}
 	return []patch{}
 }
 
-func getPresentationPatches(presentation v1alpha1.Presentation, context string) []patch {
-	if reflect.DeepEqual(presentation, v1alpha1.Presentation{}) {
+func getPresentationPatches(presentation v1.Presentation, context string) []patch {
+	if reflect.DeepEqual(presentation, v1.Presentation{}) {
 		return []patch{
 			{
 				Op:   "add",
 				Path: fmt.Sprintf("%s/presentation", context),
-				Value: v1alpha1.Presentation{
+				Value: v1.Presentation{
 					ChartType:    "step",
 					CurrentValue: false,
 					Frequency:    0,
@@ -444,7 +444,7 @@ func getPresentationPatches(presentation v1alpha1.Presentation, context string) 
 		patchOperations = append(patchOperations, patch{
 			Op:    "add",
 			Path:  fmt.Sprintf("%s/presentation/chartType", context),
-			Value: v1alpha1.StepChart,
+			Value: v1.StepChart,
 		})
 	}
 	if !presentation.CurrentValue {
@@ -471,12 +471,12 @@ func getPresentationPatches(presentation v1alpha1.Presentation, context string) 
 	return patchOperations
 }
 
-func getAlertPatches(alert v1alpha1.Alert, context string) []patch {
+func getAlertPatches(alert v1.Alert, context string) []patch {
 	if alert.For == "" && alert.Step == "" {
 		return []patch{{
 			Op:   "add",
 			Path: fmt.Sprintf("%s/alert", context),
-			Value: v1alpha1.Alert{
+			Value: v1.Alert{
 				For:  "1m",
 				Step: "1m",
 			},

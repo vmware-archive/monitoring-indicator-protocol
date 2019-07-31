@@ -3,10 +3,10 @@ package status_store_test
 import (
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"testing"
 	"time"
@@ -104,22 +104,22 @@ func TestFillingStatuses(t *testing.T) {
 			Status:        test_fixtures.StrPtr("healthy"),
 		})
 
-		document := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
+		document := v1.IndicatorDocument{
+			TypeMeta: metaV1.TypeMeta{
 				Kind:       "IndicatorDocument",
-				APIVersion: api_versions.V1alpha1,
+				APIVersion: api_versions.V1,
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metaV1.ObjectMeta{
 				Labels: map[string]string{
 					"source_id": "bar",
 				},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
-				Product: v1alpha1.Product{
+			Spec: v1.IndicatorDocumentSpec{
+				Product: v1.Product{
 					Name:    "abc",
 					Version: "1.2.3",
 				},
-				Indicators: []v1alpha1.IndicatorSpec{{
+				Indicators: []v1.IndicatorSpec{{
 					Name:   "error_rate",
 					PromQL: "error_rate",
 				}, {
@@ -131,14 +131,14 @@ func TestFillingStatuses(t *testing.T) {
 
 		store.FillStatuses(&document)
 
-		g.Expect(document.Status).To(BeEquivalentTo(map[string]v1alpha1.IndicatorStatus{
+		g.Expect(document.Status).To(BeEquivalentTo(map[string]v1.IndicatorStatus{
 			"error_rate": {
 				Phase:     "critical",
-				UpdatedAt: v1.Time{Time: fixedTime},
+				UpdatedAt: metaV1.Time{Time: fixedTime},
 			},
 			"latency": {
 				Phase:     "warning",
-				UpdatedAt: v1.Time{Time: fixedTime},
+				UpdatedAt: metaV1.Time{Time: fixedTime},
 			},
 		}))
 	})

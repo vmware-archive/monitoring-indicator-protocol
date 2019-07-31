@@ -18,14 +18,14 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/api/core/v1"
+	coreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
-	clientsetV1alpha1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+	clientSetV1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
@@ -33,7 +33,7 @@ import (
 
 type k8sClients struct {
 	k8sClientset *kubernetes.Clientset
-	idClient     *clientsetV1alpha1.AppsV1alpha1Client
+	idClient     *clientSetV1.AppsV1Client
 }
 
 var (
@@ -77,7 +77,7 @@ func init() {
 		log.Panic(err.Error())
 	}
 
-	clients.idClient, err = clientsetV1alpha1.NewForConfig(config)
+	clients.idClient, err = clientSetV1.NewForConfig(config)
 	if err != nil {
 		log.Panic(err.Error())
 	}
@@ -86,7 +86,7 @@ func init() {
 func TestControllers(t *testing.T) {
 	const testTimeout = 120 * time.Second
 
-	setup := func (t *testing.T) (func(), *v1alpha1.IndicatorDocument) {
+	setup := func (t *testing.T) (func(), *v1.IndicatorDocument) {
 		t.Parallel()
 
 		ns, cleanup := createNamespace(t)
@@ -181,7 +181,7 @@ func TestAdmission(t *testing.T) {
 
 		g.Expect(err).ToNot(HaveOccurred())
 
-		defaultPresentation := &v1alpha1.Presentation{
+		defaultPresentation := &v1.Presentation{
 			ChartType:    "step",
 			CurrentValue: false,
 			Frequency:    0,
@@ -195,7 +195,7 @@ func TestAdmission(t *testing.T) {
 		ns, cleanup := createNamespace(t)
 		defer cleanup()
 		id := indicatorDocument(ns)
-		id.Spec.Indicators[0].Thresholds[0].Operator = v1alpha1.ThresholdOperator(0)
+		id.Spec.Indicators[0].Thresholds[0].Operator = v1.ThresholdOperator(0)
 		t.Logf("Creating indicator document in namespace: %s", ns)
 		_, err := clients.idClient.IndicatorDocuments(ns).Create(id)
 
@@ -212,22 +212,22 @@ func TestStatus(t *testing.T) {
 
 		timestamp := time.Now().UnixNano()
 		indicatorName := fmt.Sprintf("my-name-%d", timestamp)
-		indicator := &v1alpha1.Indicator{
+		indicator := &v1.Indicator{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      indicatorName,
 				Namespace: ns,
 			},
-			Spec: v1alpha1.IndicatorSpec{
+			Spec: v1.IndicatorSpec{
 				Name:   "my_cool_name",
 				PromQL: `prometheus_http_request_duration_seconds_sum{handler="/-/healthy"}`,
-				Alert: v1alpha1.Alert{
+				Alert: v1.Alert{
 					For:  "5m",
 					Step: "2m",
 				},
-				Thresholds: []v1alpha1.Threshold{
+				Thresholds: []v1.Threshold{
 					{
 						Level:    "critical",
-						Operator: v1alpha1.GreaterThan,
+						Operator: v1.GreaterThan,
 						Value:    float64(10),
 					},
 				},
@@ -249,8 +249,8 @@ func TestStatus(t *testing.T) {
 	})
 }
 
-func getIndicatorPresentation(t *testing.T, ns string, indicatorDocName string, indicatorName string) func() *v1alpha1.Presentation {
-	return func() *v1alpha1.Presentation {
+func getIndicatorPresentation(t *testing.T, ns string, indicatorDocName string, indicatorName string) func() *v1.Presentation {
+	return func() *v1.Presentation {
 		resources := clients.idClient.Indicators(ns)
 		resource, err := getIndicator(resources, indicatorDocName, indicatorName)
 		if err != nil {
@@ -261,15 +261,15 @@ func getIndicatorPresentation(t *testing.T, ns string, indicatorDocName string, 
 	}
 }
 
-func getIndicator(resources clientsetV1alpha1.IndicatorInterface, indicatorDocName string, indicatorName string) (*v1alpha1.Indicator, error) {
+func getIndicator(resources clientSetV1.IndicatorInterface, indicatorDocName string, indicatorName string) (*v1.Indicator, error) {
 	return resources.Get(fmt.Sprintf("%s-%s", indicatorDocName, strings.Replace(indicatorName, "_", "-", -1)), metav1.GetOptions{})
 }
 
-func getSoloIndicator(resources clientsetV1alpha1.IndicatorInterface, indicatorName string) (*v1alpha1.Indicator, error) {
+func getSoloIndicator(resources clientSetV1.IndicatorInterface, indicatorName string) (*v1.Indicator, error) {
 	return resources.Get(indicatorName, metav1.GetOptions{})
 }
 
-func grafanaApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocument) bool {
+func grafanaApiResponseMatch(t *testing.T, document *v1.IndicatorDocument) bool {
 	request, err := http.NewRequest("GET", fmt.Sprintf("http://%s/api/search?query=%s", *grafanaURI, document.Spec.Product.Name), nil)
 	if err != nil {
 		t.Logf("Unable to create request to get Grafana config through API, retrying: %s", err)
@@ -304,7 +304,7 @@ type grafanaSearchResult struct {
 	Title string `json:"title"`
 }
 
-func prometheusApiResponseMatch(t *testing.T, document *v1alpha1.IndicatorDocument) bool {
+func prometheusApiResponseMatch(t *testing.T, document *v1.IndicatorDocument) bool {
 	request, err := http.NewRequest("GET", fmt.Sprintf("http://%s/api/v1/rules", *prometheusURI), nil)
 	if err != nil {
 		t.Logf("Unable to create request to get Prometheus config through API, retrying: %s", err)
@@ -349,7 +349,7 @@ type promResult struct {
 	} `json:"data"`
 }
 
-func grafanaConfigMapMatch(t *testing.T, dashboardFilename string, cm *v1.ConfigMap, id *v1alpha1.IndicatorDocument) bool {
+func grafanaConfigMapMatch(t *testing.T, dashboardFilename string, cm *coreV1.ConfigMap, id *v1.IndicatorDocument) bool {
 	grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(*id)
 	if err != nil {
 		t.Logf("Unable to convert to grafana dashboard: %s", err)
@@ -370,7 +370,7 @@ func grafanaConfigMapMatch(t *testing.T, dashboardFilename string, cm *v1.Config
 	return match
 }
 
-func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.IndicatorDocument) bool {
+func prometheusConfigMapMatch(t *testing.T, cm *coreV1.ConfigMap, id *v1.IndicatorDocument) bool {
 	alerts := prometheus_alerts.AlertDocumentFrom(*id)
 	alerts.Groups[0].Name = id.Namespace + "/" + id.Name
 	expected, err := yaml.Marshal(alerts)
@@ -420,41 +420,41 @@ func prometheusConfigMapMatch(t *testing.T, cm *v1.ConfigMap, id *v1alpha1.Indic
 	return true
 }
 
-func indicatorDocument(ns string) *v1alpha1.IndicatorDocument {
+func indicatorDocument(ns string) *v1.IndicatorDocument {
 
 	indicatorName := fmt.Sprintf("e2e_test_indicator_%d", rand.Intn(math.MaxInt32))
-	return &v1alpha1.IndicatorDocument{
+	return &v1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("e2etest%d", rand.Intn(math.MaxInt32)),
 			Namespace: ns,
 		},
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: api_versions.V1alpha1,
+			APIVersion: api_versions.V1,
 		},
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{
 				Name:    fmt.Sprintf("e2etestproduct%d", rand.Intn(math.MaxInt32)),
 				Version: "v1.2.3-rc1",
 			},
-			Indicators: []v1alpha1.IndicatorSpec{
+			Indicators: []v1.IndicatorSpec{
 				{
 					Name:   indicatorName,
 					PromQL: "rate(some_metric[10m])",
-					Alert: v1alpha1.Alert{
+					Alert: v1.Alert{
 						For:  "5m",
 						Step: "2m",
 					},
-					Thresholds: []v1alpha1.Threshold{
+					Thresholds: []v1.Threshold{
 						{
 							Level:    "critical",
-							Operator: v1alpha1.GreaterThanOrEqualTo,
+							Operator: v1.GreaterThanOrEqualTo,
 							Value:    float64(500),
 						},
 					},
 				},
 			},
-			Layout: v1alpha1.Layout{
-				Sections: []v1alpha1.Section{{
+			Layout: v1.Layout{
+				Sections: []v1.Section{{
 					Title:      "Metrics",
 					Indicators: []string{indicatorName},
 				}},
@@ -473,7 +473,7 @@ func expandHome(s string) string {
 
 func createNamespace(t *testing.T) (string, func()) {
 	nsName := fmt.Sprintf("e2e-test-%d", rand.Intn(math.MaxInt32))
-	ns := &v1.Namespace{
+	ns := &coreV1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: nsName,
 		},
@@ -496,6 +496,6 @@ func createNamespace(t *testing.T) (string, func()) {
 	}
 }
 
-func grafanaDashboardFilename(id *v1alpha1.IndicatorDocument) string {
+func grafanaDashboardFilename(id *v1.IndicatorDocument) string {
 	return fmt.Sprintf("indicator-protocol-grafana-dashboard.%s.%s", id.Namespace, id.Name)
 }

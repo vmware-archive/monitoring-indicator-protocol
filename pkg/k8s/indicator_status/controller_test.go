@@ -11,8 +11,8 @@ import (
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	types "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1alpha1"
+	types "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+	clientSetV1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/indicator_status"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
@@ -310,7 +310,7 @@ func (s *fakePromqlClient) resetQueryArgs() {
 }
 
 type fakeIndicatorsGetter struct {
-	v1alpha1.IndicatorInterface
+	clientSetV1.IndicatorInterface
 	listedIndicators []types.Indicator
 
 	updateCalls []*types.Indicator
@@ -319,7 +319,7 @@ type fakeIndicatorsGetter struct {
 }
 
 //********** Fake Indicators Getter **********//
-func (s *fakeIndicatorsGetter) Indicators(string) v1alpha1.IndicatorInterface {
+func (s *fakeIndicatorsGetter) Indicators(string) clientSetV1.IndicatorInterface {
 	return s
 }
 

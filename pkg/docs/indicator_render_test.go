@@ -6,14 +6,14 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/docs"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 func TestRenderIndicatorHTML(t *testing.T) {
 	t.Run("it renders indicators", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		indicator := v1alpha1.IndicatorSpec{
+		indicator := v1.IndicatorSpec{
 			Name: "test_indicator",
 			Documentation: map[string]string{
 				"title":                "Test Indicator",
@@ -24,20 +24,20 @@ func TestRenderIndicatorHTML(t *testing.T) {
 			},
 			PromQL: `avg_over_time(test_latency{source_id="test"}[100m])`,
 
-			Thresholds: []v1alpha1.Threshold{
+			Thresholds: []v1.Threshold{
 				{
 					Level:    "warning",
-					Operator: v1alpha1.GreaterThan,
+					Operator: v1.GreaterThan,
 					Value:    500,
 				},
 				{
 					Level:    "critical",
-					Operator: v1alpha1.GreaterThan,
+					Operator: v1.GreaterThan,
 					Value:    1000,
 				},
 				{
 					Level:    "super_green",
-					Operator: v1alpha1.LessThan,
+					Operator: v1.LessThan,
 					Value:    10,
 				},
 			},
@@ -64,7 +64,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
 	t.Run("it handles camelcase for documentation fields", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		indicator := v1alpha1.IndicatorSpec{
+		indicator := v1.IndicatorSpec{
 			Name: "test_indicator",
 			Documentation: map[string]string{
 				"title":               "Test Indicator",
@@ -74,20 +74,20 @@ func TestRenderIndicatorHTML(t *testing.T) {
 			},
 			PromQL: `avg_over_time(test_latency{source_id="test"}[100m])`,
 
-			Thresholds: []v1alpha1.Threshold{
+			Thresholds: []v1.Threshold{
 				{
 					Level:    "warning",
-					Operator: v1alpha1.GreaterThan,
+					Operator: v1.GreaterThan,
 					Value:    500,
 				},
 				{
 					Level:    "critical",
-					Operator: v1alpha1.GreaterThan,
+					Operator: v1.GreaterThan,
 					Value:    1000,
 				},
 				{
 					Level:    "super_green",
-					Operator: v1alpha1.LessThan,
+					Operator: v1.LessThan,
 					Value:    10,
 				},
 			},
@@ -107,7 +107,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
 	t.Run("it skips the threshold section when absent", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		indicator := v1alpha1.IndicatorSpec{
+		indicator := v1.IndicatorSpec{
 			Name: "test_indicator",
 			Documentation: map[string]string{
 				"title":               "Test Indicator",
@@ -117,7 +117,7 @@ func TestRenderIndicatorHTML(t *testing.T) {
 			},
 			PromQL: `avg_over_time(test_latency{source_id="test"}[100m])`,
 
-			Thresholds: []v1alpha1.Threshold{},
+			Thresholds: []v1.Threshold{},
 		}
 
 		ind := docs.NewIndicatorPresenter(indicator)

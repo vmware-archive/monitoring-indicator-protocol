@@ -7,11 +7,11 @@ import (
 
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
@@ -19,7 +19,7 @@ func TestDocumentFromYAML(t *testing.T) {
 	t.Run("returns empty list of indicators", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   indicators: []`))
 		d, err := indicator.DocumentFromYAML(reader)
@@ -84,24 +84,24 @@ layout:
 			doc, err := indicator.DocumentFromYAML(reader)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			indie := v1alpha1.IndicatorSpec{
+			indie := v1.IndicatorSpec{
 				Name:   "test_performance_indicator",
 				PromQL: `prom{deployment="$deployment"}`,
-				Thresholds: []v1alpha1.Threshold{{
+				Thresholds: []v1.Threshold{{
 					Level:    "warning",
-					Operator: v1alpha1.LessThanOrEqualTo,
+					Operator: v1.LessThanOrEqualTo,
 					Value:    500,
 				}},
-				Alert: v1alpha1.Alert{
+				Alert: v1.Alert{
 					For:  "1m",
 					Step: "1m",
 				},
-				ServiceLevel: &v1alpha1.ServiceLevel{
+				ServiceLevel: &v1.ServiceLevel{
 					Objective: float64(99),
 				},
-				Presentation: v1alpha1.Presentation{
+				Presentation: v1.Presentation{
 					CurrentValue: false,
-					ChartType:    v1alpha1.StepChart,
+					ChartType:    v1.StepChart,
 					Frequency:    5,
 					Labels:       []string{"job", "ip"},
 					Units:        "nanoseconds",
@@ -113,23 +113,23 @@ layout:
 					"thresholdNote":       "Threshold Note Text",
 				},
 			}
-			g.Expect(doc).To(BeEquivalentTo(v1alpha1.IndicatorDocument{
-				TypeMeta: v1.TypeMeta{
+			g.Expect(doc).To(BeEquivalentTo(v1.IndicatorDocument{
+				TypeMeta:metav1.TypeMeta{
 					APIVersion: api_versions.V0,
 					Kind:       "IndicatorDocument",
 				},
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta:metav1.ObjectMeta{
 					Labels: map[string]string{"deployment": "well-performing-deployment"},
 				},
-				Spec: v1alpha1.IndicatorDocumentSpec{
-					Product: v1alpha1.Product{Name: "well-performing-component", Version: "0.0.1"},
-					Indicators: []v1alpha1.IndicatorSpec{
+				Spec: v1.IndicatorDocumentSpec{
+					Product: v1.Product{Name: "well-performing-component", Version: "0.0.1"},
+					Indicators: []v1.IndicatorSpec{
 						indie,
 					},
-					Layout: v1alpha1.Layout{
+					Layout: v1.Layout{
 						Title:       "Monitoring Test Product",
 						Description: "Test description",
-						Sections: []v1alpha1.Section{{
+						Sections: []v1.Section{{
 							Title:       "Test Section",
 							Description: "This section includes indicators and metrics",
 							Indicators:  []string{indie.Name},
@@ -157,7 +157,7 @@ indicators:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1alpha1.Alert{
+				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
 					For:  "1m",
 					Step: "1m",
 				}))
@@ -184,7 +184,7 @@ indicators:
 				g.Expect(err).ToNot(HaveOccurred())
 
 				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(
-					v1alpha1.Alert{
+					v1.Alert{
 						For:  "1m",
 						Step: "5m",
 					}))
@@ -209,7 +209,7 @@ indicators:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1alpha1.Alert{
+				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
 					For:  "5m",
 					Step: "1m",
 				}))
@@ -234,8 +234,8 @@ indicators:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Layout).To(Equal(v1alpha1.Layout{
-					Sections: []v1alpha1.Section{{
+				g.Expect(d.Spec.Layout).To(Equal(v1.Layout{
+					Sections: []v1.Section{{
 						Title: "Metrics",
 						Indicators: []string{
 							"test_performance_indicator_1",
@@ -273,13 +273,13 @@ layout:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation).To(BeEquivalentTo(v1alpha1.Presentation{
+				g.Expect(d.Spec.Indicators[0].Presentation).To(BeEquivalentTo(v1.Presentation{
 					ChartType:    "step",
 					CurrentValue: false,
 					Frequency:    0,
 					Labels:       []string{},
 				}))
-				g.Expect(d.Spec.Indicators[1].Presentation).To(BeEquivalentTo(v1alpha1.Presentation{
+				g.Expect(d.Spec.Indicators[1].Presentation).To(BeEquivalentTo(v1.Presentation{
 					ChartType:    "step",
 					CurrentValue: true,
 					Frequency:    0,
@@ -334,35 +334,35 @@ indicators:
 
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Thresholds).To(Equal([]v1alpha1.Threshold{
+				g.Expect(d.Spec.Indicators[0].Thresholds).To(Equal([]v1.Threshold{
 					{
 						Level:    "warning",
-						Operator: v1alpha1.LessThan,
+						Operator: v1.LessThan,
 						Value:    0,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.LessThanOrEqualTo,
+						Operator: v1.LessThanOrEqualTo,
 						Value:    1.2,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.EqualTo,
+						Operator: v1.EqualTo,
 						Value:    0.2,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.NotEqualTo,
+						Operator: v1.NotEqualTo,
 						Value:    123,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.GreaterThanOrEqualTo,
+						Operator: v1.GreaterThanOrEqualTo,
 						Value:    642,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.GreaterThan,
+						Operator: v1.GreaterThan,
 						Value:    1.222225,
 					},
 				}))
@@ -385,7 +385,7 @@ indicators:
 
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1alpha1.Undefined))
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.Undefined))
 				g.Expect(d.Spec.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
 			})
 
@@ -428,9 +428,9 @@ indicators:
 
 				doc, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
-				g.Expect(doc.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1alpha1.Threshold{
+				g.Expect(doc.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1.Threshold{
 					Level:    "warning",
-					Operator: v1alpha1.LessThan,
+					Operator: v1.LessThan,
 					Value:    20,
 				}))
 			})
@@ -454,7 +454,7 @@ indicators:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1alpha1.StepChart))
+				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.StepChart))
 			})
 
 			t.Run("can set a bar chartType", func(t *testing.T) {
@@ -474,7 +474,7 @@ indicators:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1alpha1.BarChart))
+				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.BarChart))
 			})
 
 			t.Run("can set a status chartType", func(t *testing.T) {
@@ -494,7 +494,7 @@ indicators:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1alpha1.StatusChart))
+				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.StatusChart))
 			})
 
 			t.Run("can set a quota chartType", func(t *testing.T) {
@@ -515,16 +515,16 @@ indicators:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1alpha1.QuotaChart))
+				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.QuotaChart))
 			})
 		})
 	})
 
-	t.Run("apiVersion v1alpha1", func(t *testing.T) {
+	t.Run("apiVersion v1", func(t *testing.T) {
 		t.Run("parses all document fields", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 metadata:
   labels:
     deployment: well-performing-deployment
@@ -571,24 +571,24 @@ spec:
 			doc, err := indicator.DocumentFromYAML(reader)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			indie := v1alpha1.IndicatorSpec{
+			indie := v1.IndicatorSpec{
 				Name:   "test_performance_indicator",
 				PromQL: `prom{deployment="$deployment"}`,
-				Thresholds: []v1alpha1.Threshold{{
+				Thresholds: []v1.Threshold{{
 					Level:    "warning",
-					Operator: v1alpha1.LessThanOrEqualTo,
+					Operator: v1.LessThanOrEqualTo,
 					Value:    500,
 				}},
-				Alert: v1alpha1.Alert{
+				Alert: v1.Alert{
 					For:  "1m",
 					Step: "1m",
 				},
-				ServiceLevel: &v1alpha1.ServiceLevel{
+				ServiceLevel: &v1.ServiceLevel{
 					Objective: float64(99),
 				},
-				Presentation: v1alpha1.Presentation{
+				Presentation: v1.Presentation{
 					CurrentValue: false,
-					ChartType:    v1alpha1.StepChart,
+					ChartType:    v1.StepChart,
 					Frequency:    5,
 					Labels:       []string{"job", "ip"},
 					Units:        "nanoseconds",
@@ -600,22 +600,22 @@ spec:
 					"thresholdNote":       "Threshold Note Text",
 				},
 			}
-			g.Expect(doc).To(BeEquivalentTo(v1alpha1.IndicatorDocument{
-				TypeMeta: v1.TypeMeta{
-					APIVersion: api_versions.V1alpha1,
+			g.Expect(doc).To(BeEquivalentTo(v1.IndicatorDocument{
+				TypeMeta:metav1.TypeMeta{
+					APIVersion: api_versions.V1,
 				},
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta:metav1.ObjectMeta{
 					Labels: map[string]string{"deployment": "well-performing-deployment"},
 				},
-				Spec: v1alpha1.IndicatorDocumentSpec{
-					Product: v1alpha1.Product{Name: "well-performing-component", Version: "0.0.1"},
-					Indicators: []v1alpha1.IndicatorSpec{
+				Spec: v1.IndicatorDocumentSpec{
+					Product: v1.Product{Name: "well-performing-component", Version: "0.0.1"},
+					Indicators: []v1.IndicatorSpec{
 						indie,
 					},
-					Layout: v1alpha1.Layout{
+					Layout: v1.Layout{
 						Title:       "Monitoring Test Product",
 						Description: "Test description",
-						Sections: []v1alpha1.Section{{
+						Sections: []v1.Section{{
 							Title:       "Test Section",
 							Description: "This section includes indicators and metrics",
 							Indicators:  []string{indie.Name},
@@ -629,7 +629,7 @@ spec:
 			t.Run("populates default alert config when no alert given", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 metadata:
   labels:
     deployment: valid-deployment
@@ -645,7 +645,7 @@ spec:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1alpha1.Alert{
+				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
 					For:  "1m",
 					Step: "1m",
 				}))
@@ -655,7 +655,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -676,7 +676,7 @@ spec:
 				g.Expect(err).ToNot(HaveOccurred())
 
 				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(
-					v1alpha1.Alert{
+					v1.Alert{
 						For:  "1m",
 						Step: "5m",
 					}))
@@ -685,7 +685,7 @@ spec:
 			t.Run("populates default alert 'step' k/v when no alert step given", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -704,7 +704,7 @@ spec:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1alpha1.Alert{
+				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
 					For:  "5m",
 					Step: "1m",
 				}))
@@ -713,7 +713,7 @@ spec:
 			t.Run("sets a default layout when not provided", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 metadata:
   labels:
     deployment: valid-deployment
@@ -732,8 +732,8 @@ spec:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Layout).To(Equal(v1alpha1.Layout{
-					Sections: []v1alpha1.Section{{
+				g.Expect(d.Spec.Layout).To(Equal(v1.Layout{
+					Sections: []v1.Section{{
 						Title: "Metrics",
 						Indicators: []string{
 							"test_performance_indicator_1",
@@ -746,7 +746,7 @@ spec:
 			t.Run("it uses defaults in the case of empty presentation data", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -773,13 +773,13 @@ spec:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation).To(BeEquivalentTo(v1alpha1.Presentation{
+				g.Expect(d.Spec.Indicators[0].Presentation).To(BeEquivalentTo(v1.Presentation{
 					ChartType:    "step",
 					CurrentValue: false,
 					Frequency:    0,
 					Labels:       []string{},
 				}))
-				g.Expect(d.Spec.Indicators[1].Presentation).To(BeEquivalentTo(v1alpha1.Presentation{
+				g.Expect(d.Spec.Indicators[1].Presentation).To(BeEquivalentTo(v1.Presentation{
 					ChartType:    "step",
 					CurrentValue: true,
 					Frequency:    0,
@@ -790,7 +790,7 @@ spec:
 			t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 spec:
   product:
@@ -812,7 +812,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   product:
     name: well-performing-component
@@ -844,35 +844,35 @@ spec:
 
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Thresholds).To(Equal([]v1alpha1.Threshold{
+				g.Expect(d.Spec.Indicators[0].Thresholds).To(Equal([]v1.Threshold{
 					{
 						Level:    "warning",
-						Operator: v1alpha1.LessThan,
+						Operator: v1.LessThan,
 						Value:    0,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.LessThanOrEqualTo,
+						Operator: v1.LessThanOrEqualTo,
 						Value:    1.2,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.EqualTo,
+						Operator: v1.EqualTo,
 						Value:    0.2,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.NotEqualTo,
+						Operator: v1.NotEqualTo,
 						Value:    123,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.GreaterThanOrEqualTo,
+						Operator: v1.GreaterThanOrEqualTo,
 						Value:    642,
 					},
 					{
 						Level:    "warning",
-						Operator: v1alpha1.GreaterThan,
+						Operator: v1.GreaterThan,
 						Value:    1.222225,
 					},
 				}))
@@ -882,7 +882,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   product:
     name: well-performing-component
@@ -899,7 +899,7 @@ spec:
 
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1alpha1.Undefined))
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.Undefined))
 				g.Expect(d.Spec.Indicators[0].Thresholds[0].Value).To(Equal(float64(500)))
 			})
 
@@ -907,7 +907,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   product:
     name: well-performing-component
@@ -922,7 +922,7 @@ spec:
 
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1alpha1.Undefined))
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.Undefined))
 				g.Expect(d.Spec.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
 			})
 
@@ -930,7 +930,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   product:
     name: well-performing-component
@@ -954,7 +954,7 @@ spec:
 			t.Run("can set a step chartType", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   product:
    name: test_product
@@ -969,13 +969,13 @@ spec:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1alpha1.StepChart))
+				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.StepChart))
 			})
 
 			t.Run("can set a bar chartType", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   product:
    name: test_product
@@ -990,13 +990,13 @@ spec:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1alpha1.BarChart))
+				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.BarChart))
 			})
 
 			t.Run("can set a status chartType", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   product:
    name: test_product
@@ -1011,13 +1011,13 @@ spec:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1alpha1.StatusChart))
+				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.StatusChart))
 			})
 
 			t.Run("can set a quota chartType", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   product:
     name: test_product
@@ -1032,7 +1032,7 @@ spec:
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 
-				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1alpha1.QuotaChart))
+				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.QuotaChart))
 			})
 		})
 	})
@@ -1120,16 +1120,16 @@ product:
 		p, err := indicator.ProductFromYAML(reader)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(p).To(BeEquivalentTo(v1alpha1.Product{
+		g.Expect(p).To(BeEquivalentTo(v1.Product{
 			Name:    "indi-pro",
 			Version: "1.2.3",
 		}))
 	})
 
-	t.Run(api_versions.V1alpha1, func(t *testing.T) {
+	t.Run(api_versions.V1, func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 spec:
   product:
     name: indi-pro
@@ -1138,7 +1138,7 @@ spec:
 		p, err := indicator.ProductFromYAML(reader)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(p).To(BeEquivalentTo(v1alpha1.Product{
+		g.Expect(p).To(BeEquivalentTo(v1.Product{
 			Name:    "indi-pro",
 			Version: "1.2.3",
 		}))
@@ -1146,10 +1146,10 @@ spec:
 }
 
 func TestMetadataFromYAML(t *testing.T) {
-	t.Run("parses all the fields in v1alpha1 documents", func(t *testing.T) {
+	t.Run("parses all the fields in v1 documents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 spec:
   product:
@@ -1215,17 +1215,17 @@ indicators:
 `)
 		resultDoc, err := indicator.ProcessDocument([]indicator.Patch{}, doc)
 		g.Expect(err).To(HaveLen(0))
-		g.Expect(resultDoc.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1alpha1.Threshold{
+		g.Expect(resultDoc.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1.Threshold{
 			Level:    "critical",
-			Operator: v1alpha1.NotEqualTo,
+			Operator: v1.NotEqualTo,
 			Value:    100,
 		}))
 	})
 
-	t.Run("does not mess up thresholds in apiVersion v1alpha1", func(t *testing.T) {
+	t.Run("does not mess up thresholds in apiVersion v1", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 spec:
 
@@ -1242,9 +1242,9 @@ spec:
 `)
 		resultDoc, err := indicator.ProcessDocument([]indicator.Patch{}, doc)
 		g.Expect(err).To(HaveLen(0))
-		g.Expect(resultDoc.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1alpha1.Threshold{
+		g.Expect(resultDoc.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1.Threshold{
 			Level:    "critical",
-			Operator: v1alpha1.NotEqualTo,
+			Operator: v1.NotEqualTo,
 			Value:    100,
 		}))
 	})

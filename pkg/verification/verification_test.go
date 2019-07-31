@@ -11,7 +11,7 @@ import (
 
 	"github.com/prometheus/common/model"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/verification"
 )
 
@@ -26,7 +26,7 @@ func TestVerifyMetric(t *testing.T) {
 			},
 		}
 
-		m := v1alpha1.IndicatorSpec{
+		m := v1.IndicatorSpec{
 			Name:   "latency",
 			PromQL: `latency{source_id="demo_component",deployment="cf"}[1m]`,
 		}
@@ -63,7 +63,7 @@ func TestVerifyMetric(t *testing.T) {
 			},
 		}
 
-		m := v1alpha1.IndicatorSpec{
+		m := v1.IndicatorSpec{
 			Name:   "latency",
 			PromQL: `latency{source_id="demo_component",deployment="cf"}[1m]`,
 		}
@@ -92,7 +92,7 @@ func TestVerifyMetric(t *testing.T) {
 			},
 		}
 
-		m := v1alpha1.IndicatorSpec{
+		m := v1.IndicatorSpec{
 			Name:   "latency",
 			PromQL: `latency{source_id="demo_component",deployment="cf"}[1m]`,
 		}

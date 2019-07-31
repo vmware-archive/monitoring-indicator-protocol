@@ -5,7 +5,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -85,13 +85,13 @@ type APISectionResponse struct {
 	Indicators  []string `json:"indicators"`
 }
 
-func ToIndicatorDocument(d APIDocumentResponse) v1alpha1.IndicatorDocument {
-	indicators := make([]v1alpha1.IndicatorSpec, 0)
+func ToIndicatorDocument(d APIDocumentResponse) v1.IndicatorDocument {
+	indicators := make([]v1.IndicatorSpec, 0)
 	for _, i := range d.Spec.Indicators {
 		indicators = append(indicators, convertIndicator(i))
 	}
 
-	return v1alpha1.IndicatorDocument{
+	return v1.IndicatorDocument{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: d.APIVersion,
 			Kind:       "IndicatorDocument",
@@ -101,8 +101,8 @@ func ToIndicatorDocument(d APIDocumentResponse) v1alpha1.IndicatorDocument {
 			Labels: d.Metadata.Labels,
 		},
 
-		Spec: v1alpha1.IndicatorDocumentSpec{
-			Product: v1alpha1.Product{
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{
 				Name:    d.Spec.Product.Name,
 				Version: d.Spec.Product.Version,
 			},
@@ -112,22 +112,22 @@ func ToIndicatorDocument(d APIDocumentResponse) v1alpha1.IndicatorDocument {
 	}
 }
 
-func convertIndicator(i APIIndicatorResponse) v1alpha1.IndicatorSpec {
+func convertIndicator(i APIIndicatorResponse) v1.IndicatorSpec {
 	apiThresholds := i.Thresholds
 	thresholds := ConvertThresholds(apiThresholds)
 
-	return v1alpha1.IndicatorSpec{
+	return v1.IndicatorSpec{
 		Name:   i.Name,
 		PromQL: i.PromQL,
-		Alert: v1alpha1.Alert{
+		Alert: v1.Alert{
 			For:  i.Alert.For,
 			Step: i.Alert.Step,
 		},
 		Thresholds:    thresholds,
 		ServiceLevel:  convertToDomainServiceLevel(i.ServiceLevel),
 		Documentation: i.Documentation,
-		Presentation: v1alpha1.Presentation{
-			ChartType:    v1alpha1.ChartType(i.Presentation.ChartType),
+		Presentation: v1.Presentation{
+			ChartType:    v1.ChartType(i.Presentation.ChartType),
 			CurrentValue: i.Presentation.CurrentValue,
 			Frequency:    i.Presentation.Frequency,
 			Labels:       i.Presentation.Labels,
@@ -135,34 +135,34 @@ func convertIndicator(i APIIndicatorResponse) v1alpha1.IndicatorSpec {
 	}
 }
 
-func convertToDomainServiceLevel(level *APIServiceLevelResponse) *v1alpha1.ServiceLevel {
+func convertToDomainServiceLevel(level *APIServiceLevelResponse) *v1.ServiceLevel {
 	if level == nil {
 		return nil
 	} else {
-		return &v1alpha1.ServiceLevel{
+		return &v1.ServiceLevel{
 			Objective: level.Objective,
 		}
 	}
 }
 
-func ConvertThresholds(apiv0Thresholds []APIThresholdResponse) []v1alpha1.Threshold {
-	thresholds := make([]v1alpha1.Threshold, 0)
+func ConvertThresholds(apiv0Thresholds []APIThresholdResponse) []v1.Threshold {
+	thresholds := make([]v1.Threshold, 0)
 	for _, t := range apiv0Thresholds {
 		thresholds = append(thresholds, convertThreshold(t))
 	}
 	return thresholds
 }
 
-func convertThreshold(t APIThresholdResponse) v1alpha1.Threshold {
-	return v1alpha1.Threshold{
+func convertThreshold(t APIThresholdResponse) v1.Threshold {
+	return v1.Threshold{
 		Level:    t.Level,
-		Operator: v1alpha1.GetComparatorFromString(t.Operator),
+		Operator: v1.GetComparatorFromString(t.Operator),
 		Value:    t.Value,
 	}
 }
 
-func convertLayout(l APILayoutResponse) v1alpha1.Layout {
-	return v1alpha1.Layout{
+func convertLayout(l APILayoutResponse) v1.Layout {
+	return v1.Layout{
 		Title:       l.Title,
 		Description: l.Description,
 		Sections:    convertLayoutSections(l.Sections),
@@ -170,8 +170,8 @@ func convertLayout(l APILayoutResponse) v1alpha1.Layout {
 	}
 }
 
-func convertLayoutSections(sections []APISectionResponse) []v1alpha1.Section {
-	apiSections := make([]v1alpha1.Section, 0)
+func convertLayoutSections(sections []APISectionResponse) []v1.Section {
+	apiSections := make([]v1.Section, 0)
 
 	for _, s := range sections {
 		apiSections = append(apiSections, convertLayoutSection(s))
@@ -180,15 +180,15 @@ func convertLayoutSections(sections []APISectionResponse) []v1alpha1.Section {
 	return apiSections
 }
 
-func convertLayoutSection(s APISectionResponse) v1alpha1.Section {
-	return v1alpha1.Section{
+func convertLayoutSection(s APISectionResponse) v1.Section {
+	return v1.Section{
 		Title:       s.Title,
 		Description: s.Description,
 		Indicators:  s.Indicators,
 	}
 }
 
-func ToAPIDocumentResponse(doc v1alpha1.IndicatorDocument) APIDocumentResponse {
+func ToAPIDocumentResponse(doc v1.IndicatorDocument) APIDocumentResponse {
 	indicators := make([]APIIndicatorResponse, 0)
 
 	for _, i := range doc.Spec.Indicators {
@@ -196,7 +196,7 @@ func ToAPIDocumentResponse(doc v1alpha1.IndicatorDocument) APIDocumentResponse {
 		for _, t := range i.Thresholds {
 			thresholds = append(thresholds, APIThresholdResponse{
 				Level:    t.Level,
-				Operator: v1alpha1.GetComparatorAbbrev(t.Operator),
+				Operator: v1.GetComparatorAbbrev(t.Operator),
 				Value:    t.Value,
 			})
 		}
@@ -263,7 +263,7 @@ func ToAPIDocumentResponse(doc v1alpha1.IndicatorDocument) APIDocumentResponse {
 	}
 }
 
-func getStatus(doc v1alpha1.IndicatorDocument, i v1alpha1.IndicatorSpec) *APIIndicatorStatusResponse {
+func getStatus(doc v1.IndicatorDocument, i v1.IndicatorSpec) *APIIndicatorStatusResponse {
 	status, ok := doc.Status[i.Name]
 	if !ok {
 		return nil
@@ -271,7 +271,7 @@ func getStatus(doc v1alpha1.IndicatorDocument, i v1alpha1.IndicatorSpec) *APIInd
 	return &APIIndicatorStatusResponse{Value: &status.Phase}
 }
 
-func convertServiceLevel(level *v1alpha1.ServiceLevel) *APIServiceLevelResponse {
+func convertServiceLevel(level *v1.ServiceLevel) *APIServiceLevelResponse {
 	if level == nil {
 		return nil
 	}

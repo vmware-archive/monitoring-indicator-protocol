@@ -1,30 +1,30 @@
-package v1alpha1_test
+package v1_test
 
 import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 func TestMetadataOverride(t *testing.T) {
 	t.Run("it overrides matching keys", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		doc := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
-				APIVersion: "v1alpha1",
+		doc := v1.IndicatorDocument{
+			TypeMeta:metav1.TypeMeta{
+				APIVersion: "v1",
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta:metav1.ObjectMeta{
 				Labels: map[string]string{
 					"deployment": "<%= spec.deployment %>",
 					"source_id":  "<%= spec.job.name %>",
 				},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
-				Product: v1alpha1.Product{
+			Spec: v1.IndicatorDocumentSpec{
+				Product: v1.Product{
 					Name:    "indicator-protocol",
 					Version: "1.0",
 				},
@@ -44,18 +44,18 @@ func TestMetadataOverride(t *testing.T) {
 	t.Run("it adds non-matching keys", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		doc := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
-				APIVersion: "v1alpha1",
+		doc := v1.IndicatorDocument{
+			TypeMeta:metav1.TypeMeta{
+				APIVersion: "v1",
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta:metav1.ObjectMeta{
 				Labels: map[string]string{
 					"deployment": "<%= spec.deployment %>",
 					"source_id":  "<%= spec.job.name %>",
 				},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
-				Product: v1alpha1.Product{
+			Spec: v1.IndicatorDocumentSpec{
+				Product: v1.Product{
 					Name:    "indicator-protocol",
 					Version: "1.0",
 				},
@@ -78,15 +78,15 @@ func TestMetadataInterpolation(t *testing.T) {
 	t.Run("it replaces $metadata in promql with the metadata value", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		doc := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{},
-			ObjectMeta: v1.ObjectMeta{
+		doc := v1.IndicatorDocument{
+			TypeMeta:metav1.TypeMeta{},
+			ObjectMeta:metav1.ObjectMeta{
 				Labels: map[string]string{
 					"foo": "bar",
 				},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
-				Indicators: []v1alpha1.IndicatorSpec{
+			Spec: v1.IndicatorDocumentSpec{
+				Indicators: []v1.IndicatorSpec{
 					{
 						PromQL: "something $foo something",
 					},
@@ -102,15 +102,15 @@ func TestMetadataInterpolation(t *testing.T) {
 	t.Run("it doesn't replace $metadata in other fields", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		doc := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{},
-			ObjectMeta: v1.ObjectMeta{
+		doc := v1.IndicatorDocument{
+			TypeMeta:metav1.TypeMeta{},
+			ObjectMeta:metav1.ObjectMeta{
 				Labels: map[string]string{
 					"foo": "bar",
 				},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
-				Indicators: []v1alpha1.IndicatorSpec{
+			Spec: v1.IndicatorDocumentSpec{
+				Indicators: []v1.IndicatorSpec{
 					{
 						Documentation: map[string]string{"baz": "something $foo something"},
 					},
@@ -126,19 +126,19 @@ func TestMetadataInterpolation(t *testing.T) {
 	t.Run("it does not replace $step, even if a partial key is present", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		doc := v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
-				APIVersion: "v1alpha1",
+		doc := v1.IndicatorDocument{
+			TypeMeta:metav1.TypeMeta{
+				APIVersion: "v1",
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta:metav1.ObjectMeta{
 				Labels: map[string]string{"ste": "foo"},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
-				Product: v1alpha1.Product{
+			Spec: v1.IndicatorDocumentSpec{
+				Product: v1.Product{
 					Name:    "indicator-protocol",
 					Version: "1.0",
 				},
-				Indicators: []v1alpha1.IndicatorSpec{{
+				Indicators: []v1.IndicatorSpec{{
 					Name:   "quest_rate",
 					PromQL: "rate[$step]",
 				}},

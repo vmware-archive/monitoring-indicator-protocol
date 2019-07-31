@@ -15,7 +15,7 @@ chmod +x "$CODEGEN_DIR/generate-groups.sh"
   all \
   github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client \
   github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis \
-  indicatordocument:v1alpha1 \
+  indicatordocument:v1 \
   --output-base "$PWD/output_base" \
   --go-header-file $REPO_ROOT/hack/boilerplate.go.txt
 chmod -x "$CODEGEN_DIR/generate-groups.sh"

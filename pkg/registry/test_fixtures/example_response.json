@@ -1,6 +1,6 @@
 [
   {
-    "apiVersion": "apps.pivotal.io/v1alpha1",
+    "apiVersion": "apps.pivotal.io/v1",
     "spec": {
     "product": {
       "name": "my-component",

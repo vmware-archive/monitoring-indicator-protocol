@@ -9,7 +9,7 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
@@ -50,7 +50,7 @@ func main() {
 	exporterController.Start()
 }
 
-func Convert(document v1alpha1.IndicatorDocument) (*exporter.File, error) {
+func Convert(document v1.IndicatorDocument) (*exporter.File, error) {
 	grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document)
 	if err != nil {
 		return nil, err

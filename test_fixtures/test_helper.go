@@ -1,14 +1,14 @@
 package test_fixtures
 
 import (
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
-func DefaultPresentation() v1alpha1.Presentation {
-	return v1alpha1.Presentation{
+func DefaultPresentation() v1.Presentation {
+	return v1.Presentation{
 		ChartType:    "step",
 		CurrentValue: false,
 		Frequency:    0,
@@ -27,15 +27,15 @@ func DefaultAPIPresentationResponse() registry.APIPresentationResponse {
 	}
 }
 
-func DefaultLayout(indicators []v1alpha1.IndicatorSpec) v1alpha1.Layout {
+func DefaultLayout(indicators []v1.IndicatorSpec) v1.Layout {
 	indicatorNames := make([]string, 0, len(indicators))
 	for _, i := range indicators {
 		indicatorNames = append(indicatorNames, i.Name)
 	}
-	return v1alpha1.Layout{
+	return v1.Layout{
 		Title:       "",
 		Description: "",
-		Sections: []v1alpha1.Section{{
+		Sections: []v1.Section{{
 			Title:       "",
 			Description: "",
 			Indicators:  indicatorNames,
@@ -57,8 +57,8 @@ func DefaultAPILayoutResponse(indicatorNames []string) registry.APILayoutRespons
 	}
 }
 
-func DefaultAlert() v1alpha1.Alert {
-	return v1alpha1.Alert{
+func DefaultAlert() v1.Alert {
+	return v1.Alert{
 		For:  "1m",
 		Step: "1m",
 	}
@@ -75,18 +75,18 @@ func StrPtr(s string) *string {
 	return &s
 }
 
-func Indicator(name string, promql string) v1alpha1.Indicator {
-	return v1alpha1.Indicator{
-		ObjectMeta: v1.ObjectMeta{
+func Indicator(name string, promql string) v1.Indicator {
+	return v1.Indicator{
+		ObjectMeta: metaV1.ObjectMeta{
 			Name: name,
 		},
-		Spec: v1alpha1.IndicatorSpec{
+		Spec: v1.IndicatorSpec{
 			Product: "CF",
 			Name:    "test",
 			PromQL:  promql,
-			Thresholds: []v1alpha1.Threshold{{
+			Thresholds: []v1.Threshold{{
 				Level:    "critical",
-				Operator: v1alpha1.LessThan,
+				Operator: v1.LessThan,
 				Value:    float64(0),
 			}},
 		},

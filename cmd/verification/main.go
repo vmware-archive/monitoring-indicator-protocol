@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/verification"
 )
@@ -41,7 +41,7 @@ func main() {
 	stdOut.Printf("Querying current value for %d indicators in Prometheus compliant store \n", len(document.Spec.Indicators))
 	printHorizontalLine(stdOut)
 
-	failedIndicators := make([]v1alpha1.IndicatorSpec, 0)
+	failedIndicators := make([]v1.IndicatorSpec, 0)
 
 	for _, ind := range document.Spec.Indicators {
 		stdOut.Println()

@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 func TestUpdateMetadata(t *testing.T) {
@@ -17,25 +17,25 @@ func TestUpdateMetadata(t *testing.T) {
 		d, err := indicator.ReadFile("test_fixtures/doc.yml")
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(BeEquivalentTo(v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
+		g.Expect(d).To(BeEquivalentTo(v1.IndicatorDocument{
+			TypeMeta:metav1.TypeMeta{
 				Kind:       "IndicatorDocument",
-				APIVersion: api_versions.V1alpha1,
+				APIVersion: api_versions.V1,
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta:metav1.ObjectMeta{
 				Labels: map[string]string{"deployment": "well-performing-deployment"},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
-				Product: v1alpha1.Product{Name: "well-performing-component", Version: "0.0.1"},
-				Indicators: []v1alpha1.IndicatorSpec{
+			Spec: v1.IndicatorDocumentSpec{
+				Product: v1.Product{Name: "well-performing-component", Version: "0.0.1"},
+				Indicators: []v1.IndicatorSpec{
 					{
 						Name:   "test_performance_indicator",
 						PromQL: `query_metric{source_id="well-performing-deployment"}`,
-						Alert: v1alpha1.Alert{
+						Alert: v1.Alert{
 							For:  "1m",
 							Step: "1m",
 						},
-						Presentation: v1alpha1.Presentation{
+						Presentation: v1.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
 							Frequency:    0,
@@ -43,8 +43,8 @@ func TestUpdateMetadata(t *testing.T) {
 						},
 					},
 				},
-				Layout: v1alpha1.Layout{
-					Sections: []v1alpha1.Section{{
+				Layout: v1.Layout{
+					Sections: []v1.Section{{
 						Title:      "Metrics",
 						Indicators: []string{"test_performance_indicator"},
 					}},
@@ -58,25 +58,25 @@ func TestUpdateMetadata(t *testing.T) {
 		d, err := indicator.ReadFile("test_fixtures/doc.yml", indicator.SkipMetadataInterpolation)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d).To(Equal(v1alpha1.IndicatorDocument{
-			TypeMeta: v1.TypeMeta{
-				APIVersion: api_versions.V1alpha1,
+		g.Expect(d).To(Equal(v1.IndicatorDocument{
+			TypeMeta:metav1.TypeMeta{
+				APIVersion: api_versions.V1,
 				Kind:       "IndicatorDocument",
 			},
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta:metav1.ObjectMeta{
 				Labels: map[string]string{"deployment": "well-performing-deployment"},
 			},
-			Spec: v1alpha1.IndicatorDocumentSpec{
-				Product: v1alpha1.Product{Name: "well-performing-component", Version: "0.0.1"},
-				Indicators: []v1alpha1.IndicatorSpec{
+			Spec: v1.IndicatorDocumentSpec{
+				Product: v1.Product{Name: "well-performing-component", Version: "0.0.1"},
+				Indicators: []v1.IndicatorSpec{
 					{
 						Name:   "test_performance_indicator",
 						PromQL: `query_metric{source_id="$deployment"}`,
-						Alert: v1alpha1.Alert{
+						Alert: v1.Alert{
 							For:  "1m",
 							Step: "1m",
 						},
-						Presentation: v1alpha1.Presentation{
+						Presentation: v1.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
 							Frequency:    0,
@@ -84,8 +84,8 @@ func TestUpdateMetadata(t *testing.T) {
 						},
 					},
 				},
-				Layout: v1alpha1.Layout{
-					Sections: []v1alpha1.Section{{
+				Layout: v1.Layout{
+					Sections: []v1.Section{{
 						Title:      "Metrics",
 						Indicators: []string{"test_performance_indicator"},
 					}},

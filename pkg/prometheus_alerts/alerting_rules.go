@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 type Rule struct {
@@ -29,7 +29,7 @@ func AlertDocumentFilename(documentBytes []byte, productName string) string {
 	return fmt.Sprintf("%s_%x.yml", productName, sha1.Sum(documentBytes))
 }
 
-func AlertDocumentFrom(document v1alpha1.IndicatorDocument) Document {
+func AlertDocumentFrom(document v1.IndicatorDocument) Document {
 	rules := make([]Rule, 0)
 
 	for _, ind := range document.Spec.Indicators {
@@ -46,7 +46,7 @@ func AlertDocumentFrom(document v1alpha1.IndicatorDocument) Document {
 	}
 }
 
-func ruleFrom(document v1alpha1.IndicatorDocument, i v1alpha1.IndicatorSpec, threshold v1alpha1.Threshold) Rule {
+func ruleFrom(document v1.IndicatorDocument, i v1.IndicatorSpec, threshold v1.Threshold) Rule {
 	labels := map[string]string{
 		"product": document.Spec.Product.Name,
 		"version": document.Spec.Product.Version,
@@ -61,7 +61,7 @@ func ruleFrom(document v1alpha1.IndicatorDocument, i v1alpha1.IndicatorSpec, thr
 
 	return Rule{
 		Alert:       i.Name,
-		Expr:        fmt.Sprintf("%s %s %+v", interpolatedPromQl, v1alpha1.GetComparatorSymbol(threshold.Operator), threshold.Value),
+		Expr:        fmt.Sprintf("%s %s %+v", interpolatedPromQl, v1.GetComparatorSymbol(threshold.Operator), threshold.Value),
 		For:         i.Alert.For,
 		Labels:      labels,
 		Annotations: i.Documentation,

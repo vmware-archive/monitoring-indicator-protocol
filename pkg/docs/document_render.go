@@ -6,12 +6,12 @@ import (
 	"html/template"
 	"strings"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
 	"gopkg.in/russross/blackfriday.v2"
 )
 
-func docToTemplate(d v1alpha1.IndicatorDocument, t *template.Template) (string, error) {
+func docToTemplate(d v1.IndicatorDocument, t *template.Template) (string, error) {
 	buffer := bytes.NewBuffer(nil)
 	err := t.Execute(buffer, documentPresenter{d.Spec.Layout, d.Spec.Indicators})
 
@@ -23,8 +23,8 @@ func docToTemplate(d v1alpha1.IndicatorDocument, t *template.Template) (string, 
 }
 
 type documentPresenter struct {
-	v1alpha1.Layout
-	indicators []v1alpha1.IndicatorSpec
+	v1.Layout
+	indicators []v1.IndicatorSpec
 }
 
 func (dp documentPresenter) Description() template.HTML {
@@ -40,8 +40,8 @@ func (dp documentPresenter) Sections() []sectionPresenter {
 }
 
 type sectionPresenter struct {
-	v1alpha1.Section
-	indicators []v1alpha1.IndicatorSpec
+	v1.Section
+	indicators []v1.IndicatorSpec
 }
 
 func (sp sectionPresenter) TitleID() string {
@@ -62,7 +62,7 @@ func (sp sectionPresenter) Indicators() ([]indicatorPresenter, error) {
 	return indicatorPresenters, nil
 }
 
-func findIndicator(name string, indicators []v1alpha1.IndicatorSpec) *v1alpha1.IndicatorSpec {
+func findIndicator(name string, indicators []v1.IndicatorSpec) *v1.IndicatorSpec {
 	for _, i := range indicators {
 		if i.Name == name {
 			return &i

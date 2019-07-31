@@ -10,7 +10,7 @@ import (
 	"github.com/cppforlife/go-patch/patch"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
@@ -44,7 +44,7 @@ func TestDocumentMatching(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		documentBytes := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -69,7 +69,7 @@ spec:
 		g := NewGomegaWithT(t)
 
 		documentBytes := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -95,7 +95,7 @@ spec:
 
 		documentBytes := []byte(`
 ---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -123,7 +123,7 @@ func TestPatching(t *testing.T) {
 
 		matchingDocument := []byte(`
 ---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -190,7 +190,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -220,9 +220,9 @@ spec:
 		d, err := indicator.DocumentFromYAML(reader)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d.Spec.Indicators[1].Thresholds[1]).To(BeEquivalentTo(v1alpha1.Threshold{
+		g.Expect(d.Spec.Indicators[1].Thresholds[1]).To(BeEquivalentTo(v1.Threshold{
 			Level:    "warning",
-			Operator: v1alpha1.GreaterThan,
+			Operator: v1.GreaterThan,
 			Value:    1000,
 		}))
 	})
@@ -231,7 +231,7 @@ spec:
 		g := NewGomegaWithT(t)
 
 		nonMatchingDocument := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 metadata:
   label:
     deployment: not-test-deployment
@@ -297,7 +297,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -329,9 +329,9 @@ spec:
 		d, err := indicator.DocumentFromYAML(reader)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d.Spec.Indicators[1].Thresholds[1]).To(BeEquivalentTo(v1alpha1.Threshold{
+		g.Expect(d.Spec.Indicators[1].Thresholds[1]).To(BeEquivalentTo(v1.Threshold{
 			Level:    "warning",
-			Operator: v1alpha1.GreaterThan,
+			Operator: v1.GreaterThan,
 			Value:    1000,
 		}))
 	})
@@ -361,7 +361,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -390,9 +390,9 @@ spec:
 		d, err := indicator.DocumentFromYAML(reader)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(d.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1alpha1.Threshold{
+		g.Expect(d.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1.Threshold{
 			Level:    "warning",
-			Operator: v1alpha1.GreaterThan,
+			Operator: v1.GreaterThan,
 			Value:    800,
 		}))
 	})
@@ -416,7 +416,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -473,7 +473,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -527,7 +527,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 metadata:
   labels:
     deployment: test-deployment
@@ -571,7 +571,7 @@ spec:
 		}}
 
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -617,7 +617,7 @@ spec:
 		}}
 
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -683,7 +683,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 
 metadata:
   labels:
@@ -715,15 +715,15 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d.Spec.Indicators[0].PromQL).To(Equal("test_expr"))
-		g.Expect(d.Spec.Indicators[0].Thresholds).To(BeEquivalentTo([]v1alpha1.Threshold{
+		g.Expect(d.Spec.Indicators[0].Thresholds).To(BeEquivalentTo([]v1.Threshold{
 			{
 				Level:    "warning",
-				Operator: v1alpha1.GreaterThan,
+				Operator: v1.GreaterThan,
 				Value:    800,
 			},
 			{
 				Level:    "critical",
-				Operator: v1alpha1.GreaterThan,
+				Operator: v1.GreaterThan,
 				Value:    5000,
 			},
 		}))

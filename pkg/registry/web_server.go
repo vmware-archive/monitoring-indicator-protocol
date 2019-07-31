@@ -47,9 +47,9 @@ func newRouter(w WebServerConfig) *mux.Router {
 	r := mux.NewRouter()
 	r.Handle("/metrics", instrumentEndpoint(httpRequests, promhttp.Handler()))
 	r.NotFoundHandler = notFound(httpRequests)
-	r.HandleFunc("/v1alpha1/register", instrumentEndpoint(httpRequests, NewRegisterHandler(w.DocumentStore))).Methods(http.MethodPost)
-	r.HandleFunc("/v1alpha1/indicator-documents", instrumentEndpoint(httpRequests, NewIndicatorDocumentsHandler(w.DocumentStore, w.StatusStore))).Methods(http.MethodGet)
-	r.HandleFunc("/v1alpha1/indicator-documents/{documentID}/bulk_status", instrumentEndpoint(httpRequests, NewIndicatorStatusBulkUpdateHandler(w.StatusStore))).Methods(http.MethodPost)
+	r.HandleFunc("/v1/register", instrumentEndpoint(httpRequests, NewRegisterHandler(w.DocumentStore))).Methods(http.MethodPost)
+	r.HandleFunc("/v1/indicator-documents", instrumentEndpoint(httpRequests, NewIndicatorDocumentsHandler(w.DocumentStore, w.StatusStore))).Methods(http.MethodGet)
+	r.HandleFunc("/v1/indicator-documents/{documentID}/bulk_status", instrumentEndpoint(httpRequests, NewIndicatorStatusBulkUpdateHandler(w.StatusStore))).Methods(http.MethodPost)
 	return r
 }
 
@@ -81,7 +81,7 @@ func instrumentEndpoint(counter *prometheus.CounterVec, h http.Handler) http.Han
 
 		urlLabel := r.URL.Path
 		if strings.Contains(r.URL.Path, "bulk_status") {
-			urlLabel = "/v1alpha1/indicator-documents/bulk_status"
+			urlLabel = "/v1/indicator-documents/bulk_status"
 		}
 
 		counter.WithLabelValues(urlLabel, strconv.Itoa(rec.status)).Inc()

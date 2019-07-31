@@ -5,7 +5,7 @@ package externalversions
 import (
 	"fmt"
 
-	v1alpha1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )
@@ -36,11 +36,11 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=apps.pivotal.io, Version=v1alpha1
-	case v1alpha1.SchemeGroupVersion.WithResource("indicators"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Apps().V1alpha1().Indicators().Informer()}, nil
-	case v1alpha1.SchemeGroupVersion.WithResource("indicatordocuments"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Apps().V1alpha1().IndicatorDocuments().Informer()}, nil
+	// Group=apps.pivotal.io, Version=v1
+	case v1.SchemeGroupVersion.WithResource("indicators"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Apps().V1().Indicators().Informer()}, nil
+	case v1.SchemeGroupVersion.WithResource("indicatordocuments"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Apps().V1().IndicatorDocuments().Informer()}, nil
 
 	}
 

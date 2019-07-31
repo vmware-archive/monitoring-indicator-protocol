@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/prometheus"
 )
 
@@ -24,7 +24,7 @@ func TestController(t *testing.T) {
 		}
 		p := prometheus.NewController(spyConfigMapPatcher, spyConfigRenderer)
 
-		i := &v1alpha1.IndicatorDocument{
+		i := &v1.IndicatorDocument{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "rabbit-mq-monitoring",
 			},
@@ -48,12 +48,12 @@ func TestController(t *testing.T) {
 		}
 		p := prometheus.NewController(spyConfigMapPatcher, spyConfigRenderer)
 
-		i1 := &v1alpha1.IndicatorDocument{
+		i1 := &v1.IndicatorDocument{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "rabbit-mq-monitoring-1",
 			},
 		}
-		i2 := &v1alpha1.IndicatorDocument{
+		i2 := &v1.IndicatorDocument{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "rabbit-mq-monitoring-2",
 			},
@@ -80,12 +80,12 @@ func TestController(t *testing.T) {
 		}
 		p := prometheus.NewController(spyConfigMapPatcher, spyConfigRenderer)
 
-		i1 := &v1alpha1.IndicatorDocument{
+		i1 := &v1.IndicatorDocument{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "rabbit-mq-monitoring-1",
 			},
 		}
-		i2 := &v1alpha1.IndicatorDocument{
+		i2 := &v1.IndicatorDocument{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "rabbit-mq-monitoring-1",
 			},
@@ -111,7 +111,7 @@ func TestController(t *testing.T) {
 		}
 		p := prometheus.NewController(spyConfigMapPatcher, spyConfigRenderer)
 
-		i := &v1alpha1.IndicatorDocument{
+		i := &v1.IndicatorDocument{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "rabbit-mq-monitoring-1",
 			},
@@ -173,7 +173,7 @@ func (s *spyConfigMapPatcher) Patch(
 	pt types.PatchType,
 	data []byte,
 	subresources ...string,
-) (*v1.ConfigMap, error) {
+) (*corev1.ConfigMap, error) {
 	s.patchCalled = true
 	s.patches = append(s.patches, patch{
 		name: name,
@@ -203,15 +203,15 @@ func (s *spyConfigMapPatcher) expectPatches(patches []string) {
 type spyConfigRenderer struct {
 	g      *GomegaWithT
 	config string
-	upsert []*v1alpha1.IndicatorDocument
-	delete []*v1alpha1.IndicatorDocument
+	upsert []*v1.IndicatorDocument
+	delete []*v1.IndicatorDocument
 }
 
-func (s *spyConfigRenderer) Upsert(i *v1alpha1.IndicatorDocument) {
+func (s *spyConfigRenderer) Upsert(i *v1.IndicatorDocument) {
 	s.upsert = append(s.upsert, i)
 }
 
-func (s *spyConfigRenderer) Delete(i *v1alpha1.IndicatorDocument) {
+func (s *spyConfigRenderer) Delete(i *v1.IndicatorDocument) {
 	s.delete = append(s.delete, i)
 }
 
@@ -223,11 +223,11 @@ func (s *spyConfigRenderer) assertUpsertLen(count int) {
 	s.g.Expect(s.upsert).To(HaveLen(count))
 }
 
-func (s *spyConfigRenderer) assertUpsert(position int, indicator *v1alpha1.IndicatorDocument) {
+func (s *spyConfigRenderer) assertUpsert(position int, indicator *v1.IndicatorDocument) {
 	s.g.Expect(s.upsert[position]).To(Equal(indicator))
 }
 
-func (s *spyConfigRenderer) assertDelete(position int, indicator *v1alpha1.IndicatorDocument) {
+func (s *spyConfigRenderer) assertDelete(position int, indicator *v1.IndicatorDocument) {
 	s.g.Expect(s.delete[position]).To(Equal(indicator))
 }
 

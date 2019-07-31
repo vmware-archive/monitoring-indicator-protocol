@@ -8,8 +8,8 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	types "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1alpha1"
+	types "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+	clientSetV1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/lifecycle"
 )
 
@@ -78,7 +78,7 @@ func TestController(t *testing.T) {
 
 			truePtr := true
 			g.Expect(spyIndicatorsGetter.createCalls[0].OwnerReferences).To(ConsistOf(v1.OwnerReference{
-				APIVersion: api_versions.V1alpha1,
+				APIVersion: api_versions.V1,
 				Kind:       "IndicatorDocument",
 				Name:       id.Name,
 				UID:        id.UID,
@@ -433,7 +433,7 @@ func TestController(t *testing.T) {
 }
 
 type spyIndicatorsGetter struct {
-	v1alpha1.IndicatorInterface
+	clientSetV1.IndicatorInterface
 
 	g *GomegaWithT
 	t *testing.T
@@ -445,7 +445,7 @@ type spyIndicatorsGetter struct {
 	deleteCalls []string
 }
 
-func (s *spyIndicatorsGetter) Indicators(string) v1alpha1.IndicatorInterface {
+func (s *spyIndicatorsGetter) Indicators(string) clientSetV1.IndicatorInterface {
 	return s
 }
 

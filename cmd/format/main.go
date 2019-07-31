@@ -13,7 +13,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/docs"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1alpha1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 )
 
@@ -74,7 +74,7 @@ func parseDocument(format string, metadata string, filePath string) (string, err
 	}
 }
 
-func getDocument(docPath string, opts ...indicator.ReadOpt) v1alpha1.IndicatorDocument {
+func getDocument(docPath string, opts ...indicator.ReadOpt) v1.IndicatorDocument {
 	l := log.New(os.Stderr, "", 0)
 	document, err := indicator.ReadFile(docPath, opts...)
 	if err != nil {
