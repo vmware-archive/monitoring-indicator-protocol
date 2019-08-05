@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -18,19 +20,13 @@ import (
 
 func TestServingMetrics(t *testing.T) {
 	g := NewGomegaWithT(t)
-
-	conf := registry.WebServerConfig{
-		Address: "localhost:12345",
-	}
-	start, stop := registry.NewWebServer(conf)
+	addr, stop := newWebServer()
 	defer stop()
-
-	go start()
 
 	var resp *http.Response
 	f := func() error {
 		var err error
-		resp, err = http.Get(fmt.Sprintf("http://%s/metrics", conf.Address))
+		resp, err = http.Get(fmt.Sprintf("http://%s/metrics", addr))
 		if err != nil {
 			return err
 		}
@@ -45,16 +41,8 @@ func TestServingMetrics(t *testing.T) {
 
 func TestRegisterAndServeDocuments(t *testing.T) {
 	g := NewGomegaWithT(t)
-
-	conf := registry.WebServerConfig{
-		Address:       "localhost:12346",
-		DocumentStore: registry.NewDocumentStore(time.Second, time.Now),
-		StatusStore:   status_store.New(time.Now),
-	}
-	start, stop := registry.NewWebServer(conf)
+	addr, stop := newWebServer()
 	defer stop()
-
-	go start()
 
 	var resp *http.Response
 	f := func() error {
@@ -64,7 +52,7 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 			return err
 		}
 		resp, err = http.Post(
-			fmt.Sprintf("http://%s/v1/register", conf.Address),
+			fmt.Sprintf("http://%s/v1/register", addr),
 			"application/yml",
 			file,
 		)
@@ -79,7 +67,7 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 	}
 	g.Eventually(f).ShouldNot(HaveOccurred())
 
-	resp, err := http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", conf.Address))
+	resp, err := http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", addr))
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, err := ioutil.ReadAll(resp.Body)
@@ -91,16 +79,8 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 func TestWritingAndReadingStatus(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	conf := registry.WebServerConfig{
-		Address:       "localhost:12347",
-		DocumentStore: registry.NewDocumentStore(time.Second, time.Now),
-		StatusStore:   status_store.New(time.Now),
-	}
-	start, stop := registry.NewWebServer(conf)
+	addr, stop := newWebServer()
 	defer stop()
-
-	go start()
-
 	var resp *http.Response
 	f := func() error {
 		var err error
@@ -109,7 +89,7 @@ func TestWritingAndReadingStatus(t *testing.T) {
 			return err
 		}
 		resp, err = http.Post(
-			fmt.Sprintf("http://%s/v1/register", conf.Address),
+			fmt.Sprintf("http://%s/v1/register", addr),
 			"application/yml",
 			file,
 		)
@@ -127,7 +107,7 @@ func TestWritingAndReadingStatus(t *testing.T) {
 	// make our status update request
 	const documentUID = `my-product-a-a902332065d69c1787f419e235a1f1843d98c884`
 	resp, err := http.Post(
-		fmt.Sprintf("http://%s/v1/indicator-documents/%s/bulk_status", conf.Address, documentUID),
+		fmt.Sprintf("http://%s/v1/indicator-documents/%s/bulk_status", addr, documentUID),
 		"application/json",
 		bytes.NewReader([]byte(statusRequest)),
 	)
@@ -135,7 +115,7 @@ func TestWritingAndReadingStatus(t *testing.T) {
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	// get document
-	resp, err = http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", conf.Address))
+	resp, err = http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", addr))
 	g.Expect(err).ToNot(HaveOccurred())
 	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 	body, err := ioutil.ReadAll(resp.Body)
@@ -178,3 +158,37 @@ const (
 			}
 		]`
 )
+
+func TestRoutesAllExist(t *testing.T) {
+	g := NewGomegaWithT(t)
+	addr, stop := newWebServer()
+	defer stop()
+
+	routes := []string{
+		"http://%s/v1/indicator-documents",
+		"http://%s/v1/indicator-documents/",
+		"http://%s/v1/register",
+		"http://%s/v1/register/",
+	}
+	for _, route := range routes {
+		completedRoute := fmt.Sprintf(route, addr)
+		resp, _ := http.Get(completedRoute)
+		g.Expect(resp.StatusCode).To(Not(Equal(http.StatusNotFound)),
+			fmt.Sprintf("Could not reach route %s", completedRoute))
+
+	}
+}
+
+func newWebServer() (string, func() error) {
+	conf := registry.WebServerConfig{
+		// Port is between 10000 and 40000
+		Address:       "localhost:" + strconv.Itoa(10*1000+rand.Intn(30*1000)),
+		DocumentStore: registry.NewDocumentStore(time.Second, time.Now),
+		StatusStore:   status_store.New(time.Now),
+	}
+
+	start, stop := registry.NewWebServer(conf)
+	go start()
+
+	return conf.Address, stop
+}

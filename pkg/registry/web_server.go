@@ -47,9 +47,15 @@ func newRouter(w WebServerConfig) *mux.Router {
 	r := mux.NewRouter()
 	r.Handle("/metrics", instrumentEndpoint(httpRequests, promhttp.Handler()))
 	r.NotFoundHandler = notFound(httpRequests)
-	r.HandleFunc("/v1/register", instrumentEndpoint(httpRequests, NewRegisterHandler(w.DocumentStore))).Methods(http.MethodPost)
-	r.HandleFunc("/v1/indicator-documents", instrumentEndpoint(httpRequests, NewIndicatorDocumentsHandler(w.DocumentStore, w.StatusStore))).Methods(http.MethodGet)
-	r.HandleFunc("/v1/indicator-documents/{documentID}/bulk_status", instrumentEndpoint(httpRequests, NewIndicatorStatusBulkUpdateHandler(w.StatusStore))).Methods(http.MethodPost)
+
+	// Optional trailing slash: https://github.com/gorilla/mux/issues/30#issuecomment-321045004
+	optionalTrailingSlash := "{_:(?:\\/)?}"
+	r.HandleFunc("/v1/register" + optionalTrailingSlash,
+		instrumentEndpoint(httpRequests, NewRegisterHandler(w.DocumentStore))).Methods(http.MethodPost)
+	r.HandleFunc("/v1/indicator-documents" + optionalTrailingSlash,
+		instrumentEndpoint(httpRequests, NewIndicatorDocumentsHandler(w.DocumentStore, w.StatusStore))).Methods(http.MethodGet)
+	r.HandleFunc("/v1/indicator-documents/{documentID}/bulk_status" + optionalTrailingSlash,
+		instrumentEndpoint(httpRequests, NewIndicatorStatusBulkUpdateHandler(w.StatusStore))).Methods(http.MethodPost)
 	return r
 }
 
