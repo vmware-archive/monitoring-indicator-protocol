@@ -172,7 +172,8 @@ func TestRoutesAllExist(t *testing.T) {
 	}
 	for _, route := range routes {
 		completedRoute := fmt.Sprintf(route, addr)
-		resp, _ := http.Get(completedRoute)
+		resp, err := http.Get(completedRoute)
+		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(resp.StatusCode).To(Not(Equal(http.StatusNotFound)),
 			fmt.Sprintf("Could not reach route %s", completedRoute))
 
@@ -188,7 +189,12 @@ func newWebServer() (string, func() error) {
 	}
 
 	start, stop := registry.NewWebServer(conf)
-	go start()
+	go func() {
+		err := start()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}()
 
 	return conf.Address, stop
 }
