@@ -157,7 +157,7 @@ func TestNotifyWhenInvalidPatchFiles(t *testing.T) {
 		}}, fakeGetter)
 
 		g.Expect(patchesList[0].Patches).To(HaveLen(0))
-		g.Expect(buffer.String()).To(ContainSubstring("Failed to parse apiVersion for file"))
+		g.Expect(buffer.String()).To(ContainSubstring("Failed to parse"))
 	})
 }
 

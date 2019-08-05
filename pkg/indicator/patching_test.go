@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 
 	"github.com/cppforlife/go-patch/patch"
 
@@ -140,7 +141,7 @@ spec:
 `)
 		var val interface{} = "patched_promql"
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -175,7 +176,7 @@ spec:
 		}
 
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -247,7 +248,7 @@ spec:
 `)
 		var val interface{} = "patched_promql"
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -282,7 +283,7 @@ spec:
 		}
 
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -346,7 +347,7 @@ spec:
 		}
 
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -401,7 +402,7 @@ spec:
 		g := NewGomegaWithT(t)
 
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -453,7 +454,7 @@ spec:
 
 		var testVal interface{} = "not_test_indicator"
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -512,7 +513,7 @@ spec:
 		}
 
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -556,7 +557,7 @@ spec:
 		g := NewGomegaWithT(t)
 
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -601,7 +602,7 @@ spec:
 
 		var val interface{} = "patched_threshold"
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -658,7 +659,7 @@ spec:
 		var patchedPromql interface{} = "foo"
 
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: "v0/patch",
+			APIVersion: api_versions.V1,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",

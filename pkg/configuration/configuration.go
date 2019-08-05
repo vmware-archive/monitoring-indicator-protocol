@@ -10,12 +10,13 @@ import (
 
 	glob2 "github.com/gobwas/glob"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/kinds"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"gopkg.in/yaml.v2"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -155,17 +156,28 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 				return nil
 			}
 
-			apiVersion, err := getAPIVersion([]byte(contents))
+			versionAndKind, err := getAPIVersionAndKind([]byte(contents))
 			if err != nil {
-				log.Print("Failed to parse apiVersion for file")
+				log.Print("Failed to parse file, perhaps you are missing `apiVersion` or your yaml is malformed?")
 				return nil
 			}
 
-			switch apiVersion {
-			case "v0/patch":
-				patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
-			case api_versions.V0, api_versions.V1:
+			switch versionAndKind.APIVersion {
+			case api_versions.V0:
 				documentsBytes = append(documentsBytes, []byte(contents))
+			case api_versions.V0Patch:
+				patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
+			case api_versions.V1:
+				if versionAndKind.Kind != nil {
+					kind := *versionAndKind.Kind
+					if kind == kinds.IndicatorDocument {
+						documentsBytes = append(documentsBytes, []byte(contents))
+					} else if kind == kinds.Patch {
+						patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
+					}
+					// TODO: what do we do if there is no kind?
+				}
+
 			}
 		}
 		return nil
@@ -208,15 +220,18 @@ func processDocuments(documentsBytes [][]byte, patches []indicator.Patch) []v1.I
 	return documents
 }
 
-func getAPIVersion(fileBytes []byte) (string, error) {
-	var f struct {
-		APIVersion string `yaml:"apiVersion"`
-	}
+type apiVersionAndKind struct {
+	APIVersion string `yaml:"apiVersion"`
+	Kind       *string
+}
+
+func getAPIVersionAndKind(fileBytes []byte) (*apiVersionAndKind, error) {
+	var f apiVersionAndKind
 
 	err := yaml.Unmarshal(fileBytes, &f)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return f.APIVersion, nil
+	return &f, nil
 }

@@ -114,11 +114,11 @@ layout:
 				},
 			}
 			g.Expect(doc).To(BeEquivalentTo(v1.IndicatorDocument{
-				TypeMeta:metav1.TypeMeta{
+				TypeMeta: metav1.TypeMeta{
 					APIVersion: api_versions.V0,
 					Kind:       "IndicatorDocument",
 				},
-				ObjectMeta:metav1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{"deployment": "well-performing-deployment"},
 				},
 				Spec: v1.IndicatorDocumentSpec{
@@ -601,10 +601,10 @@ spec:
 				},
 			}
 			g.Expect(doc).To(BeEquivalentTo(v1.IndicatorDocument{
-				TypeMeta:metav1.TypeMeta{
+				TypeMeta: metav1.TypeMeta{
 					APIVersion: api_versions.V1,
 				},
-				ObjectMeta:metav1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{"deployment": "well-performing-deployment"},
 				},
 				Spec: v1.IndicatorDocumentSpec{
@@ -1039,9 +1039,10 @@ spec:
 }
 
 func TestPatchFromYAML(t *testing.T) {
-	t.Run("parses all the fields", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		reader := ioutil.NopCloser(strings.NewReader(`---
+	t.Run("apiVersion v0", func(t *testing.T) {
+		t.Run("parses all the fields", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0/patch
 
 match:
@@ -1057,35 +1058,35 @@ operations:
     operator: gt
     value: 100
 `))
-		p, err := indicator.PatchFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+			p, err := indicator.PatchFromYAML(reader)
+			g.Expect(err).ToNot(HaveOccurred())
 
-		var patchedThreshold interface{}
-		patchedThreshold = map[string]interface{}{
-			"level":    "warning",
-			"operator": "gt",
-			"value":    float64(100),
-		}
-		expectedPatch := indicator.Patch{
-			APIVersion: "v0/patch",
-			Match: indicator.Match{
-				Name:    test_fixtures.StrPtr("my-other-component"),
-				Version: test_fixtures.StrPtr("1.2.3"),
-			},
-			Operations: []patch.OpDefinition{{
-				Type:  "replace",
-				Path:  test_fixtures.StrPtr("/spec/indicators/0/thresholds?/-"),
-				Value: &patchedThreshold,
-			}},
-		}
+			var patchedThreshold interface{}
+			patchedThreshold = map[string]interface{}{
+				"level":    "warning",
+				"operator": "gt",
+				"value":    float64(100),
+			}
+			expectedPatch := indicator.Patch{
+				APIVersion: api_versions.V0Patch,
+				Match: indicator.Match{
+					Name:    test_fixtures.StrPtr("my-other-component"),
+					Version: test_fixtures.StrPtr("1.2.3"),
+				},
+				Operations: []patch.OpDefinition{{
+					Type:  "replace",
+					Path:  test_fixtures.StrPtr("/spec/indicators/0/thresholds?/-"),
+					Value: &patchedThreshold,
+				}},
+			}
 
-		g.Expect(p).To(BeEquivalentTo(expectedPatch))
-	})
+			g.Expect(p).To(BeEquivalentTo(expectedPatch))
+		})
 
-	t.Run("parses empty product name and version", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: test-apiversion
+		t.Run("parses empty product name and version", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v0/patch
 
 match:
   metadata:
@@ -1100,11 +1101,84 @@ operations:
       title: Success Percentage
 
 `))
-		p, err := indicator.PatchFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+			p, err := indicator.PatchFromYAML(reader)
+			g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(p.Match.Name).To(BeNil())
-		g.Expect(p.Match.Version).To(BeNil())
+			g.Expect(p.Match.Name).To(BeNil())
+			g.Expect(p.Match.Version).To(BeNil())
+		})
+	})
+
+	t.Run("apiVersion apps.pivotal.io/v1", func(t *testing.T) {
+		t.Run("parses all the fields", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: apps.pivotal.io/v1
+kind: IndicatorDocumentPatch
+
+match:
+  product:
+    name: my-other-component
+    version: 1.2.3
+
+operations:
+- type: replace
+  path: /spec/indicators/0/thresholds?/-
+  value:
+    level: warning
+    operator: gt
+    value: 100
+`))
+			p, err := indicator.PatchFromYAML(reader)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			var patchedThreshold interface{}
+			patchedThreshold = map[string]interface{}{
+				"level":    "warning",
+				"operator": "gt",
+				"value":    float64(100),
+			}
+			expectedPatch := indicator.Patch{
+				APIVersion: "apps.pivotal.io/v1",
+				Match: indicator.Match{
+					Name:    test_fixtures.StrPtr("my-other-component"),
+					Version: test_fixtures.StrPtr("1.2.3"),
+				},
+				Operations: []patch.OpDefinition{{
+					Type:  "replace",
+					Path:  test_fixtures.StrPtr("/spec/indicators/0/thresholds?/-"),
+					Value: &patchedThreshold,
+				}},
+			}
+
+			g.Expect(p).To(BeEquivalentTo(expectedPatch))
+		})
+
+		t.Run("parses empty product name and version", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: apps.pivotal.io/v1
+kind: IndicatorDocumentPatch
+
+match:
+  metadata:
+    deployment: test-deployment
+
+operations:
+- type: replace
+  path: /spec/indicators/name=success_percentage
+  value:
+    promql: success_percentage_promql{source_id="origin"}
+    documentation:
+      title: Success Percentage
+
+`))
+			p, err := indicator.PatchFromYAML(reader)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Expect(p.Match.Name).To(BeNil())
+			g.Expect(p.Match.Version).To(BeNil())
+		})
 	})
 }
 

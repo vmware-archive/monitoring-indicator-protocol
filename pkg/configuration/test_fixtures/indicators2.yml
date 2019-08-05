@@ -1,5 +1,6 @@
 ---
 apiVersion: apps.pivotal.io/v1
+kind: IndicatorDocument
 
 spec:
   product:

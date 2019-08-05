@@ -1,5 +1,6 @@
 ---
-apiVersion: v0/patch
+apiVersion: apps.pivotal.io/v1
+kind: IndicatorDocumentPatch
 
 match:
   product:
