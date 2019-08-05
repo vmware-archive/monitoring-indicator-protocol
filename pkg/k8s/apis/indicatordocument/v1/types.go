@@ -77,7 +77,6 @@ type IndicatorSpec struct {
 	PromQL        string            `json:"promql"`
 	Alert         Alert             `json:"alert,omitempty"`
 	Thresholds    []Threshold       `json:"thresholds,omitempty"`
-	ServiceLevel  *ServiceLevel     `json:"serviceLevel,omitempty"`
 	Documentation map[string]string `json:"documentation,omitempty"`
 	Presentation  Presentation      `json:"presentation,omitempty"`
 }
@@ -119,10 +118,6 @@ func (chartType *ChartType) Validate(idx int) []error {
 	}
 
 	return es
-}
-
-type ServiceLevel struct {
-	Objective float64 `json:"objective"`
 }
 
 type Alert struct {

@@ -300,7 +300,6 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 						For:  "5m",
 						Step: "10s",
 					},
-					ServiceLevel: nil,
 					Presentation: test_fixtures.DefaultPresentation(),
 				}, {
 					Name:   "indie2",
@@ -308,9 +307,6 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 					Alert: v1.Alert{
 						For:  "5m",
 						Step: "10s",
-					},
-					ServiceLevel: &v1.ServiceLevel{
-						Objective: float64(99.99),
 					},
 					Presentation: v1.Presentation{
 						ChartType:    "status",

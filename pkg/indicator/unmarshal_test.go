@@ -69,8 +69,6 @@ indicators:
     - job
     - ip
     units: nanoseconds
-  serviceLevel:
-    objective: 99
 
 layout:
   title: Monitoring Test Product
@@ -95,9 +93,6 @@ layout:
 				Alert: v1.Alert{
 					For:  "1m",
 					Step: "1m",
-				},
-				ServiceLevel: &v1.ServiceLevel{
-					Objective: float64(99),
 				},
 				Presentation: v1.Presentation{
 					CurrentValue: false,
@@ -285,23 +280,6 @@ layout:
 					Frequency:    0,
 					Labels:       []string{},
 				}))
-			})
-
-			t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: v0
-product:
-  name: test_product
-  version: 0.0.1
-indicators:
-- name: test_performance_indicator
-  promql: prom{deployment="$deployment"}
-`))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
-
-				g.Expect(d.Spec.Indicators[0].ServiceLevel).To(BeNil())
 			})
 		})
 
@@ -556,8 +534,6 @@ spec:
       - job
       - ip
       units: nanoseconds
-    serviceLevel:
-      objective: 99
   
   layout:
     title: Monitoring Test Product
@@ -582,9 +558,6 @@ spec:
 				Alert: v1.Alert{
 					For:  "1m",
 					Step: "1m",
-				},
-				ServiceLevel: &v1.ServiceLevel{
-					Objective: float64(99),
 				},
 				Presentation: v1.Presentation{
 					CurrentValue: false,
@@ -785,25 +758,6 @@ spec:
 					Frequency:    0,
 					Labels:       []string{},
 				}))
-			})
-
-			t.Run("it sets a default service level with a value of nil if none is provided", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: apps.pivotal.io/v1
-
-spec:
-  product:
-    name: test_product
-    version: 0.0.1
-  indicators:
-  - name: test_performance_indicator
-    promql: prom{deployment="$deployment"}
-`))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
-
-				g.Expect(d.Spec.Indicators[0].ServiceLevel).To(BeNil())
 			})
 		})
 

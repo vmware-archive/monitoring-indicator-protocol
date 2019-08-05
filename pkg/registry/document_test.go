@@ -50,9 +50,6 @@ func TestDocumentTranslation(t *testing.T) {
 						Frequency:    50,
 						Labels:       []string{"radical"},
 					},
-					ServiceLevel: &registry.APIServiceLevelResponse{
-						Objective: 100,
-					},
 				}},
 				Layout: registry.APILayoutResponse{
 					Title:       "The Important App",
@@ -96,9 +93,6 @@ func TestDocumentTranslation(t *testing.T) {
 						Operator: v1.LessThanOrEqualTo,
 						Value:    100,
 					}},
-					ServiceLevel: &v1.ServiceLevel{
-						Objective: 100,
-					},
 					Documentation: map[string]string{
 						"anotherKey": "anotherValue",
 					},

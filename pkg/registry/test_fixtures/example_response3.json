@@ -22,7 +22,6 @@
             "for": "1m",
             "step": "1m"
           },
-          "serviceLevel": null,
           "presentation": {
             "chartType": "step",
             "currentValue": false,

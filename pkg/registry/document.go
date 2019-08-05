@@ -52,15 +52,11 @@ type APIIndicatorResponse struct {
 	PromQL        string                      `json:"promql"`
 	Thresholds    []APIThresholdResponse      `json:"thresholds"`
 	Alert         APIAlertResponse            `json:"alert"`
-	ServiceLevel  *APIServiceLevelResponse    `json:"serviceLevel"`
 	Documentation map[string]string           `json:"documentation,omitempty"`
 	Presentation  APIPresentationResponse     `json:"presentation"`
 	Status        *APIIndicatorStatusResponse `json:"status"`
 }
 
-type APIServiceLevelResponse struct {
-	Objective float64 `json:"objective"`
-}
 
 type APIIndicatorStatusResponse struct {
 	Value     *string   `json:"value"`
@@ -124,7 +120,6 @@ func convertIndicator(i APIIndicatorResponse) v1.IndicatorSpec {
 			Step: i.Alert.Step,
 		},
 		Thresholds:    thresholds,
-		ServiceLevel:  convertToDomainServiceLevel(i.ServiceLevel),
 		Documentation: i.Documentation,
 		Presentation: v1.Presentation{
 			ChartType:    v1.ChartType(i.Presentation.ChartType),
@@ -132,16 +127,6 @@ func convertIndicator(i APIIndicatorResponse) v1.IndicatorSpec {
 			Frequency:    i.Presentation.Frequency,
 			Labels:       i.Presentation.Labels,
 		},
-	}
-}
-
-func convertToDomainServiceLevel(level *APIServiceLevelResponse) *v1.ServiceLevel {
-	if level == nil {
-		return nil
-	} else {
-		return &v1.ServiceLevel{
-			Objective: level.Objective,
-		}
 	}
 }
 
@@ -216,14 +201,12 @@ func ToAPIDocumentResponse(doc v1.IndicatorDocument) APIDocumentResponse {
 			For:  i.Alert.For,
 			Step: i.Alert.Step,
 		}
-		serviceLevel := convertServiceLevel(i.ServiceLevel)
 
 		indicators = append(indicators, APIIndicatorResponse{
 			Name:          i.Name,
 			PromQL:        i.PromQL,
 			Thresholds:    thresholds,
 			Alert:         alert,
-			ServiceLevel:  serviceLevel,
 			Documentation: i.Documentation,
 			Presentation:  presentation,
 			Status:        getStatus(doc, i),
@@ -269,13 +252,4 @@ func getStatus(doc v1.IndicatorDocument, i v1.IndicatorSpec) *APIIndicatorStatus
 		return nil
 	}
 	return &APIIndicatorStatusResponse{Value: &status.Phase}
-}
-
-func convertServiceLevel(level *v1.ServiceLevel) *APIServiceLevelResponse {
-	if level == nil {
-		return nil
-	}
-	return &APIServiceLevelResponse{
-		Objective: level.Objective,
-	}
 }

@@ -4,10 +4,10 @@ package fake
 
 import (
 	appsv1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
+	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 )
 
@@ -35,6 +35,6 @@ var localSchemeBuilder = runtime.SchemeBuilder{
 var AddToScheme = localSchemeBuilder.AddToScheme
 
 func init() {
-	metav1.AddToGroupVersion(scheme, schema.GroupVersion{Version: "v1"})
+	v1.AddToGroupVersion(scheme, schema.GroupVersion{Version: "v1"})
 	utilruntime.Must(AddToScheme(scheme))
 }

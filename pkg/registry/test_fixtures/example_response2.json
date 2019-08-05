@@ -22,7 +22,6 @@
             "for": "5m",
             "step": "10s"
           },
-          "serviceLevel": null,
           "presentation": {
             "chartType": "step",
             "currentValue": false,
@@ -39,9 +38,6 @@
           "alert": {
             "for": "5m",
             "step": "10s"
-          },
-          "serviceLevel": {
-            "objective": 99.99
           },
           "presentation": {
             "chartType": "status",

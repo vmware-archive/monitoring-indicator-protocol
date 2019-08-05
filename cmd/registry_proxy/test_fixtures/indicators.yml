@@ -24,8 +24,6 @@ spec:
     - level: critical
       operator: gt
       value: 100
-    serviceLevel:
-      objective: 99.9
     alert:
       for: 5m
       step: 10s

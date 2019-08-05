@@ -80,7 +80,6 @@ func v0documentFromBytes(yamlBytes []byte) (v1.IndicatorDocument, error) {
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
 			Alert:         v0alertFromYAML(yamlIndicator.Alert),
-			ServiceLevel:  v0serviceLevelFromYAML(yamlIndicator.ServiceLevel),
 			Presentation:  p,
 			Documentation: yamlIndicator.Documentation,
 		})
@@ -208,15 +207,6 @@ func v0alertFromYAML(a v0yamlAlert) v1.Alert {
 	}
 }
 
-func v0serviceLevelFromYAML(level *v0yamlServiceLevel) *v1.ServiceLevel {
-	if level == nil {
-		return nil
-	}
-	return &v1.ServiceLevel{
-		Objective: level.Objective,
-	}
-}
-
 type v0yamlDocument struct {
 	APIVersion string            `json:"apiVersion"`
 	Product    v0yamlProduct     `json:"product"`
@@ -248,14 +238,10 @@ type v0yamlIndicator struct {
 	Promql        string              `json:"promql"`
 	Thresholds    []v0yamlThreshold   `json:"thresholds"`
 	Alert         v0yamlAlert         `json:"alert"`
-	ServiceLevel  *v0yamlServiceLevel `json:"serviceLevel"`
 	Documentation map[string]string   `json:"documentation"`
 	Presentation  *v0yamlPresentation `json:"presentation"`
 }
 
-type v0yamlServiceLevel struct {
-	Objective float64 `json:"objective"`
-}
 
 type v0yamlAlert struct {
 	For  string
