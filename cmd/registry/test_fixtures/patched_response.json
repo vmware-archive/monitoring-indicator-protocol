@@ -74,6 +74,27 @@
             ],
             "units": ""
           }
+        },
+        {
+          "name": "success_percentage",
+          "promql": "success_percentage_promql{source_id=\"origin\"}",
+          "status": null,
+          "thresholds": [],
+          "alert": {
+            "for": "1m",
+            "step": "1m"
+          },
+          "serviceLevel": null,
+          "presentation": {
+            "chartType": "step",
+            "frequency": 0,
+            "currentValue": false,
+            "labels": [],
+            "units": ""
+          },
+          "documentation": {
+            "title": "Success Percentage"
+          }
         }
       ],
       "layout": {
@@ -125,27 +146,6 @@
             "labels": [],
             "units": ""
           }
-        },
-        {
-          "name": "success_percentage",
-          "promql": "success_percentage_promql{source_id=\"origin\"}",
-          "status": null,
-          "thresholds": [],
-          "alert": {
-            "for": "1m",
-            "step": "1m"
-          },
-          "serviceLevel": null,
-          "presentation": {
-            "chartType": "step",
-            "frequency": 0,
-            "currentValue": false,
-            "labels": [],
-            "units": ""
-          },
-          "documentation": {
-            "title": "Success Percentage"
-          }
         }
       ],
       "layout": {
@@ -156,8 +156,7 @@
             "title": "Metrics",
             "description": "",
             "indicators": [
-              "very_good_indicator",
-              "success_percentage"
+              "very_good_indicator"
             ]
           }
         ],

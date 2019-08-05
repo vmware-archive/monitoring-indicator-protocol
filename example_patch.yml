@@ -4,12 +4,12 @@ kind: IndicatorDocumentPatch
 
 match:
   product:
-    name: my-other-component
+    name: my-component
     version: 1.2.3
 
 operations:
 - type: replace
-  path: /indicators?/-
+  path: /spec/indicators?/-
   value:
     name: success_percentage
     promql: success_percentage_promql{source_id="origin"}

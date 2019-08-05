@@ -7,39 +7,108 @@ import (
 
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
 	"github.com/cppforlife/go-patch/patch"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
-func TestDocumentMatching(t *testing.T) {
-	name1 := "testing"
-	version1 := "123"
-	matchProduct123 := indicator.Match{
-		Name:    &name1,
-		Version: &version1,
-	}
+var (
+	v0DocumentBytes = []byte(`---
+apiVersion: v0
+metadata:
+  deployment: test-deployment
 
-	matchDeploymentTest := indicator.Match{
-		Name:    nil,
-		Version: nil,
+product:
+  name: testing
+  version: 123
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+`)
+
+	v0Match = indicator.Match{
+		Name:    test_fixtures.StrPtr("testing"),
+		Version: test_fixtures.StrPtr("123"),
 		Metadata: map[string]string{
 			"deployment": "test-deployment",
 		},
 	}
 
+	v0Patch = indicator.Patch{
+		APIVersion: api_versions.V0Patch,
+		Match:      v0Match,
+		Operations: nil,
+	}
+
+	v1DocumentBytes = []byte(`---
+apiVersion: apps.pivotal.io/v1
+kind: IndicatorDocument
+metadata:
+  labels:
+    deployment: test-deployment
+
+spec:
+  product:
+    name: testing
+    version: 123
+  
+  indicators:
+  - name: test_indicator
+    promql: test_expr
+`)
+
+	v1Match = indicator.Match{
+		Name:    test_fixtures.StrPtr("testing"),
+		Version: test_fixtures.StrPtr("123"),
+		Metadata: map[string]string{
+			"deployment": "test-deployment",
+		},
+	}
+
+	v1Patch = indicator.Patch{
+		APIVersion: api_versions.V1,
+		Match:      v1Match,
+		Operations: nil,
+	}
+)
+
+func matchToPatch(apiVersion string, m indicator.Match) indicator.Patch {
+	return indicator.Patch{
+		APIVersion: apiVersion,
+		Match:      m,
+		Operations: nil,
+	}
+}
+
+func TestDocumentMatching(t *testing.T) {
+	name1 := "testing"
+	version1 := "123"
+	matchProduct123 := matchToPatch(api_versions.V1, indicator.Match{
+		Name:    &name1,
+		Version: &version1,
+	})
+
+	matchDeploymentTest := matchToPatch(api_versions.V1, indicator.Match{
+		Name:    nil,
+		Version: nil,
+		Metadata: map[string]string{
+			"deployment": "test-deployment",
+		},
+	})
+
 	name2 := "other-testing"
 	version2 := "456"
-	matchDeploymentOtherTest := indicator.Match{
+	matchDeploymentOtherTest := matchToPatch(api_versions.V1, indicator.Match{
 		Name:    &name2,
 		Version: &version2,
 		Metadata: map[string]string{
 			"deployment": "other-test-deployment",
 		},
-	}
+	})
 
 	t.Run("name and version", func(t *testing.T) {
 		g := NewGomegaWithT(t)
@@ -170,13 +239,12 @@ spec:
 		g := NewGomegaWithT(t)
 
 		var patchedThreshold interface{} = map[interface{}]interface{}{
-			"level":    "warning",
-			"operator": "gt",
-			"value":    1000,
+			"level": "warning",
+			"gt":    1000,
 		}
 
 		indicatorPatch := []indicator.Patch{{
-			APIVersion: api_versions.V1,
+			APIVersion: api_versions.V0Patch,
 			Match: indicator.Match{
 				Metadata: map[string]string{
 					"deployment": "test-deployment",
@@ -185,33 +253,31 @@ spec:
 			Operations: []patch.OpDefinition{
 				{
 					Type:  "replace",
-					Path:  test_fixtures.StrPtr("/spec/indicators/1/thresholds/1"),
+					Path:  test_fixtures.StrPtr("/indicators/1/thresholds/1"),
 					Value: &patchedThreshold,
 				},
 			},
 		}}
 		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1
+apiVersion: v0
 
 metadata:
-  labels:
-    deployment: test-deployment
+  deployment: test-deployment
 
-spec:
-  product:
-    name: testing
-    version: 123
-  
-  indicators:
-  - name: test_indicator
-    promql: test_expr
-  - name: test_indicator_2
-    promql: test_expr
-    thresholds: 
-    - level: critical
-      gt: 1500
-    - level: warning
-      gt: 500
+product:
+  name: testing
+  version: 123
+
+indicators:
+- name: test_indicator
+  promql: test_expr
+- name: test_indicator_2
+  promql: test_expr
+  thresholds: 
+  - level: critical
+    gt: 1500
+  - level: warning
+    gt: 500
 `)
 
 		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
@@ -527,21 +593,7 @@ spec:
 				},
 			},
 		}}
-		doc := []byte(`---
-apiVersion: apps.pivotal.io/v1
-metadata:
-  labels:
-    deployment: test-deployment
-
-spec:
-  product:
-    name: testing
-    version: 123
-  
-  indicators:
-  - name: test_indicator
-    promql: test_expr
-`)
+		doc := v1DocumentBytes
 
 		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
 		g.Expect(err).ToNot(HaveOccurred())
@@ -728,5 +780,29 @@ spec:
 				Value:    5000,
 			},
 		}))
+	})
+}
+
+func TestPatchingApiCompatibility(t *testing.T) {
+
+	t.Run("v0 patches don't match v1 docs", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		g.Expect(indicator.MatchDocument(v0Patch, v1DocumentBytes)).To(BeFalse())
+	})
+
+	t.Run("v0 patches match v0 docs", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		g.Expect(indicator.MatchDocument(v0Patch, v0DocumentBytes)).To(BeTrue())
+	})
+
+	t.Run("v1 patches match v1 docs", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		g.Expect(indicator.MatchDocument(v1Patch, v1DocumentBytes)).To(BeTrue())
+
+	})
+
+	t.Run("v1 patches don't match v0 docs", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		g.Expect(indicator.MatchDocument(v1Patch, v0DocumentBytes)).To(BeFalse())
 	})
 }

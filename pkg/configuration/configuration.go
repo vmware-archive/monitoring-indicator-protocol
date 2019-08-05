@@ -156,28 +156,31 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 				return nil
 			}
 
-			versionAndKind, err := getAPIVersionAndKind([]byte(contents))
+			version, err := indicator.ApiVersionFromYAML([]byte(contents))
 			if err != nil {
 				log.Print("Failed to parse file, perhaps you are missing `apiVersion` or your yaml is malformed?")
 				return nil
 			}
 
-			switch versionAndKind.APIVersion {
+			switch version {
 			case api_versions.V0:
 				documentsBytes = append(documentsBytes, []byte(contents))
 			case api_versions.V0Patch:
 				patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
 			case api_versions.V1:
-				if versionAndKind.Kind != nil {
-					kind := *versionAndKind.Kind
-					if kind == kinds.IndicatorDocument {
-						documentsBytes = append(documentsBytes, []byte(contents))
-					} else if kind == kinds.Patch {
-						patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
-					}
-					// TODO: what do we do if there is no kind?
+				kind, err := indicator.KindFromYAML([]byte(contents))
+				if err != nil {
+					log.Print("Could not get the `kind` of the document, ensure that this key is present.")
+					return nil
 				}
 
+				if kind == kinds.IndicatorDocument {
+					documentsBytes = append(documentsBytes, []byte(contents))
+				} else if kind == kinds.Patch {
+					patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
+				} else {
+					log.Printf("Invalid `kind` specified, must be `%s` or `%s`", kinds.IndicatorDocument, kinds.Patch)
+				}
 			}
 		}
 		return nil
@@ -220,18 +223,3 @@ func processDocuments(documentsBytes [][]byte, patches []indicator.Patch) []v1.I
 	return documents
 }
 
-type apiVersionAndKind struct {
-	APIVersion string `yaml:"apiVersion"`
-	Kind       *string
-}
-
-func getAPIVersionAndKind(fileBytes []byte) (*apiVersionAndKind, error) {
-	var f apiVersionAndKind
-
-	err := yaml.Unmarshal(fileBytes, &f)
-	if err != nil {
-		return nil, err
-	}
-
-	return &f, nil
-}

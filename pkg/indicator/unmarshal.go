@@ -13,10 +13,9 @@ import (
 	"github.com/cppforlife/go-patch/patch"
 	"github.com/ghodss/yaml"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 type ReadOpt func(options *readOptions)
@@ -27,7 +26,7 @@ func DocumentFromYAML(r io.ReadCloser) (v1.IndicatorDocument, error) {
 		return v1.IndicatorDocument{}, err
 	}
 
-	apiVersion, err := apiVersionFromYAML(docBytes)
+	apiVersion, err := ApiVersionFromYAML(docBytes)
 	if err != nil {
 		return v1.IndicatorDocument{}, err
 	}
@@ -281,7 +280,7 @@ type v0yamlPresentation struct {
 	Units        string       `json:"units"`
 }
 
-func apiVersionFromYAML(docBytes []byte) (string, error) {
+func ApiVersionFromYAML(docBytes []byte) (string, error) {
 	var d struct {
 		ApiVersion string `yaml:"apiVersion"`
 	}
@@ -292,13 +291,24 @@ func apiVersionFromYAML(docBytes []byte) (string, error) {
 	return d.ApiVersion, nil
 }
 
+func KindFromYAML(fileBytes []byte) (string, error) {
+	var f struct{ Kind string }
+
+	err := yaml.Unmarshal(fileBytes, &f)
+	if err != nil {
+		return "", err
+	}
+
+	return f.Kind, nil
+}
+
 func PatchFromYAML(reader io.ReadCloser) (Patch, error) {
 	var yamlPatch yamlPatch
-	bytes, err := ioutil.ReadAll(reader)
+	patchBytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return Patch{}, fmt.Errorf("could not read patch: %s", err)
 	}
-	err = yaml.Unmarshal(bytes, &yamlPatch)
+	err = yaml.Unmarshal(patchBytes, &yamlPatch)
 	if err != nil {
 		return Patch{}, fmt.Errorf("could not unmarshal patch: %s", err)
 	}
@@ -322,7 +332,7 @@ func ProductFromYAML(reader io.ReadCloser) (v1.Product, error) {
 		return v1.Product{}, fmt.Errorf("could not read document")
 	}
 
-	apiVersion, err := apiVersionFromYAML(docBytes)
+	apiVersion, err := ApiVersionFromYAML(docBytes)
 	var product v1.Product
 	switch apiVersion {
 	case api_versions.V0:
@@ -355,7 +365,7 @@ func MetadataFromYAML(reader io.ReadCloser) (map[string]string, error) {
 		return nil, fmt.Errorf("could not read document")
 	}
 
-	apiVersion, err := apiVersionFromYAML(docBytes)
+	apiVersion, err := ApiVersionFromYAML(docBytes)
 	var metadata map[string]string
 	switch apiVersion {
 	case api_versions.V0:

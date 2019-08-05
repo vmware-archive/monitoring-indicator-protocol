@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/cppforlife/go-patch/patch"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"gopkg.in/yaml.v2"
 )
 
@@ -31,7 +32,7 @@ func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 	}
 
 	for _, p := range patches {
-		if MatchDocument(p.Match, documentBytes) {
+		if MatchDocument(p, documentBytes) {
 			ops, err := patch.NewOpsFromDefinitions(p.Operations)
 			if err != nil {
 				log.Print(errors.New("failed to parse patch operations"))
@@ -56,13 +57,14 @@ func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
 	return patched, nil
 }
 
-func MatchDocument(criteria Match, documentBytes []byte) bool {
+func MatchDocument(patch Patch, documentBytes []byte) bool {
 	reader := ioutil.NopCloser(bytes.NewReader(documentBytes))
 	product, err := ProductFromYAML(reader)
 	if err != nil {
 		return false
 	}
 
+	criteria := patch.Match
 	if criteria.Name != nil && *criteria.Name != product.Name {
 		return false
 	}
@@ -81,5 +83,22 @@ func MatchDocument(criteria Match, documentBytes []byte) bool {
 		}
 	}
 
+	apiVersion, err := ApiVersionFromYAML(documentBytes)
+	if err != nil || !apiVersionMatches(patch.APIVersion, apiVersion) {
+		return false
+	}
+
 	return true
+}
+
+
+func apiVersionMatches(patchVersion, docVersion string) bool {
+	switch patchVersion {
+	case api_versions.V0Patch:
+		return docVersion == api_versions.V0
+	case api_versions.V1:
+		return docVersion == api_versions.V1
+	default:
+		return false
+	}
 }
