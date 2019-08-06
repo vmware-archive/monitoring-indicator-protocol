@@ -84,7 +84,12 @@ func MatchDocument(patch Patch, documentBytes []byte) bool {
 	}
 
 	apiVersion, err := ApiVersionFromYAML(documentBytes)
-	if err != nil || !apiVersionMatches(patch.APIVersion, apiVersion) {
+	if err != nil {
+		log.Printf("Could not parse the apiVersion of a document")
+		return false
+	}
+	if !apiVersionMatches(patch.APIVersion, apiVersion) {
+		log.Printf("A patch apiVersion did not match document apiVersion")
 		return false
 	}
 
