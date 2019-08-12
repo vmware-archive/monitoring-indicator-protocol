@@ -5,9 +5,9 @@ import (
 
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 type APIDocumentResponse struct {
@@ -49,6 +49,7 @@ type APIPresentationResponse struct {
 
 type APIIndicatorResponse struct {
 	Name          string                      `json:"name"`
+	Type          string                      `json:"type"`
 	PromQL        string                      `json:"promql"`
 	Thresholds    []APIThresholdResponse      `json:"thresholds"`
 	Alert         APIAlertResponse            `json:"alert"`
@@ -56,7 +57,6 @@ type APIIndicatorResponse struct {
 	Presentation  APIPresentationResponse     `json:"presentation"`
 	Status        *APIIndicatorStatusResponse `json:"status"`
 }
-
 
 type APIIndicatorStatusResponse struct {
 	Value     *string   `json:"value"`
@@ -90,7 +90,7 @@ func ToIndicatorDocument(d APIDocumentResponse) v1.IndicatorDocument {
 	return v1.IndicatorDocument{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: d.APIVersion,
-			Kind:       "IndicatorDocument",
+			Kind:       d.Kind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			UID:    types.UID(d.UID),
@@ -114,6 +114,7 @@ func convertIndicator(i APIIndicatorResponse) v1.IndicatorSpec {
 
 	return v1.IndicatorSpec{
 		Name:   i.Name,
+		Type:   v1.IndicatorTypeFromString(i.Type),
 		PromQL: i.PromQL,
 		Alert: v1.Alert{
 			For:  i.Alert.For,
@@ -204,6 +205,7 @@ func ToAPIDocumentResponse(doc v1.IndicatorDocument) APIDocumentResponse {
 
 		indicators = append(indicators, APIIndicatorResponse{
 			Name:          i.Name,
+			Type:          v1.IndicatorTypeToString(i.Type),
 			PromQL:        i.PromQL,
 			Thresholds:    thresholds,
 			Alert:         alert,

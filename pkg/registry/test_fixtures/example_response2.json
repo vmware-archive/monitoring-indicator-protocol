@@ -16,6 +16,7 @@
       "indicators": [
         {
           "name": "indie1",
+          "type": "indicator",
           "promql": "promql1",
           "thresholds": [],
           "alert": {
@@ -33,6 +34,7 @@
         },
         {
           "name": "indie2",
+          "type": "indicator",
           "promql": "promql2",
           "thresholds": [],
           "alert": {

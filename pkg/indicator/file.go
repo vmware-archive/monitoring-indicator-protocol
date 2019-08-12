@@ -11,6 +11,9 @@ import (
 	. "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
+// Reads the IndicatorDocument in the file with the given name,
+// Returns an error if the file can't be read, or the file isn't valid
+// YAML parsable as a document, or the document can't be validated.
 func ReadFile(indicatorsFile string, opts ...ReadOpt) (IndicatorDocument, error) {
 	fileBytes, err := ioutil.ReadFile(indicatorsFile)
 	if err != nil {

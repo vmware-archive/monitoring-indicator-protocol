@@ -16,6 +16,7 @@ spec:
     promql: test_query
   - name: doc_performance_indicator
     promql: avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])
+    type: kpi
     thresholds:
     - level: warning
       operator: gte

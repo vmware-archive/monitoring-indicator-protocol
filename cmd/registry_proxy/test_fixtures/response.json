@@ -17,6 +17,7 @@
       "indicators": [
         {
           "name": "only_in_example_yml",
+          "type": "indicator",
           "promql": "test_query",
           "status": null,
           "thresholds": [],
@@ -34,6 +35,7 @@
         },
         {
           "name": "doc_performance_indicator",
+          "type": "indicator",
           "promql": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-service-deployment\"}[5m])",
           "status": null,
           "thresholds": [

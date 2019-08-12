@@ -51,7 +51,7 @@ func TestIndicatorRegistry(t *testing.T) {
 
 			g.Expect(resp.StatusCode, resp.Body).To(Equal(http.StatusOK))
 
-			resp, err = http.Get(serverUrl + "/v1/indicator-documents")
+			resp, err = http.Get(serverUrl+"/v1/indicator-documents")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 

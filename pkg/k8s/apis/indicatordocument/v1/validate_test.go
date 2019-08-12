@@ -339,7 +339,7 @@ func TestThreshold(t *testing.T) {
 					PromQL: "rate(speech)",
 					Thresholds: []v1.Threshold{{
 						Level:    "warning",
-						Operator: v1.Undefined,
+						Operator: v1.UndefinedOperator,
 						Value:    0,
 					}},
 					Presentation: test_fixtures.DefaultPresentation(),
@@ -368,7 +368,7 @@ func TestThreshold(t *testing.T) {
 					PromQL: "rate(speech)",
 					Thresholds: []v1.Threshold{{
 						Level:    "warning",
-						Operator: v1.Undefined,
+						Operator: v1.UndefinedOperator,
 						Value:    0,
 					}},
 					Presentation: test_fixtures.DefaultPresentation(),

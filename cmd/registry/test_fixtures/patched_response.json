@@ -17,6 +17,7 @@
       "indicators": [
         {
           "name": "only_in_example_yml",
+          "type": "indicator",
           "promql": "test_query",
           "status": null,
           "thresholds": [],
@@ -34,6 +35,7 @@
         },
         {
           "name": "doc_performance_indicator",
+          "type": "kpi",
           "promql": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-service-deployment\"}[5m])",
           "status": null,
           "thresholds": [
@@ -73,6 +75,7 @@
         },
         {
           "name": "success_percentage",
+          "type": "indicator",
           "promql": "success_percentage_promql{source_id=\"origin\"}",
           "status": null,
           "thresholds": [],
@@ -127,6 +130,7 @@
         {
           "name": "very_good_indicator",
           "promql": "test_query",
+          "type": "indicator",
           "status": null,
           "thresholds": [],
           "alert": {

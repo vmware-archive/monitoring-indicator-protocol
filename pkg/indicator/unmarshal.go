@@ -77,6 +77,7 @@ func v0documentFromBytes(yamlBytes []byte) (v1.IndicatorDocument, error) {
 
 		indicators = append(indicators, v1.IndicatorSpec{
 			Name:          yamlIndicator.Name,
+			Type:          v1.DefaultIndicatorType,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
 			Alert:         v0alertFromYAML(yamlIndicator.Alert),
@@ -153,7 +154,7 @@ func v0thresholdFromYAML(threshold v0yamlThreshold) (v1.Threshold, error) {
 		operator = v1.GreaterThan
 		value, err = strconv.ParseFloat(threshold.GT, 64)
 	default:
-		operator = v1.Undefined
+		operator = v1.UndefinedOperator
 	}
 
 	if err != nil {
@@ -241,7 +242,6 @@ type v0yamlIndicator struct {
 	Documentation map[string]string   `json:"documentation"`
 	Presentation  *v0yamlPresentation `json:"presentation"`
 }
-
 
 type v0yamlAlert struct {
 	For  string

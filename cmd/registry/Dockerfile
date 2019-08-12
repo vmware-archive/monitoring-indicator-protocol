@@ -26,4 +26,6 @@ RUN ["apt-get", "install", "git-core", "-y"]
 
 COPY --from=builder /indicator-registry /srv/
 WORKDIR /srv
-CMD [ "./indicator-registry", "--host", "", "--config", "./resources/config.yml"]
+CMD [ "./indicator-registry", \
+  "--host", "", \
+  "--config", "./resources/config.yml"]

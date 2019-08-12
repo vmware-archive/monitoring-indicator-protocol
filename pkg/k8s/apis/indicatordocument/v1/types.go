@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"sort"
+	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -74,11 +75,71 @@ type IndicatorSpec struct {
 	// Product duplicated between here and indicator documents for the `kubectl get indicators` display
 	Product       string            `json:"product,omitempty"`
 	Name          string            `json:"name"`
+	Type          IndicatorType     `json:"type"`
 	PromQL        string            `json:"promql"`
 	Alert         Alert             `json:"alert,omitempty"`
 	Thresholds    []Threshold       `json:"thresholds,omitempty"`
 	Documentation map[string]string `json:"documentation,omitempty"`
 	Presentation  Presentation      `json:"presentation,omitempty"`
+}
+
+type IndicatorType int
+
+const (
+	DefaultIndicatorType IndicatorType = iota
+	ServiceLevelIndicator
+	KeyPerformanceIndicator
+	UndefinedType
+)
+
+func (it IndicatorType) MarshalJSON() ([]byte, error) {
+	println("Marshalling ", it)
+	operatorString := IndicatorTypeToString(it)
+	if operatorString == "" {
+		return []byte("null"), nil
+	}
+	quoteWrappedString := fmt.Sprintf(`"%s"`, operatorString)
+	return []byte(quoteWrappedString), nil
+}
+
+func IndicatorTypeToString(it IndicatorType) string {
+	switch it {
+	case DefaultIndicatorType:
+		return "indicator"
+	case ServiceLevelIndicator:
+		return "sli"
+	case KeyPerformanceIndicator:
+		return "kpi"
+	case UndefinedType:
+		return ""
+	default:
+		// Covers UndefinedOperator and also other
+		return ""
+	}
+}
+
+func (it *IndicatorType) UnmarshalJSON(data []byte) error {
+	s := string(data)
+	*it = IndicatorTypeFromString(strings.Trim(s, "\""))
+	return nil
+}
+
+func IndicatorTypeFromString(s string) IndicatorType {
+	var it IndicatorType
+	switch s {
+	case `sli`:
+		it = ServiceLevelIndicator
+	case `kpi`:
+		it = KeyPerformanceIndicator
+	// If you don't specify anything, default to indicator
+	case `indicator`:
+		it = DefaultIndicatorType
+	// But if you specify something, and it isn't something we know about,
+	// then we want to throw an error.
+	default:
+		it = UndefinedType
+	}
+	return it
 }
 
 type IndicatorStatus struct {
@@ -145,14 +206,14 @@ func (ot ThresholdOperator) MarshalJSON() ([]byte, error) {
 func (ot *ThresholdOperator) UnmarshalJSON(data []byte) error {
 	*ot = unmarshalComparatorFromString(string(data))
 	if *ot == -1 {
-		*ot = Undefined
+		*ot = UndefinedOperator
 		return nil
 	}
 	return nil
 }
 
 const (
-	Undefined ThresholdOperator = iota
+	UndefinedOperator ThresholdOperator = iota
 	LessThan
 	LessThanOrEqualTo
 	EqualTo
@@ -176,7 +237,7 @@ func unmarshalComparatorFromString(operator string) ThresholdOperator {
 	case `"gt"`:
 		return GreaterThan
 	default:
-		return Undefined
+		return UndefinedOperator
 	}
 }
 
@@ -195,7 +256,7 @@ func GetComparatorFromString(operator string) ThresholdOperator {
 	case "gt":
 		return GreaterThan
 	default:
-		return Undefined
+		return UndefinedOperator
 	}
 }
 

@@ -1,6 +1,7 @@
 package indicator_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
@@ -281,6 +282,25 @@ layout:
 					Labels:       []string{},
 				}))
 			})
+
+			t.Run("handles defaulting indicator types", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(fmt.Sprintf(`---
+apiVersion: v0
+product:
+  name: test_product
+  version: 0.0.1
+
+indicators:
+- name: test_performance_indicator
+  promql: prom{deployment="test"}
+  presentation:
+  chartType: step
+`)))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicatorType))
+			})
 		})
 
 		t.Run("handles thresholds", func(t *testing.T) {
@@ -363,7 +383,7 @@ indicators:
 
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.Undefined))
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.UndefinedOperator))
 				g.Expect(d.Spec.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
 			})
 
@@ -534,7 +554,7 @@ spec:
       - job
       - ip
       units: nanoseconds
-  
+
   layout:
     title: Monitoring Test Product
     description: Test description
@@ -637,7 +657,7 @@ spec:
   product:
     name: well-performing-component
     version: 0.0.1
-  
+
   indicators:
   - name: test_indicator
     promql: promql_query
@@ -695,7 +715,7 @@ spec:
   product:
     name: well-performing-component
     version: 0.0.1
-  
+
   indicators:
   - name: test_performance_indicator_1
     promql: promql_query
@@ -758,6 +778,27 @@ spec:
 					Frequency:    0,
 					Labels:       []string{},
 				}))
+			})
+
+			t.Run("handles defaulting indicator types", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(fmt.Sprintf(`---
+apiVersion: apps.pivotal.io/v1
+kind: IndicatorDocument
+spec:
+  product:
+   name: test_product
+   version: 0.0.1
+
+  indicators:
+  - name: test_performance_indicator
+    promql: prom{deployment="test"}
+    presentation:
+      chartType: step
+`)))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicatorType))
 			})
 		})
 
@@ -853,7 +894,7 @@ spec:
 
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.Undefined))
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.UndefinedOperator))
 				g.Expect(d.Spec.Indicators[0].Thresholds[0].Value).To(Equal(float64(500)))
 			})
 
@@ -876,7 +917,7 @@ spec:
 
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.Undefined))
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.UndefinedOperator))
 				g.Expect(d.Spec.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
 			})
 
@@ -913,7 +954,7 @@ spec:
   product:
    name: test_product
    version: 0.0.1
-  
+
   indicators:
   - name: test_performance_indicator
     promql: prom{deployment="test"}
@@ -934,7 +975,7 @@ spec:
   product:
    name: test_product
    version: 0.0.1
-  
+
   indicators:
   - name: test_performance_indicator
     promql: prom{deployment="test"}
@@ -976,7 +1017,7 @@ spec:
   product:
     name: test_product
     version: 0.0.1
-  
+
   indicators:
   - name: test_performance_indicator
     promql: prom{deployment="test"}
@@ -989,7 +1030,47 @@ spec:
 				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.QuotaChart))
 			})
 		})
+
+		t.Run("handles indicator types", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			testCases := []struct {
+				indiTypeString string
+				indiType       v1.IndicatorType
+			}{
+				{"sli", v1.ServiceLevelIndicator},
+				{"kpi", v1.KeyPerformanceIndicator},
+				{"indicator", v1.DefaultIndicatorType},
+				{"", v1.UndefinedType},
+				{"asdf", v1.UndefinedType},
+			}
+
+			for _, testCase := range testCases {
+				yamlString := fmt.Sprintf(`---
+apiVersion: apps.pivotal.io/v1
+kind: IndicatorDocument
+spec:
+  product:
+   name: test_product
+   version: 0.0.1
+
+  indicators:
+  - name: test_performance_indicator
+    type: %s
+    promql: prom{deployment="test"}
+    presentation:
+      chartType: step
+`, testCase.indiTypeString)
+
+				reader := ioutil.NopCloser(strings.NewReader(yamlString))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(d.Spec.Indicators[0].Type).To(Equal(testCase.indiType),
+					fmt.Sprintf("Failed indiTypeString: `%s`", testCase.indiTypeString))
+			}
+		})
 	})
+
 }
 
 func TestPatchFromYAML(t *testing.T) {

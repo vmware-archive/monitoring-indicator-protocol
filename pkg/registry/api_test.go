@@ -277,7 +277,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 	t.Run("it returns 200", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		req := httptest.NewRequest("POST", "/indicator-documents", nil)
+		req := httptest.NewRequest("GET", "/indicator-documents", nil)
 		resp := httptest.NewRecorder()
 
 		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
