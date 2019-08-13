@@ -16,7 +16,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"gopkg.in/yaml.v2"
 	coreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,7 +23,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+
 	clientSetV1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 
@@ -86,11 +87,12 @@ func init() {
 func TestControllers(t *testing.T) {
 	const testTimeout = 120 * time.Second
 
-	setup := func (t *testing.T) (func(), *v1.IndicatorDocument) {
+	setup := func(t *testing.T) (func(), *v1.IndicatorDocument) {
 		t.Parallel()
 
 		ns, cleanup := createNamespace(t)
 		indiDoc := indicatorDocument(ns)
+		v1.PopulateDefaults(indiDoc)
 		t.Logf("Creating indicator document in namespace: %s", ns)
 		_, err := clients.idClient.IndicatorDocuments(ns).Create(indiDoc)
 		if err != nil {
@@ -270,7 +272,9 @@ func getSoloIndicator(resources clientSetV1.IndicatorInterface, indicatorName st
 }
 
 func grafanaApiResponseMatch(t *testing.T, document *v1.IndicatorDocument) bool {
-	request, err := http.NewRequest("GET", fmt.Sprintf("http://%s/api/search?query=%s", *grafanaURI, document.Spec.Product.Name), nil)
+	request, err := http.NewRequest("GET",
+		fmt.Sprintf("http://%s/api/search?query=%s", *grafanaURI, document.Spec.Product.Name),
+		nil)
 	if err != nil {
 		t.Logf("Unable to create request to get Grafana config through API, retrying: %s", err)
 		return false
@@ -421,8 +425,8 @@ func prometheusConfigMapMatch(t *testing.T, cm *coreV1.ConfigMap, id *v1.Indicat
 }
 
 func indicatorDocument(ns string) *v1.IndicatorDocument {
-
 	indicatorName := fmt.Sprintf("e2e_test_indicator_%d", rand.Intn(math.MaxInt32))
+
 	return &v1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("e2etest%d", rand.Intn(math.MaxInt32)),
@@ -439,6 +443,7 @@ func indicatorDocument(ns string) *v1.IndicatorDocument {
 			Indicators: []v1.IndicatorSpec{
 				{
 					Name:   indicatorName,
+					Type:   v1.KeyPerformanceIndicator,
 					PromQL: "rate(some_metric[10m])",
 					Alert: v1.Alert{
 						For:  "5m",

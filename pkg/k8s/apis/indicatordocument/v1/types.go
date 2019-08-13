@@ -86,14 +86,13 @@ type IndicatorSpec struct {
 type IndicatorType int
 
 const (
-	DefaultIndicatorType IndicatorType = iota
+	DefaultIndicator IndicatorType = iota
 	ServiceLevelIndicator
 	KeyPerformanceIndicator
 	UndefinedType
 )
 
 func (it IndicatorType) MarshalJSON() ([]byte, error) {
-	println("Marshalling ", it)
 	operatorString := IndicatorTypeToString(it)
 	if operatorString == "" {
 		return []byte("null"), nil
@@ -104,7 +103,7 @@ func (it IndicatorType) MarshalJSON() ([]byte, error) {
 
 func IndicatorTypeToString(it IndicatorType) string {
 	switch it {
-	case DefaultIndicatorType:
+	case DefaultIndicator:
 		return "indicator"
 	case ServiceLevelIndicator:
 		return "sli"
@@ -133,7 +132,7 @@ func IndicatorTypeFromString(s string) IndicatorType {
 		it = KeyPerformanceIndicator
 	// If you don't specify anything, default to indicator
 	case `indicator`:
-		it = DefaultIndicatorType
+		it = DefaultIndicator
 	// But if you specify something, and it isn't something we know about,
 	// then we want to throw an error.
 	default:

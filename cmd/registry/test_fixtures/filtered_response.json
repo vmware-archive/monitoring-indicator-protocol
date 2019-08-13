@@ -16,15 +16,9 @@
       },
       "indicators": [],
       "layout": {
-        "title": "",
+        "title": "my-other-other-component - 1.2.3",
         "description": "",
-        "sections": [
-          {
-            "title": "Metrics",
-            "description": "",
-            "indicators": []
-          }
-        ],
+        "sections": [],
         "owner": ""
       }
     }

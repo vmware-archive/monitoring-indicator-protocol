@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/benjamintf1/unmarshalledmatchers"
 	"k8s.io/apimachinery/pkg/types"
 
 	. "github.com/onsi/gomega"
@@ -155,7 +156,6 @@ func TestValidators(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorDocumentRequest("CREATE", `{
 							"product": {"name":"uaa", "version":"v1.2.3"},
 							"indicators": [{
@@ -194,7 +194,6 @@ func TestValidators(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorDocumentRequest("CREATE", `{
 							"product": {"name":"uaa", "version":"v1.2.3"},
 							"apiVersion": "v0",
@@ -259,7 +258,6 @@ func TestValidators(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := strings.NewReader(`
 			{
 			  "kind": "AdmissionReview",
@@ -326,7 +324,6 @@ func TestValidators(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := strings.NewReader(`
 			{
 			  "kind": "AdmissionReview",
@@ -415,7 +412,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
@@ -450,7 +446,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
@@ -492,7 +487,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorRequest("UPDATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
@@ -534,7 +528,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
@@ -575,7 +568,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
@@ -620,7 +612,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorRequest("UPDATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
@@ -661,7 +652,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
@@ -747,7 +737,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
@@ -807,7 +796,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorDocumentRequest("CREATE", `{
 							"product": {"name":"uaa", "version":"v1.2.3"},
 							"indicators": [{
@@ -845,6 +833,7 @@ func TestDefaultValues(t *testing.T) {
     "op": "add",
     "path": "/spec/layout",
     "value": {
+      "title": "uaa - v1.2.3",
       "sections": [
         {
           "title": "Metrics",
@@ -860,6 +849,40 @@ func TestDefaultValues(t *testing.T) {
 			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
 		})
 
+		t.Run("Patches empty title even with provided layout", func(t *testing.T) {
+		    g := NewGomegaWithT(t)
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+			reqBody := newIndicatorDocumentRequest("CREATE", `
+{
+  "product": {"name":"uaa", "version":"v1.2.3"},
+  "layout": {"sections": []}
+}`, "{}")
+
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicatordocument", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			if err != nil {
+				t.Errorf("unable to decode resp body: %s", err)
+			}
+
+			patch := []byte(`
+[
+  {
+    "op": "add",
+    "path": "/spec/layout/title",
+    "value": "uaa - v1.2.3"
+  }
+]`)
+			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
+			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
+		})
+
 		t.Run("patches indicator alert and layout", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
@@ -868,7 +891,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorDocumentRequest("UPDATE", `{
 							"product": {"name":"uaa", "version":"v1.2.3"},
 							"indicators": [{
@@ -906,6 +928,7 @@ func TestDefaultValues(t *testing.T) {
     "op": "add",
     "path": "/spec/layout",
     "value": {
+      "title": "uaa - v1.2.3",
       "sections": [
         {
           "title": "Metrics",
@@ -934,7 +957,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorDocumentRequest("UPDATE", `{
   "product": {
     "name": "uaa",
@@ -1012,7 +1034,7 @@ func TestDefaultValues(t *testing.T) {
 {"op":"add","path":"/spec/indicators/0/presentation/chartType","value":"step"},
 {"op":"add","path":"/spec/indicators/1/alert/for","value":"1m"}]`)
 			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
-			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
+			g.Expect(actualResp.Response.Patch).To(unmarshalledmatchers.ContainUnorderedJSON(patch))
 		})
 
 		t.Run("patches threshold on an indicator", func(t *testing.T) {
@@ -1023,7 +1045,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorDocumentRequest("UPDATE", `{
 							"product": {"name":"uaa", "version":"v1.2.3"},
 							"layout": {
@@ -1061,7 +1082,7 @@ func TestDefaultValues(t *testing.T) {
 			patch := []byte(`[
 {"op":"add","path":"/spec/indicators/0/thresholds","value":[]}]`)
 			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
-			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
+			g.Expect(actualResp.Response.Patch).To(unmarshalledmatchers.ContainUnorderedJSON(patch))
 		})
 
 		t.Run("does not patch noop", func(t *testing.T) {
@@ -1072,7 +1093,6 @@ func TestDefaultValues(t *testing.T) {
 				_ = server.Close()
 			}()
 
-			//v1beta1.AdmissionReview{}
 			reqBody := newIndicatorDocumentRequest("UPDATE", `{
 							"product": {"name":"uaa", "version":"v1.2.3"},
 							"indicators": [{

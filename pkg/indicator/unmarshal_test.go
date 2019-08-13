@@ -231,6 +231,7 @@ indicators:
 				g.Expect(err).ToNot(HaveOccurred())
 
 				g.Expect(d.Spec.Layout).To(Equal(v1.Layout{
+					Title: "well-performing-component - 0.0.1",
 					Sections: []v1.Section{{
 						Title: "Metrics",
 						Indicators: []string{
@@ -299,7 +300,7 @@ indicators:
 `)))
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicatorType))
+				g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicator))
 			})
 		})
 
@@ -519,6 +520,8 @@ indicators:
 	})
 
 	t.Run("apiVersion v1", func(t *testing.T) {
+		// TODO a lot of these tests don't need to work with YAML so extensively,
+		//      they can be moved into tests for `PopulateDefaults`
 		t.Run("parses all document fields", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			reader := ioutil.NopCloser(strings.NewReader(`---
@@ -726,6 +729,7 @@ spec:
 				g.Expect(err).ToNot(HaveOccurred())
 
 				g.Expect(d.Spec.Layout).To(Equal(v1.Layout{
+					Title: "well-performing-component - 0.0.1",
 					Sections: []v1.Section{{
 						Title: "Metrics",
 						Indicators: []string{
@@ -782,23 +786,41 @@ spec:
 
 			t.Run("handles defaulting indicator types", func(t *testing.T) {
 				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(fmt.Sprintf(`---
+				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: apps.pivotal.io/v1
 kind: IndicatorDocument
 spec:
   product:
-   name: test_product
-   version: 0.0.1
+    name: test_product
+    version: 0.0.1
 
   indicators:
   - name: test_performance_indicator
     promql: prom{deployment="test"}
     presentation:
       chartType: step
-`)))
+`))
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicatorType))
+				g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicator))
+			})
+
+			t.Run("handles defaulting titles", func(t *testing.T) {
+			    g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: apps.pivotal.io/v1
+kind: IndicatorDocument
+spec:
+  product:
+    name: test_product 
+    version: 0.0.1
+  layout:
+    sections: []
+`))
+				d, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(d.Spec.Layout.Title).To(Equal("test_product - 0.0.1"))
+
 			})
 		})
 
@@ -1040,7 +1062,7 @@ spec:
 			}{
 				{"sli", v1.ServiceLevelIndicator},
 				{"kpi", v1.KeyPerformanceIndicator},
-				{"indicator", v1.DefaultIndicatorType},
+				{"indicator", v1.DefaultIndicator},
 				{"", v1.UndefinedType},
 				{"asdf", v1.UndefinedType},
 			}

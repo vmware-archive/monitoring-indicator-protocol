@@ -24,7 +24,7 @@ func toGrafanaDashboard(d v1.IndicatorDocument) (*GrafanaDashboard, error) {
 		return nil, err
 	}
 	return &GrafanaDashboard{
-		Title:       getDashboardTitle(d),
+		Title:       d.Spec.Layout.Title,
 		Rows:        rows,
 		Annotations: toGrafanaAnnotations(d.Spec.Product, d.ObjectMeta.Labels),
 	}, nil
@@ -50,13 +50,6 @@ func metadataToLabelSelector(metadata map[string]string) interface{} {
 		selector = fmt.Sprintf("%s,%s=\"%s\"", selector, k, v)
 	}
 	return selector
-}
-
-func getDashboardTitle(d v1.IndicatorDocument) string {
-	if d.Spec.Layout.Title == "" {
-		return fmt.Sprintf("%s - %s", d.Spec.Product.Name, d.Spec.Product.Version)
-	}
-	return d.Spec.Layout.Title
 }
 
 func toGrafanaRows(document v1.IndicatorDocument) ([]GrafanaRow, error) {

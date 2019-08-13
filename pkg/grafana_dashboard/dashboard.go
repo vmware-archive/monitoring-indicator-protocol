@@ -1,5 +1,7 @@
 package grafana_dashboard
 
+// GrafanaDashboards represent the layout of a dashboard in grafana. When `json.Marshall`ed, Grafana
+// can load them from disk to populate its visualizations.
 type GrafanaDashboard struct {
 	Title       string             `json:"title"`
 	Rows        []GrafanaRow       `json:"rows"`

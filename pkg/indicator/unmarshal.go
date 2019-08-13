@@ -39,16 +39,14 @@ func DocumentFromYAML(r io.ReadCloser) (v1.IndicatorDocument, error) {
 	case api_versions.V1:
 		err = yaml.Unmarshal(docBytes, &doc)
 	default:
-		err = fmt.Errorf("invalid apiVersion, supported versions are: v0, apps.pivotal.io/v1")
+		err = fmt.Errorf("invalid apiVersion, supported versions are: [v0, apps.pivotal.io/v1]")
 	}
 
 	if err != nil {
 		return v1.IndicatorDocument{}, err
 	}
 
-	populateDefaultAlert(&doc)
-	populateDefaultLayout(&doc)
-	populateDefaultPresentation(&doc)
+	v1.PopulateDefaults(&doc)
 
 	return doc, nil
 }
@@ -77,7 +75,7 @@ func v0documentFromBytes(yamlBytes []byte) (v1.IndicatorDocument, error) {
 
 		indicators = append(indicators, v1.IndicatorSpec{
 			Name:          yamlIndicator.Name,
-			Type:          v1.DefaultIndicatorType,
+			Type:          v1.DefaultIndicator,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
 			Alert:         v0alertFromYAML(yamlIndicator.Alert),
@@ -392,42 +390,6 @@ type yamlMatch struct {
 	Metadata map[string]string `yaml:"metadata,omitempty"`
 }
 
-func populateDefaultPresentation(doc *v1.IndicatorDocument) {
-	for i, indicator := range doc.Spec.Indicators {
-		if indicator.Presentation.ChartType == "" {
-			doc.Spec.Indicators[i].Presentation.ChartType = "step"
-		}
-		if indicator.Presentation.Labels == nil {
-			doc.Spec.Indicators[i].Presentation.Labels = []string{}
-		}
-	}
-}
-
-func populateDefaultLayout(doc *v1.IndicatorDocument) {
-	if doc.Spec.Layout.Sections == nil {
-		indicatorNames := make([]string, 0)
-		for _, indicator := range doc.Spec.Indicators {
-			indicatorNames = append(indicatorNames, indicator.Name)
-		}
-		doc.Spec.Layout.Sections = []v1.Section{
-			{
-				Title:      "Metrics",
-				Indicators: indicatorNames,
-			},
-		}
-	}
-}
-
-func populateDefaultAlert(doc *v1.IndicatorDocument) {
-	for i, indicator := range doc.Spec.Indicators {
-		if indicator.Alert.For == "" {
-			doc.Spec.Indicators[i].Alert.For = "1m"
-		}
-		if indicator.Alert.Step == "" {
-			doc.Spec.Indicators[i].Alert.Step = "1m"
-		}
-	}
-}
 
 func SkipMetadataInterpolation(options *readOptions) {
 	options.interpolate = false
@@ -454,6 +416,7 @@ func ProcessDocument(patches []Patch, documentBytes []byte) (v1.IndicatorDocumen
 		log.Print("failed to unmarshal document")
 		return v1.IndicatorDocument{}, []error{err}
 	}
+
 	doc.Interpolate()
 
 	errs := doc.Validate(api_versions.V0, api_versions.V1)

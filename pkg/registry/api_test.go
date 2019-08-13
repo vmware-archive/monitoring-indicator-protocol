@@ -69,6 +69,7 @@ indicators:
 				Spec: v1.IndicatorDocumentSpec{
 					Product: v1.Product{Name: "redis-tile", Version: "0.11"},
 					Layout: v1.Layout{
+						Title: "redis-tile - 0.11",
 						Sections: []v1.Section{{
 							Title:      "Metrics",
 							Indicators: []string{"test_performance_indicator"},
@@ -144,6 +145,7 @@ spec:
 				Spec: v1.IndicatorDocumentSpec{
 					Product: v1.Product{Name: "redis-tile", Version: "0.11"},
 					Layout: v1.Layout{
+						Title: "redis-tile - 0.11",
 						Sections: []v1.Section{{
 							Title:      "Metrics",
 							Indicators: []string{"test_performance_indicator"},

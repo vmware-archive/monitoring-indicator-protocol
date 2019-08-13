@@ -146,41 +146,6 @@ func TestDocumentToDashboard(t *testing.T) {
 		g.Expect(dashboard.Rows[1].Panels[0].Title).To(Equal("Test Indicator Title"))
 	})
 
-	t.Run("falls back to product name/version when layout title is missing", func(t *testing.T) {
-		buffer := bytes.NewBuffer(nil)
-		log.SetOutput(buffer)
-
-		g := NewGomegaWithT(t)
-
-		indicators := []v1.IndicatorSpec{
-			{
-				Name:   "test_indicator",
-				PromQL: `sum_over_time(gorouter_latency_ms[30m])`,
-			},
-		}
-		document := v1.IndicatorDocument{
-			Spec: v1.IndicatorDocumentSpec{
-				Product: v1.Product{
-					Name:    "test product",
-					Version: "v0.9",
-				},
-				Indicators: indicators,
-				Layout: v1.Layout{
-					Sections: []v1.Section{
-						{
-							Indicators: []string{"test_indicator"},
-						},
-					},
-				},
-			},
-		}
-
-		dashboard, err := grafana_dashboard.DocumentToDashboard(document)
-		g.Expect(err).NotTo(HaveOccurred())
-
-		g.Expect(dashboard.Title).To(BeEquivalentTo("test product - v0.9"))
-	})
-
 	t.Run("replaces $step with $__interval", func(t *testing.T) {
 		buffer := bytes.NewBuffer(nil)
 		log.SetOutput(buffer)

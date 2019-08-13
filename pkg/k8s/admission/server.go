@@ -13,11 +13,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
@@ -229,6 +230,9 @@ func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http
 
 func getLayoutPatches(doc v1.IndicatorDocument) []patch {
 	var patchOperations []patch
+
+	title := fmt.Sprintf("%s - %s", doc.Spec.Product.Name, doc.Spec.Product.Version)
+
 	if (reflect.DeepEqual(doc.Spec.Layout, v1.Layout{})) {
 		var names []string
 		for _, i := range doc.Spec.Indicators {
@@ -239,12 +243,20 @@ func getLayoutPatches(doc v1.IndicatorDocument) []patch {
 			Op:   "add",
 			Path: "/spec/layout",
 			Value: v1.Layout{
+				Title: title,
 				Sections: []v1.Section{{
 					Title:      "Metrics",
 					Indicators: names,
 				}},
 			},
 		})
+	} else if doc.Spec.Layout.Title == "" {
+		patchOperations = append(patchOperations, patch{
+			Op:    "add",
+			Path:  "/spec/layout/title",
+			Value: title,
+		})
+
 	}
 	return patchOperations
 }

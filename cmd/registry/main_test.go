@@ -11,7 +11,7 @@ import (
 
 	. "github.com/benjamintf1/unmarshalledmatchers"
 	. "github.com/onsi/gomega"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/configuration"
@@ -51,7 +51,7 @@ func TestIndicatorRegistry(t *testing.T) {
 
 			g.Expect(resp.StatusCode, resp.Body).To(Equal(http.StatusOK))
 
-			resp, err = http.Get(serverUrl+"/v1/indicator-documents")
+			resp, err = http.Get(serverUrl + "/v1/indicator-documents")
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 

@@ -44,6 +44,7 @@ func TestUpdateMetadata(t *testing.T) {
 					},
 				},
 				Layout: v1.Layout{
+					Title: "well-performing-component - 0.0.1",
 					Sections: []v1.Section{{
 						Title:      "Metrics",
 						Indicators: []string{"test_performance_indicator"},
@@ -85,6 +86,7 @@ func TestUpdateMetadata(t *testing.T) {
 					},
 				},
 				Layout: v1.Layout{
+					Title: "well-performing-component - 0.0.1",
 					Sections: []v1.Section{{
 						Title:      "Metrics",
 						Indicators: []string{"test_performance_indicator"},

@@ -12,7 +12,7 @@ func DefaultPresentation() v1.Presentation {
 		ChartType:    "step",
 		CurrentValue: false,
 		Frequency:    0,
-		Labels:       nil,
+		Labels:       make([]string, 0),
 		Units:        "",
 	}
 }
@@ -22,7 +22,7 @@ func DefaultAPIPresentationResponse() registry.APIPresentationResponse {
 		ChartType:    "step",
 		CurrentValue: false,
 		Frequency:    0,
-		Labels:       nil,
+		Labels:       make([]string, 0),
 		Units:        "",
 	}
 }
