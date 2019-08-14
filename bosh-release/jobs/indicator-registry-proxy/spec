@@ -10,7 +10,7 @@ templates:
   server.key.erb: certs/server.key
 
 packages:
-  - indicator-protocol
+  - indicator-registry
 
 consumes:
   - name: indicator-registry

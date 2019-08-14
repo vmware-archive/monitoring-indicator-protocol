@@ -1,5 +1,5 @@
 ---
-name: indicator-tile-registration-agent
+name: indicator-registration-agent
 
 templates:
   agent_ctl.erb: bin/agent_ctl
@@ -8,12 +8,12 @@ templates:
   indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
 
 packages:
-  - indicator-protocol
+- indicator-registry
 
 consumes:
-  - name: indicator-registry
-    type: indicator-registry
-    optional: true
+- name: indicator-registry
+  type: indicator-registry
+  optional: true
 
 properties:
   interval:

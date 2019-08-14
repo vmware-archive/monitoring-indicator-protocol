@@ -1,5 +1,0 @@
-check process indicator-tile-registration-agent
-  with pidfile /var/vcap/sys/run/indicator-tile-registration-agent/agent.pid
-  start program "/var/vcap/jobs/indicator-tile-registration-agent/bin/agent_ctl start"
-  stop program "/var/vcap/jobs/indicator-tile-registration-agent/bin/agent_ctl stop"
-  group vcap

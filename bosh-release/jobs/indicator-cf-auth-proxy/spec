@@ -10,7 +10,7 @@ templates:
   server.crt.erb: certs/server.crt
 
 packages:
-  - indicator-protocol
+  - indicator-registry
 
 consumes:
   - name: indicator-registry
