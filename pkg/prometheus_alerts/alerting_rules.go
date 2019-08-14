@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 type Rule struct {
@@ -29,10 +29,10 @@ func AlertDocumentFilename(documentBytes []byte, productName string) string {
 	return fmt.Sprintf("%s_%x.yml", productName, sha1.Sum(documentBytes))
 }
 
-func AlertDocumentFrom(document indicator.Document) Document {
+func AlertDocumentFrom(document v1.IndicatorDocument) Document {
 	rules := make([]Rule, 0)
 
-	for _, ind := range document.Indicators {
+	for _, ind := range document.Spec.Indicators {
 		for _, threshold := range ind.Thresholds {
 			rules = append(rules, ruleFrom(document, ind, threshold))
 		}
@@ -40,30 +40,30 @@ func AlertDocumentFrom(document indicator.Document) Document {
 
 	return Document{
 		Groups: []Group{{
-			Name:  document.Product.Name,
+			Name:  document.Spec.Product.Name,
 			Rules: rules,
 		}},
 	}
 }
 
-func ruleFrom(document indicator.Document, indicator indicator.Indicator, threshold indicator.Threshold) Rule {
+func ruleFrom(document v1.IndicatorDocument, i v1.IndicatorSpec, threshold v1.Threshold) Rule {
 	labels := map[string]string{
-		"product": document.Product.Name,
-		"version": document.Product.Version,
+		"product": document.Spec.Product.Name,
+		"version": document.Spec.Product.Version,
 		"level":   threshold.Level,
 	}
 
-	for k, v := range document.Metadata {
+	for k, v := range document.ObjectMeta.Labels {
 		labels[k] = v
 	}
 
-	interpolatedPromQl := strings.Replace(indicator.PromQL, "$step", indicator.Alert.Step, -1)
+	interpolatedPromQl := strings.Replace(i.PromQL, "$step", i.Alert.Step, -1)
 
 	return Rule{
-		Alert:       indicator.Name,
-		Expr:        fmt.Sprintf("%s %s %+v", interpolatedPromQl, threshold.GetComparator(), threshold.Value),
-		For:         indicator.Alert.For,
+		Alert:       i.Name,
+		Expr:        fmt.Sprintf("%s %s %+v", interpolatedPromQl, v1.GetComparatorSymbol(threshold.Operator), threshold.Value),
+		For:         i.Alert.For,
 		Labels:      labels,
-		Annotations: indicator.Documentation,
+		Annotations: i.Documentation,
 	}
 }

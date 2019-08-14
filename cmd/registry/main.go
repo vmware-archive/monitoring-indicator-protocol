@@ -3,13 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"log"
+	"net"
 	"time"
+
+	"golang.org/x/crypto/ssh"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 
-	"gopkg.in/src-d/go-git.v4"
+	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	ssh2 "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
@@ -20,16 +22,14 @@ import (
 )
 
 func main() {
-	port := flag.Int("port", 443, "Port to expose registration endpoints")
-	serverPEM := flag.String("tls-pem-path", "", "Server TLS public cert pem path")
-	serverKey := flag.String("tls-key-path", "", "Server TLS private key path")
-	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs.")
+	port := flag.Int("port", 10568, "Port to expose registration endpoints")
+	host := flag.String("host", "localhost", "Host to bind to for registration endpoints")
 	expiration := flag.Duration("indicator-expiration", 120*time.Minute, "Document expiration duration")
 	configFile := flag.String("config", "", "Configuration yaml for patch and document sources")
 
 	flag.Parse()
 
-	address := fmt.Sprintf(":%d", *port)
+	address := fmt.Sprintf("%s:%d", *host, *port)
 
 	store := registry.NewDocumentStore(*expiration, time.Now)
 
@@ -40,23 +40,17 @@ func main() {
 
 	config := registry.WebServerConfig{
 		Address:       address,
-		ServerPEMPath: *serverPEM,
-		ServerKeyPath: *serverKey,
-		RootCAPath:    *rootCACert,
 		DocumentStore: store,
 		StatusStore:   status_store.New(time.Now),
 	}
 
-	start, stop, err := registry.NewWebServer(config)
+	start, stop := registry.NewWebServer(config)
 
-	if err != nil {
-		log.Fatalf("failed to create server: %s\n", err)
-	}
 	defer stop()
 
-	err = start()
+	err := start()
 	if err != nil {
-		log.Fatalf("failed to create server: %s\n", err)
+		log.Fatal("failed to start registry server")
 	}
 }
 
@@ -74,7 +68,7 @@ func readConfigEachMinute(configFile string, store *registry.DocumentStore) {
 func upsertFromConfig(configFile string, store *registry.DocumentStore) {
 	sources, err := configuration.ParseSourcesFile(configFile)
 	if err != nil {
-		log.Fatalf("failed to parse configuration file: %s\n", err)
+		log.Fatal("failed to parse configuration file")
 	}
 	patches, documents := configuration.Read(sources, getRealRepository)
 
@@ -106,7 +100,14 @@ func getAuth(s configuration.Source) transport.AuthMethod {
 	}
 	if s.Key != "" {
 		signer, _ := ssh.ParsePrivateKey([]byte(s.Key))
-		return &ssh2.PublicKeys{User: "git", Signer: signer}
+		helper := ssh2.HostKeyCallbackHelper{
+			HostKeyCallback: noopHostkeyCallback,
+		}
+		return &ssh2.PublicKeys{User: "git", Signer: signer, HostKeyCallbackHelper: helper}
 	}
+	return nil
+}
+
+func noopHostkeyCallback(_ string, _ net.Addr, _ ssh.PublicKey) error {
 	return nil
 }

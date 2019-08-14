@@ -18,7 +18,7 @@ spec:
       serviceAccountName: indicator-status-controller
       containers:
       - name: indicator-status-controller
-        image: indicatorprotocol/indicator-status-controller:latest
+        image: indicatorprotocol/k8s-indicator-status-controller:latest
         imagePullPolicy: Always
         env:
         - name: NAMESPACE

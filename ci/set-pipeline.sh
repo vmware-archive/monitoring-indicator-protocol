@@ -2,5 +2,6 @@
 
 set -efu
 
-fly -t indipro set-pipeline -p indicator-protocol-v0.7 \
-    -c "ci/pipelines/indicator_protocol.yml"
+fly --target indipro set-pipeline \
+    --pipeline indicator-protocol-v0.7 \
+    --config "ci/pipeline.yml"

@@ -17,26 +17,31 @@ import (
 
 const documentsResponseBody string = `[
   {
-	"apiVersion": "v0",
+	"apiVersion": "v1",
 	"uid": "my-other-component-c2dd9",
-	"product": {
-	  "name": "my-other-component",
-	  "version": "1.2.3"
-	},
-	"metadata": {},
-	"indicators": [
-	  {
-		"name": "very_good_indicator",
-		"promql": "avg_over_time(latency[5m])",
-		"thresholds": [
-			{"level": "critical", "operator": "gte", "value": 11},
-			{"level": "warning", "operator": "gt", "value": 9}
-		],
-		"alert": {
-		  "step": "10m"
-		}
-	  }
-	]
+    "kind": "IndicatorDocument",
+	"metadata": {
+      "labels": {}
+    },
+    "spec" : {
+	  "product": {
+	    "name": "my-other-component",
+	    "version": "1.2.3"
+	  },
+	  "indicators": [
+	    {
+		  "name": "very_good_indicator",
+		  "promql": "avg_over_time(latency[5m])",
+		  "thresholds": [
+			  {"level": "critical", "operator": "gte", "value": 11},
+			  {"level": "warning", "operator": "gt", "value": 9}
+		  ],
+		  "alert": {
+		    "step": "10m"
+		  }
+	    }
+	  ]
+    }
   }
 ]`
 

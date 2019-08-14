@@ -2,15 +2,15 @@ package registry
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"path/filepath"
 	"strconv"
 	"time"
-
-	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -51,7 +51,7 @@ func (a Agent) registerIndicatorDocuments() {
 
 	if err != nil {
 		registrationCount.WithLabelValues("err").Inc()
-		log.Printf("could not find documents: %s\n", err)
+		log.Print("could not find documents")
 
 		return
 	}
@@ -66,11 +66,12 @@ func (a Agent) registerIndicatorDocument(indicatorsDocument document) {
 
 	body := bytes.NewBuffer(indicatorsDocument)
 
+	// TODO: move to the registry API file
 	resp, err := a.Client.Post(registry, "text/plain", body)
 
 	if err != nil {
 		registrationCount.WithLabelValues("err").Inc()
-		log.Printf("could not make http request: %s\n", err)
+		log.Print("could not post to the registry")
 	} else {
 		registrationCount.WithLabelValues(strconv.Itoa(resp.StatusCode)).Inc()
 		if resp.StatusCode != http.StatusOK {
@@ -83,18 +84,18 @@ func (a Agent) registerIndicatorDocument(indicatorsDocument document) {
 }
 
 func logErrorResponse(resp *http.Response) {
-	body, err := ioutil.ReadAll(resp.Body)
+	_, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	if err != nil {
-		log.Printf("could not read response body on status %s: %s\n", resp.Status, err)
+		log.Printf("could not read response body on status %s", resp.Status)
 		return
 	}
 
-	log.Printf("received error response from registry: %s %s\n", resp.Status, string(body))
+	log.Printf("received error response from registry with status: %s", resp.Status)
 }
 
 func closeBodyAndReuseConnection(resp *http.Response) {
-	io.Copy(ioutil.Discard, resp.Body)
+	_, _ = io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
 }
 
@@ -105,14 +106,14 @@ type DocumentFinder struct {
 func (df DocumentFinder) FindAll() ([]document, error) {
 	documentPaths, err := filepath.Glob(df.Glob)
 	if err != nil {
-		return nil, fmt.Errorf("could not read glob indicator documents: %s/n", err)
+		return nil, errors.New("could not read glob indicator documents")
 	}
 
 	documents := make([]document, 0)
 	for _, path := range documentPaths {
 		document, err := ioutil.ReadFile(path)
 		if err != nil {
-			return nil, fmt.Errorf("could not read indicator document: %s/n", err)
+			return nil, errors.New("could not read indicator document")
 		}
 
 		documents = append(documents, document)

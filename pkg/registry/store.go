@@ -1,13 +1,12 @@
 package registry
 
 import (
-	"fmt"
 	"log"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 type clock func() time.Time
@@ -22,7 +21,7 @@ func NewDocumentStore(timeout time.Duration, c clock) *DocumentStore {
 }
 
 type registeredDocument struct {
-	indicatorDocument indicator.Document
+	indicatorDocument v1.IndicatorDocument
 	registeredAt      time.Time
 }
 
@@ -39,7 +38,7 @@ type PatchList struct {
 	Patches []indicator.Patch
 }
 
-func (d *DocumentStore) UpsertDocument(doc indicator.Document) {
+func (d *DocumentStore) UpsertDocument(doc v1.IndicatorDocument) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -63,21 +62,36 @@ func (d *DocumentStore) UpsertPatches(patchList PatchList) {
 
 	d.patchesBySource[patchList.Source] = patchList.Patches
 
-	for _, p := range patchList.Patches {
-		logPatchInsert(p)
-	}
+	log.Printf("registered %d patches", len(patchList.Patches))
 }
 
-func (d *DocumentStore) AllDocuments() []indicator.Document {
+func (d *DocumentStore) AllDocuments() []v1.IndicatorDocument {
 	d.expireDocuments()
 
 	d.RLock()
 	defer d.RUnlock()
 
-	documents := make([]indicator.Document, 0)
+	documents := make([]v1.IndicatorDocument, 0)
 
 	for _, doc := range d.documents {
 		documents = append(documents, doc.indicatorDocument)
+	}
+
+	return documents
+}
+
+func (d *DocumentStore) FilteredDocuments(productName string) []v1.IndicatorDocument {
+	d.expireDocuments()
+
+	d.RLock()
+	defer d.RUnlock()
+
+	documents := make([]v1.IndicatorDocument, 0)
+
+	for _, doc := range d.documents {
+		if doc.indicatorDocument.Spec.Product.Name == productName {
+			documents = append(documents, doc.indicatorDocument)
+		}
 	}
 
 	return documents
@@ -110,27 +124,12 @@ func (d *DocumentStore) expireDocuments() {
 	d.documents = unexpiredDocuments
 }
 
-func (d *DocumentStore) getPosition(indicatorDocument indicator.Document) int {
+func (d *DocumentStore) getPosition(indicatorDocument v1.IndicatorDocument) int {
 	for idx, doc := range d.documents {
-		if doc.indicatorDocument.UID() == indicatorDocument.UID() {
+		if doc.indicatorDocument.BoshUID() == indicatorDocument.BoshUID() {
 			return idx
 		}
 	}
 
 	return -1
-}
-
-func logPatchInsert(p indicator.Patch) {
-	logLine := strings.Builder{}
-	logLine.Write([]byte("registered patch for"))
-	if p.Match.Name != nil {
-		logLine.WriteString(" name: " + *p.Match.Name)
-	}
-	if p.Match.Version != nil {
-		logLine.WriteString(" version: " + *p.Match.Version)
-	}
-	if p.Match.Metadata != nil {
-		logLine.WriteString(fmt.Sprintf(" metadata: %v", p.Match.Metadata))
-	}
-	log.Println(logLine.String())
 }

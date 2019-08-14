@@ -1,0 +1,5 @@
+check process indicator-document-registration-agent
+  with pidfile /var/vcap/sys/run/indicator-document-registration-agent/agent.pid
+  start program "/var/vcap/jobs/indicator-document-registration-agent/bin/agent_ctl start"
+  stop program "/var/vcap/jobs/indicator-document-registration-agent/bin/agent_ctl stop"
+  group vcap

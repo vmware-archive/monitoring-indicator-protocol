@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type Clock func() time.Time
@@ -63,4 +66,24 @@ func (s *Store) StatusFor(documentUID string, indicatorName string) (IndicatorSt
 	}
 
 	return IndicatorStatus{}, fmt.Errorf("indicator status for document %s with name %s could not be found", documentUID, indicatorName)
+}
+
+func (s *Store) FillStatuses(doc *v1.IndicatorDocument) {
+	s.Lock()
+	defer s.Unlock()
+
+	docStatus := make(map[string]v1.IndicatorStatus)
+
+	for _, status := range s.statuses {
+		if status.DocumentUID == doc.BoshUID() {
+			var newStatus v1.IndicatorStatus
+			if status.Status != nil {
+				newStatus.Phase = *status.Status
+				newStatus.UpdatedAt = metaV1.Time{Time: status.UpdatedAt}
+			}
+			docStatus[status.IndicatorName] = newStatus
+		}
+	}
+
+	doc.Status = docStatus
 }

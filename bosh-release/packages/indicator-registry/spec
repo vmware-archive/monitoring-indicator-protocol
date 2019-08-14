@@ -1,8 +1,0 @@
----
-name: indicator-registry
-
-dependencies:
-- golang-1.12-linux
-
-files:
-- github.com/pivotal/monitoring-indicator-protocol/**/*

@@ -1,15 +1,14 @@
 package docs
 
 import (
+	"bytes"
+	"fmt"
+	"html/template"
 	"log"
 	"strings"
 	"unicode"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
-
-	"bytes"
-	"fmt"
-	"html/template"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
 	"gopkg.in/russross/blackfriday.v2"
 )
@@ -48,10 +47,10 @@ var indicatorTmpl = template.Must(template.New("Indicator").Parse(`
 </table>`))
 
 type indicatorPresenter struct {
-	indicator.Indicator
+	v1.IndicatorSpec
 }
 
-func NewIndicatorPresenter(i indicator.Indicator) indicatorPresenter {
+func NewIndicatorPresenter(i v1.IndicatorSpec) indicatorPresenter {
 	return indicatorPresenter{i}
 }
 
@@ -60,14 +59,14 @@ func (p *indicatorPresenter) HTML() template.HTML {
 	err := indicatorTmpl.Execute(buffer, p)
 
 	if err != nil {
-		log.Fatalf("could not render indicator: %s", err.Error())
+		log.Fatal("could not render indicator")
 	}
 
 	return template.HTML(buffer.String())
 }
 
 func (p indicatorPresenter) PromQL() template.HTML {
-	return template.HTML(p.Indicator.PromQL)
+	return template.HTML(p.IndicatorSpec.PromQL)
 }
 
 func (p indicatorPresenter) Title() string {
@@ -137,12 +136,12 @@ func (p indicatorPresenter) markdownDocumentationField(field string) template.HT
 }
 
 type thresholdPresenter struct {
-	threshold indicator.Threshold
+	threshold v1.Threshold
 }
 
 func (p indicatorPresenter) Thresholds() []thresholdPresenter {
 	var tp []thresholdPresenter
-	for _, t := range p.Indicator.Thresholds {
+	for _, t := range p.IndicatorSpec.Thresholds {
 		tp = append(tp, thresholdPresenter{t})
 	}
 	return tp
@@ -160,7 +159,7 @@ func (t thresholdPresenter) Level() string {
 }
 
 func (t thresholdPresenter) Operator() string {
-	return t.threshold.GetComparator()
+	return v1.GetComparatorSymbol(t.threshold.Operator)
 }
 
 func (t thresholdPresenter) Value() string {

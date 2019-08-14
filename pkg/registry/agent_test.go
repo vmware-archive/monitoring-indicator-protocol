@@ -12,6 +12,7 @@ import (
 	"github.com/onsi/gomega/ghttp"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -25,14 +26,15 @@ func TestRegistryAgent(t *testing.T) {
 		registryServer := ghttp.NewServer()
 		defer registryServer.Close()
 
-		receivedDocument := make(chan indicator.Document, 1)
+		receivedDocument := make(chan v1.IndicatorDocument, 1)
 
 		registryServer.AppendHandlers(func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			content, err := ioutil.ReadAll(r.Body)
 			g.Expect(err).ToNot(HaveOccurred())
 
-			document, err := indicator.ReadIndicatorDocument(content)
+			reader := ioutil.NopCloser(bytes.NewReader(content))
+			document, err := indicator.DocumentFromYAML(reader)
 			g.Expect(err).To(Not(HaveOccurred()))
 
 			receivedDocument <- document
@@ -53,8 +55,8 @@ func TestRegistryAgent(t *testing.T) {
 		g.Eventually(registryServer.ReceivedRequests).Should(HaveLen(2))
 
 		document := <-receivedDocument
-		g.Expect(document.Metadata["deployment"]).To(Equal("abc-123"))
-		g.Expect(document.Product.Name).To(Equal("job-a-product"))
+		g.Expect(document.ObjectMeta.Labels["deployment"]).To(Equal("abc-123"))
+		g.Expect(document.Spec.Product.Name).To(Equal("job-a-product"))
 	})
 }
 

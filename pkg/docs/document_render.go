@@ -2,27 +2,29 @@ package docs
 
 import (
 	"bytes"
+	"errors"
 	"html/template"
 	"strings"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+
 	"gopkg.in/russross/blackfriday.v2"
 )
 
-func docToTemplate(d indicator.Document, t *template.Template) (string, error) {
+func docToTemplate(d v1.IndicatorDocument, t *template.Template) (string, error) {
 	buffer := bytes.NewBuffer(nil)
-	err := t.Execute(buffer, documentPresenter{d.Layout, d.Indicators})
+	err := t.Execute(buffer, documentPresenter{d.Spec.Layout, d.Spec.Indicators})
 
 	if err != nil {
-		return "", err
+		return "", errors.New("failed to convert document to template")
 	}
 
-	return buffer.String(), err
+	return buffer.String(), nil
 }
 
 type documentPresenter struct {
-	indicator.Layout
-	indicators []indicator.Indicator
+	v1.Layout
+	indicators []v1.IndicatorSpec
 }
 
 func (dp documentPresenter) Description() template.HTML {
@@ -38,8 +40,8 @@ func (dp documentPresenter) Sections() []sectionPresenter {
 }
 
 type sectionPresenter struct {
-	indicator.Section
-	indicators []indicator.Indicator
+	v1.Section
+	indicators []v1.IndicatorSpec
 }
 
 func (sp sectionPresenter) TitleID() string {
@@ -53,32 +55,27 @@ func (sp sectionPresenter) Description() template.HTML {
 func (sp sectionPresenter) Indicators() ([]indicatorPresenter, error) {
 	var indicatorPresenters []indicatorPresenter
 	for _, i := range sp.Section.Indicators {
-		indie, err := findIndicator(i, sp.indicators)
-		if err != nil {
-			return nil, err
-		}
+		indie := findIndicator(i, sp.indicators)
+
 		indicatorPresenters = append(indicatorPresenters, indicatorPresenter{*indie})
 	}
 	return indicatorPresenters, nil
 }
 
-func findIndicator(name string, indicators []indicator.Indicator) (*indicator.Indicator, error) {
+func findIndicator(name string, indicators []v1.IndicatorSpec) *v1.IndicatorSpec {
 	for _, i := range indicators {
 		if i.Name == name {
-			return &i, nil
+			return &i
 		}
 	}
 
-	return nil, nil
+	return nil
 }
 
 func (sp sectionPresenter) HTMLIndicators() ([]indicatorPresenter, error) {
 	var renderedIndicators []indicatorPresenter
 	for _, i := range sp.Section.Indicators {
-		indie, err := findIndicator(i, sp.indicators)
-		if err != nil {
-			return nil, err
-		}
+		indie := findIndicator(i, sp.indicators)
 		renderedIndicators = append(renderedIndicators, indicatorPresenter{*indie})
 	}
 	return renderedIndicators, nil

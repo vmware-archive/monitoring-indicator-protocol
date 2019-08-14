@@ -3,7 +3,7 @@ package docs
 import (
 	"html/template"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 const htmlDocumentTemplate = `
@@ -34,6 +34,6 @@ const htmlDocumentTemplate = `
 
 var htmlDocumatationTmpl = template.Must(template.New("html_document").Parse(htmlDocumentTemplate))
 
-func DocumentToHTML(d indicator.Document) (string, error) {
+func DocumentToHTML(d v1.IndicatorDocument) (string, error) {
 	return docToTemplate(d, htmlDocumatationTmpl)
 }

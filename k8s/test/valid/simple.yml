@@ -1,4 +1,4 @@
-apiVersion: apps.pivotal.io/v1alpha1
+apiVersion: apps.pivotal.io/v1
 kind: IndicatorDocument
 metadata:
   name: api-server
@@ -12,7 +12,8 @@ spec:
     alert: { for: 10m }
     thresholds:
     - level: critical
-      gt: 375
+      operator: gt
+      value: 375
   layout:
     title: API server
     sections:

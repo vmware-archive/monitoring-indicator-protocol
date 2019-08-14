@@ -1,0 +1,17 @@
+version: '3'
+services:
+  indicator-registry:
+    image: indicatorprotocol/bosh-indicator-protocol-registry
+    expose: ["10568"]
+    volumes: ["./resources:/srv/resources"]
+  indicator-registry-proxy:
+    image: indicatorprotocol/bosh-indicator-protocol-registry-proxy
+    ports: ["10567:10567"]
+    volumes: ["./certs:/srv/certs"]
+    depends_on:
+    - indicator-registry
+  indicator-registry-agent:
+    image: indicatorprotocol/bosh-indicator-protocol-registry-agent
+    volumes: ["./certs:/srv/certs", "./resources:/srv/resources"]
+    depends_on:
+    - indicator-registry-proxy

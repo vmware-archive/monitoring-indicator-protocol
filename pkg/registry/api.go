@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
@@ -30,7 +32,6 @@ func NewRegisterHandler(store *DocumentStore) http.HandlerFunc {
 		}
 
 		store.UpsertDocument(doc)
-
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -39,8 +40,30 @@ func NewIndicatorDocumentsHandler(store *DocumentStore, statusStore *status_stor
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		bytes, _ := marshal(store.AllDocuments(), statusStore)
-		fmt.Fprintf(w, string(bytes))
+
+		productName := r.URL.Query().Get("product-name")
+
+		var documents []v1.IndicatorDocument
+		if productName == "" {
+			documents = store.AllDocuments()
+		} else {
+			documents = store.FilteredDocuments(productName)
+		}
+
+		returnedDocuments := make([]APIDocumentResponse, len(documents))
+		for i, doc := range documents {
+			statusStore.FillStatuses(&doc)
+			returnedDocuments[i] = ToAPIDocumentResponse(doc)
+		}
+		bytes, err := json.Marshal(returnedDocuments)
+		if err != nil {
+			writeErrors(w, http.StatusInternalServerError, err)
+		}
+		_, err = fmt.Fprint(w, string(bytes))
+
+		if err != nil {
+			log.Printf("error writing to `/indicator-documents`")
+		}
 	}
 }
 
@@ -51,18 +74,23 @@ func writeErrors(w http.ResponseWriter, statusCode int, errors ...error) {
 	}
 
 	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(errorResponse{Errors: errorStrings})
+	_ = json.NewEncoder(w).Encode(errorResponse{Errors: errorStrings})
 }
 
 type APIV0UpdateIndicatorStatus struct {
-	Name   string `json:"name"`
+	Name   string  `json:"name"`
 	Status *string `json:"status"`
 }
 
 func NewIndicatorStatusBulkUpdateHandler(store *status_store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var indicatorStatuses []APIV0UpdateIndicatorStatus
-		err := json.NewDecoder(r.Body).Decode(&indicatorStatuses)
+		bytes, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = json.Unmarshal(bytes, &indicatorStatuses)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -81,27 +109,4 @@ func NewIndicatorStatusBulkUpdateHandler(store *status_store.Store) http.Handler
 
 type errorResponse struct {
 	Errors []string `json:"errors"`
-}
-
-func marshal(docs []indicator.Document, statusStore *status_store.Store) ([]byte, error) {
-	data := make([]APIV0Document, 0)
-	for _, doc := range docs {
-		data = append(data, ToAPIV0Document(doc, statusGetterForDoc(statusStore, doc)))
-	}
-
-	return json.Marshal(data)
-}
-
-func statusGetterForDoc(statusStore *status_store.Store, doc indicator.Document) func(name string) *APIV0IndicatorStatus {
-	return func(name string) *APIV0IndicatorStatus {
-		status, err := statusStore.StatusFor(doc.UID(), name)
-		if err != nil {
-			return nil
-		}
-
-		return &APIV0IndicatorStatus{
-			Value:     status.Status,
-			UpdatedAt: status.UpdatedAt,
-		}
-	}
 }

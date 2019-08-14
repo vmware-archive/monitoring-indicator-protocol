@@ -1,0 +1,65 @@
+[
+  {
+    "apiVersion": "apps.pivotal.io/v1",
+    "uid": "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
+    "kind": "IndicatorDocument",
+    "metadata": {
+      "labels": {
+        "deployment": "abc-123"
+      }
+    },
+    "spec": {
+      "product": {
+        "name": "my-product-a",
+        "version": "1"
+      },
+      "indicators": [
+        {
+          "name": "indie1",
+          "type": "indicator",
+          "promql": "promql1",
+          "thresholds": [],
+          "alert": {
+            "for": "5m",
+            "step": "10s"
+          },
+          "presentation": {
+            "chartType": "step",
+            "currentValue": false,
+            "frequency": 0,
+            "labels": [],
+            "units": ""
+          },
+          "status": null
+        },
+        {
+          "name": "indie2",
+          "type": "indicator",
+          "promql": "promql2",
+          "thresholds": [],
+          "alert": {
+            "for": "5m",
+            "step": "10s"
+          },
+          "presentation": {
+            "chartType": "status",
+            "currentValue": false,
+            "frequency": 0,
+            "labels": [],
+            "units": "nanoseconds"
+          },
+          "status": {
+            "value": "critical",
+            "updatedAt": "0001-01-01T00:00:00Z"
+          }
+        }
+      ],
+      "layout": {
+        "title": "",
+        "description": "",
+        "sections": [],
+        "owner": ""
+      }
+    }
+  }
+]

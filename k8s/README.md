@@ -36,6 +36,11 @@ for prometheus based on `IndicatorDocument`s.
 The `indicator-lifecycle-controller` creates individual Indicator
 resources in k8s for each indicator defined in a document.
 
+#### Status
+
+The `indicator-status-controller` updates the status of each indicator 
+based on thresholds and query results.
+
 ### Cluster setup
 
 ```bash
@@ -60,14 +65,8 @@ kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admi
 kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
 helm init --service-account tiller --upgrade
 
-# Create Grafana namespace
-kubectl create ns grafana
-
 # Install Grafana helmchart
 helm install stable/grafana --values helm_config/dev_grafana_values.yml --name grafana --namespace grafana
-
-# Create Prometheus namespace
-kubectl create ns prometheus
 
 # Install Prometheus helmchart
 helm install stable/prometheus --name prometheus --namespace prometheus
@@ -78,15 +77,19 @@ helm install stable/prometheus --name prometheus --namespace prometheus
 After setting up your cluster,
 you can deploy the SRE resources by:
 
-```
+```bash
 kubectl apply -k config
 ```
 
 This will install the controllers using the `latest` tag in Docker.
 
-After deploying the SRE resources you can deploy indicatordocument resources:
-
+After deploying the SRE resources you can deploy indicatordocument resources. It may take a bit, so if you see the error message:
 ```
+no endpoints available for service "indicator-admission"
+```
+give it a few minutes.
+
+```bash
 kubectl apply -f test/valid/simple.yml
 ```
 
@@ -127,8 +130,11 @@ helm install stable/prometheus --values helm_config/e2e_prometheus_values.yml --
 
 #### Running the tests
 
-The tests can be run with a shell script from the root directory of this
-repository: `./scripts/test.sh e2e`.
+The k8s tests can be run with a shell script from the root directory of this
+repository: `./scripts/test.sh k8s_e2e`.
 The tests use the current Kubernetes auth context,
 so you must be logged into a cluster to run them.
 The cluster must be set up for E2E tests as detailed above.
+
+
+To run both bosh and k8s e2e tests, run `./scripts/test.sh e2e`

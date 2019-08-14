@@ -2,344 +2,378 @@ package indicator
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
-	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/cppforlife/go-patch/patch"
-	"gopkg.in/yaml.v2"
+	"github.com/ghodss/yaml"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ReadOpt func(options *readOptions)
 
-func SkipMetadataInterpolation(options *readOptions) {
-	options.interpolate = false
-}
-
-func OverrideMetadata(overrideMetadata map[string]string) func(options *readOptions) {
-	return func(options *readOptions) {
-		for k, v := range overrideMetadata {
-			options.overrides[k] = v
-		}
-	}
-}
-
-func ProcessDocument(patches []Patch, documentBytes []byte) (Document, []error) {
-	patchedDocBytes, err := ApplyPatches(patches, documentBytes)
+func DocumentFromYAML(r io.ReadCloser) (v1.IndicatorDocument, error) {
+	docBytes, err := ioutil.ReadAll(r)
 	if err != nil {
-		return Document{}, []error{err}
+		return v1.IndicatorDocument{}, err
 	}
 
-	doc, err := ReadIndicatorDocument(patchedDocBytes)
+	apiVersion, err := ApiVersionFromYAML(docBytes)
 	if err != nil {
-		return Document{}, []error{err}
+		return v1.IndicatorDocument{}, err
 	}
 
-	errs := ValidateForRegistry(doc)
-	if len(errs) > 0 {
-		return Document{}, errs
+	var doc v1.IndicatorDocument
+	switch apiVersion {
+	case api_versions.V0:
+		log.Print("WARNING: apiVersion v0 will be deprecated in future releases")
+		doc, err = v0documentFromBytes(docBytes)
+	case api_versions.V1:
+		err = yaml.Unmarshal(docBytes, &doc)
+	default:
+		err = fmt.Errorf("invalid apiVersion, supported versions are: [v0, apps.pivotal.io/v1]")
 	}
+
+	if err != nil {
+		return v1.IndicatorDocument{}, err
+	}
+
+	v1.PopulateDefaults(&doc)
 
 	return doc, nil
 }
 
-func ApplyPatches(patches []Patch, documentBytes []byte) ([]byte, error) {
-	_, err := readMetadata(documentBytes)
-	if err != nil {
-		return []byte{}, fmt.Errorf("could not read document metadata: %s", err)
-	}
-	var document interface{}
-	err = yaml.Unmarshal(documentBytes, &document)
-	if err != nil {
-		return []byte{}, fmt.Errorf("failed to unmarshal document for patching: %s", err)
-	}
-
-	for _, p := range patches {
-		if MatchDocument(p.Match, documentBytes) {
-			ops, err := patch.NewOpsFromDefinitions(p.Operations)
-			if err != nil {
-				log.Print(fmt.Errorf("failed to parse patch operations: %s", err))
-				continue
-			}
-			for i, o := range ops {
-				var tempDocument interface{}
-				tempDocument, err = o.Apply(document)
-				if err != nil {
-					od := p.Operations[i]
-					log.Print(fmt.Errorf("failed to apply patch operation %s %s: %s", od.Type, *od.Path, err))
-					continue
-				}
-				document = tempDocument
-			}
-		}
-	}
-
-	patched, err := yaml.Marshal(document)
-	if err != nil {
-		return []byte{}, err
-	}
-	return patched, nil
-}
-
-func MatchDocument(criteria Match, documentBytes []byte) bool {
-	product, err := readProductInfo(documentBytes)
-	if err != nil {
-		return false
-	}
-
-	if criteria.Name != nil && *criteria.Name != product.Name {
-		return false
-	}
-	if criteria.Version != nil && *criteria.Version != product.Version {
-		return false
-	}
-
-	if criteria.Metadata != nil {
-		metadata, err := readMetadata(documentBytes)
-		if err != nil {
-			return false
-		}
-
-		if !reflect.DeepEqual(metadata, criteria.Metadata) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func ReadIndicatorDocument(yamlBytes []byte, opts ...ReadOpt) (Document, error) {
-	readOptions := getReadOpts(opts)
-
-	if readOptions.interpolate {
-		metadata, err := readMetadata(yamlBytes)
-		if err != nil {
-			return Document{}, fmt.Errorf("could not read metadata: %s", err)
-		}
-
-		yamlBytes = fillInMetadata(metadata, readOptions.overrides, yamlBytes)
-	}
-
-	var d yamlDocument
+func v0documentFromBytes(yamlBytes []byte) (v1.IndicatorDocument, error) {
+	var d v0yamlDocument
 
 	err := yaml.Unmarshal(yamlBytes, &d)
 	if err != nil {
-		return Document{}, fmt.Errorf("could not unmarshal indicators: %s", err)
+		return v1.IndicatorDocument{}, fmt.Errorf("could not unmarshal indicator document")
 	}
 
-	for k, v := range readOptions.overrides {
-		d.Metadata[k] = v
-	}
-
-	var indicators []Indicator
-	for i, yamlIndicator := range d.Indicators {
-		var thresholds []Threshold
-		for _, yamlThreshold := range yamlIndicator.Thresholds {
-			threshold, err := thresholdFromYAML(yamlThreshold)
+	var indicators []v1.IndicatorSpec
+	for indicatorIndex, yamlIndicator := range d.Indicators {
+		var thresholds []v1.Threshold
+		for thresholdIndex, yamlThreshold := range yamlIndicator.Thresholds {
+			threshold, err := v0thresholdFromYAML(yamlThreshold)
 			if err != nil {
-				return Document{}, fmt.Errorf("could not convert yaml indicator[%v]: %s", i, err)
+				return v1.IndicatorDocument{}, fmt.Errorf("could not unmarshal threshold %v in indicator %v", thresholdIndex, indicatorIndex)
 			}
 
 			thresholds = append(thresholds, threshold)
 		}
 
-		p := presentationFromYAML(yamlIndicator.Presentation)
+		p := v0presentationFromYAML(yamlIndicator.Presentation)
 
-		indicators = append(indicators, Indicator{
+		indicators = append(indicators, v1.IndicatorSpec{
 			Name:          yamlIndicator.Name,
+			Type:          v1.DefaultIndicator,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
-			Alert:         alertFromYAML(yamlIndicator.Alert),
-			ServiceLevel:  serviceLevelFromYAML(yamlIndicator.ServiceLevel),
+			Alert:         v0alertFromYAML(yamlIndicator.Alert),
 			Presentation:  p,
 			Documentation: yamlIndicator.Documentation,
 		})
 	}
 
-	layout, err := getLayout(d.YAMLLayout, indicators)
-	if err != nil {
-		return Document{}, err
-	}
+	layout := getLayout(d.YAMLLayout)
 
-	return Document{
-		APIVersion: d.APIVersion,
-		Product: Product{
-			Name:    d.Product.Name,
-			Version: d.Product.Version,
+	return v1.IndicatorDocument{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: api_versions.V0,
+			Kind:       "IndicatorDocument",
 		},
-		Metadata:   d.Metadata,
-		Indicators: indicators,
-		Layout:     layout,
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: d.Metadata,
+		},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{
+				Name:    d.Product.Name,
+				Version: d.Product.Version,
+			},
+			Indicators: indicators,
+			Layout:     layout,
+		},
 	}, nil
 }
 
-func serviceLevelFromYAML(level *yamlServiceLevel) *ServiceLevel {
-	if level == nil {
-		return nil
-	}
-	return &ServiceLevel{
-		Objective: level.Objective,
-	}
-}
-
-func ReadPatchBytes(yamlBytes []byte) (Patch, error) {
-	p := yamlPatch{}
-	err := yaml.Unmarshal(yamlBytes, &p)
-
-	if err != nil {
-		return Patch{}, fmt.Errorf("unable to parse bytes: %s\n", err)
-	}
-
-	return Patch{
-		APIVersion: p.APIVersion,
-		Match: Match{
-			Name:     p.Match.Product.Name,
-			Version:  p.Match.Product.Version,
-			Metadata: p.Match.Metadata,
-		},
-		Operations: p.Operations,
-	}, nil
-}
-
-func getIndicatorNames(indicators []Indicator) []string {
-	names := make([]string, 0, len(indicators))
-	for _, i := range indicators {
-		names = append(names, i.Name)
-	}
-	return names
-}
-
-func getLayout(l *yamlLayout, indicators []Indicator) (Layout, error) {
-	var sections []Section
+func getLayout(l *v0yamlLayout) v1.Layout {
 	if l == nil {
-		return Layout{
-			Sections: []Section{{
-				Title:      "Metrics",
-				Indicators: getIndicatorNames(indicators),
-			}},
-		}, nil
+		return v1.Layout{}
 	}
+	sections := make([]v1.Section, 0)
 
 	for _, s := range l.Sections {
-		//var sectionIndicators []Indicator
-		//for iIdx, i := range s.IndicatorRefs {
-		//	indic, ok := findIndicator(i, indicators)
-		//	if !ok {
-		//		return Layout{}, fmt.Errorf("documentation.sections[%d].indicators[%d] references non-existent indicator", idx, iIdx)
-		//	}
-		//
-		//	sectionIndicators = append(sectionIndicators, indic)
-		//}
-
-		sections = append(sections, Section{
+		sections = append(sections, v1.Section{
 			Title:       s.Title,
 			Description: s.Description,
 			Indicators:  s.IndicatorRefs,
 		})
 	}
 
-	return Layout{
+	return v1.Layout{
 		Title:       l.Title,
 		Description: l.Description,
 		Owner:       l.Owner,
 		Sections:    sections,
+	}
+}
+
+func v0thresholdFromYAML(threshold v0yamlThreshold) (v1.Threshold, error) {
+	var operator v1.ThresholdOperator
+	var value float64
+	var err error
+
+	switch {
+	case threshold.LT != "":
+		operator = v1.LessThan
+		value, err = strconv.ParseFloat(threshold.LT, 64)
+	case threshold.LTE != "":
+		operator = v1.LessThanOrEqualTo
+		value, err = strconv.ParseFloat(threshold.LTE, 64)
+	case threshold.EQ != "":
+		operator = v1.EqualTo
+		value, err = strconv.ParseFloat(threshold.EQ, 64)
+	case threshold.NEQ != "":
+		operator = v1.NotEqualTo
+		value, err = strconv.ParseFloat(threshold.NEQ, 64)
+	case threshold.GTE != "":
+		operator = v1.GreaterThanOrEqualTo
+		value, err = strconv.ParseFloat(threshold.GTE, 64)
+	case threshold.GT != "":
+		operator = v1.GreaterThan
+		value, err = strconv.ParseFloat(threshold.GT, 64)
+	default:
+		operator = v1.UndefinedOperator
+	}
+
+	if err != nil {
+		return v1.Threshold{}, err
+	}
+
+	return v1.Threshold{
+		Level:    threshold.Level,
+		Operator: operator,
+		Value:    value,
 	}, nil
 }
 
-func ParseMetadata(input string) map[string]string {
-	metadata := map[string]string{}
-
-	for _, pair := range strings.Split(input, ",") {
-		v := strings.Split(pair, "=")
-		if len(v) > 1 {
-			metadata[v[0]] = v[1]
+func v0presentationFromYAML(p *v0yamlPresentation) v1.Presentation {
+	if p == nil {
+		return v1.Presentation{
+			ChartType:    v1.StepChart,
+			CurrentValue: false,
+			Frequency:    0,
+			Labels:       []string{},
+			Units:        "",
 		}
 	}
 
-	return metadata
-}
-
-func getReadOpts(optionsFuncs []ReadOpt) readOptions {
-	options := readOptions{
-		interpolate: true,
-		overrides:   map[string]string{},
+	chartType := p.ChartType
+	if chartType == "" {
+		chartType = v1.StepChart
 	}
 
-	for _, fn := range optionsFuncs {
-		fn(&options)
+	return v1.Presentation{
+		ChartType:    chartType,
+		CurrentValue: p.CurrentValue,
+		Frequency:    p.Frequency,
+		Labels:       p.Labels,
+		Units:        p.Units,
+	}
+}
+
+func v0alertFromYAML(a v0yamlAlert) v1.Alert {
+	alertFor, alertStep := a.For, a.Step
+	if alertFor == "" {
+		alertFor = "1m"
+	}
+	if alertStep == "" {
+		alertStep = "1m"
 	}
 
-	return options
+	return v1.Alert{
+		For:  alertFor,
+		Step: alertStep,
+	}
 }
 
-type readOptions struct {
-	interpolate bool
-	overrides   map[string]string
+type v0yamlDocument struct {
+	APIVersion string            `json:"apiVersion"`
+	Product    v0yamlProduct     `json:"product"`
+	Metadata   map[string]string `json:"metadata"`
+	Indicators []v0yamlIndicator `json:"indicators"`
+	YAMLLayout *v0yamlLayout     `json:"layout"`
 }
 
-type yamlDocument struct {
-	APIVersion string            `yaml:"apiVersion"`
-	Product    yamlProduct       `yaml:"product"`
-	Metadata   map[string]string `yaml:"metadata"`
-	Indicators []yamlIndicator   `yaml:"indicators"`
-	YAMLLayout *yamlLayout       `yaml:"layout"`
+type v0yamlProduct struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
-type yamlProduct struct {
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
+type v0yamlLayout struct {
+	Title       string          `json:"title"`
+	Description string          `json:"description"`
+	Sections    []v0yamlSection `json:"sections"`
+	Owner       string          `json:"owner"`
 }
 
-type yamlLayout struct {
-	Title       string        `yaml:"title"`
-	Description string        `yaml:"description"`
-	Sections    []yamlSection `yaml:"sections"`
-	Owner       string        `yaml:"owner"`
+type v0yamlSection struct {
+	Title         string   `json:"title"`
+	Description   string   `json:"description"`
+	IndicatorRefs []string `json:"indicators"`
 }
 
-type yamlSection struct {
-	Title         string   `yaml:"title"`
-	Description   string   `yaml:"description"`
-	IndicatorRefs []string `yaml:"indicators"`
+type v0yamlIndicator struct {
+	Name          string              `json:"name"`
+	Promql        string              `json:"promql"`
+	Thresholds    []v0yamlThreshold   `json:"thresholds"`
+	Alert         v0yamlAlert         `json:"alert"`
+	Documentation map[string]string   `json:"documentation"`
+	Presentation  *v0yamlPresentation `json:"presentation"`
 }
 
-type yamlIndicator struct {
-	Name          string            `yaml:"name"`
-	Promql        string            `yaml:"promql"`
-	Thresholds    []yamlThreshold   `yaml:"thresholds"`
-	Alert         yamlAlert         `yaml:"alert"`
-	ServiceLevel  *yamlServiceLevel `yaml:"serviceLevel"`
-	Documentation map[string]string `yaml:"documentation"`
-	Presentation  *yamlPresentation `yaml:"presentation"`
-}
-
-type yamlServiceLevel struct {
-	Objective float64 `yaml:"objective"`
-}
-
-type yamlAlert struct {
+type v0yamlAlert struct {
 	For  string
 	Step string
 }
 
-type yamlThreshold struct {
-	Level string `yaml:"level"`
-	LT    string `yaml:"lt"`
-	LTE   string `yaml:"lte"`
-	EQ    string `yaml:"eq"`
-	NEQ   string `yaml:"neq"`
-	GTE   string `yaml:"gte"`
-	GT    string `yaml:"gt"`
+type v0yamlThreshold struct {
+	Level string `json:"level"`
+	LT    string `json:"lt"`
+	LTE   string `json:"lte"`
+	EQ    string `json:"eq"`
+	NEQ   string `json:"neq"`
+	GTE   string `json:"gte"`
+	GT    string `json:"gt"`
 }
 
-type yamlPresentation struct {
-	ChartType    ChartType `yaml:"chartType"`
-	CurrentValue bool      `yaml:"currentValue"`
-	Frequency    int64     `yaml:"frequency"`
-	Labels       []string  `yaml:"labels"`
-	Units        string    `yaml:"units"`
+type v0yamlPresentation struct {
+	ChartType    v1.ChartType `json:"chartType"`
+	CurrentValue bool         `json:"currentValue"`
+	Frequency    int64        `json:"frequency"`
+	Labels       []string     `json:"labels"`
+	Units        string       `json:"units"`
+}
+
+func ApiVersionFromYAML(docBytes []byte) (string, error) {
+	var d struct {
+		ApiVersion string `yaml:"apiVersion"`
+	}
+	err := yaml.Unmarshal(docBytes, &d)
+	if err != nil {
+		return "", fmt.Errorf("could not unmarshal apiVersion")
+	}
+	return d.ApiVersion, nil
+}
+
+func KindFromYAML(fileBytes []byte) (string, error) {
+	var f struct{ Kind string }
+
+	err := yaml.Unmarshal(fileBytes, &f)
+	if err != nil {
+		return "", err
+	}
+
+	return f.Kind, nil
+}
+
+func PatchFromYAML(reader io.ReadCloser) (Patch, error) {
+	var yamlPatch yamlPatch
+	patchBytes, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return Patch{}, fmt.Errorf("could not read patch: %s", err)
+	}
+	err = yaml.Unmarshal(patchBytes, &yamlPatch)
+	if err != nil {
+		return Patch{}, fmt.Errorf("could not unmarshal patch: %s", err)
+	}
+	_ = reader.Close()
+
+	return Patch{
+		APIVersion: yamlPatch.APIVersion,
+		Match: Match{
+			Name:     yamlPatch.Match.Product.Name,
+			Version:  yamlPatch.Match.Product.Version,
+			Metadata: yamlPatch.Match.Metadata,
+		},
+		Operations: yamlPatch.Operations,
+	}, nil
+}
+
+func ProductFromYAML(reader io.ReadCloser) (v1.Product, error) {
+	docBytes, err := ioutil.ReadAll(reader)
+	_ = reader.Close()
+	if err != nil {
+		return v1.Product{}, fmt.Errorf("could not read document")
+	}
+
+	apiVersion, err := ApiVersionFromYAML(docBytes)
+	var product v1.Product
+	switch apiVersion {
+	case api_versions.V0:
+		var d struct {
+			Product v1.Product
+		}
+		err = yaml.Unmarshal(docBytes, &d)
+		product = d.Product
+	case api_versions.V1:
+		var d struct {
+			Spec struct {
+				Product v1.Product
+			}
+		}
+		err = yaml.Unmarshal(docBytes, &d)
+		product = d.Spec.Product
+	}
+
+	if err != nil {
+		return v1.Product{}, errors.New("could not unmarshal product information")
+	}
+
+	return product, nil
+}
+
+func MetadataFromYAML(reader io.ReadCloser) (map[string]string, error) {
+	docBytes, err := ioutil.ReadAll(reader)
+	_ = reader.Close()
+	if err != nil {
+		return nil, fmt.Errorf("could not read document")
+	}
+
+	apiVersion, err := ApiVersionFromYAML(docBytes)
+	var metadata map[string]string
+	switch apiVersion {
+	case api_versions.V0:
+		var d struct {
+			Metadata map[string]string
+		}
+		err = yaml.Unmarshal(docBytes, &d)
+		metadata = d.Metadata
+	case api_versions.V1:
+		var d struct {
+			Metadata struct {
+				Labels map[string]string
+			}
+		}
+		err = yaml.Unmarshal(docBytes, &d)
+		metadata = d.Metadata.Labels
+	}
+
+	if err != nil {
+		return map[string]string{}, fmt.Errorf("could not unmarshal metadata")
+	}
+	_ = reader.Close()
+
+	return metadata, nil
 }
 
 type yamlPatch struct {
@@ -356,130 +390,61 @@ type yamlMatch struct {
 	Metadata map[string]string `yaml:"metadata,omitempty"`
 }
 
-func findIndicator(name string, indicators []Indicator) (Indicator, bool) {
-	for _, i := range indicators {
-		if i.Name == name {
-			return i, true
+
+func SkipMetadataInterpolation(options *readOptions) {
+	options.interpolate = false
+}
+
+func OverrideMetadata(overrideMetadata map[string]string) func(options *readOptions) {
+	return func(options *readOptions) {
+		for k, v := range overrideMetadata {
+			options.overrides[k] = v
+		}
+	}
+}
+
+func ProcessDocument(patches []Patch, documentBytes []byte) (v1.IndicatorDocument, []error) {
+	patchedDocBytes, err := ApplyPatches(patches, documentBytes)
+	if err != nil {
+		log.Print("failed to apply patches to document")
+		return v1.IndicatorDocument{}, []error{err}
+	}
+
+	reader2 := ioutil.NopCloser(bytes.NewReader(patchedDocBytes))
+	doc, err := DocumentFromYAML(reader2)
+	if err != nil {
+		log.Print("failed to unmarshal document")
+		return v1.IndicatorDocument{}, []error{err}
+	}
+
+	doc.Interpolate()
+
+	errs := doc.Validate(api_versions.V0, api_versions.V1)
+	if len(errs) > 0 {
+		log.Print("document validation failed")
+		for _, e := range errs {
+			log.Printf("- %s \n", e.Error())
+		}
+		return v1.IndicatorDocument{}, errs
+	}
+
+	return doc, nil
+}
+
+func ParseMetadata(input string) map[string]string {
+	metadata := map[string]string{}
+
+	for _, pair := range strings.Split(input, ",") {
+		v := strings.Split(pair, "=")
+		if len(v) > 1 {
+			metadata[v[0]] = v[1]
 		}
 	}
 
-	return Indicator{}, false
+	return metadata
 }
 
-func thresholdFromYAML(threshold yamlThreshold) (Threshold, error) {
-	var operator OperatorType
-	var value float64
-	var err error
-
-	switch {
-	case threshold.LT != "":
-		operator = LessThan
-		value, err = strconv.ParseFloat(threshold.LT, 64)
-	case threshold.LTE != "":
-		operator = LessThanOrEqualTo
-		value, err = strconv.ParseFloat(threshold.LTE, 64)
-	case threshold.EQ != "":
-		operator = EqualTo
-		value, err = strconv.ParseFloat(threshold.EQ, 64)
-	case threshold.NEQ != "":
-		operator = NotEqualTo
-		value, err = strconv.ParseFloat(threshold.NEQ, 64)
-	case threshold.GTE != "":
-		operator = GreaterThanOrEqualTo
-		value, err = strconv.ParseFloat(threshold.GTE, 64)
-	case threshold.GT != "":
-		operator = GreaterThan
-		value, err = strconv.ParseFloat(threshold.GT, 64)
-	default:
-		operator = Undefined
-	}
-
-	if err != nil {
-		return Threshold{}, err
-	}
-
-	return Threshold{
-		Level:    threshold.Level,
-		Operator: operator,
-		Value:    value,
-	}, nil
-}
-
-func presentationFromYAML(p *yamlPresentation) (Presentation) {
-	if p == nil {
-		return Presentation{
-			ChartType:    StepChart,
-			CurrentValue: false,
-			Frequency:    0,
-			Labels:       []string{},
-			Units:        "",
-		}
-	}
-
-	chartType := p.ChartType
-	if chartType == "" {
-		chartType = StepChart
-	}
-
-	return Presentation{
-		ChartType:    chartType,
-		CurrentValue: p.CurrentValue,
-		Frequency:    p.Frequency,
-		Labels:       p.Labels,
-		Units:        p.Units,
-	}
-}
-
-func alertFromYAML(a yamlAlert) Alert {
-	alertFor, alertStep := a.For, a.Step
-	if alertFor == "" {
-		alertFor = "1m"
-	}
-	if alertStep == "" {
-		alertStep = "1m"
-	}
-
-	return Alert{
-		For:  alertFor,
-		Step: alertStep,
-	}
-}
-
-func readMetadata(document []byte) (map[string]string, error) {
-	var d struct {
-		Metadata map[string]string `yaml:"metadata"`
-	}
-
-	err := yaml.Unmarshal(document, &d)
-	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal metadata: %s", err)
-	}
-
-	return d.Metadata, nil
-}
-
-func readProductInfo(documentBytes []byte) (yamlProduct, error) {
-	var document struct {
-		Product yamlProduct `yaml:"product"`
-	}
-
-	err := yaml.Unmarshal(documentBytes, &document)
-	if err != nil {
-		return yamlProduct{}, fmt.Errorf("could not unmarshal metadata: %s", err)
-	}
-
-	return document.Product, nil
-}
-
-func fillInMetadata(documentMetadata map[string]string, overrideMetadata map[string]string, documentBytes []byte) []byte {
-
-	for k, v := range overrideMetadata {
-		documentMetadata[k] = v
-	}
-
-	for k, v := range documentMetadata {
-		documentBytes = bytes.Replace(documentBytes, []byte("$"+k), []byte(v), -1)
-	}
-
-	return documentBytes
+type readOptions struct {
+	interpolate bool
+	overrides   map[string]string
 }

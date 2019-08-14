@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"github.com/benbjohnson/clock"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/indicator_status"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/indicator_status"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
 	"code.cloudfoundry.org/go-envstruct"
-	informers "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/informers/externalversions"
+	informers "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/informers/externalversions"
 )
 
 type config struct {
@@ -37,32 +37,32 @@ func main() {
 	var conf config
 	err := envstruct.Load(&conf)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to load env variables: NAMESPACE is required")
 	}
 	err = envstruct.WriteReport(&conf)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to write report using env variables")
 	}
 
 	cfg, err := rest.InClusterConfig()
-	cfg.Timeout = 5*time.Second
+	cfg.Timeout = 5 * time.Second
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to configure kubernetes cluster; make sure kubernetes is running")
 	}
 
 	client, err := versioned.NewForConfig(cfg)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to create clientSet for the given config")
 	}
 
 	tokenFetcher := func() (string, error) { return conf.PrometheusApiToken, nil }
 	prometheusClient, err := prometheus_oauth_client.Build(conf.PrometheusURL, tokenFetcher, false)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("error building prometheus client")
 	}
 
 	controller := indicator_status.NewController(
-		client.AppsV1alpha1(),
+		client.AppsV1(),
 		prometheusClient,
 		30*time.Second,
 		clock.New(),
@@ -76,7 +76,7 @@ func main() {
 	)
 
 	indicatorInformer := informerFactory.Apps().
-		V1alpha1().
+		V1().
 		Indicators().
 		Informer()
 	indicatorInformer.AddEventHandler(controller)

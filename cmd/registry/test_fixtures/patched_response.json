@@ -1,158 +1,165 @@
 [
   {
-    "apiVersion": "v0",
+    "apiVersion": "apps.pivotal.io/v1",
     "uid": "my-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
-    "product": {
-      "name": "my-component",
-      "version": "1.2.3"
-    },
+    "kind": "IndicatorDocument",
     "metadata": {
-      "deployment": "my-service-deployment",
-      "source_id": "my-metric-source"
-    },
-    "indicators": [
-      {
-        "name": "only_in_example_yml",
-        "promql": "test_query",
-        "status": null,
-        "thresholds": [],
-        "alert": {
-          "for": "1m",
-          "step": "1m"
-        },
-        "serviceLevel": null,
-        "presentation": {
-          "chartType": "step",
-          "frequency": 0,
-          "currentValue": false,
-          "labels": [],
-          "units": ""
-        }
-      },
-      {
-        "name": "doc_performance_indicator",
-        "promql": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-service-deployment\"}[5m])",
-        "status": null,
-        "thresholds": [
-          {
-            "level": "warning",
-            "operator": "gte",
-            "value": 50
-          },
-          {
-            "level": "critical",
-            "operator": "gt",
-            "value": 100
-          }
-        ],
-        "alert": {
-          "for": "5m",
-          "step": "10s"
-        },
-        "serviceLevel": {
-          "objective": 99.9
-        },
-        "documentation": {
-          "description": "This is a valid markdown description.\n\n**Use**: This indicates nothing. It is placeholder text.\n\n**Type**: Gauge\n**Frequency**: 60 s\n",
-          "measurement": "Average latency over last 5 minutes per instance",
-          "recommendedResponse": "Panic! Run around in circles flailing your arms.",
-          "thresholdNote": "These are environment specific",
-          "title": "Doc Performance Indicator"
-        },
-        "presentation": {
-          "chartType": "step",
-          "frequency": 60,
-          "currentValue": false,
-          "labels": [
-            "job",
-            "ip",
-            "index"
-          ],
-          "units": ""
-        }
+      "labels": {
+        "deployment": "my-service-deployment",
+        "source_id": "my-metric-source"
       }
-    ],
-    "layout": {
-      "title": "Monitoring Document Product",
-      "description": "Document description",
-      "sections": [
+    },
+    "spec": {
+      "product": {
+        "name": "my-component",
+        "version": "1.2.3"
+      },
+      "indicators": [
         {
-          "title": "Indicators",
-          "description": "This section includes indicators",
-          "indicators": [
-            "doc_performance_indicator"
-          ]
+          "name": "only_in_example_yml",
+          "type": "indicator",
+          "promql": "test_query",
+          "status": null,
+          "thresholds": [],
+          "alert": {
+            "for": "1m",
+            "step": "1m"
+          },
+          "presentation": {
+            "chartType": "step",
+            "frequency": 0,
+            "currentValue": false,
+            "labels": [],
+            "units": ""
+          }
+        },
+        {
+          "name": "doc_performance_indicator",
+          "type": "kpi",
+          "promql": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-service-deployment\"}[5m])",
+          "status": null,
+          "thresholds": [
+            {
+              "level": "warning",
+              "operator": "gte",
+              "value": 50
+            },
+            {
+              "level": "critical",
+              "operator": "gt",
+              "value": 100
+            }
+          ],
+          "alert": {
+            "for": "5m",
+            "step": "10s"
+          },
+          "documentation": {
+            "description": "This is a valid markdown description.\n\n**Use**: This indicates nothing. It is placeholder text.\n\n**Type**: Gauge\n**Frequency**: 60 s\n",
+            "measurement": "Average latency over last 5 minutes per instance",
+            "recommendedResponse": "Panic! Run around in circles flailing your arms.",
+            "thresholdNote": "These are environment specific",
+            "title": "Doc Performance Indicator"
+          },
+          "presentation": {
+            "chartType": "step",
+            "frequency": 60,
+            "currentValue": false,
+            "labels": [
+              "job",
+              "ip",
+              "index"
+            ],
+            "units": ""
+          }
+        },
+        {
+          "name": "success_percentage",
+          "type": "indicator",
+          "promql": "success_percentage_promql{source_id=\"origin\"}",
+          "status": null,
+          "thresholds": [],
+          "alert": {
+            "for": "1m",
+            "step": "1m"
+          },
+          "presentation": {
+            "chartType": "step",
+            "frequency": 0,
+            "currentValue": false,
+            "labels": [],
+            "units": ""
+          },
+          "documentation": {
+            "title": "Success Percentage"
+          }
         }
       ],
-      "owner": "Example Team"
+      "layout": {
+        "title": "Monitoring Document Product",
+        "description": "Document description",
+        "sections": [
+          {
+            "title": "Indicators",
+            "description": "This section includes indicators",
+            "indicators": [
+              "doc_performance_indicator"
+            ]
+          }
+        ],
+        "owner": "Example Team"
+      }
     }
   },
   {
     "apiVersion": "v0",
     "uid": "my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
-    "product": {
-      "name": "my-other-component",
-      "version": "1.2.3"
-    },
+    "kind": "IndicatorDocument",
     "metadata": {
-      "deployment": "my-service-deployment",
-      "source_id": "my-metric-source"
-    },
-    "indicators": [
-      {
-        "name": "very_good_indicator",
-        "promql": "test_query",
-        "status": null,
-        "thresholds": [],
-        "alert": {
-          "for": "50m",
-          "step": "10s"
-        },
-        "serviceLevel": null,
-        "presentation": {
-          "chartType": "step",
-          "currentValue": false,
-          "frequency": 0,
-          "labels": [],
-          "units": ""
-        }
-      },
-      {
-        "name": "success_percentage",
-        "promql": "success_percentage_promql{source_id=\"origin\"}",
-        "status": null,
-        "thresholds": [],
-        "alert": {
-          "for": "1m",
-          "step": "1m"
-        },
-        "serviceLevel": null,
-        "presentation": {
-          "chartType": "step",
-          "frequency": 0,
-          "currentValue": false,
-          "labels": [],
-          "units": ""
-        },
-        "documentation": {
-          "title": "Success Percentage"
-        }
+      "labels": {
+        "deployment": "my-service-deployment",
+        "source_id": "my-metric-source"
       }
-    ],
-    "layout": {
-      "title": "",
-      "description": "",
-      "sections": [
+    },
+    "spec": {
+      "product": {
+        "name": "my-other-component",
+        "version": "1.2.3"
+      },
+      "indicators": [
         {
-          "title": "Metrics",
-          "description": "",
-          "indicators": [
-            "very_good_indicator",
-            "success_percentage"
-          ]
+          "name": "very_good_indicator",
+          "promql": "test_query",
+          "type": "indicator",
+          "status": null,
+          "thresholds": [],
+          "alert": {
+            "for": "50m",
+            "step": "10s"
+          },
+          "presentation": {
+            "chartType": "step",
+            "currentValue": false,
+            "frequency": 0,
+            "labels": [],
+            "units": ""
+          }
         }
       ],
-      "owner": ""
+      "layout": {
+        "title": "my-other-component - 1.2.3",
+        "description": "",
+        "sections": [
+          {
+            "title": "Metrics",
+            "description": "",
+            "indicators": [
+              "very_good_indicator"
+            ]
+          }
+        ],
+        "owner": ""
+      }
     }
   }
 ]

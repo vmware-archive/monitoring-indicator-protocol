@@ -1,29 +1,34 @@
 [
   {
-    "apiVersion": "v0",
+    "apiVersion": "apps.pivotal.io/v1",
+    "spec": {
     "product": {
       "name": "my-component",
       "version": "1.2.3"
     },
-    "metadata": {
-      "deployment": "my-service-deployment",
-      "source_id": "my-metric-source"
-    },
-    "indicators": [
-      {
-        "name": "some_indicator",
-        "promql": "some_promql"
-      }
-    ],
-    "layout": {
-      "title": "Monitoring",
-      "sections": [
+      "indicators": [
         {
-          "indicators": [
-            "doc_performance_indicator"
-          ]
+          "name": "some_indicator",
+          "type": "indicator",
+          "promql": "some_promql"
         }
-      ]
+      ],
+      "layout": {
+        "title": "Monitoring",
+        "sections": [
+          {
+            "indicators": [
+              "doc_performance_indicator"
+            ]
+          }
+        ]
+      }
+  },
+    "metadata": {
+      "labels": {
+        "deployment": "my-service-deployment",
+        "source_id": "my-metric-source"
+      }
     }
   }
 ]

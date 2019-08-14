@@ -1,0 +1,16 @@
+---
+name: indicator-smoke-tests
+
+templates:
+  smoke-tests.erb: bin/run
+  client.crt.erb: certs/client.crt
+  client.key.erb: certs/client.key
+  indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
+
+packages:
+  - indicator-protocol
+
+consumes:
+  - name: indicator-registry
+    type: indicator-registry
+    optional: false

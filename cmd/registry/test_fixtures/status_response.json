@@ -2,48 +2,53 @@
   {
     "apiVersion": "v0",
     "uid": "my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
-    "product": {
-      "name": "my-other-component",
-      "version": "1.2.3"
-    },
+    "kind": "IndicatorDocument",
     "metadata": {
-      "deployment": "my-service-deployment",
-      "source_id": "my-metric-source"
-    },
-    "indicators": [
-      {
-        "name": "very_good_indicator",
-        "promql": "test_query",
-        "thresholds": [],
-        "alert": {
-          "for": "50m",
-          "step": "10s"
-        },
-        "presentation": {
-          "chartType": "step",
-          "currentValue": false,
-          "frequency": 0,
-          "labels": [],
-          "units": ""
-        },
-        "status": {
-          "value": "critical"
-        }
+      "labels": {
+        "deployment": "my-service-deployment",
+        "source_id": "my-metric-source"
       }
-    ],
-    "layout": {
-      "title": "",
-      "description": "",
-      "sections": [
+    },
+    "spec": {
+      "product": {
+        "name": "my-other-component",
+        "version": "1.2.3"
+      },
+      "indicators": [
         {
-          "title": "Metrics",
-          "description": "",
-          "indicators": [
-            "very_good_indicator"
-          ]
+          "name": "very_good_indicator",
+          "promql": "test_query",
+          "thresholds": [],
+          "alert": {
+            "for": "50m",
+            "step": "10s"
+          },
+          "presentation": {
+            "chartType": "step",
+            "currentValue": false,
+            "frequency": 0,
+            "labels": [],
+            "units": ""
+          },
+          "status": {
+            "value": "critical"
+          }
         }
       ],
-      "owner": ""
+      "layout": {
+        "title": "my-other-component - 1.2.3",
+        "description": "",
+        "sections": [
+          {
+            "title": "Metrics",
+            "description": "",
+            "indicators": [
+              "very_good_indicator"
+            ]
+          }
+        ],
+        "owner": ""
+      }
     }
   }
 ]

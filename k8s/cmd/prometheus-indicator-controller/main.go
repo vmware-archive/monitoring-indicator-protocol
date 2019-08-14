@@ -9,15 +9,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/prometheus"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/prometheus"
 
 	coreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
 	"code.cloudfoundry.org/go-envstruct"
-	informers "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/informers/externalversions"
+	informers "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/informers/externalversions"
 )
 
 type config struct {
@@ -35,26 +35,26 @@ func main() {
 	var conf config
 	err := envstruct.Load(&conf)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to load env variables: NAMESPACE is required")
 	}
 	err = envstruct.WriteReport(&conf)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to write report using env variables")
 	}
 
 	cfg, err := rest.InClusterConfig()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to configure kubernetes cluster; make sure kubernetes is running")
 	}
 
 	client, err := versioned.NewForConfig(cfg)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to create clientSet for the given config")
 	}
 
 	coreV1Client, err := coreV1.NewForConfig(cfg)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to create a new CoreV1Client for the given config")
 	}
 
 	promConfig := prometheus.NewConfig()
@@ -66,7 +66,7 @@ func main() {
 
 	informerFactory := informers.NewSharedInformerFactory(client, time.Second*30)
 
-	indicatorInformer := informerFactory.Apps().V1alpha1().IndicatorDocuments().Informer()
+	indicatorInformer := informerFactory.Apps().V1().IndicatorDocuments().Informer()
 	indicatorInformer.AddEventHandler(controller)
 
 	// blocks (main goroutine to dispatch events to our controller)

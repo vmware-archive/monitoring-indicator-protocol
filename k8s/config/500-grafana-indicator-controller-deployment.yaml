@@ -18,7 +18,7 @@ spec:
       serviceAccountName: grafana-indicator-controller
       containers:
       - name: grafana-indicator-controller
-        image: indicatorprotocol/grafana-indicator-controller:latest
+        image: indicatorprotocol/k8s-grafana-indicator-controller:latest
         imagePullPolicy: Always
         env:
         - name: NAMESPACE

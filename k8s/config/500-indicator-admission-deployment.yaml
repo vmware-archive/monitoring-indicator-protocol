@@ -46,7 +46,7 @@ spec:
             sleep 10
           done
       - name: indicator-admission
-        image: indicatorprotocol/indicator-admission:latest
+        image: indicatorprotocol/k8s-indicator-admission:latest
         ports:
         - name: webhook-port
           containerPort: 9000

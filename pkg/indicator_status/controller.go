@@ -1,7 +1,6 @@
 package indicator_status
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -9,7 +8,7 @@ import (
 )
 
 type DocumentGetter interface {
-	IndicatorDocuments() ([]registry.APIV0Document, error)
+	IndicatorDocuments() ([]registry.APIDocumentResponse, error)
 }
 type StatusUpdater interface {
 	BulkStatusUpdate(statusUpdates []registry.APIV0UpdateIndicatorStatus, documentId string) error
@@ -43,14 +42,14 @@ func NewStatusController(
 func (c StatusController) Start() {
 	err := c.updateStatuses()
 	if err != nil {
-		log.Printf("Failed to update indicator statuses: %s", err)
+		log.Print("Failed to update indicator statuses")
 	}
 
 	for {
 		time.Sleep(c.interval)
 		err := c.updateStatuses()
 		if err != nil {
-			log.Printf("Failed to update indicator statuses: %s", err)
+			log.Print("Failed to update indicator statuses")
 		}
 	}
 }
@@ -60,17 +59,17 @@ func (c StatusController) updateStatuses() error {
 
 	apiv0Documents, err := c.documentGetter.IndicatorDocuments()
 	if err != nil {
-		return fmt.Errorf("error retrieving indicator docs: %s", err)
+		return err
 	}
 	for _, indicatorDocument := range apiv0Documents {
-		for _, indicator := range indicatorDocument.Indicators {
+		for _, indicator := range indicatorDocument.Spec.Indicators {
 			if len(indicator.Thresholds) == 0 {
 				continue
 			}
 
 			values, err := c.promQLClient.QueryVectorValues(indicator.PromQL)
 			if err != nil {
-				log.Printf("Error querying Prometheus: %s", err)
+				log.Print("Error querying Prometheus")
 				continue
 			}
 			thresholds := registry.ConvertThresholds(indicator.Thresholds)

@@ -9,13 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/clientset/versioned"
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/lifecycle"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/lifecycle"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 
 	"code.cloudfoundry.org/go-envstruct"
-	informers "github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/client/informers/externalversions"
+	informers "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/informers/externalversions"
 )
 
 type config struct {
@@ -33,25 +33,25 @@ func main() {
 	var conf config
 	err := envstruct.Load(&conf)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to load env variables: NAMESPACE is required")
 	}
 	err = envstruct.WriteReport(&conf)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to write report using env variables")
 	}
 
 	cfg, err := rest.InClusterConfig()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to configure kubernetes cluster; make sure kubernetes is running")
 	}
 
 	client, err := versioned.NewForConfig(cfg)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("failed to create clientSet for the given config")
 	}
 
 	controller := lifecycle.NewController(
-		client.AppsV1alpha1(),
+		client.AppsV1(),
 	)
 
 	informerFactory := informers.NewSharedInformerFactory(
@@ -60,7 +60,7 @@ func main() {
 	)
 
 	indicatorInformer := informerFactory.Apps().
-		V1alpha1().
+		V1().
 		IndicatorDocuments().
 		Informer()
 	indicatorInformer.AddEventHandler(controller)

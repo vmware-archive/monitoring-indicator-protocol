@@ -7,10 +7,12 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 )
 
 func TestDocumentToDashboard(t *testing.T) {
@@ -19,34 +21,36 @@ func TestDocumentToDashboard(t *testing.T) {
 		log.SetOutput(buffer)
 
 		g := NewGomegaWithT(t)
-		document := indicator.Document{
-			Indicators: []indicator.Indicator{
-				{
-					Name:          "test_indicator",
-					PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
-					Documentation: map[string]string{"title": "Test Indicator Title"},
-					Thresholds: []indicator.Threshold{{
-						Level:    "critical",
-						Operator: indicator.GreaterThan,
-						Value:    1000,
-					}, {
-						Level:    "warning",
-						Operator: indicator.LessThanOrEqualTo,
-						Value:    700,
-					}},
-				},
-				{
-					Name:       "second_test_indicator",
-					PromQL:     `rate(gorouter_requests[1m])`,
-					Thresholds: []indicator.Threshold{},
-				},
-			},
-			Layout: indicator.Layout{
-				Title: "Indicator Test Dashboard",
-				Sections: []indicator.Section{
+		document := v1.IndicatorDocument{
+			Spec: v1.IndicatorDocumentSpec{
+				Indicators: []v1.IndicatorSpec{
 					{
-						Title:      "Test Section Title",
-						Indicators: []string{"test_indicator"},
+						Name:          "test_indicator",
+						PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
+						Documentation: map[string]string{"title": "Test Indicator Title"},
+						Thresholds: []v1.Threshold{{
+							Level:    "critical",
+							Operator: v1.GreaterThan,
+							Value:    1000,
+						}, {
+							Level:    "warning",
+							Operator: v1.LessThanOrEqualTo,
+							Value:    700,
+						}},
+					},
+					{
+						Name:       "second_test_indicator",
+						PromQL:     `rate(gorouter_requests[1m])`,
+						Thresholds: []v1.Threshold{},
+					},
+				},
+				Layout: v1.Layout{
+					Title: "Indicator Test Dashboard",
+					Sections: []v1.Section{
+						{
+							Title:      "Test Section Title",
+							Indicators: []string{"test_indicator"},
+						},
 					},
 				},
 			},
@@ -104,28 +108,30 @@ func TestDocumentToDashboard(t *testing.T) {
 
 		g := NewGomegaWithT(t)
 
-		document := indicator.Document{
-			Indicators: []indicator.Indicator{
-				{
-					Name:          "test_indicator",
-					PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
-					Documentation: map[string]string{"title": "Test Indicator Title"},
-				},
-				{
-					Name:   "second_test_indicator",
-					PromQL: `rate(gorouter_requests[1m])`,
-				},
-			},
-			Layout: indicator.Layout{
-				Title: "Indicator Test Dashboard",
-				Sections: []indicator.Section{
+		document := v1.IndicatorDocument{
+			Spec: v1.IndicatorDocumentSpec{
+				Indicators: []v1.IndicatorSpec{
 					{
-						Title:      "foo",
-						Indicators: []string{"second_test_indicator"},
+						Name:          "test_indicator",
+						PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
+						Documentation: map[string]string{"title": "Test Indicator Title"},
 					},
 					{
-						Title:      "bar",
-						Indicators: []string{"test_indicator"},
+						Name:   "second_test_indicator",
+						PromQL: `rate(gorouter_requests[1m])`,
+					},
+				},
+				Layout: v1.Layout{
+					Title: "Indicator Test Dashboard",
+					Sections: []v1.Section{
+						{
+							Title:      "foo",
+							Indicators: []string{"second_test_indicator"},
+						},
+						{
+							Title:      "bar",
+							Indicators: []string{"test_indicator"},
+						},
 					},
 				},
 			},
@@ -140,59 +146,28 @@ func TestDocumentToDashboard(t *testing.T) {
 		g.Expect(dashboard.Rows[1].Panels[0].Title).To(Equal("Test Indicator Title"))
 	})
 
-	t.Run("falls back to product name/version when layout title is missing", func(t *testing.T) {
-		buffer := bytes.NewBuffer(nil)
-		log.SetOutput(buffer)
-
-		g := NewGomegaWithT(t)
-
-		indicators := []indicator.Indicator{
-			{
-				Name:   "test_indicator",
-				PromQL: `sum_over_time(gorouter_latency_ms[30m])`,
-			},
-		}
-		document := indicator.Document{
-			Product: indicator.Product{
-				Name:    "test product",
-				Version: "v0.9",
-			},
-			Indicators: indicators,
-			Layout: indicator.Layout{
-				Sections: []indicator.Section{
-					{
-						Indicators: []string{"test_indicator"},
-					},
-				},
-			},
-		}
-
-		dashboard, err := grafana_dashboard.DocumentToDashboard(document)
-		g.Expect(err).NotTo(HaveOccurred())
-
-		g.Expect(dashboard.Title).To(BeEquivalentTo("test product - v0.9"))
-	})
-
 	t.Run("replaces $step with $__interval", func(t *testing.T) {
 		buffer := bytes.NewBuffer(nil)
 		log.SetOutput(buffer)
 
 		g := NewGomegaWithT(t)
 
-		indicators := []indicator.Indicator{
+		indicators := []v1.IndicatorSpec{
 			{
 				Name:   "test_indicator",
 				PromQL: `rate(sum_over_time(gorouter_latency_ms[$step])[$step])`,
 			},
 		}
-		document := indicator.Document{
-			Indicators: indicators,
-			Layout: indicator.Layout{
-				Title: "Indicator Test Dashboard",
-				Sections: []indicator.Section{
-					{
-						Title:      "Test Section Title",
-						Indicators: []string{"test_indicator"},
+		document := v1.IndicatorDocument{
+			Spec: v1.IndicatorDocumentSpec{
+				Indicators: indicators,
+				Layout: v1.Layout{
+					Title: "Indicator Test Dashboard",
+					Sections: []v1.Section{
+						{
+							Title:      "Test Section Title",
+							Indicators: []string{"test_indicator"},
+						},
 					},
 				},
 			},
@@ -204,33 +179,80 @@ func TestDocumentToDashboard(t *testing.T) {
 		g.Expect(dashboard.Rows[0].Panels[0].Targets[0].Expression).To(BeEquivalentTo(`rate(sum_over_time(gorouter_latency_ms[$__interval])[$__interval])`))
 	})
 
+	t.Run("replaces only $step with $__interval", func(t *testing.T) {
+		buffer := bytes.NewBuffer(nil)
+		log.SetOutput(buffer)
+
+		g := NewGomegaWithT(t)
+
+		indicators := []v1.IndicatorSpec{
+			{
+				Name:   "test_indicator",
+				PromQL: `rate(sum_over_time(gorouter_latency_ms[$steper])[$STEP])`,
+			},
+			{
+				Name:   "another_indicator",
+				PromQL: `avg_over_time(demo_latency{source_id="$step"}[5m])`,
+			},
+		}
+		document := v1.IndicatorDocument{
+			ObjectMeta:metav1.ObjectMeta{
+				Labels: map[string]string{"ste": "123"},
+			},
+			Spec: v1.IndicatorDocumentSpec{
+
+				Indicators: indicators,
+				Layout: v1.Layout{
+					Title: "Indicator Test Dashboard",
+					Sections: []v1.Section{
+						{
+							Title:      "Test Section Title",
+							Indicators: []string{"test_indicator", "another_indicator"},
+						},
+					},
+				},
+			},
+		}
+
+		dashboard, err := grafana_dashboard.DocumentToDashboard(document)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(dashboard.Rows[0].Panels[0].Targets[0].Expression).To(BeEquivalentTo(`rate(sum_over_time(gorouter_latency_ms[$steper])[$__interval])`))
+		g.Expect(dashboard.Rows[0].Panels[1].Targets[0].Expression).ToNot(BeEquivalentTo(`avg_over_time(demo_latency{source_id="123p"}[5m])`))
+	})
+
 	t.Run("creates a filename based on product name and contents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		document := indicator.Document{
-			APIVersion: "v0",
-			Product: indicator.Product{
-				Name:    "test_product",
-				Version: "v1.2.3",
+		document := v1.IndicatorDocument{
+			TypeMeta:metav1.TypeMeta{
+				APIVersion: "v1",
 			},
-			Metadata: map[string]string{"deployment": "test_deployment"},
-			Indicators: []indicator.Indicator{{
-				Name:   "test_indicator",
-				PromQL: `test_query{deployment="test_deployment"}`,
-				Alert:  test_fixtures.DefaultAlert(),
-				Thresholds: []indicator.Threshold{{
-					Level:    "critical",
-					Operator: indicator.LessThan,
-					Value:    5,
+			ObjectMeta:metav1.ObjectMeta{
+				Labels: map[string]string{"deployment": "test_deployment"},
+			},
+			Spec: v1.IndicatorDocumentSpec{
+				Product: v1.Product{
+					Name:    "test_product",
+					Version: "v1.2.3",
+				},
+				Indicators: []v1.IndicatorSpec{{
+					Name:   "test_indicator",
+					PromQL: `test_query{deployment="test_deployment"}`,
+					Alert:  test_fixtures.DefaultAlert(),
+					Thresholds: []v1.Threshold{{
+						Level:    "critical",
+						Operator: v1.LessThan,
+						Value:    5,
+					}},
+					Presentation:  test_fixtures.DefaultPresentation(),
+					Documentation: map[string]string{"title": "Test Indicator Title"},
 				}},
-				Presentation:  test_fixtures.DefaultPresentation(),
-				Documentation: map[string]string{"title": "Test Indicator Title"},
-			}},
-			Layout: indicator.Layout{
-				Title: "Test Dashboard",
-				Sections: []indicator.Section{
-					{
-						Title:      "Test Section Title",
-						Indicators: []string{"test_indicator"},
+				Layout: v1.Layout{
+					Title: "Test Dashboard",
+					Sections: []v1.Section{
+						{
+							Title:      "Test Section Title",
+							Indicators: []string{"test_indicator"},
+						},
 					},
 				},
 			},
@@ -239,47 +261,54 @@ func TestDocumentToDashboard(t *testing.T) {
 		docBytes, err := json.Marshal(document)
 		g.Expect(err).ToNot(HaveOccurred())
 		filename := grafana_dashboard.DashboardFilename(docBytes, "test_product")
-		g.Expect(filename).To(Equal("test_product_39472a3a8a619a2996e221488060105dab60c3df.json"))
+		// Should have a SHA1 in the middle, but don't want to specify the SHA
+		g.Expect(filename).To(MatchRegexp("test_product_[a-f0-9]{40}\\.json"))
 	})
 
 	t.Run("includes annotations based on product & metadata alerts", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		document := indicator.Document{
-			APIVersion: "v0",
-			Product: indicator.Product{
-				Name:    "test_product",
-				Version: "v1.2.3",
+		document := v1.IndicatorDocument{
+			TypeMeta:metav1.TypeMeta{
+				APIVersion: "v1",
 			},
-			Metadata: map[string]string{"deployment": "test_deployment"},
-			Indicators: []indicator.Indicator{{
-				Name:   "test_indicator",
-				PromQL: `test_query{deployment="test_deployment"}`,
-				Alert:  test_fixtures.DefaultAlert(),
-				Thresholds: []indicator.Threshold{{
-					Level:    "critical",
-					Operator: indicator.LessThan,
-					Value:    5,
+			ObjectMeta:metav1.ObjectMeta{
+				Labels: map[string]string{"deployment": "test_deployment"},
+			},
+			Spec: v1.IndicatorDocumentSpec{
+				Product: v1.Product{
+					Name:    "test_product",
+					Version: "v1.2.3",
+				},
+				Indicators: []v1.IndicatorSpec{{
+					Name:   "test_indicator",
+					PromQL: `test_query{deployment="test_deployment"}`,
+					Alert:  test_fixtures.DefaultAlert(),
+					Thresholds: []v1.Threshold{{
+						Level:    "critical",
+						Operator: v1.LessThan,
+						Value:    5,
+					}},
+					Presentation:  test_fixtures.DefaultPresentation(),
+					Documentation: map[string]string{"title": "Test Indicator Title"},
+				}, {
+					Name:   "second_test_indicator",
+					PromQL: "second_test_query",
+					Alert:  test_fixtures.DefaultAlert(),
+					Thresholds: []v1.Threshold{{
+						Level:    "critical",
+						Operator: v1.GreaterThan,
+						Value:    10,
+					}},
+					Presentation:  test_fixtures.DefaultPresentation(),
+					Documentation: map[string]string{"title": "Second Test Indicator Title"},
 				}},
-				Presentation:  test_fixtures.DefaultPresentation(),
-				Documentation: map[string]string{"title": "Test Indicator Title"},
-			}, {
-				Name:   "second_test_indicator",
-				PromQL: "second_test_query",
-				Alert:  test_fixtures.DefaultAlert(),
-				Thresholds: []indicator.Threshold{{
-					Level:    "critical",
-					Operator: indicator.GreaterThan,
-					Value:    10,
-				}},
-				Presentation:  test_fixtures.DefaultPresentation(),
-				Documentation: map[string]string{"title": "Second Test Indicator Title"},
-			}},
-			Layout: indicator.Layout{
-				Title: "Test Dashboard",
-				Sections: []indicator.Section{
-					{
-						Title:      "Test Section Title",
-						Indicators: []string{"test_indicator", "second_test_indicator"},
+				Layout: v1.Layout{
+					Title: "Test Dashboard",
+					Sections: []v1.Section{
+						{
+							Title:      "Test Section Title",
+							Indicators: []string{"test_indicator", "second_test_indicator"},
+						},
 					},
 				},
 			},

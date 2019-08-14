@@ -28,7 +28,7 @@ func TestAPIClient_IndicatorDocuments(t *testing.T) {
 	go server.ListenAndServe()
 
 	defer server.Close()
-	go_test.WaitForHTTPServer("localhost:8975", time.Second)
+	go_test.WaitForTCPServer("localhost:8975", time.Second)
 
 	t.Run("it parses the indicator response into Document Structs", func(t *testing.T) {
 		g := NewGomegaWithT(t)
@@ -36,7 +36,7 @@ func TestAPIClient_IndicatorDocuments(t *testing.T) {
 
 		documents, e := c.IndicatorDocuments()
 		g.Expect(e).ToNot(HaveOccurred())
-		g.Expect(documents[0].Product.Name).To(Equal("my-component"))
-		g.Expect(documents[0].Product.Version).To(Equal("1.2.3"))
+		g.Expect(documents[0].Spec.Product.Name).To(Equal("my-component"))
+		g.Expect(documents[0].Spec.Product.Version).To(Equal("1.2.3"))
 	})
 }

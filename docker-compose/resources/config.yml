@@ -1,0 +1,4 @@
+# This file is the configuration for the registry docker image.
+# See example_config.yml in root for syntax.
+---
+sources:

@@ -1,41 +1,41 @@
 package test_fixtures
 
 import (
-	"github.com/pivotal/monitoring-indicator-protocol/k8s/pkg/apis/indicatordocument/v1alpha1"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func DefaultPresentation() indicator.Presentation {
-	return indicator.Presentation{
+func DefaultPresentation() v1.Presentation {
+	return v1.Presentation{
 		ChartType:    "step",
 		CurrentValue: false,
 		Frequency:    0,
-		Labels:       nil,
+		Labels:       make([]string, 0),
 		Units:        "",
 	}
 }
 
-func DefaultAPIV0Presentation() registry.APIV0Presentation {
-	return registry.APIV0Presentation{
+func DefaultAPIPresentationResponse() registry.APIPresentationResponse {
+	return registry.APIPresentationResponse{
 		ChartType:    "step",
 		CurrentValue: false,
 		Frequency:    0,
-		Labels:       nil,
+		Labels:       make([]string, 0),
 		Units:        "",
 	}
 }
 
-func DefaultLayout(indicators []indicator.Indicator) indicator.Layout {
+func DefaultLayout(indicators []v1.IndicatorSpec) v1.Layout {
 	indicatorNames := make([]string, 0, len(indicators))
 	for _, i := range indicators {
 		indicatorNames = append(indicatorNames, i.Name)
 	}
-	return indicator.Layout{
+	return v1.Layout{
 		Title:       "",
 		Description: "",
-		Sections: []indicator.Section{{
+		Sections: []v1.Section{{
 			Title:       "",
 			Description: "",
 			Indicators:  indicatorNames,
@@ -44,11 +44,11 @@ func DefaultLayout(indicators []indicator.Indicator) indicator.Layout {
 	}
 }
 
-func DefaultAPIV0Layout(indicatorNames []string) registry.APIV0Layout {
-	return registry.APIV0Layout{
+func DefaultAPILayoutResponse(indicatorNames []string) registry.APILayoutResponse {
+	return registry.APILayoutResponse{
 		Title:       "",
 		Description: "",
-		Sections: []registry.APIV0Section{{
+		Sections: []registry.APISectionResponse{{
 			Title:       "",
 			Description: "",
 			Indicators:  indicatorNames,
@@ -57,15 +57,15 @@ func DefaultAPIV0Layout(indicatorNames []string) registry.APIV0Layout {
 	}
 }
 
-func DefaultAlert() indicator.Alert {
-	return indicator.Alert{
+func DefaultAlert() v1.Alert {
+	return v1.Alert{
 		For:  "1m",
 		Step: "1m",
 	}
 }
 
-func DefaultAPIV0Alert() registry.APIV0Alert {
-	return registry.APIV0Alert{
+func DefaultAPIAlertResponse() registry.APIAlertResponse {
+	return registry.APIAlertResponse{
 		For:  "1m",
 		Step: "1m",
 	}
@@ -75,20 +75,19 @@ func StrPtr(s string) *string {
 	return &s
 }
 
-func Indicator(name string, promql string) v1alpha1.Indicator {
-	thresholdLevel := float64(0)
-
-	return v1alpha1.Indicator{
-		ObjectMeta: v1.ObjectMeta{
+func Indicator(name string, promql string) v1.Indicator {
+	return v1.Indicator{
+		ObjectMeta: metaV1.ObjectMeta{
 			Name: name,
 		},
-		Spec: v1alpha1.IndicatorSpec{
+		Spec: v1.IndicatorSpec{
 			Product: "CF",
 			Name:    "test",
-			Promql:  promql,
-			Thresholds: []v1alpha1.Threshold{{
-				Level: "critical",
-				Lt:    &thresholdLevel,
+			PromQL:  promql,
+			Thresholds: []v1.Threshold{{
+				Level:    "critical",
+				Operator: v1.LessThan,
+				Value:    float64(0),
 			}},
 		},
 	}

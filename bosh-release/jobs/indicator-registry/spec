@@ -4,42 +4,13 @@ name: indicator-registry
 templates:
   bpm.yml.erb: config/bpm.yml
   sources.yml.erb: config/sources.yml
-  registry.crt.erb: certs/registry.crt
-  registry.key.erb: certs/registry.key
-  indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
+  indicators.yml.erb: config/indicators.yml
+  metric_port.yml.erb: config/metric_port.yml
 
 packages:
-  - indicator-registry
-
-provides:
-  - name: indicator-registry
-    type: indicator-registry
-    properties:
-      - port
-      - tls.ca_cert
-      - tls.client_cert
-      - tls.client_key
-      - tls.server_common_name
+  - indicator-protocol
 
 properties:
-  port:
-    description: "The port used to register and fetch indicators"
-    default: 10567
-
-  tls.ca_cert:
-    description: "CA root required for key/cert verification"
-  tls.server_cert:
-    description: "TLS Server public certificate"
-  tls.server_key:
-    description: "TLS Server private key"
-  tls.server_common_name:
-    description: "TLS Server common name"
-
-  tls.client_cert:
-    description: "TLS Client public certificate"
-  tls.client_key:
-    description: "TLS Client private key"
-
   sources:
     description: "An array of sources matching the format described at https://github.com/pivotal/monitoring-indicator-protocol/wiki/Configuration-and-Patches"
     default: []

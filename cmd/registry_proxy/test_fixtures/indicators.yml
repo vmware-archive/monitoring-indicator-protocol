@@ -1,0 +1,59 @@
+---
+apiVersion: apps.pivotal.io/v1
+
+kind: IndicatorDocument
+
+metadata:
+  labels:
+    deployment: my-service-deployment
+    source_id: my-metric-source
+
+spec:
+  product:
+    name: my-component
+    version: 1.2.3
+  indicators:
+  - name: only_in_example_yml
+    promql: test_query
+  - name: doc_performance_indicator
+    promql: avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])
+    thresholds:
+    - level: warning
+      operator: gte
+      value: 50
+    - level: critical
+      operator: gt
+      value: 100
+    alert:
+      for: 5m
+      step: 10s
+    presentation:
+      chartType: step
+      currentValue: false
+      frequency: 60
+      labels:
+      - job
+      - ip
+      - index
+    documentation:
+      title: Doc Performance Indicator
+      measurement: Average latency over last 5 minutes per instance
+      description: |
+        This is a valid markdown description.
+
+        **Use**: This indicates nothing. It is placeholder text.
+
+        **Type**: Gauge
+        **Frequency**: 60 s
+      recommendedResponse: Panic! Run around in circles flailing your arms.
+      thresholdNote: These are environment specific
+
+  layout:
+    owner: Example Team
+    title: Monitoring Document Product
+    description: Document description
+    sections:
+    - title: Indicators
+      description: This section includes indicators
+      indicators:
+      - doc_performance_indicator

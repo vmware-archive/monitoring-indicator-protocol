@@ -4,7 +4,7 @@ NOTICE
 README.md
 bosh-release
 ci
-cmd
+docker-compose
 example_*.yml
 scripts
 test_fixtures

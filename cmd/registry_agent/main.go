@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -30,7 +29,7 @@ func main() {
 
 	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
-		log.Fatalf("failed to create mtls http client, %s", err)
+		log.Fatal("Could not create registry agent, failed to create mTLS HTTP client")
 	}
 
 	client := &http.Client{
@@ -51,7 +50,7 @@ func main() {
 }
 
 func startMetricsEndpoint() {
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", 0))
+	lis, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
 		log.Printf("unable to start monitor endpoint: %s", err)
 	}

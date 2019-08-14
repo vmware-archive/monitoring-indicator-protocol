@@ -1,0 +1,5 @@
+check process indicator-cf-auth-proxy
+  with pidfile /var/vcap/sys/run/bpm/indicator-cf-auth-proxy/indicator-cf-auth-proxy.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start indicator-cf-auth-proxy"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop indicator-cf-auth-proxy" with timeout 60 seconds
+  group vcap

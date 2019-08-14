@@ -9,7 +9,7 @@ import (
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
@@ -26,7 +26,7 @@ func main() {
 
 	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
-		log.Fatalf("failed to create mtls http client, %s", err)
+		log.Fatal("construction of grafana_dashboard_controller failed, could not create mTLS HTTP client")
 	}
 
 	registryHttpClient := &http.Client{
@@ -50,7 +50,7 @@ func main() {
 	exporterController.Start()
 }
 
-func Convert(document indicator.Document) (*exporter.File, error) {
+func Convert(document v1.IndicatorDocument) (*exporter.File, error) {
 	grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func Convert(document indicator.Document) (*exporter.File, error) {
 		return nil, err
 	}
 	return &exporter.File{
-		Name:     grafana_dashboard.DashboardFilename(documentBytes, document.Product.Name),
+		Name:     grafana_dashboard.DashboardFilename(documentBytes, document.Spec.Product.Name),
 		Contents: documentBytes,
 	}, nil
 }

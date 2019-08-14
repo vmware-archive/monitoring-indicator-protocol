@@ -1,13 +1,19 @@
 module github.com/pivotal/monitoring-indicator-protocol
 
 require (
+	code.cloudfoundry.org/clock v0.0.0-20180518195852-02e53af36e6c // indirect
 	code.cloudfoundry.org/go-envstruct v1.4.0
+	code.cloudfoundry.org/lager v2.0.0+incompatible
+	code.cloudfoundry.org/trace-logger v0.0.0-20170119230301-107ef08a939d // indirect
+	code.cloudfoundry.org/uaa-go-client v0.0.0-20190422235229-b72622d8ac6f
 	github.com/benbjohnson/clock v0.0.0-20161215174838-7dc76406b6d3
 	github.com/benjamintf1/unmarshalledmatchers v0.0.0-20190408201839-bb1c1f34eaea
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cppforlife/go-patch v0.2.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/evanphx/json-patch v4.1.0+incompatible // indirect
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0 // indirect
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
@@ -32,10 +38,11 @@ require (
 	github.com/prometheus/tsdb v0.0.0-20181016081506-18af5763d8f5 // indirect
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	github.com/spf13/pflag v1.0.3 // indirect
+	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc // indirect
 	golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a
 	golang.org/x/net v0.0.0-20190415100556-4a65cf94b679 // indirect
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421 // indirect
-	golang.org/x/sys v0.0.0-20190415145633-3fd5a3612ccd // indirect
+	golang.org/x/sys v0.0.0-20190422165155-953cdadca894 // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	golang.org/x/tools v0.0.0-20190415154727-2b5498619ef1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

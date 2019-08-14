@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/verification"
 )
@@ -17,7 +18,7 @@ func main() {
 
 	indicatorsFilePath := flag.String("indicators", "", "file path of indicators yml (see https://github.com/cloudfoundry-incubator/indicators)")
 	metadata := flag.String("metadata", "", "metadata to override (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
-	prometheusURI := flag.String("query-endpoint", "", "the query url of a Prometheus compliant store (e.g. https://log-cache.system.cfapp.com")
+	prometheusURI := flag.String("query-endpoint", "", "the query url of a Prometheus compliant store (e.g. https://metric-store.system.cfapp.com")
 	authorization := flag.String("authorization", "", "the authorization header sent to prometheus (e.g. 'bearer abc-123')")
 	insecure := flag.Bool("k", false, "skips ssl verification (insecure)")
 	flag.Parse()
@@ -36,13 +37,13 @@ func main() {
 		l.Fatalf("could not create prometheus client: %s\n", err)
 	}
 
-	stdOut.Println("---------------------------------------------------------------------------------------------")
-	stdOut.Printf("Querying current value for %d indicators in Prometheus compliant store \n", len(document.Indicators))
-	stdOut.Println("---------------------------------------------------------------------------------------------")
+	printHorizontalLine(stdOut)
+	stdOut.Printf("Querying current value for %d indicators in Prometheus compliant store \n", len(document.Spec.Indicators))
+	printHorizontalLine(stdOut)
 
-	failedIndicators := make([]indicator.Indicator, 0)
+	failedIndicators := make([]v1.IndicatorSpec, 0)
 
-	for _, ind := range document.Indicators {
+	for _, ind := range document.Spec.Indicators {
 		stdOut.Println()
 
 		stdOut.Printf("Querying for indicator with name \"%s\"", ind.Name)
@@ -67,22 +68,22 @@ func main() {
 
 	if len(failedIndicators) > 0 {
 		separator(stdOut)
-		stdErr.Println("---------------------------------------------------------------------------------------------")
+		printHorizontalLine(stdErr)
 		stdErr.Println("VALIDATION FAILURE")
 		stdErr.Printf("  Could not find %d indicators in %s \n", len(failedIndicators), *prometheusURI)
 		stdErr.Println("  Both operators and platform observability tools such as PCF Healthwatch rely on the")
 		stdErr.Println("  existence of this data. Perhaps a metric name changed, or refactored code")
 		stdErr.Println("  is failing to emit.")
-		stdErr.Println("---------------------------------------------------------------------------------------------")
+		printHorizontalLine(stdErr)
 		separator(stdOut)
 
 		os.Exit(1)
 	}
 
 	separator(stdOut)
-	stdOut.Println("---------------------------------------------------------------------------------------------")
+	printHorizontalLine(stdOut)
 	stdOut.Println("  All indicator data found")
-	stdOut.Println("---------------------------------------------------------------------------------------------")
+	printHorizontalLine(stdOut)
 	separator(stdOut)
 }
 
@@ -103,7 +104,11 @@ func checkRequiredFlagsArePresent(indicatorsFilePath string, prometheusURI strin
 	exitOnEmpty(prometheusAuthorization, "authorization")
 }
 
-func separator(stdOut *log.Logger) {
-	stdOut.Println()
-	stdOut.Println()
+func separator(logger *log.Logger) {
+	logger.Println()
+	logger.Println()
+}
+
+func printHorizontalLine(logger *log.Logger) {
+	logger.Println("---------------------------------------------------------------------------------------------")
 }

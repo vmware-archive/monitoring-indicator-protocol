@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -9,7 +10,7 @@ import (
 	"time"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
@@ -29,7 +30,7 @@ func main() {
 
 	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
-		log.Fatalf("failed to create mtls http client, %s", err)
+		log.Fatal("failed to create mTLS HTTP client")
 	}
 
 	registryHttpClient := &http.Client{
@@ -67,7 +68,7 @@ func (p *prometheusClient) Reload() error {
 	buffer := bytes.NewBuffer(nil)
 	resp, err := p.httpClient.Post(fmt.Sprintf("%s/-/reload", p.prometheusURI), "", buffer)
 	if err != nil {
-		return err
+		return errors.New("error reloading prometheus client")
 	}
 
 	if resp.StatusCode != 200 {
@@ -77,14 +78,14 @@ func (p *prometheusClient) Reload() error {
 	return nil
 }
 
-func Convert(document indicator.Document) (*exporter.File, error) {
+func Convert(document v1.IndicatorDocument) (*exporter.File, error) {
 	documentBytes, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(document))
 	if err != nil {
 		return nil, err
 	}
 
 	return &exporter.File{
-		Name:     prometheus_alerts.AlertDocumentFilename(documentBytes, document.Product.Name),
+		Name:     prometheus_alerts.AlertDocumentFilename(documentBytes, document.Spec.Product.Name),
 		Contents: documentBytes,
 	}, nil
 }

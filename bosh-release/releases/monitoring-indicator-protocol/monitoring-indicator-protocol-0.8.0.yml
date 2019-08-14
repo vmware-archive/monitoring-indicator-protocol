@@ -1,0 +1,37 @@
+name: monitoring-indicator-protocol
+version: 0.8.0
+commit_hash: 60f3c14
+uncommitted_changes: false
+jobs:
+- name: grafana-dashboard-controller
+  version: 9319be51f201b0772f937f34d4ed1630b90b0f2f0a83b729a9dad87dc6b890c2
+  fingerprint: 9319be51f201b0772f937f34d4ed1630b90b0f2f0a83b729a9dad87dc6b890c2
+  sha1: sha256:96596997c32e98aea11a7a35f816a0855c330994a1bf1fd14226e8f279d61feb
+- name: indicator-document-registration-agent
+  version: ab19d001a718347efabf21baf05fbd281fd9f684b93f7b5975d935a6764d10a4
+  fingerprint: ab19d001a718347efabf21baf05fbd281fd9f684b93f7b5975d935a6764d10a4
+  sha1: sha256:b1626262a1098d34d398ca7792d5577b4dd5833bf7cda70997d19aa41e8fe4c5
+- name: indicator-registry
+  version: 2b09b195e47567b8ea21522ee35ace568ef60b3b56302ca8801e7df865b2e327
+  fingerprint: 2b09b195e47567b8ea21522ee35ace568ef60b3b56302ca8801e7df865b2e327
+  sha1: sha256:75373645aed409482d3a11f9a828621ad1a5ca714574dee58d263383256f1f56
+- name: prometheus-rules-controller
+  version: c86c070f9171428b911c6a3ac6d9f70605a97499b4cef60f8c853022ba961a96
+  fingerprint: c86c070f9171428b911c6a3ac6d9f70605a97499b4cef60f8c853022ba961a96
+  sha1: sha256:719c22a3ebcf7cacd1e14faf03c5fb2f841708c9887686cd6cf47c1d575898dd
+- name: status-controller
+  version: cbbf4259d6bc8f2744ce8d1c6df5eb42b773a0826c9be20fdd62347de265d25b
+  fingerprint: cbbf4259d6bc8f2744ce8d1c6df5eb42b773a0826c9be20fdd62347de265d25b
+  sha1: sha256:1a5a405c3e0564105711fd5bf5f0a1733c5d4418b483b045e59eabe06f212ad9
+packages:
+- name: golang-1.12-linux
+  version: 32203fe45461c70db67ec220b3ae645c057bd2dc7d3206450197230b721ec416
+  fingerprint: 32203fe45461c70db67ec220b3ae645c057bd2dc7d3206450197230b721ec416
+  sha1: sha256:0bb8674673d929e54b1924e9b36920b5ff27c62af0c41d1d9d94cdc6e22335e6
+  dependencies: []
+- name: indicator-protocol
+  version: ff87c2f413e7f1cc5bda9ec5dc2ce644ad6338ad4cccb6637311e4fac467dc62
+  fingerprint: ff87c2f413e7f1cc5bda9ec5dc2ce644ad6338ad4cccb6637311e4fac467dc62
+  sha1: sha256:8621f64ea5a26081754da48c751f81c04301954d4eba93c1f2da89cdd38888a1
+  dependencies:
+  - golang-1.12-linux

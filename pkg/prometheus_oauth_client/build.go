@@ -3,6 +3,7 @@ package prometheus_oauth_client
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"net/http"
 	"net/url"
 
@@ -23,7 +24,7 @@ func (c wrappedClient) URL(ep string, args map[string]string) *url.URL {
 func (c wrappedClient) Do(ctx context.Context, req *http.Request) (*http.Response, []byte, error) {
 	token, err := c.fetchToken()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.New("could not fetch prometheus OAuth token")
 	}
 
 	req.Header.Set("Authorization", token)
@@ -44,7 +45,7 @@ func Build(url string, fetchToken TokenFetcherFunc, insecure bool) (*prometheus_
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, errors.New("could not build prometheus client")
 	}
 
 	prometheusAPI := v1.NewAPI(wrappedClient{fetchToken, prometheusClient})

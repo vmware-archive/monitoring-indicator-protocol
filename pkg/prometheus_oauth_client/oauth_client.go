@@ -3,6 +3,7 @@ package prometheus_oauth_client
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -66,7 +67,7 @@ func (c *oauthTokenFetcher) GetClientToken() (string, error) {
 		strings.NewReader(v.Encode()),
 	)
 	if err != nil {
-		return "", err
+		return "", errors.New("error constructing post request for client token")
 	}
 	req.URL.Path = "/oauth/token"
 
@@ -86,7 +87,7 @@ func (c *oauthTokenFetcher) doTokenRequest(req *http.Request) (string, error) {
 	resp, err := client.Do(req)
 
 	if err != nil {
-		return "", err
+		return "", errors.New("token request failed")
 	}
 
 	defer resp.Body.Close()
@@ -101,7 +102,7 @@ func (c *oauthTokenFetcher) doTokenRequest(req *http.Request) (string, error) {
 	}{}
 
 	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
-		return "", fmt.Errorf("failed to unmarshal response from Oauth2 server: %s", err)
+		return "", errors.New("failed to unmarshal response from Oauth2 server")
 	}
 
 	c.token = fmt.Sprintf("%s %s", token.TokenType, token.AccessToken)

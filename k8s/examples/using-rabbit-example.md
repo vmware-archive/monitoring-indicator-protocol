@@ -54,7 +54,7 @@ This will allow you to validate that the installation was successful.
 Now that we have Rabbit itself installed, we can add its metrics exporter.
 The exporter needs to be told how to communicate with Rabbit,
 so installing it is a bit more involved.
-If you look at `k8s/helm_config/dev_rabbitmq_exports_values.yml`,
+If you look at `k8s/helm_config/rabbitmq_exporter_values.yml`,
 you might see what we mean.
 We use this file to override defaults defined by the Prometheus exporter helm
 chart as necessary.
@@ -62,7 +62,7 @@ The only thing you need to worry about here is the password.
 Replace it with the real value from the previous step.
 Once you've done so, install the exporter like so:
 ```bash
-helm install stable/prometheus-rabbitmq-exporter --name rabbitmq-exporter --namespace rabbit --values k8s/helm_config/dev_rabbitmq_exporter_values.yml
+helm install stable/prometheus-rabbitmq-exporter --name rabbitmq-exporter --namespace rabbit --values k8s/helm_config/rabbitmq_exporter_values.yml
 ```
 To validate the installation,
 you can again follow the instructions from Helm to set up port forwarding.
@@ -83,12 +83,12 @@ This is done with a configuration available on the Prometheus Helm Chart called
 `extraScrapeConfigs`.
 This allows us to append scrape configurations to those shipped by default.
 You can see what this looks like in
-`k8s/helm_config/dev_prometheus_values.yml`.
+`k8s/helm_config/prometheus_rabbitmq_scrape_values.yml`.
 Here, we tell Prometheus to scan the `/metrics` endpoint of all k8s services
 running in the `rabbit` namespace.
 You shouldn't need to make any modifications to this file, just run:
 ```bash
-helm install stable/prometheus --name prometheus --namespace prometheus --values k8s/helm_config/dev_prometheus_values.yml
+helm install stable/prometheus --name prometheus --namespace prometheus --values k8s/helm_config/prometheus_rabbitmq_scrape_values.yml
 ```
 Follow the instructions from helm to set up Port Forwarding again,
 there is again no password to worry about.

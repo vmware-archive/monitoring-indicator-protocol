@@ -6,13 +6,13 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/docs"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 func TestRenderDocumentHTML(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	indicators := []indicator.Indicator{
+	indicators := []v1.IndicatorSpec{
 		{
 			Name: "test_indicator",
 			Documentation: map[string]string{
@@ -23,31 +23,33 @@ func TestRenderDocumentHTML(t *testing.T) {
 				"measurement": "Average over 100 minutes",
 			},
 			PromQL: `avg_over_time(test_latency{source_id="demo_source"}[100m])`,
-			Thresholds: []indicator.Threshold{
+			Thresholds: []v1.Threshold{
 				{
 					Level:    "warning",
-					Operator: indicator.GreaterThan,
+					Operator: v1.GreaterThan,
 					Value:    500,
 				},
 				{
 					Level:    "critical",
-					Operator: indicator.GreaterThan,
+					Operator: v1.GreaterThan,
 					Value:    1000,
 				},
 			},
 		},
 	}
-	document := indicator.Document{
-		Indicators: indicators,
-		Layout: indicator.Layout{
-			Title:       "Test Document",
-			Owner:       "Test Owner",
-			Description: "This is a document for testing `code`",
-			Sections: []indicator.Section{
-				{
-					Title:       "Test Indicators Section",
-					Description: "This is a section of indicator documentation for testing `other code`",
-					Indicators:  []string{"test_indicator"},
+	document := v1.IndicatorDocument{
+		Spec: v1.IndicatorDocumentSpec{
+			Indicators: indicators,
+			Layout: v1.Layout{
+				Title:       "Test Document",
+				Owner:       "Test Owner",
+				Description: "This is a document for testing `code`",
+				Sections: []v1.Section{
+					{
+						Title:       "Test Indicators Section",
+						Description: "This is a section of indicator documentation for testing `other code`",
+						Indicators:  []string{"test_indicator"},
+					},
 				},
 			},
 		},

@@ -6,12 +6,14 @@ import (
 
 	"github.com/cppforlife/go-patch/patch"
 	. "github.com/onsi/gomega"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
-func TestInsertDocument(t *testing.T) {
+func TestStore(t *testing.T) {
 	var val interface{}
 	val = map[interface{}]interface{}{
 		"promQL": "foo{bar&bar}",
@@ -63,44 +65,63 @@ func TestInsertDocument(t *testing.T) {
 		}},
 	}
 
-	productAVersion1Document := indicator.Document{
-		Product: indicator.Product{Name: "my-product-a", Version: "1"},
-		Metadata: map[string]string{
-			"deployment": "abc-123",
+	productAVersion1Document := v1.IndicatorDocument{
+		ObjectMeta: metaV1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "abc-123",
+			},
 		},
-		Indicators: []indicator.Indicator{{
-			Name: "test_errors",
-		}},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-a", Version: "1"},
+			Indicators: []v1.IndicatorSpec{{
+				Name: "test_errors",
+			}},
+		},
 	}
 
-	productAVersion2Document := indicator.Document{
-		Product: indicator.Product{Name: "my-product-a", Version: "2"},
-		Metadata: map[string]string{
-			"deployment": "abc-123",
+	productAVersion2Document := v1.IndicatorDocument{
+		TypeMeta: metaV1.TypeMeta{},
+		ObjectMeta: metaV1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "abc-123",
+			},
 		},
-		Indicators: []indicator.Indicator{{
-			Name: "test_error_ratio",
-		}},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-a", Version: "2"},
+			Indicators: []v1.IndicatorSpec{{
+				Name: "test_error_ratio",
+			}},
+		},
 	}
 
-	productADeployment2Document := indicator.Document{
-		Product: indicator.Product{Name: "my-product-a", Version: "2"},
-		Metadata: map[string]string{
-			"deployment": "def-456",
+	productADeployment2Document := v1.IndicatorDocument{
+		TypeMeta: metaV1.TypeMeta{},
+		ObjectMeta: metaV1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "def-456",
+			},
 		},
-		Indicators: []indicator.Indicator{{
-			Name: "test_error_ratio",
-		}},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-a", Version: "2"},
+			Indicators: []v1.IndicatorSpec{{
+				Name: "test_error_ratio",
+			}},
+		},
 	}
 
-	productBDocument := indicator.Document{
-		Product: indicator.Product{Name: "my-product-b", Version: "1"},
-		Metadata: map[string]string{
-			"deployment": "def-456",
+	productBDocument := v1.IndicatorDocument{
+		TypeMeta: metaV1.TypeMeta{},
+		ObjectMeta: metaV1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "def-456",
+			},
 		},
-		Indicators: []indicator.Indicator{{
-			Name: "test_latency",
-		}},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-b", Version: "1"},
+			Indicators: []v1.IndicatorSpec{{
+				Name: "test_latency",
+			}},
+		},
 	}
 
 	t.Run("it upserts patchesBySource in bulk by source", func(t *testing.T) {
@@ -134,6 +155,17 @@ func TestInsertDocument(t *testing.T) {
 		store.UpsertDocument(productAVersion1Document)
 
 		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion1Document))
+	})
+
+	t.Run("it can retrieve documents by product name", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(time.Hour, time.Now)
+
+		store.UpsertDocument(productAVersion1Document)
+		store.UpsertDocument(productBDocument)
+
+		g.Expect(store.FilteredDocuments("my-product-a")).To(ConsistOf(productAVersion1Document))
 	})
 
 	t.Run("it upserts documents based on product", func(t *testing.T) {

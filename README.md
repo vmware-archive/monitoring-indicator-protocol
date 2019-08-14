@@ -7,12 +7,18 @@ The indicator definition ideally lives in the same repository as the code and is
 There are 3 main uses cases for this project: Generating documentation, validating against an actual deployment's data,
 and keeping a registry of indicators for use in monitoring tools such as prometheus alert manager and grafana.
 
+This repository contains the OSS distributions of Indicator Protocol components:
+- [BOSH](https://github.com/pivotal/monitoring-indicator-protocol/tree/master/bosh-release)
+- [Binaries](https://github.com/pivotal/monitoring-indicator-protocol/releases)
+- [Kubernetes](https://github.com/pivotal/monitoring-indicator-protocol/tree/master/k8s)
+
 See [the wiki](https://github.com/pivotal/monitoring-indicator-protocol/wiki) for more detailed information and documentation.
 
 ## Developing Locally
 
 This project currently requires only the Go programming language to develop.
-Install go using `brew install go`, then proceed to the next steps.
+Install go using `brew install go`, then proceed to the next steps. 
+If you would prefer to use a docker image instead, skip down to the [developing locally with docker section](#developing-with-docker)
 
 Goland Setup:
 1. Preferences -> Go -> Build Tags & Vendoring -> Custom tags: `-mod=vendor`
@@ -32,7 +38,7 @@ Use the provided script to run tests: `./scripts/test.sh`
    ```json
    [
      {
-       "apiVersion": "v0",
+       "apiVersion": "apps.pivotal.io/v1",
        "product": {
          "name": "my-component",
          "version": "1.2.3"
@@ -103,3 +109,12 @@ Use the provided script to run tests: `./scripts/test.sh`
 
    Specifically, you should get a single product called `my-component` with 3 indicators, some metadata,
    and a layout section.
+   
+## Developing with Docker
+We have provided a script to create the necessary certificates and start your docker container for you. If you have the repo cloned, run `./scripts/start_docker_compose.sh` from the root. The registry will be running on port 10567 by default. To curl this registry, reference the certs created in the certs directory within docker-compose. For example:
+
+```
+curl https://localhost:10567/v1/indicator-documents -k --key docker-compose/certs/client.key --cert docker-compose/certs/client.pem --cacert docker-compose/certs/ca.key
+```
+
+   

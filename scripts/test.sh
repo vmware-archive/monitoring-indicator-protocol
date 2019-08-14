@@ -11,6 +11,8 @@ function print_usage {
     echo -e "\033[1mSubcommands:\033[0m"
     echo "   unit          Run the unit tests"
     echo "   e2e           Run the end-to-end tests"
+    echo "   k8s_e2e       Run the k8s end-to-end tests"
+    echo "   bosh_e2e      Run the bosh end-to-end tests"
     echo "   build         Build all binaries for the project"
     echo "   cleaners      Run tools that clean the code base"
 }
@@ -41,6 +43,15 @@ function check_output {
 function exit_on_failure {
     if [[ $1 -ne 0 ]]; then
         red "SUITE FAILURE"
+        exit $1
+    fi
+}
+
+function exit_on_dirty_git_directory {
+    git diff --quiet
+    result=$?
+    if [[ $1 -ne 0 ]]; then
+        red "GIT DIRECTORY IS NOT CLEAN"
         exit $1
     fi
 }
@@ -86,13 +97,13 @@ function run_build {
 
 function run_unit {
     print_checkpoint "Running Unit Tests"
-    go test -mod=vendor -race $(go list ./... | grep -v e2e)
+    go test -mod=vendor -race $(go list ./... | grep -v e2e | grep -v smoke)
     exit_code=$?
     return $exit_code
 }
 
-function run_e2e {
-    print_checkpoint "Running End-To-End Tests"
+function run_k8s_e2e {
+    print_checkpoint "Running K8S End-To-End Tests"
     PROMETHEUS_URI=$(kubectl get svc --namespace prometheus prometheus-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     GRAFANA_URI=$(kubectl get svc --namespace grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     GRAFANA_ADMIN_USER=$(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-user}" | base64 --decode ; echo)
@@ -103,8 +114,21 @@ function run_e2e {
         -grafana-admin-pw=${GRAFANA_ADMIN_PW} \
         -prometheus-uri=${PROMETHEUS_URI} \
         $@
-    exit_code=$?
-    return $exit_code
+    return $?
+}
+
+function run_bosh_e2e {
+    print_checkpoint "Running Bosh End-To-End Tests"
+    go test -mod=vendor -race "$PKG/test/e2e" $@
+    return $?
+}
+
+function run_e2e {
+    run_bosh_e2e
+    e2e_exit_code=$?
+    run_k8s_e2e
+    k8s_exit_code=$?
+    return $[ e2e_exit_code + k8s_exit_code ]
 }
 
 function parse_argc {
@@ -119,7 +143,7 @@ function parse_argc {
             print_usage
             exit 0
             ;;
-        unit|e2e|build|cleaners)
+        unit|e2e|bosh_e2e|k8s_e2e|build|cleaners)
             command=run_$arg
             ;;
         *)
@@ -145,6 +169,7 @@ function main {
     "$command" $@
     result=$?
     exit_on_failure $result
+    exit_on_dirty_git_directory $result
     green "SWEET SUITE SUCCESS"
 }
 
