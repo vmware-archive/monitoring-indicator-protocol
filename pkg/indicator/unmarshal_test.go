@@ -1062,7 +1062,7 @@ spec:
 			}{
 				{"sli", v1.ServiceLevelIndicator},
 				{"kpi", v1.KeyPerformanceIndicator},
-				{"indicator", v1.DefaultIndicator},
+				{"other", v1.DefaultIndicator},
 				{"", v1.UndefinedType},
 				{"asdf", v1.UndefinedType},
 			}

@@ -9,7 +9,7 @@
       "indicators": [
         {
           "name": "some_indicator",
-          "type": "indicator",
+          "type": "other",
           "promql": "some_promql"
         }
       ],
