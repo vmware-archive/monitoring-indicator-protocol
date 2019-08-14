@@ -226,7 +226,7 @@ jobs:
 
           UAA_CLIENT_SECRET=$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_cc-service-dashboards_secret -j | jq -r .value)
 
-          bosh -n -d indicator-registry deploy \
+          bosh -n -d indicator-protocol deploy \
             manifests/manifest.yml \
             -o ops_files/add-examples-git-source.yml \
             -o ops_files/configure-status-controller.yml \
