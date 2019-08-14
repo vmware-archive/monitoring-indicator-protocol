@@ -34,7 +34,7 @@ func main() {
 
 	prometheusClient, err := prometheus_oauth_client.Build(*prometheusURI, tokenFetcher, *insecure)
 	if err != nil {
-		l.Fatal("could not create prometheus client")
+		l.Fatalf("could not create prometheus client: %s\n", err)
 	}
 
 	printHorizontalLine(stdOut)
@@ -46,11 +46,12 @@ func main() {
 	for _, ind := range document.Spec.Indicators {
 		stdOut.Println()
 
-		stdOut.Printf("Querying for indicator in prometheus…")
+		stdOut.Printf("Querying for indicator with name \"%s\"", ind.Name)
+		stdOut.Printf("  query: %s", ind.PromQL)
 
 		result, err := verification.VerifyIndicator(ind, prometheusClient)
 		if err != nil {
-			stdErr.Println("  error finding indicator")
+			stdErr.Println("  " + err.Error())
 			failedIndicators = append(failedIndicators, ind)
 			continue
 		}
@@ -69,7 +70,7 @@ func main() {
 		separator(stdOut)
 		printHorizontalLine(stdErr)
 		stdErr.Println("VALIDATION FAILURE")
-		stdErr.Printf("  Could not find %d indicators \n", len(failedIndicators))
+		stdErr.Printf("  Could not find %d indicators in %s \n", len(failedIndicators), *prometheusURI)
 		stdErr.Println("  Both operators and platform observability tools such as PCF Healthwatch rely on the")
 		stdErr.Println("  existence of this data. Perhaps a metric name changed, or refactored code")
 		stdErr.Println("  is failing to emit.")
