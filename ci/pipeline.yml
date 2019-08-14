@@ -2,7 +2,6 @@
 resources:
 - name: monitoring-indicator-protocol
   type: git
-  icon: package-variant-closed
   source:
     uri: git@github.com:pivotal/monitoring-indicator-protocol.git
     branch: v0.7
@@ -13,13 +12,6 @@ resources:
     - bosh-release/.final_builds
     - bosh-release/releases
     - k8s/examples
-- name: indicator-protocol-acceptance-proxy
-  type: git
-  icon: package-variant-closed
-  source:
-    uri: git@github.com:pivotal/indicator-protocol-acceptance-proxy.git
-    branch: master
-    private_key: ((acceptance-proxy-deploy-key.private_key))
 - name: env-state
   type: git
   source:
@@ -41,121 +33,18 @@ resources:
     repository: monitoring-indicator-protocol
     access_token: ((bot-github-access-token))
     drafts: true
-- name: k8s-grafana-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-grafana-indicator-controller
-    tag: release-candidate
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: interim-k8s-grafana-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-grafana-indicator-controller
-    tag: last-build
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: k8s-prometheus-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-prometheus-indicator-controller
-    tag: release-candidate
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: interim-k8s-prometheus-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-prometheus-indicator-controller
-    tag: last-build
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: k8s-indicator-lifecycle-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-indicator-lifecycle-controller
-    tag: release-candidate
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: interim-k8s-indicator-lifecycle-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-indicator-lifecycle-controller
-    tag: last-build
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: k8s-indicator-admission-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-indicator-admission
-    tag: release-candidate
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: interim-k8s-indicator-admission-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-indicator-admission
-    tag: last-build
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: k8s-indicator-status-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-indicator-status-controller
-    tag: release-candidate
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: interim-k8s-indicator-status-controller-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/k8s-indicator-status-controller
-    tag: last-build
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: bosh-indicator-registry-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/bosh-indicator-protocol-registry
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: bosh-indicator-registry-proxy-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/bosh-indicator-protocol-registry-proxy
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
-- name: bosh-indicator-registry-agent-docker-repo
-  type: docker-image
-  source:
-    repository: indicatorprotocol/bosh-indicator-protocol-registry-agent
-    username: ((dockerhub-username))
-    password: ((dockerhub-password))
 - name: dev-release
   type: gcs-resource
   source:
     bucket: monitoring-indicator-protocol
     json_key: ((gcp-service-account))
     regexp: releases/v0.7/dev/indicator-protocol-bosh-(.*).tgz
-- name: evening
-  type: time
-  source:
-    start: 6:00 PM
-    stop: 12:00 AM
-    location: America/Denver
-    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
-- name: notify
-  type: slack-notification
-  source:
-    url: ((slack-webhook-url))
 
 resource_types:
 - name: gcs-resource
   type: docker-image
   source:
     repository: frodenas/gcs-resource
-- name: slack-notification
-  type: docker-image
-  source:
-    repository: cfcommunity/slack-notification-resource
 
 jobs:
 - name: build-and-test
@@ -182,48 +71,6 @@ jobs:
 
           pushd monitoring-indicator-protocol
             scripts/test.sh
-          popd
-
-- name: test-bosh-e2e
-  plan:
-  - in_parallel:
-    - get: env-state
-    - get: monitoring-indicator-protocol
-      trigger: true
-      passed: [build-and-test]
-  - task: test-bosh-e2e
-    config:
-      params:
-        BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
-        CF_ADMIN_PASSWORD: ((madlamp-cf-admin-password))
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: indicatorprotocol/test-base
-      inputs:
-      - name: monitoring-indicator-protocol
-      - name: env-state
-
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -eu
-
-          pushd "env-state/${BBL_STATE_DIR}"
-            eval "$(bbl print-env)"
-          popd
-
-          pushd monitoring-indicator-protocol
-            cf login \
-              -a https://api.madlamp.cf-denver.com \
-              -u admin -p $CF_ADMIN_PASSWORD \
-              -o test \
-              -s test
-            ./scripts/test.sh bosh_e2e
           popd
 
 - name: indicator-docs
@@ -273,8 +120,8 @@ jobs:
       - name: monitoring-indicator-protocol
       - name: env-state
       params:
-        ENVIRONMENT: moonstorm #TODO: do this on madlamp and with our real indicator doc
-        BBL_STATE_DIR: acceptance-bosh/healthwatch/moonstorm
+        ENVIRONMENT: moonstorm
+        BBL_STATE_DIR: acceptance-bosh/claimed/moonstorm
         DEPLOYMENT_NAME: cf-01234567890123456789
       run:
         path: bash
@@ -295,15 +142,13 @@ jobs:
 
             cat << EOF > indicators.yml
           ---
-          apiVersion: apps.pivotal.io/v1
-          kind: IndicatorDocument
-          spec:
-            product:
-              name: uaa-test
-              version: 0
-            indicators:
-            - name: uaa_request_rate
-              promql: rate(requests_global_status_2xx_count{source_id="uaa"}[10m])
+          apiVersion: v0
+          product:
+            name: uaa-test
+            version: 0
+          indicators:
+          - name: uaa_request_rate
+            promql: rate(requests_global_status_2xx_count{source_id="uaa"}[10m])
           EOF
 
             uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_firehose_exporter_secret -j | jq -r .value)"
@@ -313,19 +158,18 @@ jobs:
                                                         -authorization="bearer ${access_token}" \
                                                         -query-endpoint=https://metric-store.${ENVIRONMENT}.cf-denver.com \
                                                         -k
+
           popd
 
-- name: deploy-indicator-registry-to-madlamp
-  serial: true
+- name: deploy-indicator-registry
   plan:
   - in_parallel:
     - get: env-state
     - get: monitoring-indicator-protocol
       trigger: true
       passed: [build-and-test]
-    - get: indicator-protocol-acceptance-proxy
     - get: release-version
-  - task: deploy-registry
+  - task: deploy
     config:
       params:
         ENVIRONMENT: madlamp
@@ -335,7 +179,6 @@ jobs:
         UAA_URI: https://uaa.madlamp.cf-denver.com
         UAA_CLIENT_ID: healthwatch_admin
         SERVICE_ACCOUNT: ((gcp-service-account))
-        EXAMPLE_REPO_PRIVATE_KEY: ((example-repository-private-key))
       platform: linux
       image_resource:
         type: docker-image
@@ -360,7 +203,6 @@ jobs:
           rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
 
           BUILD_NUMBER=$(cat release-version/number)
-          BUILD_NUMBER=${BUILD_NUMBER}-$(date +"%s")
 
           pushd monitoring-indicator-protocol/bosh-release
 
@@ -379,468 +221,35 @@ jobs:
 
             bosh update-runtime-config -n \
               --name indicator-registration-agent \
-              --var=indicator-protocol-version=${BUILD_NUMBER} \
+              --var=indicator-protocol-version=$BUILD_NUMBER \
               manifests/agent_runtime_config.yml
 
           UAA_CLIENT_SECRET=$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_cc-service-dashboards_secret -j | jq -r .value)
-
-          echo "{\"key\": \"${EXAMPLE_REPO_PRIVATE_KEY//[$'\t\r\n']}\"}" | jq .key -r > ./sample-repo-key
 
           bosh -n -d indicator-registry deploy \
             manifests/manifest.yml \
             -o ops_files/add-examples-git-source.yml \
             -o ops_files/configure-status-controller.yml \
-            -o ops_files/set-indicator-protocol-version.yml \
             -v prometheus_uri=$PROMETHEUS_URI \
             -v uaa_uri=$UAA_URI \
             -v uaa_client_id=$UAA_CLIENT_ID \
-            -v uaa_client_secret=$UAA_CLIENT_SECRET \
-            -v indicator-protocol-version=$BUILD_NUMBER \
-            --var-file=patch_repo_private_key=./sample-repo-key
+            -v uaa_client_secret=$UAA_CLIENT_SECRET
           popd
-
-          bosh -d indicator-protocol run-errand indicator-smoke-tests
 
           CF_DEPLOYMENT_NAME=$(bosh deployments --json | jq .Tables[0].Rows | jq '.[] | select( .name | contains("cf"))' | jq .name -r)
           bosh -n -d $CF_DEPLOYMENT_NAME manifest > temp.yml
           bosh -n -d $CF_DEPLOYMENT_NAME deploy temp.yml
           rm temp.yml
 
-
-  - task: deploy-external-proxy
-    config:
-      params:
-        CF_ADMIN_PASSWORD: ((madlamp-cf-admin-password))
-        BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: indicatorprotocol/test-base
-      inputs:
-      - name: indicator-protocol-acceptance-proxy
-      - name: env-state
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          set -e
-
-          pushd "env-state/${BBL_STATE_DIR}"
-            eval "$(bbl print-env)"
-          popd
-
-          pushd indicator-protocol-acceptance-proxy
-            bosh -d indicator-protocol scp indicator-protocol:/var/vcap/jobs/indicator-registry-proxy/certs/indicator_protocol_ca.crt ca.crt
-            cf login -a https://api.madlamp.cf-denver.com -u admin -p $CF_ADMIN_PASSWORD -o test -s test
-            cf push
-            ./test_acceptance_proxy.sh
-          popd
-
-
-- name: create-dev-docker-images
-  plan:
-  - get: monitoring-indicator-protocol
-    passed: [build-and-test]
-    trigger: true
-  - task: create-tag
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: buildpack-deps
-          tag: stretch-scm
-      inputs:
-      - name: monitoring-indicator-protocol
-      outputs:
-      - name: tag
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -e
-          cd monitoring-indicator-protocol
-          SHA=$(git rev-parse HEAD)
-          cd ..
-          echo ${SHA} > tag/tag
-  - in_parallel:
-    - put: bosh-indicator-registry-docker-repo
-      attempts: 2
-      params:
-        additional_tags: tag/tag
-        build: monitoring-indicator-protocol
-        dockerfile: monitoring-indicator-protocol/cmd/registry/Dockerfile
-    - put: bosh-indicator-registry-proxy-docker-repo
-      attempts: 2
-      params:
-        additional_tags: tag/tag
-        build: monitoring-indicator-protocol
-        dockerfile: monitoring-indicator-protocol/cmd/registry_proxy/Dockerfile
-    - put: bosh-indicator-registry-agent-docker-repo
-      attempts: 2
-      params:
-        additional_tags: tag/tag
-        build: monitoring-indicator-protocol
-        dockerfile: monitoring-indicator-protocol/cmd/registry_agent/Dockerfile
-
-- name: create-k8s-docker-images
-  plan:
-  - get: monitoring-indicator-protocol
-    passed: [build-and-test]
-    trigger: true
-  - task: create-tag
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: buildpack-deps
-          tag: stretch-scm
-      inputs:
-      - name: monitoring-indicator-protocol
-      outputs:
-      - name: tag
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -e
-          cd monitoring-indicator-protocol
-          SHA=$(git rev-parse HEAD)
-          cd ..
-          echo ${SHA} > tag/tag
-  - in_parallel:
-    - put: interim-k8s-grafana-controller-docker-repo
-      attempts: 2
-      params:
-        additional_tags: tag/tag
-        tag_as_latest: false
-        build: monitoring-indicator-protocol
-        dockerfile: monitoring-indicator-protocol/k8s/cmd/grafana-indicator-controller/Dockerfile
-    - put: interim-k8s-prometheus-controller-docker-repo
-      attempts: 2
-      params:
-        additional_tags: tag/tag
-        tag_as_latest: false
-        build: monitoring-indicator-protocol
-        dockerfile: monitoring-indicator-protocol/k8s/cmd/prometheus-indicator-controller/Dockerfile
-    - put: interim-k8s-indicator-lifecycle-controller-docker-repo
-      attempts: 2
-      params:
-        additional_tags: tag/tag
-        tag_as_latest: false
-        build: monitoring-indicator-protocol
-        dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-lifecycle-controller/Dockerfile
-    - put: interim-k8s-indicator-admission-controller-docker-repo
-      attempts: 2
-      params:
-        additional_tags: tag/tag
-        tag_as_latest: false
-        build: monitoring-indicator-protocol
-        dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-admission/Dockerfile
-    - put: interim-k8s-indicator-status-controller-docker-repo
-      attempts: 2
-      params:
-        additional_tags: tag/tag
-        tag_as_latest: false
-        build: monitoring-indicator-protocol
-        dockerfile: monitoring-indicator-protocol/k8s/cmd/indicator-status-controller/Dockerfile
-- name: deploy-k8s-test
-  plan:
-  - in_parallel:
-    - get: monitoring-indicator-protocol
-      passed: [create-k8s-docker-images]
-      trigger: true
-    - get: interim-k8s-grafana-controller-docker-repo
-      params: {skip_download: true}
-      passed: [create-k8s-docker-images]
-    - get: interim-k8s-prometheus-controller-docker-repo
-      params: {skip_download: true}
-      passed: [create-k8s-docker-images]
-    - get: interim-k8s-indicator-lifecycle-controller-docker-repo
-      params: {skip_download: true}
-      passed: [create-k8s-docker-images]
-    - get: interim-k8s-indicator-admission-controller-docker-repo
-      params: {skip_download: true}
-      passed: [create-k8s-docker-images]
-    - get: interim-k8s-indicator-status-controller-docker-repo
-      params: {skip_download: true}
-      passed: [create-k8s-docker-images]
-  - task: deploy-to-gke
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: indicatorprotocol/test-base
-      inputs:
-      - name: monitoring-indicator-protocol
-      - name: interim-k8s-grafana-controller-docker-repo
-      - name: interim-k8s-prometheus-controller-docker-repo
-      - name: interim-k8s-indicator-lifecycle-controller-docker-repo
-      - name: interim-k8s-indicator-admission-controller-docker-repo
-      - name: interim-k8s-indicator-status-controller-docker-repo
-      params:
-        SERVICE_ACCOUNT: ((k8s-service-account))
-        CLUSTER_NAME: mip-test
-        PROJECT_NAME: cf-denver
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -e
-
-          function login {
-            echo "$SERVICE_ACCOUNT" > sa.json
-            gcloud auth activate-service-account --key-file sa.json
-            rm sa.json
-            gcloud config set project $PROJECT_NAME
-            gcloud container clusters get-credentials "$CLUSTER_NAME" --zone us-central1-a
-          }
-
-          function apply_manifests {
-              grafana_digest="$(cat interim-k8s-grafana-controller-docker-repo/digest)"
-              prometheus_digest="$(cat interim-k8s-prometheus-controller-docker-repo/digest)"
-              indicator_lifecycle_digest="$(cat interim-k8s-indicator-lifecycle-controller-docker-repo/digest)"
-              indicator_admission_digest="$(cat interim-k8s-indicator-admission-controller-docker-repo/digest)"
-              indicator_status_digest="$(cat interim-k8s-indicator-status-controller-docker-repo/digest)"
-              pushd monitoring-indicator-protocol/k8s/config > /dev/null
-                  kustomize edit set image "indicatorprotocol/k8s-grafana-indicator-controller@$grafana_digest"
-                  kustomize edit set image "indicatorprotocol/k8s-prometheus-indicator-controller@$prometheus_digest"
-                  kustomize edit set image "indicatorprotocol/k8s-indicator-lifecycle-controller@$indicator_lifecycle_digest"
-                  kustomize edit set image "indicatorprotocol/k8s-indicator-admission@$indicator_admission_digest"
-                  kustomize edit set image "indicatorprotocol/k8s-indicator-status-controller@$indicator_status_digest"
-              popd > /dev/null
-
-              kustomize build monitoring-indicator-protocol/k8s/config | kubectl apply -f -
-          }
-
-          function main {
-            login
-            apply_manifests
-          }
-
-          main
-
-- name: test-k8s
-  plan:
-  - in_parallel:
-    - get: interim-k8s-grafana-controller-docker-repo
-      params: {skip_download: true}
-      passed: [deploy-k8s-test]
-    - get: interim-k8s-prometheus-controller-docker-repo
-      params: {skip_download: true}
-      passed: [deploy-k8s-test]
-    - get: interim-k8s-indicator-lifecycle-controller-docker-repo
-      params: {skip_download: true}
-      passed: [deploy-k8s-test]
-    - get: interim-k8s-indicator-admission-controller-docker-repo
-      params: {skip_download: true}
-      passed: [deploy-k8s-test]
-    - get: interim-k8s-indicator-status-controller-docker-repo
-      params: {skip_download: true}
-      passed: [deploy-k8s-test]
-    - get: monitoring-indicator-protocol
-      passed: [deploy-k8s-test]
-      trigger: true
-  - task: run-tests
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: indicatorprotocol/test-base
-      inputs:
-      - name: monitoring-indicator-protocol
-      params:
-        SERVICE_ACCOUNT: ((k8s-service-account))
-        CLUSTER_NAME: mip-test
-        PROJECT_NAME: cf-denver
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -e
-
-          function login {
-            echo "$SERVICE_ACCOUNT" > sa.json
-            gcloud auth activate-service-account --key-file sa.json
-            rm sa.json
-            gcloud config set project $PROJECT_NAME
-            gcloud container clusters get-credentials "$CLUSTER_NAME" --zone us-central1-a
-          }
-
-          function test {
-              cd monitoring-indicator-protocol
-              ./scripts/test.sh k8s_e2e
-          }
-
-          function main {
-            login
-            test
-          }
-
-          main
-
-- name: deploy-k8s-acceptance
-  serial: true
-  plan:
-  - in_parallel:
-    - get: monitoring-indicator-protocol
-      passed: [test-k8s]
-      trigger: true
-    - get: interim-k8s-grafana-controller-docker-repo
-      params: {skip_download: true}
-      passed: [test-k8s]
-    - get: interim-k8s-prometheus-controller-docker-repo
-      params: {skip_download: true}
-      passed: [test-k8s]
-    - get: interim-k8s-indicator-lifecycle-controller-docker-repo
-      params: {skip_download: true}
-      passed: [test-k8s]
-    - get: interim-k8s-indicator-admission-controller-docker-repo
-      params: {skip_download: true}
-      passed: [test-k8s]
-    - get: interim-k8s-indicator-status-controller-docker-repo
-      params: {skip_download: true}
-      passed: [test-k8s]
-  - task: deploy-to-gke
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source:
-          repository: indicatorprotocol/test-base
-      inputs:
-      - name: monitoring-indicator-protocol
-      - name: interim-k8s-grafana-controller-docker-repo
-      - name: interim-k8s-prometheus-controller-docker-repo
-      - name: interim-k8s-indicator-lifecycle-controller-docker-repo
-      - name: interim-k8s-indicator-admission-controller-docker-repo
-      - name: interim-k8s-indicator-status-controller-docker-repo
-      params:
-        SERVICE_ACCOUNT: ((k8s-service-account))
-        CLUSTER_NAME: mip-acceptance
-        PROJECT_NAME: cf-denver
-      run:
-        path: bash
-        args:
-        - -c
-        - |
-          #!/usr/bin/env bash
-          set -e
-
-          function login {
-            echo "$SERVICE_ACCOUNT" > sa.json
-            gcloud auth activate-service-account --key-file sa.json
-            rm sa.json
-            gcloud config set project $PROJECT_NAME
-            gcloud container clusters get-credentials "$CLUSTER_NAME" --zone us-central1-a
-          }
-
-          function apply_manifests {
-              grafana_digest="$(cat interim-k8s-grafana-controller-docker-repo/digest)"
-              prometheus_digest="$(cat interim-k8s-prometheus-controller-docker-repo/digest)"
-              indicator_lifecycle_digest="$(cat interim-k8s-indicator-lifecycle-controller-docker-repo/digest)"
-              indicator_admission_digest="$(cat interim-k8s-indicator-admission-controller-docker-repo/digest)"
-              indicator_status_digest="$(cat interim-k8s-indicator-status-controller-docker-repo/digest)"
-              pushd monitoring-indicator-protocol/k8s/config > /dev/null
-                  kustomize edit set image "indicatorprotocol/k8s-grafana-indicator-controller@$grafana_digest"
-                  kustomize edit set image "indicatorprotocol/k8s-prometheus-indicator-controller@$prometheus_digest"
-                  kustomize edit set image "indicatorprotocol/k8s-indicator-lifecycle-controller@$indicator_lifecycle_digest"
-                  kustomize edit set image "indicatorprotocol/k8s-indicator-admission@$indicator_admission_digest"
-                  kustomize edit set image "indicatorprotocol/k8s-indicator-status-controller@$indicator_status_digest"
-              popd > /dev/null
-
-              kustomize build monitoring-indicator-protocol/k8s/config | kubectl apply -f -
-          }
-
-          function main {
-            login
-            apply_manifests
-          }
-
-          main
-
-- name: promote-docker-images
-  serial: true
-  plan:
-  - in_parallel:
-    - get: interim-k8s-grafana-controller-docker-repo
-      params: {save: true}
-      passed: [test-k8s]
-    - get: interim-k8s-prometheus-controller-docker-repo
-      params: {save: true}
-      passed: [test-k8s]
-    - get: interim-k8s-indicator-lifecycle-controller-docker-repo
-      params: {save: true}
-      passed: [test-k8s]
-    - get: interim-k8s-indicator-admission-controller-docker-repo
-      params: {save: true}
-      passed: [test-k8s]
-    - get: interim-k8s-indicator-status-controller-docker-repo
-      params: {save: true}
-      passed: [test-k8s]
-    - get: monitoring-indicator-protocol
-      passed: [test-k8s]
-      trigger: true
-  - in_parallel:
-    - put: k8s-grafana-controller-docker-repo
-      params:
-        tag_as_latest: false
-        load: interim-k8s-grafana-controller-docker-repo
-    - put: k8s-prometheus-controller-docker-repo
-      params:
-        tag_as_latest: false
-        load: interim-k8s-prometheus-controller-docker-repo
-    - put: k8s-indicator-lifecycle-controller-docker-repo
-      params:
-        tag_as_latest: false
-        load: interim-k8s-indicator-lifecycle-controller-docker-repo
-    - put: k8s-indicator-admission-controller-docker-repo
-      params:
-        tag_as_latest: false
-        load: interim-k8s-indicator-admission-controller-docker-repo
-    - put: k8s-indicator-status-controller-docker-repo
-      params:
-        tag_as_latest: false
-        load: interim-k8s-indicator-status-controller-docker-repo
 - name: create-dev-release
   plan:
   - in_parallel:
-    - get: evening
-      trigger: true
     - get: monitoring-indicator-protocol
-      passed: [indicator-verification,indicator-docs,deploy-indicator-registry-to-madlamp,promote-docker-images]
-      trigger: false
+      passed: [indicator-verification,indicator-docs,deploy-indicator-registry]
+      trigger: true
     - get: release-version
       params:
         pre: build
-    - get: k8s-grafana-controller-docker-repo
-      params: {save: true}
-      passed: [promote-docker-images]
-    - get: k8s-prometheus-controller-docker-repo
-      params: {save: true}
-      passed: [promote-docker-images]
-    - get: k8s-indicator-lifecycle-controller-docker-repo
-      params: {save: true}
-      passed: [promote-docker-images]
-    - get: k8s-indicator-admission-controller-docker-repo
-      params: {save: true}
-      passed: [promote-docker-images]
-    - get: k8s-indicator-status-controller-docker-repo
-      params: {save: true}
-      passed: [promote-docker-images]
   - task: create-release
     config:
       platform: linux
@@ -895,7 +304,6 @@ jobs:
         pre: build
 
 - name: finalize-release
-  serial: true
   plan:
   - in_parallel:
     - get: monitoring-indicator-protocol
@@ -904,26 +312,6 @@ jobs:
     - get: release-version
       params:
         bump: final
-    - get: k8s-grafana-controller-docker-repo
-      params: {save: true}
-      passed:
-      - create-dev-release
-    - get: k8s-prometheus-controller-docker-repo
-      params: {save: true}
-      passed:
-      - create-dev-release
-    - get: k8s-indicator-lifecycle-controller-docker-repo
-      params: {save: true}
-      passed:
-      - create-dev-release
-    - get: k8s-indicator-admission-controller-docker-repo
-      params: {save: true}
-      passed:
-      - create-dev-release
-    - get: k8s-indicator-status-controller-docker-repo
-      params: {save: true}
-      passed:
-      - create-dev-release
     - get: dev-release
       passed:
       - create-dev-release
@@ -983,10 +371,10 @@ jobs:
             bosh -n create-release --sha2 \
               --tarball ../../github-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz \
               --version "$BUILD_NUMBER" \
-              releases/monitoring-indicator-protocol/monitoring-indicator-protocol-${BUILD_NUMBER}.yml
+              releases/indicator-protocol/indicator-protocol-${BUILD_NUMBER}.yml
 
             git add .
-            git config --global user.email "indicator-protocol@pivotal.io"
+            git config --global user.email "indicartor-protocol@pivotal.io"
             git config --global user.name "indicator-protocol-bot"
             git commit -m "Create final release\
 
@@ -1041,7 +429,6 @@ jobs:
       - name: release-version
       outputs:
       - name: prefixed-release-version
-      - name: slack-message
       run:
         path: bash
         args:
@@ -1051,7 +438,6 @@ jobs:
           set -e
           number=$(cat "./release-version/number")
           echo v${number} > prefixed-release-version/version
-          echo "Indicator Protocol v${number} has been released :indipro:" > slack-message/text.txt
   - put: monitoring-indicator-protocol
     params:
       repository: monitoring-indicator-protocol
@@ -1072,48 +458,3 @@ jobs:
   - put: release-version
     params:
       bump: patch
-  - in_parallel:
-    - put: k8s-grafana-controller-docker-repo
-      params:
-        additional_tags: prefixed-release-version/version
-        tag_as_latest: true
-        load: k8s-grafana-controller-docker-repo
-    - put: k8s-prometheus-controller-docker-repo
-      params:
-        additional_tags: prefixed-release-version/version
-        tag_as_latest: true
-        load: k8s-prometheus-controller-docker-repo
-    - put: k8s-indicator-lifecycle-controller-docker-repo
-      params:
-        additional_tags: prefixed-release-version/version
-        tag_as_latest: true
-        load: k8s-indicator-lifecycle-controller-docker-repo
-    - put: k8s-indicator-admission-controller-docker-repo
-      params:
-        additional_tags: prefixed-release-version/version
-        tag_as_latest: true
-        load: k8s-indicator-admission-controller-docker-repo
-    - put: k8s-indicator-status-controller-docker-repo
-      params:
-        additional_tags: prefixed-release-version/version
-        tag_as_latest: true
-        load: k8s-indicator-status-controller-docker-repo
-  - put: notify
-    params:
-      text_file: ./slack-message/text.txt
-
-- name: bump-patch-version
-  plan:
-  - put: release-version
-    params:
-      bump: patch
-- name: bump-minor-version
-  plan:
-  - put: release-version
-    params:
-      bump: minor
-- name: bump-major-version
-  plan:
-  - put: release-version
-    params:
-      bump: major
