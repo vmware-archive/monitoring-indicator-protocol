@@ -1,6 +1,6 @@
 ---
 - type: replace
-  path: /instance_groups/name=indicator-protocol/jobs/name=status-controller/properties
+  path: /instance_groups/name=indicator-registry/jobs/name=status-controller/properties
   value:
     prometheus_uri: ((prometheus_uri))
     ssl:

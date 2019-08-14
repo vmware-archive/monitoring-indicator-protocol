@@ -8,7 +8,7 @@ templates:
   metric_port.yml.erb: config/metric_port.yml
 
 packages:
-  - indicator-protocol
+  - indicator-registry
 
 properties:
   sources:

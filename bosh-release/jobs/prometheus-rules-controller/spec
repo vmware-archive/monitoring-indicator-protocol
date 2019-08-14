@@ -8,7 +8,7 @@ templates:
   indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
 
 packages:
-  - indicator-protocol
+  - indicator-registry
 
 consumes:
   - name: indicator-registry

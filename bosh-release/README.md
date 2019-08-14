@@ -16,7 +16,7 @@ bosh upload-release indicator-protocol-bosh-0.7.10.tgz
 You will need to add a runtime config for the registration agent:
 ```bash
 bosh update-runtime-config -n \
-  --name indicator-document-registration-agent \
+  --name indicator-registration-agent \
   --var=indicator-protocol-version=$(bosh releases | grep indicator-protocol -m1 | cut -f2) \
   monitoring-indicator-protocol/bosh-release/manifests/agent_runtime_config.yml
 ```
@@ -40,7 +40,7 @@ communicate with a prometheus compliant datastore using UAA client credentials.
 
 Complete deploy:
 ```bash
-bosh -n -d indicator-protocol deploy \
+bosh -n -d indicator-registry deploy \
     monitoring-indicator-protocol/bosh-release/manifests/manifest.yml \
     -o monitoring-indicator-protocol/bosh-release/ops_files/add-examples-git-source.yml \
     -o monitoring-indicator-protocol/bosh-release/ops_files/configure-status-controller.yml \

@@ -1,4 +1,4 @@
-name: monitoring-indicator-protocol
+name: indicator-protocol
 blobstore:
   provider: gcs
   options:

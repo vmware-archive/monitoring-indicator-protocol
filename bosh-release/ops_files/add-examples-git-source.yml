@@ -1,6 +1,6 @@
 ---
 - type: replace
-  path: /instance_groups/name=indicator-protocol/jobs/name=indicator-registry/properties?/sources?/-
+  path: /instance_groups/name=indicator-registry/jobs/name=indicator-registry/properties/sources?/-
   value:
     type: git
     repository: git@github.com:pivotal/indicator-protocol-examples.git

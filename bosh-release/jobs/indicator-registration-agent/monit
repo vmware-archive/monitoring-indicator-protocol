@@ -1,0 +1,5 @@
+check process indicator-registration-agent
+  with pidfile /var/vcap/sys/run/indicator-registration-agent/agent.pid
+  start program "/var/vcap/jobs/indicator-registration-agent/bin/agent_ctl start"
+  stop program "/var/vcap/jobs/indicator-registration-agent/bin/agent_ctl stop"
+  group vcap

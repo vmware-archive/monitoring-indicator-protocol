@@ -1,14 +1,14 @@
 releases:
-- name: monitoring-indicator-protocol
+- name: indicator-protocol
   version: ((indicator-protocol-version))
 
 addons:
-- name: indicator-document-registration-agent
+- name: indicator-registration-agent
   jobs:
-  - name: indicator-document-registration-agent
-    release: monitoring-indicator-protocol
+  - name: indicator-registration-agent
+    release: indicator-protocol
     consumes:
-      indicator-registry: {deployment: indicator-protocol}
+      indicator-registry: {deployment: indicator-registry}
 
   include:
     stemcell:

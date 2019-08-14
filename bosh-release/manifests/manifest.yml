@@ -1,5 +1,5 @@
 ---
-name: indicator-protocol
+name: indicator-registry
 
 stemcells:
 - alias: default
@@ -7,13 +7,13 @@ stemcells:
   version: latest
 
 releases:
-- name: monitoring-indicator-protocol
+- name: indicator-protocol
   version: latest
 - name: bpm
   version: latest
 
 instance_groups:
-- name: indicator-protocol
+- name: indicator-registry
   azs:
   - z1
   instances: 3
@@ -25,9 +25,9 @@ instance_groups:
   - name: bpm
     release: bpm
   - name: indicator-registry
-    release: monitoring-indicator-protocol
+    release: indicator-protocol
   - name: indicator-registry-proxy
-    release: monitoring-indicator-protocol
+    release: indicator-protocol
     provides:
       indicator-registry:
         shared: true
@@ -42,7 +42,7 @@ instance_groups:
         client_cert: ((indicator_registration_agent_ssl.certificate))
         client_key: ((indicator_registration_agent_ssl.private_key))
   - name: indicator-cf-auth-proxy
-    release: monitoring-indicator-protocol
+    release: indicator-protocol
     consumes:
       indicator-registry: {deployment: indicator-protocol}
     provides:
@@ -58,16 +58,16 @@ instance_groups:
         server_key: ((indicator_auth_proxy_ssl.private_key))
         server_common_name: indicator-registry
   - name: grafana-dashboard-controller
-    release: monitoring-indicator-protocol
+    release: indicator-protocol
     properties:
       output_directory: /var/vcap/data/tmp/
   - name: prometheus-rules-controller
-    release: monitoring-indicator-protocol
+    release: indicator-protocol
     properties:
       output_directory: /var/vcap/data/tmp/
       prometheus_uri: http://localhost:12345
   - name: status-controller
-    release: monitoring-indicator-protocol
+    release: indicator-protocol
     properties:
       prometheus_uri: prometheus-compliant-uri
       ssl:
@@ -76,7 +76,7 @@ instance_groups:
       uaa_client_id: client_with_prometheus_access
       uaa_client_secret: client_secret
   - name: indicator-smoke-tests
-    release: monitoring-indicator-protocol
+    release: indicator-protocol
 
 update:
   canaries: 0
