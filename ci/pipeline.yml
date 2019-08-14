@@ -273,8 +273,8 @@ jobs:
       - name: monitoring-indicator-protocol
       - name: env-state
       params:
-        ENVIRONMENT: moonstorm #TODO: do this on madlamp and with our real indicator doc
-        BBL_STATE_DIR: acceptance-bosh/healthwatch/moonstorm
+        ENVIRONMENT: madlamp
+        BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
         DEPLOYMENT_NAME: cf-01234567890123456789
       run:
         path: bash
@@ -306,8 +306,8 @@ jobs:
               promql: rate(requests_global_status_2xx_count{source_id="uaa"}[10m])
           EOF
 
-            uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_firehose_exporter_secret -j | jq -r .value)"
-            access_token=$(curl -X POST "https://login.${ENVIRONMENT}.cf-denver.com/oauth/token" -k -u "firehose_exporter:${uaa_secret}" -H 'Accept: application/json' -d 'grant_type=client_credentials'  | jq -r .access_token)
+            uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_cc-service-dashboards_secret -j | jq -r .value)"
+            access_token=$(curl -X POST "https://login.${ENVIRONMENT}.cf-denver.com/oauth/token" -k -u "apps_metrics_processing:${uaa_secret}" -H 'Accept: application/json' -d 'grant_type=client_credentials'  | jq -r .access_token)
 
             go run -mod=vendor cmd/verification/main.go -indicators=indicators.yml \
                                                         -authorization="bearer ${access_token}" \
