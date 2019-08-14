@@ -378,7 +378,7 @@ jobs:
             bosh -n upload-release --fix
 
             bosh update-runtime-config -n \
-              --name indicator-document-registration-agent \
+              --name indicator-registration-agent \
               --var=indicator-protocol-version=${BUILD_NUMBER} \
               manifests/agent_runtime_config.yml
 
@@ -386,7 +386,7 @@ jobs:
 
           echo "{\"key\": \"${EXAMPLE_REPO_PRIVATE_KEY//[$'\t\r\n']}\"}" | jq .key -r > ./sample-repo-key
 
-          bosh -n -d indicator-protocol deploy \
+          bosh -n -d indicator-registry deploy \
             manifests/manifest.yml \
             -o ops_files/add-examples-git-source.yml \
             -o ops_files/configure-status-controller.yml \
