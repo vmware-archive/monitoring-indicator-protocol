@@ -1,5 +1,5 @@
 ---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:

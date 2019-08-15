@@ -427,13 +427,14 @@ func prometheusConfigMapMatch(t *testing.T, cm *coreV1.ConfigMap, id *v1.Indicat
 func indicatorDocument(ns string) *v1.IndicatorDocument {
 	indicatorName := fmt.Sprintf("e2e_test_indicator_%d", rand.Intn(math.MaxInt32))
 
-	return &v1.IndicatorDocument{
+	document := v1.IndicatorDocument{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("e2etest%d", rand.Intn(math.MaxInt32)),
 			Namespace: ns,
 		},
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: api_versions.V1,
+			Kind:       "IndicatorDocument",
 		},
 		Spec: v1.IndicatorDocumentSpec{
 			Product: v1.Product{
@@ -466,6 +467,8 @@ func indicatorDocument(ns string) *v1.IndicatorDocument {
 			},
 		},
 	}
+	fmt.Printf("Document: %v", document)
+	return &document
 }
 
 func expandHome(s string) string {

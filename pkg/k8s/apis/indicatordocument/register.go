@@ -1,3 +1,3 @@
 package indicatordocument
 
-const GroupName = "apps.pivotal.io"
+const GroupName = "indicatorprotocol.io"

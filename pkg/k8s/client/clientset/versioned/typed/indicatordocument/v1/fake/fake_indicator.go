@@ -18,9 +18,9 @@ type FakeIndicators struct {
 	ns   string
 }
 
-var indicatorsResource = schema.GroupVersionResource{Group: "apps.pivotal.io", Version: "v1", Resource: "indicators"}
+var indicatorsResource = schema.GroupVersionResource{Group: "indicatorprotocol.io", Version: "v1", Resource: "indicators"}
 
-var indicatorsKind = schema.GroupVersionKind{Group: "apps.pivotal.io", Version: "v1", Kind: "Indicator"}
+var indicatorsKind = schema.GroupVersionKind{Group: "indicatorprotocol.io", Version: "v1", Kind: "Indicator"}
 
 // Get takes name of the indicator, and returns the corresponding indicator object, and an error if there is any.
 func (c *FakeIndicators) Get(name string, options v1.GetOptions) (result *indicatordocumentv1.Indicator, err error) {

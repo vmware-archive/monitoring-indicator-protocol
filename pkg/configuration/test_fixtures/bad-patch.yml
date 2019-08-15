@@ -1,6 +1,6 @@
 ---
 # This is invalid yaml, so it cannot be parsed (see the operator and value indentation)
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocumentPatch
 
 match:

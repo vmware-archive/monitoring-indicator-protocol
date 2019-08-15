@@ -131,7 +131,7 @@ func TestAPIVersion(t *testing.T) {
 
 		g.Expect(es).To(ConsistOf(
 			errors.New("apiVersion is required"),
-			errors.New("invalid apiVersion, supported versions are: [indicatorprotocol/v1]"),
+			errors.New("invalid apiVersion, supported versions are: [indicatorprotocol.io/v1]"),
 		))
 	})
 
@@ -150,7 +150,7 @@ func TestAPIVersion(t *testing.T) {
 		es := document.Validate(api_versions.V0, api_versions.V1)
 
 		g.Expect(es).To(ConsistOf(
-			errors.New("invalid apiVersion, supported versions are: [v0 indicatorprotocol/v1]"),
+			errors.New("invalid apiVersion, supported versions are: [v0 indicatorprotocol.io/v1]"),
 		))
 	})
 }

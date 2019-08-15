@@ -45,7 +45,7 @@ indicators:
 	}
 
 	v1DocumentBytes = []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 metadata:
   labels:
@@ -114,7 +114,7 @@ func TestDocumentMatching(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		documentBytes := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -139,7 +139,7 @@ spec:
 		g := NewGomegaWithT(t)
 
 		documentBytes := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -165,7 +165,7 @@ spec:
 
 		documentBytes := []byte(`
 ---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -193,7 +193,7 @@ func TestPatching(t *testing.T) {
 
 		matchingDocument := []byte(`
 ---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -298,7 +298,7 @@ indicators:
 		g := NewGomegaWithT(t)
 
 		nonMatchingDocument := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 metadata:
   label:
     deployment: not-test-deployment
@@ -364,7 +364,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -428,7 +428,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -483,7 +483,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -540,7 +540,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -624,7 +624,7 @@ spec:
 		}}
 
 		doc := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -670,7 +670,7 @@ spec:
 		}}
 
 		doc := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -736,7 +736,7 @@ spec:
 			},
 		}}
 		doc := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:

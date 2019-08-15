@@ -20,7 +20,7 @@ func TestDocumentFromYAML(t *testing.T) {
 	t.Run("returns empty list of indicators", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   indicators: []`))
 		d, err := indicator.DocumentFromYAML(reader)
@@ -525,7 +525,7 @@ indicators:
 		t.Run("parses all document fields", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 metadata:
   labels:
     deployment: well-performing-deployment
@@ -625,7 +625,7 @@ spec:
 			t.Run("populates default alert config when no alert given", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 metadata:
   labels:
     deployment: valid-deployment
@@ -651,7 +651,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -681,7 +681,7 @@ spec:
 			t.Run("populates default alert 'step' k/v when no alert step given", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -709,7 +709,7 @@ spec:
 			t.Run("sets a default layout when not provided", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 metadata:
   labels:
     deployment: valid-deployment
@@ -743,7 +743,7 @@ spec:
 			t.Run("it uses defaults in the case of empty presentation data", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 metadata:
   labels:
@@ -787,7 +787,7 @@ spec:
 			t.Run("handles defaulting indicator types", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 spec:
   product:
@@ -808,7 +808,7 @@ spec:
 			t.Run("handles defaulting titles", func(t *testing.T) {
 			    g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 spec:
   product:
@@ -829,7 +829,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   product:
     name: well-performing-component
@@ -899,7 +899,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   product:
     name: well-performing-component
@@ -924,7 +924,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   product:
     name: well-performing-component
@@ -947,7 +947,7 @@ spec:
 				g := NewGomegaWithT(t)
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   product:
     name: well-performing-component
@@ -971,7 +971,7 @@ spec:
 			t.Run("can set a step chartType", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   product:
    name: test_product
@@ -992,7 +992,7 @@ spec:
 			t.Run("can set a bar chartType", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   product:
    name: test_product
@@ -1013,7 +1013,7 @@ spec:
 			t.Run("can set a status chartType", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   product:
    name: test_product
@@ -1034,7 +1034,7 @@ spec:
 			t.Run("can set a quota chartType", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   product:
     name: test_product
@@ -1069,7 +1069,7 @@ spec:
 
 			for _, testCase := range testCases {
 				yamlString := fmt.Sprintf(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 spec:
   product:
@@ -1166,11 +1166,11 @@ operations:
 		})
 	})
 
-	t.Run("apiVersion indicatorprotocol/v1", func(t *testing.T) {
+	t.Run("apiVersion indicatorprotocol.io/v1", func(t *testing.T) {
 		t.Run("parses all the fields", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocumentPatch
 
 match:
@@ -1214,7 +1214,7 @@ operations:
 		t.Run("parses empty product name and version", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocumentPatch
 
 match:
@@ -1260,7 +1260,7 @@ product:
 	t.Run(api_versions.V1, func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 spec:
   product:
     name: indi-pro
@@ -1280,7 +1280,7 @@ func TestMetadataFromYAML(t *testing.T) {
 	t.Run("parses all the fields in v1 documents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 spec:
   product:
@@ -1356,7 +1356,7 @@ indicators:
 	t.Run("does not mess up thresholds in apiVersion v1", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		doc := []byte(`---
-apiVersion: indicatorprotocol/v1
+apiVersion: indicatorprotocol.io/v1
 
 spec:
 

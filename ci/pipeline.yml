@@ -295,7 +295,7 @@ jobs:
 
             cat << EOF > indicators.yml
           ---
-          apiVersion: indicatorprotocol/v1
+          apiVersion: indicatorprotocol.io/v1
           kind: IndicatorDocument
           spec:
             product:

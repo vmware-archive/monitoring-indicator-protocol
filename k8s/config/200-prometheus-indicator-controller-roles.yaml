@@ -8,6 +8,6 @@ rules:
     resources: ["configmaps"]
     verbs: ["get", "list", "watch", "patch"]
   # The prometheus-indicator-controller needs to be able to watch indicatordocuments
-  - apiGroups: ["apps.pivotal.io"]
+  - apiGroups: ["indicatorprotocol.io"]
     resources: ["indicatordocuments"]
     verbs: ["get", "list", "watch"]

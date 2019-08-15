@@ -1,6 +1,6 @@
 [
   {
-    "apiVersion": "indicatorprotocol/v1",
+    "apiVersion": "indicatorprotocol.io/v1",
     "spec": {
     "product": {
       "name": "my-component",
