@@ -142,17 +142,19 @@ jobs:
 
             cat << EOF > indicators.yml
           ---
-          apiVersion: v0
-          product:
-            name: uaa-test
-            version: 0
-          indicators:
-          - name: uaa_request_rate
-            promql: rate(requests_global_status_2xx_count{source_id="uaa"}[10m])
+          apiVersion: indicatorprotocol.io/v1
+          kind: IndicatorDocument
+          spec:
+            product:
+              name: uaa-test
+              version: 0
+            indicators:
+            - name: uaa_request_rate
+              promql: rate(requests_global_status_2xx_count{source_id="uaa"}[10m])
           EOF
 
-            uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_firehose_exporter_secret -j | jq -r .value)"
-            access_token=$(curl -X POST "https://login.${ENVIRONMENT}.cf-denver.com/oauth/token" -k -u "firehose_exporter:${uaa_secret}" -H 'Accept: application/json' -d 'grant_type=client_credentials'  | jq -r .access_token)
+            uaa_secret="$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_cc-service-dashboards_secret -j | jq -r .value)"
+            access_token=$(curl -X POST "https://login.${ENVIRONMENT}.cf-denver.com/oauth/token" -k -u "apps_metrics_processing:${uaa_secret}" -H 'Accept: application/json' -d 'grant_type=client_credentials'  | jq -r .access_token)
 
             go run -mod=vendor cmd/verification/main.go -indicators=indicators.yml \
                                                         -authorization="bearer ${access_token}" \

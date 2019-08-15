@@ -104,7 +104,7 @@ func (it IndicatorType) MarshalJSON() ([]byte, error) {
 func IndicatorTypeToString(it IndicatorType) string {
 	switch it {
 	case DefaultIndicator:
-		return "indicator"
+		return "other"
 	case ServiceLevelIndicator:
 		return "sli"
 	case KeyPerformanceIndicator:
@@ -131,7 +131,7 @@ func IndicatorTypeFromString(s string) IndicatorType {
 	case `kpi`:
 		it = KeyPerformanceIndicator
 	// If you don't specify anything, default to indicator
-	case `indicator`:
+	case `other`:
 		it = DefaultIndicator
 	// But if you specify something, and it isn't something we know about,
 	// then we want to throw an error.

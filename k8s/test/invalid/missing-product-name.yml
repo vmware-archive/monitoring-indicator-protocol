@@ -1,4 +1,4 @@
-apiVersion: apps.pivotal.io/v1
+apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 metadata:
   name: missing-product-name

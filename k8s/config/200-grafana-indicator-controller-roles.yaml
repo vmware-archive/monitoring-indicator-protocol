@@ -6,6 +6,6 @@ rules:
   - apiGroups: [""] # "" indicates the core API group
     resources: ["configmaps"]
     verbs: ["get", "create", "update"]
-  - apiGroups: ["apps.pivotal.io"]
+  - apiGroups: ["indicatorprotocol.io"]
     resources: ["indicatordocuments"]
     verbs: ["get", "list", "watch"]

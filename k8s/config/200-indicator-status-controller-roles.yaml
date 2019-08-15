@@ -3,6 +3,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: indicator-status-controller
 rules:
-- apiGroups: ["apps.pivotal.io"]
+- apiGroups: ["indicatorprotocol.io"]
   resources: ["indicators"]
   verbs: ["list", "update", "watch"]

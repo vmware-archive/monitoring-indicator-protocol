@@ -14,7 +14,7 @@ type AppsV1Interface interface {
 	IndicatorDocumentsGetter
 }
 
-// AppsV1Client is used to interact with features provided by the apps.pivotal.io group.
+// AppsV1Client is used to interact with features provided by the indicatorprotocol.io group.
 type AppsV1Client struct {
 	restClient rest.Interface
 }

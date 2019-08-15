@@ -1,6 +1,6 @@
 [
   {
-    "apiVersion": "apps.pivotal.io/v1",
+    "apiVersion": "indicatorprotocol.io/v1",
     "spec": {
     "product": {
       "name": "my-component",
@@ -9,7 +9,7 @@
       "indicators": [
         {
           "name": "some_indicator",
-          "type": "indicator",
+          "type": "other",
           "promql": "some_promql"
         }
       ],

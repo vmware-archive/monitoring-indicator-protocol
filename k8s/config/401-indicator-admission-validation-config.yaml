@@ -5,10 +5,10 @@ metadata:
   labels:
     app: indicator-admission
 webhooks:
-- name: indicator-documents.indicator-admission.apps.pivotal.io
+- name: indicator-documents.indicator-admission.indicatorprotocol.io
   rules:
   - apiGroups:
-    - "apps.pivotal.io"
+    - "indicatorprotocol.io"
     apiVersions:
     - v1
     operations:
@@ -23,10 +23,10 @@ webhooks:
       namespace: monitoring-indicator-protocol
       path: /validation/indicatordocument
     caBundle: ""
-- name: indicators.indicator-admission.apps.pivotal.io
+- name: indicators.indicator-admission.indicatorprotocol.io
   rules:
   - apiGroups:
-    - "apps.pivotal.io"
+    - "indicatorprotocol.io"
     apiVersions:
     - v1
     operations:

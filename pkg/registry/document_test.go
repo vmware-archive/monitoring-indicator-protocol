@@ -31,7 +31,7 @@ func TestDocumentTranslation(t *testing.T) {
 				},
 				Indicators: []registry.APIIndicatorResponse{{
 					Name:   "performance-indicator",
-					Type: "indicator",
+					Type: "other",
 					PromQL: "someQuery",
 					Thresholds: []registry.APIThresholdResponse{{
 						Level:    "warning",

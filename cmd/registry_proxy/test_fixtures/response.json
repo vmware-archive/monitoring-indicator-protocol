@@ -1,6 +1,6 @@
 [
   {
-    "apiVersion": "apps.pivotal.io/v1",
+    "apiVersion": "indicatorprotocol.io/v1",
     "uid": "my-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
     "kind": "IndicatorDocument",
     "metadata": {
@@ -17,7 +17,7 @@
       "indicators": [
         {
           "name": "only_in_example_yml",
-          "type": "indicator",
+          "type": "other",
           "promql": "test_query",
           "status": null,
           "thresholds": [],
@@ -35,7 +35,7 @@
         },
         {
           "name": "doc_performance_indicator",
-          "type": "indicator",
+          "type": "other",
           "promql": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-service-deployment\"}[5m])",
           "status": null,
           "thresholds": [

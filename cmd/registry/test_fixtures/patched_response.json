@@ -1,6 +1,6 @@
 [
   {
-    "apiVersion": "apps.pivotal.io/v1",
+    "apiVersion": "indicatorprotocol.io/v1",
     "uid": "my-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
     "kind": "IndicatorDocument",
     "metadata": {
@@ -17,7 +17,7 @@
       "indicators": [
         {
           "name": "only_in_example_yml",
-          "type": "indicator",
+          "type": "other",
           "promql": "test_query",
           "status": null,
           "thresholds": [],
@@ -75,7 +75,7 @@
         },
         {
           "name": "success_percentage",
-          "type": "indicator",
+          "type": "other",
           "promql": "success_percentage_promql{source_id=\"origin\"}",
           "status": null,
           "thresholds": [],
@@ -130,7 +130,7 @@
         {
           "name": "very_good_indicator",
           "promql": "test_query",
-          "type": "indicator",
+          "type": "other",
           "status": null,
           "thresholds": [],
           "alert": {
