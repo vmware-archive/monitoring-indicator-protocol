@@ -101,7 +101,7 @@ indicators:
 		})
 		t.Run("for apiVersion v1", func(t *testing.T) {
 			body := bytes.NewBuffer([]byte(`---
-apiVersion: apps.pivotal.io/v1
+apiVersion: indicatorprotocol/v1
 
 kind: IndicatorDocument
 

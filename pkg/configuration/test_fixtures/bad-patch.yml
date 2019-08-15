@@ -1,6 +1,6 @@
 ---
 # This is invalid yaml, so it cannot be parsed (see the operator and value indentation)
-apiVersion: apps.pivotal.io/v1
+apiVersion: indicatorprotocol/v1
 kind: IndicatorDocumentPatch
 
 match:

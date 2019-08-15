@@ -38,7 +38,7 @@ Use the provided script to run tests: `./scripts/test.sh`
    ```json
    [
      {
-       "apiVersion": "apps.pivotal.io/v1",
+       "apiVersion": "indicatorprotocol/v1",
        "product": {
          "name": "my-component",
          "version": "1.2.3"

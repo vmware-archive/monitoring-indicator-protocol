@@ -39,7 +39,7 @@ func DocumentFromYAML(r io.ReadCloser) (v1.IndicatorDocument, error) {
 	case api_versions.V1:
 		err = yaml.Unmarshal(docBytes, &doc)
 	default:
-		err = fmt.Errorf("invalid apiVersion, supported versions are: [v0, apps.pivotal.io/v1]")
+		err = fmt.Errorf("invalid apiVersion, supported versions are: [v0, indicatorprotocol/v1]")
 	}
 
 	if err != nil {

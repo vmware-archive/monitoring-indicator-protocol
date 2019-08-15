@@ -277,7 +277,7 @@ func TestValidators(t *testing.T) {
 				"namespace": "monitoring-indicator-protocol",
 				"operation": "CREATE",
 				"object": {
-				  "apiVersion": "apps.pivotal.io/v1",
+				  "apiVersion": "indicatorprotocol/v1",
 				  "kind": "Indicator",
 				  "metadata": {
 					"name": "test-indicator",
@@ -343,7 +343,7 @@ func TestValidators(t *testing.T) {
 				"namespace": "monitoring-indicator-protocol",
 				"operation": "CREATE",
 				"object": {
-				  "apiVersion": "apps.pivotal.io/v1",
+				  "apiVersion": "indicatorprotocol/v1",
 				  "kind": "Indicator",
 				  "metadata": {
 					"name": "test-indicator",
@@ -1194,7 +1194,7 @@ func newIndicatorRequest(operation string, indicatorSpec string) *strings.Reader
 						"namespace": "monitoring-indicator-protocol",
 						"operation": "%s",
 						"object": {
-						  "apiVersion": "apps.pivotal.io/v1",
+						  "apiVersion": "indicatorprotocol/v1",
 						  "kind": "Indicator",
 						  "metadata": {
 							"name": "test-indicator",
@@ -1228,7 +1228,7 @@ func newIndicatorDocumentRequest(operation string, indicatorDocumentSpec string,
 							"namespace": "monitoring-indicator-protocol",
 							"operation": "%s",
 							"object": {
-							  "apiVersion": "apps.pivotal.io/v1",
+							  "apiVersion": "indicatorprotocol/v1",
 							  "kind": "IndicatorDocument",
 							  "metadata": {
 								"labels": %s
