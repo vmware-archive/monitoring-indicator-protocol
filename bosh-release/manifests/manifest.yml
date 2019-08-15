@@ -1,5 +1,5 @@
 ---
-name: indicator-protocol
+name: indicator-registry
 
 stemcells:
 - alias: default
@@ -44,7 +44,7 @@ instance_groups:
   - name: indicator-cf-auth-proxy
     release: indicator-protocol
     consumes:
-      indicator-registry: {deployment: indicator-protocol}
+      indicator-registry: {deployment: indicator-registry}
     provides:
       cf-auth-proxy:
         shared: true

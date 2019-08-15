@@ -166,7 +166,6 @@ jobs:
   - in_parallel:
     - get: env-state
     - get: monitoring-indicator-protocol
-      trigger: true
       passed: [build-and-test]
     - get: release-version
   - task: deploy
@@ -227,9 +226,8 @@ jobs:
 
           UAA_CLIENT_SECRET=$(credhub g -n /bosh-${ENVIRONMENT}/${DEPLOYMENT_NAME}/uaa_clients_cc-service-dashboards_secret -j | jq -r .value)
 
-          bosh -n -d indicator-protocol deploy \
+          bosh -n -d indicator-registry deploy \
             manifests/manifest.yml \
-            -o ops_files/add-examples-git-source.yml \
             -o ops_files/configure-status-controller.yml \
             -v prometheus_uri=$PROMETHEUS_URI \
             -v uaa_uri=$UAA_URI \

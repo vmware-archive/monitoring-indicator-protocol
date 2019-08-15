@@ -8,7 +8,7 @@ mkdir -p $LOG_DIR
 REGISTRY_URI=https://<%= link('indicator-registry').address %>:<%= link('indicator-registry').p('port') %>
 REGISTRY_TLS_SERVER_CN=<%= link('indicator-registry').p('tls.server_common_name') %>
 
-chpst -u vcap:vcap /var/vcap/packages/indicator-protocol/indicator_smoke_tests \
+chpst -u vcap:vcap /var/vcap/packages/indicator-registry/indicator_smoke_tests \
     --registry $REGISTRY_URI \
     --tls-pem-path ${CERTS_DIR}/client.crt \
     --tls-key-path ${CERTS_DIR}/client.key \
