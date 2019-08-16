@@ -997,6 +997,9 @@ jobs:
               --version "$BUILD_NUMBER" \
               releases/monitoring-indicator-protocol/monitoring-indicator-protocol-${BUILD_NUMBER}.yml
 
+            bosh_tarball_shasum="$(shasum ../../github-release/${RELEASE_NAME}-bosh-${BUILD_NUMBER}.tgz | cut -f -1 -d " ")"
+            echo "BOSH release sha1: ${bosh_tarball_shasum}" >> github-release/body
+
             git add .
             git config --global user.email "indicator-protocol@pivotal.io"
             git config --global user.name "indicator-protocol-bot"
