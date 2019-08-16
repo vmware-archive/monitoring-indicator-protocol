@@ -924,6 +924,18 @@ jobs:
       params: {save: true}
       passed:
       - create-dev-release
+    - get: bosh-indicator-registry-docker-repo
+      params: {save: true}
+      passed:
+      - create-dev-docker-images
+    - get: bosh-indicator-registry-proxy-docker-repo
+      params: {save: true}
+      passed:
+      - create-dev-docker-images
+    - get: bosh-indicator-registry-agent-docker-repo
+      params: {save: true}
+      passed:
+      - create-dev-docker-images
     - get: dev-release
       passed:
       - create-dev-release
@@ -1098,6 +1110,21 @@ jobs:
         additional_tags: prefixed-release-version/version
         tag_as_latest: true
         load: k8s-indicator-status-controller-docker-repo
+    - put: bosh-indicator-registry-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: bosh-indicator-registry-docker-repo
+    - put: bosh-indicator-registry-proxy-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: bosh-indicator-registry-proxy-docker-repo
+    - put: bosh-indicator-registry-agent-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: bosh-indicator-registry-agent-docker-repo
   - put: notify
     params:
       text_file: ./slack-message/text.txt
