@@ -23,12 +23,6 @@ RUN go build \
 FROM ubuntu
 
 COPY --from=builder /indicator-registry-proxy /srv/
+COPY cmd/registry_proxy/docker_run.sh /srv/run.sh
 WORKDIR /srv
-CMD [ "./indicator-registry-proxy", \
-  "--tls-pem-path", "certs/server.pem", \
-  "--tls-key-path", "certs/server.key", \
-  "--tls-root-ca-pem", "certs/ca.pem", \
-  "--tls-server-cn", "localhost", \
-  "--tls-client-pem-path", "certs/client.pem", \
-  "--tls-client-key-path", "certs/client.key", \
-  "--local-registry-addr", "indicator-registry:10568" ]
+CMD ["./run.sh"]

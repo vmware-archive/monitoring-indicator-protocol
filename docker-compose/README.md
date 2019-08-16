@@ -16,3 +16,19 @@ docker build -t indicatorprotocol/bosh-indicator-protocol-registry -f cmd/regist
 docker build -t indicatorprotocol/bosh-indicator-protocol-registry-proxy -f cmd/registry_proxy/Dockerfile .
 docker build -t indicatorprotocol/bosh-indicator-protocol-registry-agent -f cmd/registry_agent/Dockerfile .
 ```
+
+## Using certs without volume mounts
+If you don't want to use volume mounts to pass in the certs, you can use environment variables. Using `docker-compose`, for example, you would pass in the environment
+```yaml
+indicator-registry-proxy:
+    image: indicatorprotocol/bosh-indicator-protocol-registry-proxy
+    ports: ["10567:10567"]
+    environment:
+    - |
+      CLIENT_PEM=-----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+    - |
+      CLIENT_KEY=...
+```
+and so on. You can see which env vars are required in the `docker_run.sh` script next to each Dockerfile.
