@@ -1,3 +1,4 @@
+# This patch adds a new indicator to the end of the indicator list.
 ---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocumentPatch

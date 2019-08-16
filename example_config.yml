@@ -1,7 +1,9 @@
 ---
 sources:
   - type: local
-    path: example_patch.yml
+    path: example_patch_add_indicator.yml
+  - type: local
+    path: example_patch_adjust_threshold.yml
   - type: git
     repository: git@github.com:pivotal/monitoring-indicator-protocol.git
 #    private_key: | # This can be provided for private repositories to be cloned through SSH

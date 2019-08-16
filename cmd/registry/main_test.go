@@ -22,7 +22,7 @@ func TestIndicatorRegistry(t *testing.T) {
 	t.Run("it patches indicator documents when received", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		repoPath := go_test.CreateTempRepo("../../example_patch.yml", "../../example_indicators.yml")
+		repoPath := go_test.CreateTempRepo("../../example_patch_add_indicator.yml", "../../example_indicators.yml")
 
 		config := configuration.SourcesFile{
 			Sources: []configuration.Source{{

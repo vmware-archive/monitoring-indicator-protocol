@@ -1,0 +1,14 @@
+# This patch will update the "warning" threshold from 50 to 75.
+---
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocumentPatch
+
+match:
+  product:
+    name: my-component
+    version: 1.2.3
+
+operations:
+- type: replace
+  path: /spec/indicators?/name=doc_performance_indicator/thresholds/level=warning/value
+  value: 75
