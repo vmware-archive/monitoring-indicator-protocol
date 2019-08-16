@@ -18,10 +18,11 @@ func TestValidDocument(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
+				Kind: "IndicatorDocument",
 			},
-			ObjectMeta:metav1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -80,7 +81,7 @@ func TestProduct(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -90,7 +91,7 @@ func TestProduct(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("product name is required"),
 		))
 	})
@@ -101,7 +102,7 @@ func TestVersion(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -111,7 +112,7 @@ func TestVersion(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("product version is required"),
 		))
 	})
@@ -129,17 +130,16 @@ func TestAPIVersion(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
-			errors.New("apiVersion is required"),
-			errors.New("invalid apiVersion, supported versions are: [indicatorprotocol.io/v1]"),
-		))
+		g.Expect(es).To(ContainElement(errors.New("apiVersion is required")))
+		g.Expect(es).To(ContainElement(
+			errors.New("invalid apiVersion, supported versions are: [indicatorprotocol.io/v1]")))
 	})
 
 	t.Run("validation returns errors if APIVersion is not supported", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: "fake-version",
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -149,8 +149,43 @@ func TestAPIVersion(t *testing.T) {
 
 		es := document.Validate(api_versions.V0, api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("invalid apiVersion, supported versions are: [v0 indicatorprotocol.io/v1]"),
+		))
+	})
+}
+
+func TestSpec(t *testing.T) {
+	t.Run("validation returns errors if spec doesn't exist", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := v1.IndicatorDocument{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: api_versions.V1,
+			},
+		}
+
+		es := document.Validate(api_versions.V1)
+
+		g.Expect(es).To(ContainElement(
+			errors.New("spec is required"),
+		))
+	})
+}
+
+func TestKind(t *testing.T) {
+	t.Run("should error in kind other than IndicatorDocument", func(t *testing.T) {
+	    g := NewGomegaWithT(t)
+		document := v1.IndicatorDocument{
+			TypeMeta: metav1.TypeMeta{
+				Kind: "notindicatordocument",
+			},
+		}
+
+		es := document.Validate(api_versions.V1)
+
+		g.Expect(es).To(ContainElement(
+			errors.New("`kind` must be \"IndicatorDocument\""),
 		))
 	})
 }
@@ -161,7 +196,7 @@ func TestIndicator(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -178,10 +213,10 @@ func TestIndicator(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
-			errors.New("indicators[0] name is required"),
-			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
-			errors.New("indicators[0] promql is required"),
+		g.Expect(es).To(And(
+			ContainElement(errors.New("indicators[0] name is required")),
+			ContainElement(errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)")),
+			ContainElement(errors.New("indicators[0] promql is required")),
 		))
 	})
 
@@ -189,7 +224,7 @@ func TestIndicator(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -206,9 +241,9 @@ func TestIndicator(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
-			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
-			errors.New("indicators[0] promql is required"),
+		g.Expect(es).To(And(
+			ContainElement(errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)")),
+			ContainElement(errors.New("indicators[0] promql is required")),
 		))
 	})
 
@@ -216,7 +251,7 @@ func TestIndicator(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -233,7 +268,7 @@ func TestIndicator(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
 		))
 	})
@@ -244,10 +279,10 @@ func TestLayout(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
-			ObjectMeta:metav1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -271,7 +306,7 @@ func TestLayout(t *testing.T) {
 		}
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("layout sections[0] indicators[1] references a non-existent indicator"),
 		))
 	})
@@ -282,10 +317,10 @@ func TestMetadata(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
-			ObjectMeta:metav1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{"step": "my-step"},
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -295,7 +330,7 @@ func TestMetadata(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
 		))
 	})
@@ -304,10 +339,10 @@ func TestMetadata(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
-			ObjectMeta:metav1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{"StEp": "my-step"},
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -317,7 +352,7 @@ func TestMetadata(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
 		))
 	})
@@ -328,10 +363,10 @@ func TestThreshold(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V0,
 			},
-			ObjectMeta:metav1.ObjectMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
 			Spec: v1.IndicatorDocumentSpec{
 				Product: v1.Product{Name: "well-performing-component", Version: "0.0.1"},
 				Indicators: []v1.IndicatorSpec{{
@@ -349,7 +384,7 @@ func TestThreshold(t *testing.T) {
 
 		es := document.Validate(api_versions.V0)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"),
 		))
 	})
@@ -358,7 +393,7 @@ func TestThreshold(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -378,7 +413,7 @@ func TestThreshold(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("indicators[0].thresholds[0] operator [lt, lte, eq, neq, gte, gt] is required"),
 		))
 	})
@@ -389,7 +424,7 @@ func TestChartType(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -406,7 +441,7 @@ func TestChartType(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ConsistOf(
+		g.Expect(es).To(ContainElement(
 			errors.New("indicators[0] invalid chartType provided - valid chart types are [step bar status quota]"),
 		))
 	})
