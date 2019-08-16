@@ -1302,7 +1302,8 @@ metadata:
 			"color": "tabby",
 		}))
 	})
-	t.Run("parses all the fields in  v0 documents", func(t *testing.T) {
+
+	t.Run("parses all the fields in v0 documents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: v0
@@ -1357,9 +1358,9 @@ indicators:
 		g := NewGomegaWithT(t)
 		doc := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 spec:
-
   product:
     name: testing
     version: 123
@@ -1381,3 +1382,4 @@ spec:
 	})
 
 }
+

@@ -625,6 +625,7 @@ spec:
 
 		doc := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -671,6 +672,7 @@ spec:
 
 		doc := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:

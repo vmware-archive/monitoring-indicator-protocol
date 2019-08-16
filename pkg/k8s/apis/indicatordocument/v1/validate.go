@@ -3,6 +3,7 @@ package v1
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/prometheus/prometheus/promql"
@@ -15,6 +16,14 @@ func (id *IndicatorDocument) Validate(supportedApiVersion ...string) []error {
 	es := make([]error, 0)
 	if id.APIVersion == "" {
 		es = append(es, errors.New("apiVersion is required"))
+	}
+
+	if id.Kind != "IndicatorDocument" {
+		es = append(es, errors.New("`kind` must be \"IndicatorDocument\""))
+	}
+
+	if reflect.DeepEqual(id.Spec, IndicatorDocumentSpec{}) {
+		es = append(es, errors.New("spec is required"))
 	}
 
 	if id.Spec.Product.Name == "" {
