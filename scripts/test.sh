@@ -10,6 +10,8 @@ function print_usage {
     echo
     echo -e "\033[1mSubcommands:\033[0m"
     echo "   unit          Run the unit tests"
+    echo "   integration   Run the integration tests"
+    echo "   local         Run the local tests, that is, integration and unit tests"
     echo "   e2e           Run the end-to-end tests"
     echo "   k8s_e2e       Run the k8s end-to-end tests"
     echo "   bosh_e2e      Run the bosh end-to-end tests"
@@ -97,7 +99,21 @@ function run_build {
 
 function run_unit {
     print_checkpoint "Running Unit Tests"
-    go test -mod=vendor -race $(go list ./... | grep -v e2e | grep -v smoke)
+    go test -mod=vendor -race $(go list ./... | grep -v e2e | grep -v smoke | grep -v cmd)
+    exit_code=$?
+    return $exit_code
+}
+
+function run_integration {
+    print_checkpoint "Running Integration Tests"
+    go test -mod=vendor -race $(go list ./... | grep cmd)
+    exit_code=$?
+    return $exit_code
+}
+
+function run_local {
+    print_checkpoint "Running Local (Unit + Integration) Tests"
+    go test -mod=vendor -race $(go list ./...  | grep -v e2e | grep -v smoke)
     exit_code=$?
     return $exit_code
 }
@@ -132,7 +148,7 @@ function run_e2e {
 }
 
 function parse_argc {
-    command=run_unit
+    command=run_local
     if [[ $# -eq 0 ]]; then
         return
     fi
@@ -143,7 +159,7 @@ function parse_argc {
             print_usage
             exit 0
             ;;
-        unit|e2e|bosh_e2e|k8s_e2e|build|cleaners)
+        unit|integration|local|e2e|bosh_e2e|k8s_e2e|build|cleaners)
             command=run_$arg
             ;;
         *)

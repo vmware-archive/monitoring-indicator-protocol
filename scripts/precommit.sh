@@ -9,15 +9,15 @@ SCRIPTDIR=`dirname $SCRIPT`
 
 
 # So that we have access to `target` which is not on the path.
-#. ~/.bash_profile
-#
-#target madlamp
-#kubectl config use-context gke_cf-denver_us-central1-a_mip-development
+. ~/.bash_profile
+
+target madlamp
+kubectl config use-context gke_cf-denver_us-central1-a_mip-development
 
 pushd $SCRIPTDIR/.. > /dev/null
     ./hack/update-codegen.sh
     ./scripts/dev_deploy_k8s.sh
 
-    ./scripts/test.sh unit
+    ./scripts/test.sh local
     ./scripts/test.sh e2e
 popd > /dev/null

@@ -27,7 +27,7 @@ Goland Setup:
 
 ### Running tests
 
-Use the provided script to run tests: `./scripts/test.sh`
+Use the provided script to run tests: `./scripts/test.sh`. By default, this runs the local tests (unit and integration tests that can be run without external dependencies). Run with `--help` to see the full list of test suites you can run. 
 
 ### Starting a registry and registry agent
 
