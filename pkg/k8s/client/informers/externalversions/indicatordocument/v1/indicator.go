@@ -45,13 +45,13 @@ func NewFilteredIndicatorInformer(client versioned.Interface, namespace string, 
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AppsV1().Indicators(namespace).List(options)
+				return client.IndicatorprotocolV1().Indicators(namespace).List(options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.AppsV1().Indicators(namespace).Watch(options)
+				return client.IndicatorprotocolV1().Indicators(namespace).Watch(options)
 			},
 		},
 		&indicatordocumentv1.Indicator{},

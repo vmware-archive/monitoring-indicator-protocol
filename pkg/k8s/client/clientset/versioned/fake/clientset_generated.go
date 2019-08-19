@@ -4,8 +4,8 @@ package fake
 
 import (
 	clientset "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned"
-	appsv1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1"
-	fakeappsv1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1/fake"
+	indicatorprotocolv1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1"
+	fakeindicatorprotocolv1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -60,7 +60,7 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 
 var _ clientset.Interface = &Clientset{}
 
-// AppsV1 retrieves the AppsV1Client
-func (c *Clientset) AppsV1() appsv1.AppsV1Interface {
-	return &fakeappsv1.FakeAppsV1{Fake: &c.Fake}
+// IndicatorprotocolV1 retrieves the IndicatorprotocolV1Client
+func (c *Clientset) IndicatorprotocolV1() indicatorprotocolv1.IndicatorprotocolV1Interface {
+	return &fakeindicatorprotocolv1.FakeIndicatorprotocolV1{Fake: &c.Fake}
 }

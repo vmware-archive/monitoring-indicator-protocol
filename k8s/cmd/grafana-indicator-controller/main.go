@@ -62,7 +62,7 @@ func main() {
 
 	informerFactory := informers.NewSharedInformerFactory(client, time.Second*30)
 
-	indicatorInformer := informerFactory.Apps().V1().IndicatorDocuments().Informer()
+	indicatorInformer := informerFactory.Indicatorprotocol().V1().IndicatorDocuments().Informer()
 	indicatorInformer.AddEventHandler(controller)
 
 	indicatorInformer.Run(ctx.Done())

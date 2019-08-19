@@ -156,9 +156,9 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
-	Apps() indicatordocument.Interface
+	Indicatorprotocol() indicatordocument.Interface
 }
 
-func (f *sharedInformerFactory) Apps() indicatordocument.Interface {
+func (f *sharedInformerFactory) Indicatorprotocol() indicatordocument.Interface {
 	return indicatordocument.New(f, f.namespace, f.tweakListOptions)
 }

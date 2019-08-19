@@ -40,7 +40,7 @@ type indicatorDocuments struct {
 }
 
 // newIndicatorDocuments returns a IndicatorDocuments
-func newIndicatorDocuments(c *AppsV1Client, namespace string) *indicatorDocuments {
+func newIndicatorDocuments(c *IndicatorprotocolV1Client, namespace string) *indicatorDocuments {
 	return &indicatorDocuments{
 		client: c.RESTClient(),
 		ns:     namespace,

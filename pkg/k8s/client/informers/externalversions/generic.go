@@ -38,9 +38,9 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 	switch resource {
 	// Group=indicatorprotocol.io, Version=v1
 	case v1.SchemeGroupVersion.WithResource("indicators"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Apps().V1().Indicators().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Indicatorprotocol().V1().Indicators().Informer()}, nil
 	case v1.SchemeGroupVersion.WithResource("indicatordocuments"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Apps().V1().IndicatorDocuments().Informer()}, nil
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Indicatorprotocol().V1().IndicatorDocuments().Informer()}, nil
 
 	}
 

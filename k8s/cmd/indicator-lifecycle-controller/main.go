@@ -51,7 +51,7 @@ func main() {
 	}
 
 	controller := lifecycle.NewController(
-		client.AppsV1(),
+		client.IndicatorprotocolV1(),
 	)
 
 	informerFactory := informers.NewSharedInformerFactory(
@@ -59,7 +59,7 @@ func main() {
 		time.Second*30,
 	)
 
-	indicatorInformer := informerFactory.Apps().
+	indicatorInformer := informerFactory.Indicatorprotocol().
 		V1().
 		IndicatorDocuments().
 		Informer()

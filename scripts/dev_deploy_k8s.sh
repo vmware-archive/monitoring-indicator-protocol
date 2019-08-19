@@ -2,31 +2,36 @@
 
 set -eEuo pipefail
 
+
+SCRIPT=`realpath $0`
+SCRIPTDIR=`dirname $SCRIPT`
+REPOROOT=$SCRIPTDIR/..
+
 pushd ~/workspace/monitoring-indicator-protocol > /dev/null
     docker build \
         -t indicatorprotocol/k8s-grafana-indicator-controller:dev \
         -f k8s/cmd/grafana-indicator-controller/Dockerfile \
-        . &
+        $REPOROOT &
 
     docker build \
         -t indicatorprotocol/k8s-prometheus-indicator-controller:dev \
         -f k8s/cmd/prometheus-indicator-controller/Dockerfile \
-        . &
+        $REPOROOT &
 
     docker build \
         -t indicatorprotocol/k8s-indicator-lifecycle-controller:dev \
         -f k8s/cmd/indicator-lifecycle-controller/Dockerfile \
-        . &
+        $REPOROOT &
 
     docker build \
         -t indicatorprotocol/k8s-indicator-admission:dev \
         -f k8s/cmd/indicator-admission/Dockerfile \
-        . &
+        $REPOROOT &
 
     docker build \
         -t indicatorprotocol/k8s-indicator-status-controller:dev \
         -f k8s/cmd/indicator-status-controller/Dockerfile \
-        . &
+        $REPOROOT &
 
     wait
 
@@ -66,9 +71,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 bases:
 - ../../config
-" > k8s/overlays/dev/kustomization.yaml
+" > $REPOROOT/k8s/overlays/dev/kustomization.yaml
 
-    pushd k8s/overlays/dev > /dev/null
+    pushd $REPOROOT/k8s/overlays/dev > /dev/null
         kustomize edit set image "$grafana_digest"
         kustomize edit set image "$prometheus_digest"
         kustomize edit set image "$indicator_lifecycle_digest"
@@ -76,5 +81,5 @@ bases:
         kustomize edit set image "$indicator_status_digest"
     popd > /dev/null
 
-    kubectl apply -k k8s/overlays/dev
+    kubectl apply -k $REPOROOT/k8s/overlays/dev
 popd > /dev/null

@@ -8,21 +8,21 @@ import (
 	testing "k8s.io/client-go/testing"
 )
 
-type FakeAppsV1 struct {
+type FakeIndicatorprotocolV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeAppsV1) Indicators(namespace string) v1.IndicatorInterface {
+func (c *FakeIndicatorprotocolV1) Indicators(namespace string) v1.IndicatorInterface {
 	return &FakeIndicators{c, namespace}
 }
 
-func (c *FakeAppsV1) IndicatorDocuments(namespace string) v1.IndicatorDocumentInterface {
+func (c *FakeIndicatorprotocolV1) IndicatorDocuments(namespace string) v1.IndicatorDocumentInterface {
 	return &FakeIndicatorDocuments{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeAppsV1) RESTClient() rest.Interface {
+func (c *FakeIndicatorprotocolV1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }

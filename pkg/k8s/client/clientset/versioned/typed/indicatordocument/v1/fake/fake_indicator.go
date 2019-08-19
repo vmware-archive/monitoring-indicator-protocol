@@ -14,7 +14,7 @@ import (
 
 // FakeIndicators implements IndicatorInterface
 type FakeIndicators struct {
-	Fake *FakeAppsV1
+	Fake *FakeIndicatorprotocolV1
 	ns   string
 }
 

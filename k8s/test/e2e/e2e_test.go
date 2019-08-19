@@ -34,7 +34,7 @@ import (
 
 type k8sClients struct {
 	k8sClientset *kubernetes.Clientset
-	idClient     *clientSetV1.AppsV1Client
+	idClient     *clientSetV1.IndicatorprotocolV1Client
 }
 
 var (

@@ -40,7 +40,7 @@ type indicators struct {
 }
 
 // newIndicators returns a Indicators
-func newIndicators(c *AppsV1Client, namespace string) *indicators {
+func newIndicators(c *IndicatorprotocolV1Client, namespace string) *indicators {
 	return &indicators{
 		client: c.RESTClient(),
 		ns:     namespace,

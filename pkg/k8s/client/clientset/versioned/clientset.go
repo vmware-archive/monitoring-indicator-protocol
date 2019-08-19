@@ -3,7 +3,7 @@
 package versioned
 
 import (
-	appsv1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1"
+	indicatorprotocolv1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned/typed/indicatordocument/v1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -11,19 +11,19 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	AppsV1() appsv1.AppsV1Interface
+	IndicatorprotocolV1() indicatorprotocolv1.IndicatorprotocolV1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	appsV1 *appsv1.AppsV1Client
+	indicatorprotocolV1 *indicatorprotocolv1.IndicatorprotocolV1Client
 }
 
-// AppsV1 retrieves the AppsV1Client
-func (c *Clientset) AppsV1() appsv1.AppsV1Interface {
-	return c.appsV1
+// IndicatorprotocolV1 retrieves the IndicatorprotocolV1Client
+func (c *Clientset) IndicatorprotocolV1() indicatorprotocolv1.IndicatorprotocolV1Interface {
+	return c.indicatorprotocolV1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -42,7 +42,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.appsV1, err = appsv1.NewForConfig(&configShallowCopy)
+	cs.indicatorprotocolV1, err = indicatorprotocolv1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.appsV1 = appsv1.NewForConfigOrDie(c)
+	cs.indicatorprotocolV1 = indicatorprotocolv1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -67,7 +67,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.appsV1 = appsv1.New(c)
+	cs.indicatorprotocolV1 = indicatorprotocolv1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs
