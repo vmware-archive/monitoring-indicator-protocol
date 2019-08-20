@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -20,7 +19,7 @@ import (
 
 func TestServingMetrics(t *testing.T) {
 	g := NewGomegaWithT(t)
-	addr, stop := newWebServer()
+	addr, stop := newWebServer(19876)
 	defer stop()
 
 	var resp *http.Response
@@ -41,7 +40,7 @@ func TestServingMetrics(t *testing.T) {
 
 func TestRegisterAndServeDocuments(t *testing.T) {
 	g := NewGomegaWithT(t)
-	addr, stop := newWebServer()
+	addr, stop := newWebServer(32897)
 	defer stop()
 
 	var resp *http.Response
@@ -79,7 +78,7 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 func TestWritingAndReadingStatus(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	addr, stop := newWebServer()
+	addr, stop := newWebServer(32422)
 	defer stop()
 	var resp *http.Response
 	f := func() error {
@@ -161,7 +160,7 @@ const (
 
 func TestRoutesAllExist(t *testing.T) {
 	g := NewGomegaWithT(t)
-	addr, stop := newWebServer()
+	addr, stop := newWebServer(34555)
 	defer stop()
 
 	routes := []string{
@@ -180,10 +179,10 @@ func TestRoutesAllExist(t *testing.T) {
 	}
 }
 
-func newWebServer() (string, func() error) {
+func newWebServer(port int) (string, func() error) {
 	conf := registry.WebServerConfig{
 		// Port is between 10000 and 40000
-		Address:       "localhost:" + strconv.Itoa(10*1000+rand.Intn(30*1000)),
+		Address:       "localhost:" + strconv.Itoa(port),
 		DocumentStore: registry.NewDocumentStore(time.Second, time.Now),
 		StatusStore:   status_store.New(time.Now),
 	}
