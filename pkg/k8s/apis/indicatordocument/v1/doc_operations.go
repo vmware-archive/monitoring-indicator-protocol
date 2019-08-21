@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"regexp"
+	"sort"
 )
 
 func (id *IndicatorDocument) OverrideMetadata(overrides map[string]string) {
@@ -12,14 +13,38 @@ func (id *IndicatorDocument) OverrideMetadata(overrides map[string]string) {
 }
 
 func (id *IndicatorDocument) Interpolate() {
-	for k, v := range id.ObjectMeta.Labels {
-		regString := fmt.Sprintf(`(?i)\$%s\b`, k)
+	labels := id.ObjectMeta.Labels
+	for _, k := range sortLabels(labels) {
+		regString := fmt.Sprintf(`(?i)(\$%s)(\b|\_)`, k)
 		reg := regexp.MustCompile(regString)
 
 		for i, indicator := range id.Spec.Indicators {
-			id.Spec.Indicators[i].PromQL = reg.ReplaceAllString(indicator.PromQL, v)
+			id.Spec.Indicators[i].PromQL = reg.ReplaceAllString(indicator.PromQL, fmt.Sprintf("%s$2", labels[k]))
 		}
 	}
+}
+
+type byLargestLength []string
+
+func (s byLargestLength) Len() int {
+	return len(s)
+}
+func (s byLargestLength) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byLargestLength) Less(i, j int) bool {
+	return len(s[i]) > len(s[j])
+}
+
+func sortLabels(labels map[string]string) []string {
+	sorted := make([]string, 0)
+	for k := range labels {
+		sorted = append(sorted, k)
+	}
+
+	sort.Sort(byLargestLength(sorted))
+
+	return sorted
 }
 
 // If the given document is missing data, fills it in with sane defaults. Populates the layout as
