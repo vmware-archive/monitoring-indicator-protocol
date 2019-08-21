@@ -11,7 +11,6 @@ echo "Starting registry on PORT $REGISTRY_PORT"
 go run cmd/registry/main.go \
   -port ${REGISTRY_PORT} \
   -indicator-expiration 1m \
-  -config example_config.yml \
     2>&1 | sed 's/^/REGISTRY: /' \
   &
 sleep 3
