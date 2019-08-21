@@ -1044,6 +1044,8 @@ jobs:
             echo "Building amd64 linux cli-plugin binary"
             GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-format-linux64-${BUILD_NUMBER} cmd/format/main.go
             GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-verification-linux64-${BUILD_NUMBER} cmd/verification/main.go
+
+            echo "$(git rev-parse HEAD)" > ../github-release-output/reposha
           popd
   - task: prefix-version-number
     config:
@@ -1083,6 +1085,7 @@ jobs:
       name: github-release/name
       tag: github-release/tag
       body: github-release/body
+      commitish: github-release/reposha
       globs:
       - github-release/indicator-*
   - put: release-version
