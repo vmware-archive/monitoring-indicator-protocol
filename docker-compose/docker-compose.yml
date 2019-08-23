@@ -7,11 +7,65 @@ services:
   indicator-registry-proxy:
     image: indicatorprotocol/bosh-indicator-protocol-registry-proxy
     ports: ["10567:10567"]
-    volumes: ["./certs:/srv/certs"]
+    environment:
+    - CLIENT_PEM
+    - CLIENT_KEY
+    - SERVER_PEM
+    - SERVER_KEY
+    - TLS_ROOT_CA_PEM
     depends_on:
     - indicator-registry
   indicator-registry-agent:
     image: indicatorprotocol/bosh-indicator-protocol-registry-agent
-    volumes: ["./certs:/srv/certs", "./resources:/srv/resources"]
+    volumes: ["./resources:/srv/resources"]
+    environment:
+    - TLS_PEM
+    - TLS_KEY
+    - TLS_ROOT_CA_PEM
     depends_on:
     - indicator-registry-proxy
+  cf-auth-proxy:
+    image: indicatorprotocol/bosh-indicator-protocol-cf-auth-proxy
+    ports: ["5000:5000"]
+    environment:
+    - CLIENT_PEM
+    - CLIENT_KEY
+    - SERVER_PEM
+    - SERVER_KEY
+    - TLS_ROOT_CA_PEM
+    - UAA_ADDRESS
+    depends_on:
+    - indicator-registry-proxy
+    - indicator-registry-agent
+  status-controller:
+    image: indicatorprotocol/bosh-indicator-protocol-status-controller
+    depends_on:
+    - indicator-registry-proxy
+    - indicator-registry-agent
+    environment:
+    - UAA_URI
+    - PROMETHEUS_URI
+    - UAA_CLIENT_ID
+    - UAA_CLIENT_SECRET
+    - TLS_PEM
+    - TLS_KEY
+    - TLS_ROOT_CA_PEM
+  prometheus-controller:
+    image: indicatorprotocol/bosh-indicator-protocol-prometheus-controller
+    depends_on:
+    - indicator-registry-proxy
+    - indicator-registry-agent
+    environment:
+    - TLS_PEM
+    - TLS_KEY
+    - TLS_ROOT_CA_PEM
+    - PROMETHEUS_URI
+  grafana-controller:
+    image: indicatorprotocol/bosh-indicator-protocol-grafana-controller
+    depends_on:
+    - indicator-registry-proxy
+    - indicator-registry-agent
+    environment:
+    - TLS_PEM
+    - TLS_KEY
+    - TLS_ROOT_CA_PEM

@@ -7,6 +7,7 @@ set -e
 : "${SERVER_PEM:?}"
 : "${SERVER_KEY:?}"
 : "${TLS_ROOT_CA_PEM:?}"
+: "${UAA_ADDRESS:?}"
 
 if [ ! -d "certs" ]
 then
@@ -20,11 +21,12 @@ echo -e "$SERVER_KEY" > certs/server.key
 echo -e "$TLS_ROOT_CA_PEM" > certs/ca.pem
 
 
-./indicator-registry-proxy \
-  --tls-pem-path certs/server.pem \
-  --tls-key-path certs/server.key \
+./cf-auth-proxy \
   --tls-root-ca-pem certs/ca.pem \
-  --tls-server-cn localhost \
   --tls-client-pem-path certs/client.pem \
   --tls-client-key-path certs/client.key \
-  --local-registry-addr indicator-registry:10568
+  --tls-pem-path certs/server.pem \
+  --tls-key-path certs/server.key \
+  --tls-server-cn localhost \
+  --uaa-addr "$UAA_ADDRESS" \
+  --registry-addr https://indicator-registry-proxy:10567
