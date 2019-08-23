@@ -8,3 +8,7 @@
     uaa_uri: ((uaa_uri))
     uaa_client_id: ((uaa_client_id))
     uaa_client_secret: ((uaa_client_secret))
+    tls:
+      client_cert: ((status_controller_client_ssl.certificate))
+      client_key: ((status_controller_client_ssl.private_key))
+      ca_cert: ((indicator_protocol_ca.ca))

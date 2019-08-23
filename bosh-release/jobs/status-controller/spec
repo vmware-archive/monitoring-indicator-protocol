@@ -20,7 +20,6 @@ properties:
     default: "1m"
   prometheus_uri:
     description: "URI to hit to reload configuration"
-
   ssl.skip_cert_verify:
     description: "when connecting over TLS, don't verify certificates and use skip_cert_verify flag for 'cf api' command"
     default: false
@@ -30,3 +29,9 @@ properties:
     description: "UAA client ID with access to the Prometheus instance"
   uaa_client_secret:
     description: "UAA client secret"
+  tls.ca_cert:
+      description: "CA root required for key/cert verification"
+  tls.client_cert:
+      description: "TLS Client public certificate"
+  tls.client_key:
+      description: "TLS Client private key"

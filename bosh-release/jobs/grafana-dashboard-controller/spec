@@ -19,3 +19,12 @@ properties:
   output_directory:
     description: "The output directory for the grafana dashboards"
     default: "/var/vcap/data/grafana-dashboard-controller/dashboards"
+  tls.ca_cert:
+    description: "CA root required for key/cert verification"
+  tls.client_cert:
+    description: "TLS Client public certificate"
+  tls.client_key:
+    description: "TLS Client private key"
+  tls.server_common_name:
+    description: "TLS Server common name"
+

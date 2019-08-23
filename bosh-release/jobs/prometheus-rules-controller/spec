@@ -21,3 +21,9 @@ properties:
     default: "/var/vcap/data/prometheus-rules-controller/rules"
   prometheus_uri:
     description: "URI to hit to reload configuration"
+  tls.ca_cert:
+    description: "CA root required for key/cert verification"
+  tls.client_cert:
+    description: "TLS Client public certificate"
+  tls.client_key:
+    description: "TLS Client private key"

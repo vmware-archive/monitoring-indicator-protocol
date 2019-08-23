@@ -14,3 +14,11 @@ consumes:
   - name: indicator-registry
     type: indicator-registry
     optional: false
+
+properties:
+  tls.ca_cert:
+    description: "CA root required for key/cert verification"
+  tls.client_cert:
+    description: "TLS Client public certificate"
+  tls.client_key:
+    description: "TLS Client private key"
