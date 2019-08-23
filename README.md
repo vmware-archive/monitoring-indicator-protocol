@@ -111,10 +111,23 @@ Use the provided script to run tests: `./scripts/test.sh`. By default, this runs
    and a layout section.
    
 ## Developing with Docker
-We have provided a script to create the necessary certificates and start your docker container for you. If you have the repo cloned, run `./scripts/start_docker_compose.sh` from the root. The registry will be running on port 10567 by default. To curl this registry, reference the certs created in the certs directory within docker-compose. For example:
+We publish Docker images for all available jobs:
+- indicatorprotocol/bosh-indicator-protocol-registry
+- indicatorprotocol/bosh-indicator-protocol-registry-proxy
+- indicatorprotocol/bosh-indicator-protocol-registry-agent
+- indicatorprotocol/bosh-indicator-protocol-cf-auth-proxy
+- indicatorprotocol/bosh-indicator-protocol-status-controller
+- indicatorprotocol/bosh-indicator-protocol-prometheus-controller
+- indicatorprotocol/bosh-indicator-protocol-grafana-controller
 
-```
-curl https://localhost:10567/v1/indicator-documents -k --key docker-compose/certs/client.key --cert docker-compose/certs/client.pem --cacert docker-compose/certs/ca.key
-```
+Additionally, there is a `docker-compose.yml` file to orchestrate all of the jobs. There are a number of environment variables required, see `./scripts/start_docker_compose.sh` for reference.
 
-   
+The registry proxy runs on port 10567 by default. To curl indicator documents:
+
+```sh
+curl https://localhost:10567/v1/indicator-documents -k \
+--key test_fixtures/client.key \
+--cert test_fixtures/client.pem \
+--cacert test_fixtures/ca.key
+```
+Grafana and Prometheus controller jobs generate dashboard and alerting rules files, respectively, based on indicator documents availble in the registry. Both controllers write the generated files internally to the container in `/alerts` and `/dashboards`.
