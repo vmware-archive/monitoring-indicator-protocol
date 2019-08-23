@@ -129,6 +129,30 @@ resources:
     repository: indicatorprotocol/bosh-indicator-protocol-registry-agent
     username: ((dockerhub-username))
     password: ((dockerhub-password))
+- name: bosh-cf-auth-proxy-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/bosh-indicator-protocol-cf-auth-proxy
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+- name: bosh-status-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/bosh-indicator-protocol-status-controller
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+- name: bosh-prometheus-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/bosh-indicator-protocol-prometheus-controller
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+- name: bosh-grafana-controller-docker-repo
+  type: docker-image
+  source:
+    repository: indicatorprotocol/bosh-indicator-protocol-grafana-controller
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
 - name: dev-release
   type: gcs-resource
   source:
@@ -486,6 +510,30 @@ jobs:
         additional_tags: tag/tag
         build: monitoring-indicator-protocol
         dockerfile: monitoring-indicator-protocol/cmd/registry_agent/Dockerfile
+    - put: bosh-cf-auth-proxy-docker-repo
+      attempts: 2
+      params:
+        additional_tags: tag/tag
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/cmd/cf_auth_proxy/Dockerfile
+    - put: bosh-status-controller-docker-repo
+      attempts: 2
+      params:
+        additional_tags: tag/tag
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/cmd/status_controller/Dockerfile
+    - put: bosh-prometheus-controller-docker-repo
+      attempts: 2
+      params:
+        additional_tags: tag/tag
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/cmd/prometheus_rules_controller/Dockerfile
+    - put: bosh-grafana-controller-docker-repo
+      attempts: 2
+      params:
+        additional_tags: tag/tag
+        build: monitoring-indicator-protocol
+        dockerfile: monitoring-indicator-protocol/cmd/grafana_dashboard_controller/Dockerfile
 
 - name: create-k8s-docker-images
   plan:
@@ -936,6 +984,22 @@ jobs:
       params: {save: true}
       passed:
       - create-dev-docker-images
+    - get: bosh-cf-auth-proxy-docker-repo
+      params: {save: true}
+      passed:
+      - create-dev-docker-images
+    - get: bosh-status-controller-docker-repo
+      params: {save: true}
+      passed:
+      - create-dev-docker-images
+    - get: bosh-prometheus-controller-docker-repo
+      params: {save: true}
+      passed:
+      - create-dev-docker-images
+    - get: bosh-grafana-controller-docker-repo
+      params: {save: true}
+      passed:
+      - create-dev-docker-images
     - get: dev-release
       passed:
       - create-dev-release
@@ -1132,6 +1196,26 @@ jobs:
         additional_tags: prefixed-release-version/version
         tag_as_latest: true
         load: bosh-indicator-registry-agent-docker-repo
+    - put: bosh-cf-auth-proxy-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: bosh-cf-auth-proxy-docker-repo
+    - put: bosh-status-controller-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: bosh-status-controller-docker-repo
+    - put: bosh-prometheus-controller-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: bosh-prometheus-controller-docker-repo
+    - put: bosh-grafana-controller-docker-repo
+      params:
+        additional_tags: prefixed-release-version/version
+        tag_as_latest: true
+        load: bosh-grafana-controller-docker-repo
   - put: notify
     params:
       text_file: ./slack-message/text.txt
