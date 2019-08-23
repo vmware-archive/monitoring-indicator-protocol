@@ -112,5 +112,3 @@ variables:
     extended_key_usage:
     - client_auth
 
-features:
-  converge_variables: true
