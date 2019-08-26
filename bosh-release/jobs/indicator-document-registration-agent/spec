@@ -22,9 +22,3 @@ properties:
   documents_glob:
     description: "Location of indicator documents"
     default: "/var/vcap/jobs/*/config/indicators.yml"
-  tls.ca_cert:
-    description: "CA root required for key/cert verification"
-  tls.client_cert:
-    description: "TLS Client public certificate"
-  tls.client_key:
-    description: "TLS Client private key"

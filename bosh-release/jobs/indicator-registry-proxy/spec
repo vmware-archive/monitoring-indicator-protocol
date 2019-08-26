@@ -27,6 +27,8 @@ provides:
       - tls.server_common_name
       - tls.server_key
       - tls.server_cert
+      - tls.agent_client_key
+      - tls.agent_client_cert
 
 properties:
   port:

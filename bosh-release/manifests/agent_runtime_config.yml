@@ -9,21 +9,7 @@ addons:
     release: monitoring-indicator-protocol
     consumes:
       indicator-registry: {deployment: indicator-protocol}
-    properties:
-      tls:
-        client_cert: ((indicator_registration_agent_client_ssl.certificate))
-        client_key: ((indicator_registration_agent_client_ssl.private_key))
-        ca_cert: ((indicator_protocol_ca.ca))
   include:
     stemcell:
     - os: ubuntu-trusty
     - os: ubuntu-xenial
-
-properties:
-- name: indicator_registration_agent_client_ssl
-  type: certificate
-  options:
-    ca: indicator_protocol_ca
-    common_name: indicator-registration-agent
-    extended_key_usage:
-    - client_auth

@@ -1,1 +1,1 @@
-<%= p('tls.client_cert') %>
+<% if_link('indicator-registry') do |ir| %><%= ir.p('tls.agent_client_cert') %><% end %>

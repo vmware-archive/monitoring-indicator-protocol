@@ -41,6 +41,8 @@ instance_groups:
         server_common_name: indicator-registry
         client_cert: ((indicator_registry_client_ssl.certificate))
         client_key: ((indicator_registry_client_ssl.private_key))
+        agent_client_cert: ((indicator_registration_agent_client_ssl.certificate))
+        agent_client_key: ((indicator_registration_agent_client_ssl.private_key))
   - name: indicator-cf-auth-proxy
     release: monitoring-indicator-protocol
     consumes:
