@@ -62,6 +62,7 @@ services:
     - PROMETHEUS_URI
   grafana-controller:
     image: indicatorprotocol/bosh-indicator-protocol-grafana-controller
+    volumes: ["/tmp/dashboards:/srv/dashboards"]
     depends_on:
     - indicator-registry-proxy
     - indicator-registry-agent

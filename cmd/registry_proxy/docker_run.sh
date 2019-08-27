@@ -19,7 +19,6 @@ echo -e "$SERVER_PEM" > certs/server.pem
 echo -e "$SERVER_KEY" > certs/server.key
 echo -e "$TLS_ROOT_CA_PEM" > certs/ca.pem
 
-
 ./indicator-registry-proxy \
   --tls-pem-path certs/server.pem \
   --tls-key-path certs/server.key \

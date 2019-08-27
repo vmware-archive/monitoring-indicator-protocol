@@ -1,11 +1,12 @@
 ## Developing with Docker
-We have provided a script to create the necessary certificates and start your docker container for you. If you have the repo cloned, run `./scripts/start_docker_compose.sh` from the root. The registry will be running on port 10567 by default. To curl this registry, reference the certs created in the certs directory within docker-compose. For example:
+We have provided a script to create the necessary certificates and start your docker container for you if you have the repo cloned. First, you will need to put any indicator document, patch or config files you're working with in `docker-compose/resources/`. The images are mounted with config.yml and indicators.yml specifically.
 
+Run `./scripts/start_docker_compose.sh` from the root.
+
+The registry will be running on port 10567 by default. To curl this registry, reference the certs created in the certs directory within docker-compose. For example:
 ```bash
 curl https://localhost:10567/v1/indicator-documents -k --key test_fixtures/client.key --cert test_fixtures/client.pem --cacert test_fixtures/ca.key
 ```
-
-Any indicator document, patch or config files you're working with need to be added to docker-compose/resources. The images are mounted with config.yml and indicators.yml specifically.
 
 ## Rebuilding Docker Images
 If you want to rebuild the docker images to reflect local changes, run the following commands.
@@ -21,7 +22,7 @@ docker build -t indicatorprotocol/bosh-indicator-protocol-grafana-controller -f 
 ```
 
 ## Certs
-You need to define the following cert environment variables in your shell:
+You need to define the following cert environment variables in your shell (`./scripts/start_docker_compose.sh` does this for you with our test certs):
 - TLS_PEM: registration agent client cert
 - TLS_KEY: registration agent client key
 - CLIENT_PEM: registry proxy client cert
