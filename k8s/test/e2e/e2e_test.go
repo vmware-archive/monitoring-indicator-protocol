@@ -385,7 +385,7 @@ func prometheusConfigMapMatch(t *testing.T, cm *coreV1.ConfigMap, id *v1.Indicat
 
 	var (
 		cmAlerts map[string][]map[string]interface{}
-		cmAlert interface{}
+		cmAlert  interface{}
 	)
 	err = yaml.Unmarshal([]byte(cm.Data["alerts"]), &cmAlerts)
 	if err != nil {

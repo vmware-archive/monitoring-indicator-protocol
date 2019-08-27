@@ -43,12 +43,17 @@ var client = &http.Client{
 func (h *Handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	const prefix = "/backend/"
 
+	// If the request is directed to the /backend/*
+	// then it came from another proxy,
+	// so just route it to the local
 	if strings.HasPrefix(r.URL.Path, prefix) {
 		r.URL.Path = r.URL.Path[len(prefix)-1:]
 		h.localRegistryHandler.ServeHTTP(rw, r)
 		return
 	}
 
+	// If it's a GET (presumably, as it's not a POST) then
+	// we don't need to ask every proxy, because they all have the same data
 	if r.Method != http.MethodPost {
 		h.localRegistryHandler.ServeHTTP(rw, r)
 		return
@@ -66,6 +71,9 @@ func (h *Handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	// If it's a POST, though, we have to talk to every registry we know
+	// about, so they are all in consistent states
 	h.localRegistryHandler.ServeHTTP(rw, newReq)
 	r.URL.Path = prefix[:len(prefix)-1] + r.URL.Path
 
