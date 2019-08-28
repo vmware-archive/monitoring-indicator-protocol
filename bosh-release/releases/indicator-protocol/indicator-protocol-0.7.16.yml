@@ -1,0 +1,49 @@
+name: indicator-protocol
+version: 0.7.16
+commit_hash: 9e840b6
+uncommitted_changes: false
+jobs:
+- name: grafana-dashboard-controller
+  version: 2a427b780ec1afa87ed6e5fb5f5f90a3d4a4129f6cc4b66b1f6373dad8d1ba45
+  fingerprint: 2a427b780ec1afa87ed6e5fb5f5f90a3d4a4129f6cc4b66b1f6373dad8d1ba45
+  sha1: sha256:213df8fe7358a1488ff39c09d334939ba5fc896199f8c69a1811ef24eaaf32a8
+- name: indicator-cf-auth-proxy
+  version: 3d2210d86e05d6a97aede9347f40b0b75e803b343e99070b7ee65dec5af698ed
+  fingerprint: 3d2210d86e05d6a97aede9347f40b0b75e803b343e99070b7ee65dec5af698ed
+  sha1: sha256:0c8d1a2a5274cf0a5d43285008a5805ea3b18fa93f8c8e21d3cee643cf21826c
+- name: indicator-registration-agent
+  version: 930a35199117c92c4d97a3262f20f21c47e929300363149c16b59185a25a7327
+  fingerprint: 930a35199117c92c4d97a3262f20f21c47e929300363149c16b59185a25a7327
+  sha1: sha256:c91db4384acce898315a08c52a3bc5d578786663c875ebcc04ebed25868358a3
+- name: indicator-registry
+  version: 9384cc3bd0aff807009324d1b2206e7acee42ab600d70fce13ace6d51b7c4e66
+  fingerprint: 9384cc3bd0aff807009324d1b2206e7acee42ab600d70fce13ace6d51b7c4e66
+  sha1: sha256:443bd114c618fbc09b5bdf653671f7cc775e3979be485b9fdebf767e34fa3779
+- name: indicator-registry-proxy
+  version: ef172e372d9ff270613f01c30407539707121a7fe0afa016b9ef3119d1e37cf3
+  fingerprint: ef172e372d9ff270613f01c30407539707121a7fe0afa016b9ef3119d1e37cf3
+  sha1: sha256:0cf6bfd8420c9878e3982d45d5161eab45eb18bb15135c4e00861c610669f943
+- name: indicator-smoke-tests
+  version: d757b188db3e93751e0239b104b6bdad3d11aa7babb60003bdf42128038b40e4
+  fingerprint: d757b188db3e93751e0239b104b6bdad3d11aa7babb60003bdf42128038b40e4
+  sha1: sha256:66f82049b513d17ba8ddfdfb2d380fef212f12ffeec6aa836976b47bb9a8e7c9
+- name: prometheus-rules-controller
+  version: 9477874ccf9acb61f390558c9e52708708066fbe268ba932b35b5e04047e4003
+  fingerprint: 9477874ccf9acb61f390558c9e52708708066fbe268ba932b35b5e04047e4003
+  sha1: sha256:067fe4c736962e77e597799dedadcf5c6a16251ccaa24326820cfa53785c7472
+- name: status-controller
+  version: 18682fcd9322d01a5a5a1921c33c09b6e0fe004492c3c656b23dee07ca33bf6d
+  fingerprint: 18682fcd9322d01a5a5a1921c33c09b6e0fe004492c3c656b23dee07ca33bf6d
+  sha1: sha256:968b637bddd9cd72fa3c120d9bcab60374a986257c25f22dd26271156b8862d5
+packages:
+- name: golang-1.12-linux
+  version: 29fdb6b4cd6c0fe9fb2d8a2a53e89a040ffa33c33f4b9bfae04f5e16060f1f58
+  fingerprint: 29fdb6b4cd6c0fe9fb2d8a2a53e89a040ffa33c33f4b9bfae04f5e16060f1f58
+  sha1: sha256:2776fe5cdc0068e503e68a977df38f93cf631c8f0125140e4788092cd1f2f663
+  dependencies: []
+- name: indicator-registry
+  version: 71f657a56d2be29394ecf5a630fe1704cf7ecffec755af26e0588acc672be2c3
+  fingerprint: 71f657a56d2be29394ecf5a630fe1704cf7ecffec755af26e0588acc672be2c3
+  sha1: sha256:fbadfc9bf0ab07d392ee5312c4af9161a03645f17ae51746bf06211b0d30a5b5
+  dependencies:
+  - golang-1.12-linux
