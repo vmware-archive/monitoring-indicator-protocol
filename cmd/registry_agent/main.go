@@ -20,7 +20,7 @@ func main() {
 	documentsGlob := flag.String("documents-glob", "/var/vcap/jobs/config/*/indicators.yml", "Glob path of indicator files")
 
 	clientPEM := flag.String("tls-pem-path", "", "Client TLS public cert pem path which can connect to the server (indicator-registry)")
-	clientKey := flag.String("tls-key-path", "", "Server TLS private key path which can connect to the server (indicator-registry)")
+	clientKey := flag.String("tls-key-path", "", "Client TLS private key path which can connect to the server (indicator-registry)")
 	rootCACert := flag.String("tls-root-ca-pem", "", "Root CA Pem for self-signed certs")
 	serverCommonName := flag.String("tls-server-cn", "indicator-registry", "server (indicator-registry) common name")
 	flag.Parse()
