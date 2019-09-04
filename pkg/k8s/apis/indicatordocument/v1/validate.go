@@ -87,7 +87,7 @@ func (is *IndicatorSpec) Validate(idx int, apiVersion string) []error {
 
 	if is.Type == UndefinedType {
 		es = append(es, fmt.Errorf(
-			"indicators[%d] given invalid type. Must be one of [sli, kpi, indicator] (if absent from the yaml, defaults to `indicator`)", idx))
+			"indicators[%d] given invalid type. Must be one of [sli, kpi, other] (if absent from the yaml, defaults to `other`)", idx))
 	}
 
 	es = append(es, is.Presentation.ChartType.Validate(idx)...)
