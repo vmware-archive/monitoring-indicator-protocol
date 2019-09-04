@@ -26,6 +26,7 @@ func main() {
 	checkRequiredFlagsArePresent(*indicatorsFilePath, *prometheusURI, *authorization)
 
 	document, err := indicator.ReadFile(*indicatorsFilePath, indicator.OverrideMetadata(indicator.ParseMetadata(*metadata)))
+
 	if err != nil {
 		l.Fatal(err)
 	}

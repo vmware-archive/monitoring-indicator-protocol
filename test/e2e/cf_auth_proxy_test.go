@@ -30,8 +30,8 @@ const (
 	clientKey  = "../../test_fixtures/client.key"
 
 	cfAuthProxyPort = "15432"
-	registryPort    = "23456"
-	tlsProxyPort    = "8091"
+	registryPort    = "23819"
+	tlsProxyPort    = "12911"
 
 	// This must be uaa.sys.…, not …cf-app.com/uaa, otherwise everything
 	// will fail. You also must be targeting madlamp to run this locally.
@@ -78,7 +78,7 @@ func TestCfAuthProxy(t *testing.T) {
 		g.Expect(response.StatusCode).To(Equal(http.StatusOK),
 			"Could not retrieve documents. Make sure you have targeted madlamp.")
 		response1Bytes, _ := ioutil.ReadAll(response.Body)
-		g.Expect(response1Bytes).To(MatchJSON([]byte(fmt.Sprintf("[]"))))
+		g.Expect(response1Bytes).To(MatchJSON([]byte("[]")))
 	})
 
 	t.Run("UAA Admin can retrieve documents using header to provide token", func(t *testing.T) {

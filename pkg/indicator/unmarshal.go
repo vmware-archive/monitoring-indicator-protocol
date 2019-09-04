@@ -26,6 +26,7 @@ func DocumentFromYAML(r io.ReadCloser) (v1.IndicatorDocument, error) {
 		return v1.IndicatorDocument{}, err
 	}
 
+
 	apiVersion, err := ApiVersionFromYAML(docBytes)
 	if err != nil {
 		return v1.IndicatorDocument{}, err
@@ -37,6 +38,15 @@ func DocumentFromYAML(r io.ReadCloser) (v1.IndicatorDocument, error) {
 		log.Print("WARNING: apiVersion v0 will be deprecated in future releases")
 		doc, err = v0documentFromBytes(docBytes)
 	case api_versions.V1:
+		// Validate documentBytes according to the OpenAPI Schema
+		errs, ok := v1.ValidateDocumentBytes(docBytes)
+		if !ok {
+			errorString := "Unable to validate document, errors were:\n"
+			for _, err := range errs {
+				errorString += " - " + err.Error() + "\n"
+			}
+			return v1.IndicatorDocument{}, errors.New(errorString)
+		}
 		err = yaml.Unmarshal(docBytes, &doc)
 	default:
 		err = fmt.Errorf("invalid apiVersion, supported versions are: [v0, indicatorprotocol.io/v1]")

@@ -9,11 +9,13 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/onsi/gomega/ghttp"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"github.com/prometheus/common/model"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 )
 
 func TestValidateIndicators(t *testing.T) {
@@ -114,6 +116,27 @@ func TestValidateIndicators(t *testing.T) {
 
 		g.Eventually(prometheusCompliantServer.ReceivedRequests).Should(HaveLen(2))
 		g.Eventually(session, 5).Should(gexec.Exit(1))
+	})
+
+	t.Run("returns 1 when indicator document is invalid according to schema", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		cmd := exec.Command(
+			binPath,
+			"--indicators", "./test_fixtures/malformed_indicators.yml",
+			"--metadata", "deployment=my-demo-deployment",
+			"--query-endpoint", "http://bad",
+			"--authorization", "bearer test-token",
+			"-k",
+		)
+
+		session, err := gexec.Start(cmd, nil, nil)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Eventually(session, 5).Should(gexec.Exit(1))
+		println(string(session.Err.Contents()))
+		g.Expect(session.Err).To(gbytes.Say("Unable to validate document, errors were:"))
+		g.Expect(session.Err).To(gbytes.Say("product.version"))
 	})
 }
 

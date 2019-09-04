@@ -16,11 +16,13 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-kit/kit v0.8.0 // indirect
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
-	github.com/go-stack/stack v1.8.0 // indirect
+	github.com/go-openapi/spec v0.19.3
+	github.com/go-openapi/strfmt v0.19.2
+	github.com/go-openapi/validate v0.19.3
 	github.com/gobwas/glob v0.2.3
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
-	github.com/google/go-cmp v0.2.0
+	github.com/google/go-cmp v0.3.0
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gorilla/mux v1.7.0
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
@@ -39,17 +41,14 @@ require (
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc // indirect
-	golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a
-	golang.org/x/net v0.0.0-20190415100556-4a65cf94b679 // indirect
+	golang.org/x/crypto v0.0.0-20190617133340-57b3e21c3d56
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421 // indirect
-	golang.org/x/sys v0.0.0-20190422165155-953cdadca894 // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
-	golang.org/x/tools v0.0.0-20190415154727-2b5498619ef1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.8.1
-	gopkg.in/yaml.v2 v2.2.1
+	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190415132514-c2f1300cac21
 	k8s.io/apimachinery v0.0.0-20190415132420-07d458fe0356
 	k8s.io/client-go v2.0.0-alpha.0.0.20190211223420-cd12199def58+incompatible

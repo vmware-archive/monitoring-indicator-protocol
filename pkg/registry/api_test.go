@@ -33,7 +33,7 @@ apiVersion: v0
 
 product: 
   name: redis-tile
-  version: 0.11
+  version: v0.11
 
 metadata:
   deployment: redis-abc-123
@@ -68,9 +68,9 @@ indicators:
 				},
 
 				Spec: v1.IndicatorDocumentSpec{
-					Product: v1.Product{Name: "redis-tile", Version: "0.11"},
+					Product: v1.Product{Name: "redis-tile", Version: "v0.11"},
 					Layout: v1.Layout{
-						Title: "redis-tile - 0.11",
+						Title: "redis-tile - v0.11",
 						Sections: []v1.Section{{
 							Title:      "Metrics",
 							Indicators: []string{"test_performance_indicator"},
@@ -114,7 +114,7 @@ metadata:
 spec:
   product: 
     name: redis-tile
-    version: 0.11
+    version: v0.11
   
   indicators:
   - name: test_performance_indicator
@@ -144,9 +144,9 @@ spec:
 					},
 				},
 				Spec: v1.IndicatorDocumentSpec{
-					Product: v1.Product{Name: "redis-tile", Version: "0.11"},
+					Product: v1.Product{Name: "redis-tile", Version: "v0.11"},
 					Layout: v1.Layout{
-						Title: "redis-tile - 0.11",
+						Title: "redis-tile - v0.11",
 						Sections: []v1.Section{{
 							Title:      "Metrics",
 							Indicators: []string{"test_performance_indicator"},

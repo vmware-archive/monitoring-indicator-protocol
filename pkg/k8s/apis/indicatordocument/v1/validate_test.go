@@ -2,6 +2,7 @@ package v1_test
 
 import (
 	"errors"
+	"io/ioutil"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -444,5 +445,25 @@ func TestChartType(t *testing.T) {
 		g.Expect(es).To(ContainElement(
 			errors.New("indicators[0] invalid chartType provided - valid chart types are [step bar status quota]"),
 		))
+	})
+}
+
+func TestIndicatorDocumentSchema(t *testing.T) {
+	t.Run("Accepts the example indicator document", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		exampleDocBytes, err := ioutil.ReadFile("../../../../../example_indicators.yml")
+		g.Expect(err).To(BeNil())
+
+		_, ok := v1.ValidateDocumentBytes(exampleDocBytes)
+		g.Expect(ok).To(BeTrue())
+	})
+
+	t.Run("Does not accept invalid indicators", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		exampleDocBytes := []byte(`yaml: invalidindicator`)
+		_, ok := v1.ValidateDocumentBytes(exampleDocBytes)
+		g.Expect(ok).To(BeFalse())
 	})
 }

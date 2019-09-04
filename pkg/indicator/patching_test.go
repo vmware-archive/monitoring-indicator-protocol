@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
+// TODO The test fixtures have many duplicate lines, and sometimes are actually duplicated.
+//      Can we remove the duplicaion?
 var (
 	v0DocumentBytes = []byte(`---
 apiVersion: v0
@@ -23,7 +26,7 @@ metadata:
 
 product:
   name: testing
-  version: 123
+  version: v123
 
 indicators:
 - name: test_indicator
@@ -32,7 +35,7 @@ indicators:
 
 	v0Match = indicator.Match{
 		Name:    test_fixtures.StrPtr("testing"),
-		Version: test_fixtures.StrPtr("123"),
+		Version: test_fixtures.StrPtr("v123"),
 		Metadata: map[string]string{
 			"deployment": "test-deployment",
 		},
@@ -54,7 +57,7 @@ metadata:
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   
   indicators:
   - name: test_indicator
@@ -63,7 +66,7 @@ spec:
 
 	v1Match = indicator.Match{
 		Name:    test_fixtures.StrPtr("testing"),
-		Version: test_fixtures.StrPtr("123"),
+		Version: test_fixtures.StrPtr("v123"),
 		Metadata: map[string]string{
 			"deployment": "test-deployment",
 		},
@@ -86,7 +89,7 @@ func matchToPatch(apiVersion string, m indicator.Match) indicator.Patch {
 
 func TestDocumentMatching(t *testing.T) {
 	name1 := "testing"
-	version1 := "123"
+	version1 := "v123"
 	matchProduct123 := matchToPatch(api_versions.V1, indicator.Match{
 		Name:    &name1,
 		Version: &version1,
@@ -101,7 +104,7 @@ func TestDocumentMatching(t *testing.T) {
 	})
 
 	name2 := "other-testing"
-	version2 := "456"
+	version2 := "v456"
 	matchDeploymentOtherTest := matchToPatch(api_versions.V1, indicator.Match{
 		Name:    &name2,
 		Version: &version2,
@@ -115,6 +118,7 @@ func TestDocumentMatching(t *testing.T) {
 
 		documentBytes := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -123,7 +127,7 @@ metadata:
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   
   indicators:
   - name: test_indicator
@@ -140,6 +144,7 @@ spec:
 
 		documentBytes := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -148,7 +153,7 @@ metadata:
 spec:
   product:
     name: testing-foo-foo
-    version: 123456
+    version: v123456
   
   indicators:
   - name: test_indicator
@@ -166,6 +171,7 @@ spec:
 		documentBytes := []byte(`
 ---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -174,7 +180,7 @@ metadata:
 spec:
   product:
     name: other-testing
-    version: 456
+    version: v456
 
   indicators:
   - name: test_indicator
@@ -194,6 +200,7 @@ func TestPatching(t *testing.T) {
 		matchingDocument := []byte(`
 ---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -206,7 +213,7 @@ spec:
   
   product:
     name: testing
-    version: 123
+    version: v123
 `)
 		var val interface{} = "patched_promql"
 		indicatorPatch := []indicator.Patch{{
@@ -266,7 +273,7 @@ metadata:
 
 product:
   name: testing
-  version: 123
+  version: v123
 
 indicators:
 - name: test_indicator
@@ -299,13 +306,15 @@ indicators:
 
 		nonMatchingDocument := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 metadata:
   label:
     deployment: not-test-deployment
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   
   
   indicators:
@@ -365,6 +374,7 @@ spec:
 		}}
 		doc := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -373,7 +383,7 @@ metadata:
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   
   indicators:
   - name: test_indicator
@@ -429,6 +439,7 @@ spec:
 		}}
 		doc := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -436,7 +447,7 @@ metadata:
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   
   indicators:
   - name: test_indicator
@@ -484,6 +495,7 @@ spec:
 		}}
 		doc := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -492,7 +504,7 @@ metadata:
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   indicators:
   - name: test_indicator
     promql: test_expr
@@ -541,6 +553,7 @@ spec:
 		}}
 		doc := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -549,7 +562,7 @@ metadata:
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   indicators:
   - name: test_indicator
     promql: test_expr
@@ -634,7 +647,7 @@ metadata:
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   
   indicators:
   - name: test_indicator
@@ -681,7 +694,7 @@ metadata:
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   
   indicators:
   - name: test_indicator
@@ -739,6 +752,7 @@ spec:
 		}}
 		doc := []byte(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -748,7 +762,7 @@ metadata:
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   
   indicators:
   - name: test_indicator

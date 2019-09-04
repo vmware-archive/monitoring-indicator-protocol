@@ -202,7 +202,7 @@ func TestAdmission(t *testing.T) {
 		_, err := clients.idClient.IndicatorDocuments(ns).Create(id)
 
 		g.Expect(err).To(HaveOccurred())
-		g.Expect(err.Error()).To(ContainSubstring("indicators[0].thresholds[0] operator [lt, lte, eq, neq, gte, gt] is required"))
+		g.Expect(err.Error()).To(ContainSubstring("spec.indicators.thresholds.operator in body should be one of [lt lte gt gte eq neq]"))
 	})
 }
 

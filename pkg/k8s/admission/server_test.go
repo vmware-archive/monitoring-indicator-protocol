@@ -1162,15 +1162,12 @@ func TestDefaultValues(t *testing.T) {
 func startServer(g *GomegaWithT) *admission.Server {
 	server := admission.NewServer("127.0.0.1:0")
 	server.Run(false)
-	var err error
-	for i := 0; i < 100; i++ {
-		_, err = http.Get(fmt.Sprintf("http://%s/metrics", server.Addr()))
-		if err == nil {
-			break
-		}
-		time.Sleep(5 * time.Millisecond)
-	}
-	g.Expect(err).To(BeNil())
+
+	g.Eventually(func() error {
+		_, err := http.Get(fmt.Sprintf("http://%s/metrics", server.Addr()))
+		return err
+	}, 1 * time.Second).Should(BeNil())
+
 	return server
 }
 

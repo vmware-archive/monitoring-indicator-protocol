@@ -57,7 +57,7 @@ func TestUpdateMetadata(t *testing.T) {
 	t.Run("it does not replaces promql $EXPR with metadata tags when passed flag", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		d, err := indicator.ReadFile("test_fixtures/doc.yml", indicator.SkipMetadataInterpolation)
-		g.Expect(err).ToNot(HaveOccurred())
+			g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d).To(Equal(v1.IndicatorDocument{
 			TypeMeta:metav1.TypeMeta{

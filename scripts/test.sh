@@ -58,6 +58,7 @@ function exit_on_dirty_git_directory {
     fi
 }
 
+# TODO remove this, or fix it so that it can be run without breaking our code
 function run_cleaners {
     print_checkpoint "Running Cleaners"
 
@@ -120,6 +121,7 @@ function run_local {
 
 function run_k8s_e2e {
     print_checkpoint "Running K8S End-To-End Tests"
+    kubectl apply -k k8s/config/ > /dev/null
     PROMETHEUS_URI=$(kubectl get svc --namespace prometheus prometheus-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     GRAFANA_URI=$(kubectl get svc --namespace grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
     GRAFANA_ADMIN_USER=$(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-user}" | base64 --decode ; echo)
@@ -179,6 +181,10 @@ function main {
     clear_cache
     go mod tidy
     go mod vendor
+
+    pushd $PROJECT_DIR > /dev/null
+      go-bindata -o pkg/asset/schema.go -pkg asset schemas.yml
+    popd > /dev/null
 
     parse_argc $1
     shift

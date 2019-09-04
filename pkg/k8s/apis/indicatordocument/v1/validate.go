@@ -6,6 +6,10 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/ghodss/yaml"
+	"github.com/go-openapi/spec"
+	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/validate"
 	"github.com/prometheus/prometheus/promql"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
@@ -93,4 +97,25 @@ func (is *IndicatorSpec) Validate(idx int, apiVersion string) []error {
 	es = append(es, is.Presentation.ChartType.Validate(idx)...)
 
 	return es
+}
+
+// Validates provided YAML is in correct v1 format by OpenAPI Schema
+func ValidateDocumentBytes(docBytes []byte) ([]error, bool) {
+	schemaBytes, err := Asset("schemas.yml")
+	if err != nil {
+		return []error{err}, false
+	}
+
+	var schema struct {
+		IndicatorDocumentSchema spec.Schema `json:"IndicatorDocument"`
+	}
+	var rootSchema interface{}
+	err = yaml.Unmarshal(schemaBytes, &rootSchema)
+	err = yaml.Unmarshal(schemaBytes, &schema)
+	validator := validate.NewSchemaValidator(&schema.IndicatorDocumentSchema, rootSchema, "IndicatorDocument", strfmt.Default)
+
+	var document interface{}
+	err = yaml.Unmarshal(docBytes, &document)
+
+	return validator.Validate(document).Errors, validator.Validate(document).IsValid()
 }

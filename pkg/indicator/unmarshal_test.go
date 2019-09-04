@@ -17,17 +17,6 @@ import (
 )
 
 func TestDocumentFromYAML(t *testing.T) {
-	t.Run("returns empty list of indicators", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol.io/v1
-spec:
-  indicators: []`))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(d.Spec.Indicators).To(HaveLen(0))
-	})
-
 	t.Run("returns error if YAML is bad", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		t.Run("bad document", func(t *testing.T) {
@@ -526,6 +515,8 @@ indicators:
 			g := NewGomegaWithT(t)
 			reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 metadata:
   labels:
     deployment: well-performing-deployment
@@ -599,6 +590,7 @@ spec:
 			g.Expect(doc).To(BeEquivalentTo(v1.IndicatorDocument{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: api_versions.V1,
+					Kind: "IndicatorDocument",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{"deployment": "well-performing-deployment"},
@@ -626,6 +618,8 @@ spec:
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 metadata:
   labels:
     deployment: valid-deployment
@@ -652,6 +646,7 @@ spec:
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -682,6 +677,7 @@ spec:
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -710,6 +706,8 @@ spec:
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 metadata:
   labels:
     deployment: valid-deployment
@@ -744,6 +742,7 @@ spec:
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
   labels:
@@ -806,7 +805,7 @@ spec:
 			})
 
 			t.Run("handles defaulting titles", func(t *testing.T) {
-			    g := NewGomegaWithT(t)
+				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
@@ -830,6 +829,8 @@ spec:
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 spec:
   product:
     name: well-performing-component
@@ -900,6 +901,8 @@ spec:
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 spec:
   product:
     name: well-performing-component
@@ -914,10 +917,8 @@ spec:
       operator: foo
   `))
 
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.UndefinedOperator))
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Value).To(Equal(float64(500)))
+				_, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).To(HaveOccurred())
 			})
 
 			t.Run("it handles missing operator", func(t *testing.T) {
@@ -925,6 +926,8 @@ spec:
 
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 spec:
   product:
     name: well-performing-component
@@ -937,10 +940,8 @@ spec:
     - level: warning
   `))
 
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.UndefinedOperator))
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
+				_, err := indicator.DocumentFromYAML(reader)
+				g.Expect(err).To(HaveOccurred())
 			})
 
 			t.Run("it returns an error if value is not a number", func(t *testing.T) {
@@ -972,6 +973,8 @@ spec:
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 spec:
   product:
    name: test_product
@@ -993,6 +996,8 @@ spec:
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 spec:
   product:
    name: test_product
@@ -1014,6 +1019,8 @@ spec:
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 spec:
   product:
    name: test_product
@@ -1035,6 +1042,8 @@ spec:
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
 spec:
   product:
     name: test_product
@@ -1054,21 +1063,8 @@ spec:
 		})
 
 		t.Run("handles indicator types", func(t *testing.T) {
-			g := NewGomegaWithT(t)
-
-			testCases := []struct {
-				indiTypeString string
-				indiType       v1.IndicatorType
-			}{
-				{"sli", v1.ServiceLevelIndicator},
-				{"kpi", v1.KeyPerformanceIndicator},
-				{"other", v1.DefaultIndicator},
-				{"", v1.UndefinedType},
-				{"asdf", v1.UndefinedType},
-			}
-
-			for _, testCase := range testCases {
-				yamlString := fmt.Sprintf(`---
+			getDoc := func(indiType string) string {
+				return fmt.Sprintf(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 spec:
@@ -1082,15 +1078,34 @@ spec:
     promql: prom{deployment="test"}
     presentation:
       chartType: step
-`, testCase.indiTypeString)
+`, indiType)
+			}
+			g := NewGomegaWithT(t)
 
+			testCases := []struct {
+				indiTypeString string
+				indiType       v1.IndicatorType
+			}{
+				{"sli", v1.ServiceLevelIndicator},
+				{"kpi", v1.KeyPerformanceIndicator},
+				{"other", v1.DefaultIndicator},
+			}
+
+			for _, testCase := range testCases {
+				yamlString := getDoc(testCase.indiTypeString)
 				reader := ioutil.NopCloser(strings.NewReader(yamlString))
 				d, err := indicator.DocumentFromYAML(reader)
 				g.Expect(err).ToNot(HaveOccurred())
 				g.Expect(d.Spec.Indicators[0].Type).To(Equal(testCase.indiType),
 					fmt.Sprintf("Failed indiTypeString: `%s`", testCase.indiTypeString))
 			}
+
+			yamlString := getDoc("")
+			reader := ioutil.NopCloser(strings.NewReader(yamlString))
+			_, err := indicator.DocumentFromYAML(reader)
+			g.Expect(err).To(HaveOccurred())
 		})
+
 	})
 
 }
@@ -1363,7 +1378,7 @@ kind: IndicatorDocument
 spec:
   product:
     name: testing
-    version: 123
+    version: v123
   indicators:
   - name: test_indicator
     promql: test_expr
@@ -1382,4 +1397,3 @@ spec:
 	})
 
 }
-
