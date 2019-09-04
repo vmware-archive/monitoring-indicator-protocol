@@ -142,6 +142,7 @@ func IndicatorTypeFromString(s string) IndicatorType {
 }
 
 type IndicatorStatus struct {
+	// Current status, like "healthy" or "warning" or "critical".'
 	Phase     string      `json:"phase"`
 	UpdatedAt metav1.Time `json:"updatedAt"`
 }

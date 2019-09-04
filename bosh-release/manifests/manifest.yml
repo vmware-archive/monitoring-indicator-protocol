@@ -54,7 +54,7 @@ instance_groups:
         - domain: "cf-auth-proxy.service.internal"
     properties:
       uaa:
-        addr: "https://uaa.madlamp.cf-denver.com"
+        addr: "https://uaa.madlamp.cf-denver.com" #TODO: parameterize me
       tls:
         client_cert: ((cf_auth_proxy_client_ssl.certificate))
         client_key: ((cf_auth_proxy_client_ssl.private_key))

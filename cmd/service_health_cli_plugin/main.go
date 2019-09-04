@@ -1,9 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"os"
+	"strings"
 
+	"code.cloudfoundry.org/cli/cf/terminal"
 	"code.cloudfoundry.org/cli/plugin"
+
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 // BasicPlugin is the struct implementing the interface defined by the core CLI. It can
@@ -24,9 +31,69 @@ type ServiceHealthPlugin struct{}
 // 1 should the plugin exits nonzero.
 func (c *ServiceHealthPlugin) Run(cliConnection plugin.CliConnection, args []string) {
 	// Ensure that we called the command basic-plugin-command
-	if args[0] == "service-health" {
+	if args[0] != "service-health" || len(args) != 2 {
 		fmt.Println(c.GetMetadata().Commands[0].UsageDetails.Usage)
+		os.Exit(1)
 	}
+
+	// Now we know the right CLI plugin was invoked, and that we have
+	// the name of a service instance to query.
+	serviceInstance := args[1]
+
+	// TODO include org, space, and username per https://github.com/cloudfoundry/cli/wiki/CF-CLI-Style-Guide
+	// "Getting health for service instance <b>mySQL in org <b>system / space <b>system as <b>admin..."
+	fmt.Printf("Getting health for service instance %s...\n", serviceInstance)
+
+	serviceModel, err := cliConnection.GetService(serviceInstance)
+	if err != nil {
+		fmt.Printf("FAILED\n\nCould not find service instance %s\n", serviceInstance)
+		os.Exit(1)
+	}
+	apiEndpoint, err := cliConnection.ApiEndpoint()
+	if err != nil {
+		fmt.Printf("FAILED\n\nCould not retrieve api endpoint, please use `cf api` to set it\n")
+		os.Exit(1)
+	}
+	registryEndpoint := strings.Replace(apiEndpoint, "api.", "registry.", 1)
+
+	token, err := cliConnection.AccessToken()
+	if err != nil {
+		fmt.Printf("FAILED\n\nCould not generate oauth token, use `cf login` or `cf auth` to authorize\n")
+		os.Exit(1)
+	}
+
+	url := fmt.Sprintf("%s/v1/indicator-documents?service_instance_guid=%s", registryEndpoint, serviceModel.Guid)
+	request, _ := http.NewRequest(http.MethodGet, url, nil)
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", token))
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		fmt.Printf("FAILED\n\nCould not access indicator registry: %s", err)
+		os.Exit(1)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		fmt.Printf("FAILED\n\nCould not access indicator registry: received status code %d\n", response.StatusCode)
+		os.Exit(1)
+	}
+
+	indiDocs := make([]v1.IndicatorDocument, 0)
+	err = json.NewDecoder(response.Body).Decode(&indiDocs)
+	if err != nil {
+		fmt.Printf("FAILED\n\nCould not decode indicator documents: %s", err)
+		os.Exit(1)
+	}
+
+	table := terminal.NewTable([]string{"indicator", "status"})
+
+	for _, doc := range indiDocs {
+		for indicatorName, indicatorStatus := range doc.Status {
+			table.Add(indicatorName, indicatorStatus.Phase)
+		}
+	}
+	fmt.Println("OK")
+	fmt.Println()
+	_ = table.PrintTo(os.Stdout)
 }
 
 // GetMetadata must be implemented as part of the plugin interface

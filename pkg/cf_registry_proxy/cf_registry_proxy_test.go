@@ -106,6 +106,8 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 			},
 		}
 
+		// A fake client that always returns an error:
+		// errors signal that the user making the request was not authorized
 		makeFakeCapiClient := func(authToken string) CapiClient {
 			capiClient.token = authToken
 			capiClient.errorOnGetServiceInstance = true
