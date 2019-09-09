@@ -128,6 +128,17 @@ func TestMetadataInterpolation(t *testing.T) {
 
 		g.Expect(interpolate("something [$step] something", labels)).To(Equal("something [$step] something"))
 	})
+
+	t.Run("it interpolates variables wrapped in curly braces", func(t *testing.T) {
+	    g := NewGomegaWithT(t)
+
+		labels := map[string]string{
+			"someVar":   "some value",
+		}
+
+	    g.Expect(interpolate("something ${someVar} something", labels)).To(Equal("something some value something"))
+	    g.Expect(interpolate("something${someVar}something", labels)).To(Equal("somethingsome valuesomething"))
+	})
 }
 
 func interpolate(promql string, labels map[string]string) string {

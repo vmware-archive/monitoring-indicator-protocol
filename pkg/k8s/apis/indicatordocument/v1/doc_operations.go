@@ -15,11 +15,12 @@ func (id *IndicatorDocument) OverrideMetadata(overrides map[string]string) {
 func (id *IndicatorDocument) Interpolate() {
 	labels := id.ObjectMeta.Labels
 	for _, k := range sortLabels(labels) {
-		regString := fmt.Sprintf(`(?i)(\$%s)(\b|\_)`, k)
+		regString := fmt.Sprintf(`(\$%s)(\b|\_)|(\$\{%s\})`, k, k)
 		reg := regexp.MustCompile(regString)
 
 		for i, indicator := range id.Spec.Indicators {
 			id.Spec.Indicators[i].PromQL = reg.ReplaceAllString(indicator.PromQL, fmt.Sprintf("%s$2", labels[k]))
+
 		}
 	}
 }
