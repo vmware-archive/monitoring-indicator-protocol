@@ -1035,7 +1035,7 @@ jobs:
           # write out github release files
           echo "${RELEASE_NAME} ${tag_name}" > github-release/name
           echo $tag_name > github-release/tag
-          sed -n '/## \[Unreleased\]/,/##/p' ./monitoring-indicator-protocol/CHANGELOG | sed -e '$ d' | tail -n +2 > github-release/body
+          sed -n '/^## \[Unreleased\]/,/^## \[.*\]/p' ./monitoring-indicator-protocol/CHANGELOG.md | sed -e '$ d' | tail -n +2 > github-release/body
 
           mkdir -p monitoring-indicator-protocol/bosh-release/src/github.com/pivotal
           rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
