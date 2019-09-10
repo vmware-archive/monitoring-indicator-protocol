@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
@@ -41,14 +41,7 @@ func NewIndicatorDocumentsHandler(store *DocumentStore, statusStore *status_stor
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 
-		productName := r.URL.Query().Get("product-name")
-
-		var documents []v1.IndicatorDocument
-		if productName == "" {
-			documents = store.AllDocuments()
-		} else {
-			documents = store.FilteredDocuments(productName)
-		}
+		documents := store.FilteredDocuments(r.URL.Query())
 
 		returnedDocuments := make([]APIDocumentResponse, len(documents))
 		for i, doc := range documents {

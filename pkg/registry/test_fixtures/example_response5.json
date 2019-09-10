@@ -1,0 +1,66 @@
+[
+  {
+    "apiVersion": "indicatorprotocol.io/v1",
+    "uid": "my-product-a-e9dd67070e66e18cfd06a4803b18689b67fa51df",
+    "kind": "IndicatorDocument",
+    "metadata": {
+      "labels": {
+        "deployment": "abc-123",
+        "source_id":  "test-id"
+      }
+    },
+    "spec": {
+      "product": {
+        "name": "my-product-a",
+        "version": "1"
+      },
+      "indicators": [
+        {
+          "name": "indie1",
+          "type": "other",
+          "promql": "promql1",
+          "thresholds": [],
+          "alert": {
+            "for": "5m",
+            "step": "10s"
+          },
+          "presentation": {
+            "chartType": "step",
+            "currentValue": false,
+            "frequency": 0,
+            "labels": [],
+            "units": ""
+          },
+          "status": null
+        },
+        {
+          "name": "indie2",
+          "type": "other",
+          "promql": "promql2",
+          "thresholds": [],
+          "alert": {
+            "for": "5m",
+            "step": "10s"
+          },
+          "presentation": {
+            "chartType": "status",
+            "currentValue": false,
+            "frequency": 0,
+            "labels": [],
+            "units": "nanoseconds"
+          },
+          "status": {
+            "value": "critical",
+            "updatedAt": "0001-01-01T00:00:00Z"
+          }
+        }
+      ],
+      "layout": {
+        "title": "",
+        "description": "",
+        "sections": [],
+        "owner": ""
+      }
+    }
+  }
+]

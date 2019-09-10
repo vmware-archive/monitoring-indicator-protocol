@@ -157,17 +157,6 @@ func TestStore(t *testing.T) {
 		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion1Document))
 	})
 
-	t.Run("it can retrieve documents by product name", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		store := registry.NewDocumentStore(time.Hour, time.Now)
-
-		store.UpsertDocument(productAVersion1Document)
-		store.UpsertDocument(productBDocument)
-
-		g.Expect(store.FilteredDocuments("my-product-a")).To(ConsistOf(productAVersion1Document))
-	})
-
 	t.Run("it upserts documents based on product", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		store := registry.NewDocumentStore(time.Hour, time.Now)
@@ -203,6 +192,139 @@ func TestStore(t *testing.T) {
 		theTime = theTime.Add(time.Hour).Add(time.Millisecond)
 
 		g.Expect(store.AllDocuments()).To(HaveLen(0))
+	})
+}
+
+func TestFiltering(t *testing.T) {
+	productAVersion1Document := v1.IndicatorDocument{
+		ObjectMeta: metaV1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "abc-123",
+				"source_id":  "test-source",
+			},
+		},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-a", Version: "1"},
+			Indicators: []v1.IndicatorSpec{{
+				Name: "test_errors",
+			}},
+		},
+	}
+
+	productBDocument := v1.IndicatorDocument{
+		TypeMeta: metaV1.TypeMeta{},
+		ObjectMeta: metaV1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "def-456",
+			},
+		},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-b", Version: "1"},
+			Indicators: []v1.IndicatorSpec{{
+				Name: "test_latency",
+			}},
+		},
+	}
+
+	productBDocumentDeployment2 := v1.IndicatorDocument{
+		TypeMeta: metaV1.TypeMeta{},
+		ObjectMeta: metaV1.ObjectMeta{
+			Labels: map[string]string{
+				"deployment": "dep-222",
+			},
+		},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-b", Version: "1"},
+			Indicators: []v1.IndicatorSpec{{
+				Name: "test_latency",
+			}},
+		},
+	}
+
+	t.Run("it can retrieve documents by product name", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(time.Hour, time.Now)
+
+		store.UpsertDocument(productAVersion1Document)
+		store.UpsertDocument(productBDocument)
+
+		filterKeys := map[string][]string{
+			"product-name": {"my-product-a"},
+		}
+
+		g.Expect(store.FilteredDocuments(filterKeys)).To(ConsistOf(productAVersion1Document))
+	})
+
+	t.Run("it can retrieve documents by metadata key", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(time.Hour, time.Now)
+
+		store.UpsertDocument(productAVersion1Document)
+		store.UpsertDocument(productBDocument)
+
+		filterKeys := map[string][]string{
+			"deployment": {"abc-123"},
+		}
+
+		g.Expect(store.FilteredDocuments(filterKeys)).To(ConsistOf(productAVersion1Document))
+
+		filterKeys = map[string][]string{
+			"source_id": {"test-source"},
+		}
+
+		g.Expect(store.FilteredDocuments(filterKeys)).To(ConsistOf(productAVersion1Document))
+	})
+
+	t.Run("it can retrieve documents by product name and metadata key", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(time.Hour, time.Now)
+
+		store.UpsertDocument(productBDocument)
+		store.UpsertDocument(productAVersion1Document)
+		store.UpsertDocument(productBDocumentDeployment2)
+
+		filterKeys := map[string][]string{
+			"product-name": {"my-product-b"},
+			"deployment":   {"def-456"},
+		}
+
+		g.Expect(store.FilteredDocuments(filterKeys)).To(ConsistOf(productBDocument))
+	})
+
+	t.Run("it returns an empty list when the filter keys match nothing", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(time.Hour, time.Now)
+
+		store.UpsertDocument(productBDocument)
+		store.UpsertDocument(productAVersion1Document)
+		store.UpsertDocument(productBDocumentDeployment2)
+
+		filterKeys := map[string][]string{
+			"nonexistent-key": {"nonexistent-value"},
+			"empty-value":     nil,
+		}
+
+		g.Expect(store.FilteredDocuments(filterKeys)).To(BeEmpty())
+	})
+
+	t.Run("it returns all of the documents if no filter keys are passed", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(time.Hour, time.Now)
+
+		store.UpsertDocument(productBDocument)
+		store.UpsertDocument(productAVersion1Document)
+		store.UpsertDocument(productBDocumentDeployment2)
+
+		filterKeys := map[string][]string{}
+
+		g.Expect(store.FilteredDocuments(filterKeys)).To(
+			ConsistOf(productBDocument, productAVersion1Document, productBDocumentDeployment2),
+		)
 	})
 }
 

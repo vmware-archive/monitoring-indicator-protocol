@@ -80,7 +80,7 @@ func (d *DocumentStore) AllDocuments() []v1.IndicatorDocument {
 	return documents
 }
 
-func (d *DocumentStore) FilteredDocuments(productName string) []v1.IndicatorDocument {
+func (d *DocumentStore) FilteredDocuments(filterKeys map[string][]string) []v1.IndicatorDocument {
 	d.expireDocuments()
 
 	d.RLock()
@@ -89,12 +89,31 @@ func (d *DocumentStore) FilteredDocuments(productName string) []v1.IndicatorDocu
 	documents := make([]v1.IndicatorDocument, 0)
 
 	for _, doc := range d.documents {
-		if doc.indicatorDocument.Spec.Product.Name == productName {
-			documents = append(documents, doc.indicatorDocument)
-		}
+		documents = filterDocument(documents, doc, filterKeys)
 	}
 
 	return documents
+}
+
+func filterDocument(documents []v1.IndicatorDocument, doc registeredDocument, filterKeys map[string][]string) []v1.IndicatorDocument {
+	for key, val := range filterKeys {
+		if len(val) == 0 {
+			return documents
+		}
+
+		if key == "product-name" {
+			if doc.indicatorDocument.Spec.Product.Name != val[0] {
+				return documents
+			}
+		} else {
+			metadataVal := doc.indicatorDocument.ObjectMeta.Labels[key]
+			if metadataVal != val[0] {
+				return documents
+			}
+		}
+	}
+
+	return append(documents, doc.indicatorDocument)
 }
 
 func (d *DocumentStore) AllPatches() []indicator.Patch {

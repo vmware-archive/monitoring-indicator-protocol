@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
@@ -283,42 +284,9 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		resp := httptest.NewRecorder()
 
 		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
-		docStore.UpsertDocument(v1.IndicatorDocument{
-			TypeMeta: metaV1.TypeMeta{
-				APIVersion: api_versions.V1,
-				Kind:       "IndicatorDocument",
-			},
-			ObjectMeta: metaV1.ObjectMeta{
-				Labels: map[string]string{
-					"deployment": "abc-123",
-				},
-			},
-			Spec: v1.IndicatorDocumentSpec{
-				Product: v1.Product{Name: "my-product-a", Version: "1"},
-				Indicators: []v1.IndicatorSpec{{
-					Name:   "indie1",
-					PromQL: "promql1",
-					Alert: v1.Alert{
-						For:  "5m",
-						Step: "10s",
-					},
-					Presentation: test_fixtures.DefaultPresentation(),
-				}, {
-					Name:   "indie2",
-					PromQL: "promql2",
-					Alert: v1.Alert{
-						For:  "5m",
-						Step: "10s",
-					},
-					Presentation: v1.Presentation{
-						ChartType:    "status",
-						CurrentValue: false,
-						Frequency:    0,
-						Units:        "nanoseconds",
-					},
-				}},
-			},
-		})
+		docStore.UpsertDocument(makeIndicatorDocument(map[string]string{
+			"deployment": "abc-123",
+		}))
 
 		statusStore := status_store.New(func() time.Time { return time.Date(2012, 12, 1, 16, 45, 19, 0, time.UTC) })
 		statusStore.UpdateStatus(status_store.UpdateRequest{
@@ -338,6 +306,72 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 
 		expectedJSON, err := ioutil.ReadFile("test_fixtures/example_response2.json")
 		g.Expect(responseBody).To(MatchJSON(expectedJSON))
+	})
+
+	t.Run("it allows filtering by metadata keys", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		req := httptest.NewRequest("GET", "/indicator-documents?source_id=test-id", nil)
+		resp := httptest.NewRecorder()
+
+		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
+		docStore.UpsertDocument(makeIndicatorDocument(map[string]string{
+			"deployment": "abc-12345",
+			"source_id":  "not-test-id",
+		}))
+		docStore.UpsertDocument(makeIndicatorDocument(map[string]string{
+			"deployment": "abc-123",
+			"source_id":  "test-id",
+		}))
+
+		statusStore := status_store.New(func() time.Time { return time.Date(2012, 12, 1, 16, 45, 19, 0, time.UTC) })
+		statusStore.UpdateStatus(status_store.UpdateRequest{
+			Status:        test_fixtures.StrPtr("critical"),
+			IndicatorName: "indie2",
+			DocumentUID:   "my-product-a-e9dd67070e66e18cfd06a4803b18689b67fa51df",
+		})
+
+		handle := registry.NewIndicatorDocumentsHandler(docStore, statusStore)
+		handle(resp, req)
+
+		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
+		g.Expect(resp.Code).To(Equal(http.StatusOK))
+
+		responseBody, err := ioutil.ReadAll(resp.Body)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		expectedJSON, err := ioutil.ReadFile("test_fixtures/example_response5.json")
+		g.Expect(responseBody).To(MatchJSON(expectedJSON))
+	})
+
+	t.Run("returns empty list when cannot match on query parameter", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		req := httptest.NewRequest("GET", "/indicator-documents?source_id=test-id", nil)
+		resp := httptest.NewRecorder()
+
+		docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
+		docStore.UpsertDocument(makeIndicatorDocument(map[string]string{
+			"deployment": "abc-123",
+		}))
+
+		statusStore := status_store.New(func() time.Time { return time.Date(2012, 12, 1, 16, 45, 19, 0, time.UTC) })
+		statusStore.UpdateStatus(status_store.UpdateRequest{
+			Status:        test_fixtures.StrPtr("critical"),
+			IndicatorName: "indie2",
+			DocumentUID:   "my-product-a-a902332065d69c1787f419e235a1f1843d98c884",
+		})
+
+		handle := registry.NewIndicatorDocumentsHandler(docStore, statusStore)
+		handle(resp, req)
+
+		g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
+		g.Expect(resp.Code).To(Equal(http.StatusOK))
+
+		responseBody, err := ioutil.ReadAll(resp.Body)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(responseBody).To(MatchJSON("[]"))
 	})
 
 	t.Run("allows various characters in document", func(t *testing.T) {
@@ -384,4 +418,41 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		g.Expect(responseBody).To(MatchJSON(expectedJSON))
 
 	})
+}
+
+func makeIndicatorDocument(labels map[string]string) v1.IndicatorDocument {
+	return v1.IndicatorDocument{
+		TypeMeta: metaV1.TypeMeta{
+			APIVersion: api_versions.V1,
+			Kind:       "IndicatorDocument",
+		},
+		ObjectMeta: metaV1.ObjectMeta{
+			Labels: labels,
+		},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{Name: "my-product-a", Version: "1"},
+			Indicators: []v1.IndicatorSpec{{
+				Name:   "indie1",
+				PromQL: "promql1",
+				Alert: v1.Alert{
+					For:  "5m",
+					Step: "10s",
+				},
+				Presentation: test_fixtures.DefaultPresentation(),
+			}, {
+				Name:   "indie2",
+				PromQL: "promql2",
+				Alert: v1.Alert{
+					For:  "5m",
+					Step: "10s",
+				},
+				Presentation: v1.Presentation{
+					ChartType:    "status",
+					CurrentValue: false,
+					Frequency:    0,
+					Units:        "nanoseconds",
+				},
+			}},
+		},
+	}
 }

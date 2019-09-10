@@ -5,7 +5,7 @@
     "kind": "IndicatorDocument",
     "metadata": {
       "labels": {
-        "deployment": "my-service-deployment",
+        "deployment": "my-service-deployment-2",
         "source_id": "my-metric-source"
       }
     },
