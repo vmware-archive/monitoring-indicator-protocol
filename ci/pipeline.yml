@@ -30,8 +30,8 @@ resources:
   type: semver
   source:
     driver: gcs
-    bucket: monitoring-indicator-protocol
-    key: releases/version
+    bucket: monitoring-indicator-protocol-releases
+    key: version
     json_key: |
       ((gcp-service-account))
 - name: github-release-drafts
@@ -156,7 +156,7 @@ resources:
 - name: dev-release
   type: gcs-resource
   source:
-    bucket: monitoring-indicator-protocol
+    bucket: monitoring-indicator-protocol-releases
     json_key: ((gcp-service-account))
     regexp: releases/dev/indicator-protocol-bosh-(.*).tgz
 - name: evening
@@ -637,7 +637,7 @@ jobs:
       params:
         SERVICE_ACCOUNT: ((k8s-service-account))
         CLUSTER_NAME: mip-test
-        PROJECT_NAME: cf-denver
+        PROJECT_NAME: cf-indicators-team
       run:
         path: bash
         args:
@@ -711,7 +711,7 @@ jobs:
       params:
         SERVICE_ACCOUNT: ((k8s-service-account))
         CLUSTER_NAME: mip-test
-        PROJECT_NAME: cf-denver
+        PROJECT_NAME: cf-indicators-team
       run:
         path: bash
         args:
@@ -779,7 +779,7 @@ jobs:
       params:
         SERVICE_ACCOUNT: ((k8s-service-account))
         CLUSTER_NAME: mip-acceptance
-        PROJECT_NAME: cf-denver
+        PROJECT_NAME: cf-indicators-team
       run:
         path: bash
         args:
@@ -903,7 +903,7 @@ jobs:
       - name: created-release
       params:
         RELEASE_NAME: indicator-protocol
-        RELEASE_BLOBSTORE_BUCKET: monitoring-indicator-protocol-bosh-blobs
+        RELEASE_BLOBSTORE_BUCKET: monitoring-indicator-protocol-bosh-blobstore
         SERVICE_ACCOUNT: ((gcp-service-account))
       run:
         path: bash
@@ -1019,7 +1019,7 @@ jobs:
       - name: github-release
       params:
         RELEASE_NAME: indicator-protocol
-        RELEASE_BLOBSTORE_BUCKET: monitoring-indicator-protocol-bosh-blobs
+        RELEASE_BLOBSTORE_BUCKET: monitoring-indicator-protocol-bosh-blobstore
         SERVICE_ACCOUNT: ((gcp-service-account))
       run:
         path: bash

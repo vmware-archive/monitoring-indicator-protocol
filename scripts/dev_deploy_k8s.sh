@@ -2,7 +2,6 @@
 
 set -eEuo pipefail
 
-
 SCRIPT=`realpath $0`
 SCRIPTDIR=`dirname $SCRIPT`
 REPOROOT=$SCRIPTDIR/..
@@ -66,12 +65,7 @@ pushd ~/workspace/monitoring-indicator-protocol > /dev/null
     )"
 
     mkdir -p k8s/overlays/dev
-    echo "
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-bases:
-- ../../config
-" > $REPOROOT/k8s/overlays/dev/kustomization.yaml
+    cp -r k8s/config k8s/overlays/dev
 
     pushd $REPOROOT/k8s/overlays/dev > /dev/null
         kustomize edit set image "$grafana_digest"
@@ -81,5 +75,5 @@ bases:
         kustomize edit set image "$indicator_status_digest"
     popd > /dev/null
 
-    kubectl apply -k $REPOROOT/k8s/overlays/dev
+    kubectl apply -k $REPOROOT/k8s/overlays/dev/config
 popd > /dev/null
