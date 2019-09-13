@@ -3,6 +3,9 @@ processes:
 - name: grafana-dashboard-controller
   executable: /var/vcap/packages/indicator-protocol/grafana_dashboard_controller
   ephemeral_disk: true
+  additional_volumes:
+  - path: <%= p('output_directory') %>
+    writable: true
   args:
   - --output-directory
   - <%= p('output_directory') %>
