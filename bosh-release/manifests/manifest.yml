@@ -65,7 +65,7 @@ instance_groups:
   - name: grafana-dashboard-controller
     release: monitoring-indicator-protocol
     properties:
-      output_directory: /var/vcap/data/tmp/
+      output_directory: /var/vcap/data/tmp
       tls:
         client_cert: ((grafana_controller_client_ssl.certificate))
         client_key: ((grafana_controller_client_ssl.private_key))
@@ -73,7 +73,7 @@ instance_groups:
   - name: prometheus-rules-controller
     release: monitoring-indicator-protocol
     properties:
-      output_directory: /var/vcap/data/tmp/
+      output_directory: /var/vcap/data/tmp
       prometheus_uri: http://localhost:12345
       tls:
         client_cert: ((prometheus_controller_client_ssl.certificate))
