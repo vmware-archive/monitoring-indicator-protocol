@@ -100,7 +100,7 @@ layout:
 			}
 			g.Expect(doc).To(BeEquivalentTo(v1.IndicatorDocument{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: api_versions.V0,
+					APIVersion: api_versions.V1,
 					Kind:       "IndicatorDocument",
 				},
 				ObjectMeta: metav1.ObjectMeta{

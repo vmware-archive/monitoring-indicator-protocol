@@ -39,7 +39,7 @@ func DocumentFromYAML(r io.ReadCloser) (v1.IndicatorDocument, error) {
 		doc, err = v0documentFromBytes(docBytes)
 	case api_versions.V1:
 		// Validate documentBytes according to the OpenAPI Schema
-		errs, ok := v1.ValidateDocumentBytes(docBytes)
+		errs, ok := v1.ValidateBytesBySchema(docBytes, "IndicatorDocument")
 		if !ok {
 			errorString := "Unable to validate document, errors were:\n"
 			for _, err := range errs {
@@ -98,7 +98,7 @@ func v0documentFromBytes(yamlBytes []byte) (v1.IndicatorDocument, error) {
 
 	return v1.IndicatorDocument{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: api_versions.V0,
+			APIVersion: api_versions.V1,
 			Kind:       "IndicatorDocument",
 		},
 		ObjectMeta: metav1.ObjectMeta{

@@ -154,6 +154,7 @@ type Presentation struct {
 	Units        string    `json:"units,omitempty"`
 }
 
+//TODO replace with standard enum
 type ChartType string
 
 const (
@@ -162,23 +163,6 @@ const (
 	StatusChart ChartType = "status"
 	QuotaChart  ChartType = "quota"
 )
-
-var ChartTypes = []ChartType{StepChart, BarChart, StatusChart, QuotaChart}
-
-func (chartType *ChartType) Validate(idx int) []error {
-	var es []error
-	valid := false
-	for _, validChartType := range ChartTypes {
-		if *chartType == validChartType {
-			valid = true
-		}
-	}
-	if !valid {
-		es = append(es, fmt.Errorf("indicators[%d] invalid chartType provided - valid chart types are %v", idx, ChartTypes))
-	}
-
-	return es
-}
 
 type Alert struct {
 	For  string `json:"for,omitempty"`

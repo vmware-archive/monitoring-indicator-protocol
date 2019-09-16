@@ -93,7 +93,7 @@ func TestProduct(t *testing.T) {
 		es := document.Validate(api_versions.V1)
 
 		g.Expect(es).To(ContainElement(
-			errors.New("product name is required"),
+			errors.New("IndicatorDocument.spec.product.name in body should be at least 1 chars long"),
 		))
 	})
 }
@@ -114,7 +114,7 @@ func TestVersion(t *testing.T) {
 		es := document.Validate(api_versions.V1)
 
 		g.Expect(es).To(ContainElement(
-			errors.New("product version is required"),
+			errors.New("IndicatorDocument.spec.product.version in body should be at least 1 chars long"),
 		))
 	})
 }
@@ -131,9 +131,7 @@ func TestAPIVersion(t *testing.T) {
 
 		es := document.Validate(api_versions.V1)
 
-		g.Expect(es).To(ContainElement(errors.New("apiVersion is required")))
-		g.Expect(es).To(ContainElement(
-			errors.New("invalid apiVersion, supported versions are: [indicatorprotocol.io/v1]")))
+		g.Expect(es).To(ContainElement(errors.New("IndicatorDocument.apiVersion in body is required")))
 	})
 
 	t.Run("validation returns errors if APIVersion is not supported", func(t *testing.T) {
@@ -151,7 +149,7 @@ func TestAPIVersion(t *testing.T) {
 		es := document.Validate(api_versions.V0, api_versions.V1)
 
 		g.Expect(es).To(ContainElement(
-			errors.New("invalid apiVersion, supported versions are: [v0 indicatorprotocol.io/v1]"),
+			errors.New("IndicatorDocument.apiVersion in body should be one of [indicatorprotocol.io/v1]"),
 		))
 	})
 }
@@ -169,8 +167,9 @@ func TestSpec(t *testing.T) {
 		es := document.Validate(api_versions.V1)
 
 		g.Expect(es).To(ContainElement(
-			errors.New("spec is required"),
-		))
+			errors.New("IndicatorDocument.spec.product.name in body should be at least 1 chars long")))
+		g.Expect(es).To(ContainElement(
+			errors.New("IndicatorDocument.spec.product.version in body should be at least 1 chars long")))
 	})
 }
 
@@ -186,7 +185,7 @@ func TestKind(t *testing.T) {
 		es := document.Validate(api_versions.V1)
 
 		g.Expect(es).To(ContainElement(
-			errors.New("`kind` must be \"IndicatorDocument\""),
+			errors.New("IndicatorDocument.kind in body should be one of [IndicatorDocument]"),
 		))
 	})
 }
@@ -205,7 +204,7 @@ func TestIndicator(t *testing.T) {
 				Indicators: []v1.IndicatorSpec{
 					{
 						Name:         " ",
-						PromQL:       " ",
+						PromQL:       "",
 						Presentation: test_fixtures.DefaultPresentation(),
 					},
 				},
@@ -215,9 +214,8 @@ func TestIndicator(t *testing.T) {
 		es := document.Validate(api_versions.V1)
 
 		g.Expect(es).To(And(
-			ContainElement(errors.New("indicators[0] name is required")),
-			ContainElement(errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)")),
-			ContainElement(errors.New("indicators[0] promql is required")),
+			ContainElement(errors.New("IndicatorDocument.spec.indicators.name in body should match '[a-zA-Z_:][a-zA-Z0-9_:]*'")),
+			ContainElement(errors.New("IndicatorDocument.spec.indicators.promql in body should be at least 1 chars long")),
 		))
 	})
 
@@ -233,7 +231,7 @@ func TestIndicator(t *testing.T) {
 				Indicators: []v1.IndicatorSpec{
 					{
 						Name:         "not.valid",
-						PromQL:       " ",
+						PromQL:       "",
 						Presentation: test_fixtures.DefaultPresentation(),
 					},
 				},
@@ -244,7 +242,7 @@ func TestIndicator(t *testing.T) {
 
 		g.Expect(es).To(And(
 			ContainElement(errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)")),
-			ContainElement(errors.New("indicators[0] promql is required")),
+			ContainElement(errors.New("IndicatorDocument.spec.indicators.promql in body should be at least 1 chars long")),
 		))
 	})
 
@@ -386,7 +384,7 @@ func TestThreshold(t *testing.T) {
 		es := document.Validate(api_versions.V0)
 
 		g.Expect(es).To(ContainElement(
-			errors.New("indicators[0].thresholds[0] value is required, one of [lt, lte, eq, neq, gte, gt] must be provided as a float"),
+			errors.New("IndicatorDocument.spec.indicators.thresholds.operator in body should be one of [lt lte gt gte eq neq]"),
 		))
 	})
 
@@ -415,7 +413,7 @@ func TestThreshold(t *testing.T) {
 		es := document.Validate(api_versions.V1)
 
 		g.Expect(es).To(ContainElement(
-			errors.New("indicators[0].thresholds[0] operator [lt, lte, eq, neq, gte, gt] is required"),
+			errors.New("IndicatorDocument.spec.indicators.thresholds.operator in body should be one of [lt lte gt gte eq neq]"),
 		))
 	})
 }
@@ -443,7 +441,7 @@ func TestChartType(t *testing.T) {
 		es := document.Validate(api_versions.V1)
 
 		g.Expect(es).To(ContainElement(
-			errors.New("indicators[0] invalid chartType provided - valid chart types are [step bar status quota]"),
+			errors.New("IndicatorDocument.spec.indicators.presentation.chartType in body should be one of [step bar status quota]"),
 		))
 	})
 }
@@ -455,7 +453,7 @@ func TestIndicatorDocumentSchema(t *testing.T) {
 		exampleDocBytes, err := ioutil.ReadFile("../../../../../example_indicators.yml")
 		g.Expect(err).To(BeNil())
 
-		_, ok := v1.ValidateDocumentBytes(exampleDocBytes)
+		_, ok := v1.ValidateBytesBySchema(exampleDocBytes, "IndicatorDocument")
 		g.Expect(ok).To(BeTrue())
 	})
 
@@ -463,7 +461,7 @@ func TestIndicatorDocumentSchema(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		exampleDocBytes := []byte(`yaml: invalidindicator`)
-		_, ok := v1.ValidateDocumentBytes(exampleDocBytes)
+		_, ok := v1.ValidateBytesBySchema(exampleDocBytes, "IndicatorDocument")
 		g.Expect(ok).To(BeFalse())
 	})
 }

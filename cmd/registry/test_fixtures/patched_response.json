@@ -112,7 +112,7 @@
     }
   },
   {
-    "apiVersion": "v0",
+    "apiVersion": "indicatorprotocol.io/v1",
     "uid": "my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
     "kind": "IndicatorDocument",
     "metadata": {

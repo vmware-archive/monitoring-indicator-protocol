@@ -374,8 +374,8 @@ func TestValidators(t *testing.T) {
 				t.Errorf("unable to decode resp body: %s", err)
 			}
 
+			g.Expect(actualResp.Response.Result.Message).To(ContainSubstring("IndicatorSpec.thresholds.operator in body should be one of [lt lte gt gte eq neq]"))
 			g.Expect(actualResp.Response.Allowed).To(BeFalse())
-			g.Expect(actualResp.Response.Result.Message).To(ContainSubstring("operator [lt, lte, eq, neq, gte, gt] is required"))
 		})
 
 		t.Run("return UUID in patch response", func(t *testing.T) {

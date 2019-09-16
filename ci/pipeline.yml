@@ -324,7 +324,7 @@ jobs:
           spec:
             product:
               name: uaa-test
-              version: 0
+              version: "0"
             indicators:
             - name: uaa_request_rate
               promql: rate(requests_global_status_2xx_count{source_id="uaa"}[10m])

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/benjamintf1/unmarshalledmatchers"
 	"github.com/gorilla/mux"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -59,7 +60,7 @@ indicators:
 			g.Expect(docStore.AllDocuments()).To(ConsistOf(v1.IndicatorDocument{
 				TypeMeta: metaV1.TypeMeta{
 					Kind:       "IndicatorDocument",
-					APIVersion: api_versions.V0,
+					APIVersion: api_versions.V1,
 				},
 				ObjectMeta: metaV1.ObjectMeta{
 					Labels: map[string]string{
@@ -182,7 +183,7 @@ spec:
 		body := bytes.NewBuffer([]byte(`---
 apiVersion: v0
 indicators:
-- promql: " "
+- promql: ""
   name: none
 `))
 
@@ -200,7 +201,12 @@ indicators:
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["product name is required", "product version is required", "indicators[0] promql is required"]}`))
+		g.Expect(responseBody).To(unmarshalledmatchers.MatchUnorderedJSON(`{ "errors": [
+	"IndicatorDocument.spec.product.name in body should be at least 1 chars long", 
+	"IndicatorDocument.spec.product.version in body should be at least 1 chars long", 
+	"IndicatorDocument.spec.indicators.promql in body should be at least 1 chars long",
+    "indicators[0] is invalid by schema: IndicatorSpec.promql in body should be at least 1 chars long"
+]}`))
 	})
 
 	t.Run("it returns 400 if the yml is invalid", func(t *testing.T) {
