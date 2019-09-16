@@ -158,7 +158,7 @@ resources:
   source:
     bucket: monitoring-indicator-protocol-releases
     json_key: ((gcp-service-account))
-    regexp: releases/dev/indicator-protocol-bosh-(.*).tgz
+    regexp: dev/indicator-protocol-bosh-(.*).tgz
 - name: evening
   type: time
   source:
