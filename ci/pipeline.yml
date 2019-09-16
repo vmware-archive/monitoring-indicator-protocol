@@ -22,8 +22,8 @@ resources:
   type: semver
   source:
     driver: gcs
-    bucket: monitoring-indicator-protocol
-    key: releases/v0.7/version
+    bucket: monitoring-indicator-protocol-releases
+    key: v0.7/version
     json_key: |
       ((gcp-service-account))
 - name: github-release-drafts
@@ -36,9 +36,9 @@ resources:
 - name: dev-release
   type: gcs-resource
   source:
-    bucket: monitoring-indicator-protocol
+    bucket: monitoring-indicator-protocol-releases
     json_key: ((gcp-service-account))
-    regexp: releases/v0.7/dev/indicator-protocol-bosh-(.*).tgz
+    regexp: v0.7/dev/indicator-protocol-bosh-(.*).tgz
 
 resource_types:
 - name: gcs-resource
