@@ -105,7 +105,7 @@ func filterDocument(documents []v1.IndicatorDocument, doc registeredDocument, fi
 			if doc.indicatorDocument.Spec.Product.Name != val[0] {
 				return documents
 			}
-		} else {
+		} else if key != "token" {
 			metadataVal := doc.indicatorDocument.ObjectMeta.Labels[key]
 			if metadataVal != val[0] {
 				return documents

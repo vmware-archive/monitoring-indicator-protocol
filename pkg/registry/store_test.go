@@ -326,6 +326,23 @@ func TestFiltering(t *testing.T) {
 			ConsistOf(productBDocument, productAVersion1Document, productBDocumentDeployment2),
 		)
 	})
+
+	t.Run("it ignores `token` filter key", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		store := registry.NewDocumentStore(time.Hour, time.Now)
+
+		store.UpsertDocument(productBDocument)
+		store.UpsertDocument(productAVersion1Document)
+
+		filterKeys := map[string][]string{
+			"token": {"abc-123"},
+		}
+
+		g.Expect(store.FilteredDocuments(filterKeys)).To(
+			ConsistOf(productBDocument, productAVersion1Document),
+		)
+	})
 }
 
 func strPtr(s string) *string {

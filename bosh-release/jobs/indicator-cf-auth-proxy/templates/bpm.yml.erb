@@ -16,8 +16,6 @@ processes:
       - /var/vcap/jobs/indicator-cf-auth-proxy/certs/client.crt
       - --tls-client-key-path
       - /var/vcap/jobs/indicator-cf-auth-proxy/certs/client.key
-      - --tls-server-cn
-      - <%= p('tls.server_common_name') %>
       - --uaa-addr
       - <%= p('uaa.addr') %>
   <% if_link('indicator-registry') do |ir| %>
@@ -29,5 +27,5 @@ processes:
       - --registry
       - none
       - --tls-server-cn
-      - none
+      - <%= p('tls.server_common_name') %>
   <% end %>
