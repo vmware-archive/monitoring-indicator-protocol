@@ -54,7 +54,7 @@ func (c *ServiceHealthPlugin) Run(cliConnection plugin.CliConnection, args []str
 		fmt.Printf("FAILED\n\nCould not retrieve api endpoint, please use `cf api` to set it\n")
 		os.Exit(1)
 	}
-	registryEndpoint := strings.Replace(apiEndpoint, "api.", "registry.", 1)
+	registryEndpoint := strings.Replace(apiEndpoint, "api.", "indicator-protocol-acceptance-proxy.apps.", 1)
 
 	token, err := cliConnection.AccessToken()
 	if err != nil {
@@ -62,7 +62,10 @@ func (c *ServiceHealthPlugin) Run(cliConnection plugin.CliConnection, args []str
 		os.Exit(1)
 	}
 
-	url := fmt.Sprintf("%s/v1/indicator-documents?service_instance_guid=%s", registryEndpoint, serviceModel.Guid)
+	//fmt.Printf("HIHIHI\n\nguid: %s", serviceModel.Guid)
+
+	split := strings.Split(token, " ")
+	url := fmt.Sprintf("%s/v1/indicator-documents?token=%s&service_instance_guid=%s", registryEndpoint, split[1], serviceModel.Guid)
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", token))
 
