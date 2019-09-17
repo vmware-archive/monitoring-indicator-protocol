@@ -9,6 +9,7 @@ import (
 	"time"
 
 	. "github.com/onsi/gomega"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
@@ -20,7 +21,12 @@ var (
 	registryClient                                                     *registry.RegistryApiClient
 )
 
-func init() {
+
+func TestIndicatorRegistry(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	clientKey = flag.String("tls-key-path", "", "")
 	clientCert = flag.String("tls-pem-path", "", "")
 	rootCACert = flag.String("tls-root-ca-pem", "", "")
@@ -57,9 +63,6 @@ func init() {
 	}
 
 	registryClient = registry.NewAPIClient(*registryUrl, client)
-}
-
-func TestIndicatorRegistry(t *testing.T) {
 	t.Run("it returns indicator documents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 

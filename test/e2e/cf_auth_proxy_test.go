@@ -57,6 +57,10 @@ func trimBearer(authToken string) string {
 }
 
 func TestCfAuthProxy(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+	
 	tokenBytes, err := exec.Command("cf", "oauth-token").Output()
 	if err != nil {
 		t.Fatal(err)

@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"os/exec"
 	"os/user"
 	"strings"
 	"testing"
@@ -44,6 +46,7 @@ var (
 )
 
 func init() {
+	// Need to be defined before testing.Short() is called
 	httpClient = &http.Client{
 		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
@@ -55,18 +58,50 @@ func init() {
 	grafanaAdminUser = flag.String("grafana-admin-user", "", "")
 	grafanaAdminPw = flag.String("grafana-admin-pw", "", "")
 	prometheusURI = flag.String("prometheus-uri", "", "")
+
 	flag.Parse()
+	if !testing.Short() {
+		init_test()
+	}
+}
+
+func init_test() {
+	// In theory these should all be done with the kubernetes `go-client`, but this might be easier for now.
 	if *grafanaURI == "" {
-		log.Panic("Oh no! Grafana URI not provided")
+		cmd := exec.Command("kubectl", "get", "svc", "--namespace", "grafana", "grafana", "-o", "jsonpath='{.status.loadBalancer.ingress[0].ip}'")
+		outputBytes, err := cmd.Output()
+		if err != nil {
+			log.Panic("Oh no! Grafana URI not provided")
+		}
+		*grafanaURI = string(outputBytes)
 	}
 	if *grafanaAdminUser == "" {
-		log.Panic("Oh no! Grafana user not provided")
+		cmd := exec.Command("kubectl", "get", "secret", "--namespace", "grafana", "grafana", "-o", "jsonpath='{.data.admin-user}'")
+		outputBytes, err := cmd.Output()
+		decodedBytes := make([]byte, 0)
+		_, err = base64.StdEncoding.Decode(outputBytes, decodedBytes)
+		if err != nil {
+			log.Panic("Oh no! Grafana user not provided")
+		}
+		*grafanaAdminUser = string(outputBytes)
 	}
 	if *grafanaAdminPw == "" {
-		log.Panic("Oh no! Grafana password not provided")
+		cmd := exec.Command("kubectl", "get", "secret", "--namespace", "grafana", "grafana", "-o ", "jsonpath='{.data.admin-password}'")
+		outputBytes, err := cmd.Output()
+		decodedBytes := make([]byte, 0)
+		_, err = base64.StdEncoding.Decode(outputBytes, decodedBytes)
+		if err != nil {
+			log.Panic("Oh no! Grafana password not provided")
+		}
+		*grafanaAdminPw = string(outputBytes)
 	}
 	if *prometheusURI == "" {
-		log.Panic("Oh no! Prometheus URI not provided")
+		cmd := exec.Command("kubectl", "get", "svc", "--namespace", "prometheus", "prometheus-server", "-o", "jsonpath='{.status.loadBalancer.ingress[0].ip}")
+		outputBytes, err := cmd.Output()
+		if err != nil {
+			log.Panic("Oh no! Prometheus URI not provided")
+		}
+		*prometheusURI = string(outputBytes)
 	}
 	config, err := clientcmd.BuildConfigFromFlags("", expandHome("~/.kube/config"))
 	if err != nil {
@@ -85,10 +120,13 @@ func init() {
 }
 
 func TestControllers(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
 	const testTimeout = 120 * time.Second
 
 	setup := func(t *testing.T) (func(), *v1.IndicatorDocument) {
-		t.Parallel()
+		//t.Parallel()
 
 		ns, cleanup := createNamespace(t)
 		indiDoc := indicatorDocument(ns)
@@ -173,6 +211,10 @@ func TestControllers(t *testing.T) {
 }
 
 func TestAdmission(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	t.Run("patches default values", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		ns, cleanup := createNamespace(t)
@@ -207,6 +249,10 @@ func TestAdmission(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	t.Run("it updates indicator status", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		ns, cleanup := createNamespace(t)
@@ -467,7 +513,6 @@ func indicatorDocument(ns string) *v1.IndicatorDocument {
 			},
 		},
 	}
-	fmt.Printf("Document: %v", document)
 	return &document
 }
 

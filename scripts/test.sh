@@ -122,15 +122,13 @@ function run_local {
 function run_k8s_e2e {
     print_checkpoint "Running K8S End-To-End Tests"
     kubectl apply -k k8s/config/ > /dev/null
-    PROMETHEUS_URI=$(kubectl get svc --namespace prometheus prometheus-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    GRAFANA_URI=$(kubectl get svc --namespace grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-    GRAFANA_ADMIN_USER=$(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-user}" | base64 --decode ; echo)
-    GRAFANA_ADMIN_PW=$(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
+#    PROMETHEUS_URI=$(kubectl get svc --namespace prometheus prometheus-server -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+#    GRAFANA_URI=$(ku'  bectl get svc --namespace grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+#    GRAFANA_ADMIN_USER=$(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-user}" | base64 --decode ; echo)
+#    GRAFANA_ADMIN_PW=$(kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
     go test -mod=vendor -race "$PKG/k8s/test/e2e" \
-        -grafana-uri=${GRAFANA_URI} \
         -grafana-admin-user=${GRAFANA_ADMIN_USER} \
         -grafana-admin-pw=${GRAFANA_ADMIN_PW} \
-        -prometheus-uri=${PROMETHEUS_URI} \
         $@
     return $?
 }

@@ -16,7 +16,7 @@ pushd $SCRIPTDIR/.. > /dev/null
 
     target madlamp
     gcloud container clusters get-credentials mip-development -z us-central1-a
-    kubectl config use-context gke_cf-denver_us-central1-a_mip-development
+    kubectl config use-context gke_cf-indicators-team_us-central1-a_mip-development
 
     ./hack/update-codegen.sh
     ./scripts/dev_deploy_k8s.sh
