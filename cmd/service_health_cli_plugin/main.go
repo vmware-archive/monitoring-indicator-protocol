@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -54,7 +55,7 @@ func (c *ServiceHealthPlugin) Run(cliConnection plugin.CliConnection, args []str
 		fmt.Printf("FAILED\n\nCould not retrieve api endpoint, please use `cf api` to set it\n")
 		os.Exit(1)
 	}
-	registryEndpoint := strings.Replace(apiEndpoint, "api.", "indicator-protocol-acceptance-proxy.apps.", 1)
+	registryEndpoint := strings.Replace(apiEndpoint, "api.sys.", "indicator-protocol-acceptance-proxy.apps.", 1)
 
 	token, err := cliConnection.AccessToken()
 	if err != nil {
@@ -69,7 +70,12 @@ func (c *ServiceHealthPlugin) Run(cliConnection plugin.CliConnection, args []str
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", token))
 
-	response, err := http.DefaultClient.Do(request)
+	transCfg := &http.Transport{
+                 TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+         }
+        client := &http.Client{Transport: transCfg}
+
+	response, err := client.Do(request)
 	if err != nil {
 		fmt.Printf("FAILED\n\nCould not access indicator registry: %s", err)
 		os.Exit(1)
