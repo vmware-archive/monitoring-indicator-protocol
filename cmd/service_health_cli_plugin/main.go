@@ -63,17 +63,14 @@ func (c *ServiceHealthPlugin) Run(cliConnection plugin.CliConnection, args []str
 		os.Exit(1)
 	}
 
-	//fmt.Printf("HIHIHI\n\nguid: %s", serviceModel.Guid)
-
 	split := strings.Split(token, " ")
-	url := fmt.Sprintf("%s/v1/indicator-documents?token=%s&service_instance_guid=%s", registryEndpoint, split[1], serviceModel.Guid)
+	url := fmt.Sprintf("%s/v1/indicator-documents?token=%s&source_id=%s", registryEndpoint, split[1], serviceModel.Guid)
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
-	request.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", token))
 
 	transCfg := &http.Transport{
-                 TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-         }
-        client := &http.Client{Transport: transCfg}
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: transCfg}
 
 	response, err := client.Do(request)
 	if err != nil {
@@ -93,11 +90,18 @@ func (c *ServiceHealthPlugin) Run(cliConnection plugin.CliConnection, args []str
 		os.Exit(1)
 	}
 
-	table := terminal.NewTable([]string{"indicator", "status"})
+	table := terminal.NewTable([]string{"indicator", "description"})
 
 	for _, doc := range indiDocs {
-		for indicatorName, indicatorStatus := range doc.Status {
-			table.Add(indicatorName, indicatorStatus.Phase)
+		for _, indicator := range doc.Spec.Indicators {
+			var description string
+
+			docDescription, ok := indicator.Documentation["description"]
+			if ok {
+				description = docDescription
+			}
+
+			table.Add(indicator.Name, description)
 		}
 	}
 	fmt.Println("OK")
