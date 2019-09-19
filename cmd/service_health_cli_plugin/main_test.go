@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/cli/plugin/models"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 
 	"code.cloudfoundry.org/cli/cf/util/testhelpers/rpcserver"
@@ -18,10 +19,20 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-const validPluginPath = "./service_health_cli_plugin.exe"
-
 func TestIndicatorRegistryAgent(t *testing.T) {
 	t.Run("service-health displays the usage text when no args are passed", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		rpcHandlers := new(rpcserverfakes.FakeHandlers)
+
+		code, stdOut, stdErr := InvokePlugin(rpcHandlers)
+
+		g.Expect(stdOut).To(ContainSubstring("cf service-health SERVICE_INSTANCE"))
+		g.Expect(stdErr).To(Equal(""))
+		g.Expect(code).To(Equal(1))
+	})
+
+	t.Run("service-health SERVICE_INSTANCE displays only the indicators for the service instance", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		rpcHandlers := new(rpcserverfakes.FakeHandlers)
@@ -29,17 +40,26 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 			retVal = &plugin_models.GetService_Model{Name: "myService", Guid: "myGuid"}
 			return nil
 		}
-		g.Expect(buffer.String()).To(ContainSubstring("cf service-health SERVICE_INSTANCE"))
-		ts.Stop()
-	})
+		rpcHandlers.ApiEndpointCalls(func(s string, i *string) error {
+			*i = "localhost:47321"
+			return nil
+		})
 
-	t.Run("service-health SERVICE_INSTANCE displays the indicator document for the service instance", func(t *testing.T) {
+		// TODO put registry up at 47321 with an indicator document for myService
+
+		code, stdOut, stdErr := InvokePlugin(rpcHandlers, "myService")
+
+		g.Expect(stdOut).To(ContainSubstring("cf service-health SERVICE_INSTANCE"))
+		g.Expect(stdErr).To(Equal(""))
+		g.Expect(code).To(Equal(0))
 
 		// ApiEndpointStub        func(args string, retVal *string) error
+
 	})
 }
 
-func InvokePlugin(rpcHandlers rpcserverfakes.FakeHandlers, args ...string) (int, string, string) {
+
+func InvokePlugin(rpcHandlers *rpcserverfakes.FakeHandlers, args ...string) (exitCode int, stdOut string, stdErr string) {
 	rpcHandlers.IsMinCliVersionStub = func(args string, retVal *bool) error {
 		*retVal = true
 		return nil
@@ -47,19 +67,22 @@ func InvokePlugin(rpcHandlers rpcserverfakes.FakeHandlers, args ...string) (int,
 	ts, err := rpcserver.NewTestRPCServer(rpcHandlers)
 
 	err = ts.Start()
+	defer ts.Stop()
 
 	binPath, err := go_test.Build("./", "-race")
 	if err != nil {
 		panic(err)
 	}
-	args := []string{ts.Port(), "service-health"}
+	args = append([]string{ts.Port(), "service-health"}, args...)
 	buffer := bytes.NewBuffer(nil)
 	errBuffer := bytes.NewBuffer(nil)
 
-	_, err = gexec.Start(exec.Command(binPath, args...), buffer, errBuffer)
-	time.Sleep(time.Second * 2)
-	// EventuallyWithOffset(1, session).Should(gexec.Exit())
-	// session.Wait()
+	session, err := gexec.Start(exec.Command(binPath, args...), buffer, errBuffer)
+	if err != nil {
+		panic(err)
+	}
 
-	g.Expect(err).ToNot(HaveOccurred())
+	time.Sleep(time.Second * 2)
+
+	return session.ExitCode(), buffer.String(), errBuffer.String()
 }

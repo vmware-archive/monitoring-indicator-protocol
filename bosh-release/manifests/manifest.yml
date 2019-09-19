@@ -11,6 +11,8 @@ releases:
   version: latest
 - name: bpm
   version: latest
+- name: routing
+  version: latest
 
 instance_groups:
 - name: indicator-protocol
@@ -43,6 +45,26 @@ instance_groups:
         client_key: ((indicator_registry_client_ssl.private_key))
         agent_client_cert: ((indicator_registration_agent_client_ssl.certificate))
         agent_client_key: ((indicator_registration_agent_client_ssl.private_key))
+  - name: route_registrar
+    release: routing
+    consumes:
+      nats:
+        machines:
+        port:
+        user:
+        password:
+    properties:
+      route_registrar:
+        routes:
+        - name: cf-auth-proxy
+          port: 5000
+          registration_interval: 20s
+          uris:
+          - indicator-registry.((system_domain))
+#          health_check:
+#            name: log-store-health
+#            script_path: /var/vcap/jobs/log-store/bin/health-check.sh
+#            timeout: 5s
   - name: indicator-cf-auth-proxy
     release: monitoring-indicator-protocol
     consumes:

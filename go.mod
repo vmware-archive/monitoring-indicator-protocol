@@ -2,6 +2,7 @@ module github.com/pivotal/monitoring-indicator-protocol
 
 require (
 	code.cloudfoundry.org/bytefmt v0.0.0-20190819182555-854d396b647c // indirect
+	code.cloudfoundry.org/cfnetworking-cli-api v0.0.0-20190103195135-4b04f26287a6 // indirect
 	code.cloudfoundry.org/cli v6.46.1+incompatible
 	code.cloudfoundry.org/clock v0.0.0-20180518195852-02e53af36e6c // indirect
 	code.cloudfoundry.org/go-envstruct v1.4.0
@@ -22,12 +23,14 @@ require (
 	github.com/cloudfoundry-community/go-cfclient v0.0.0-20190201205600-f136f9222381
 	github.com/cloudfoundry/bosh-cli v6.0.0+incompatible // indirect
 	github.com/cloudfoundry/bosh-utils v0.0.0-20190914100210-10d8e780be86 // indirect
+	github.com/cloudfoundry/cli v6.46.1+incompatible // indirect
 	github.com/cloudfoundry/cli-plugin-repo v0.0.0-20190916160059-503df2af385f // indirect
 	github.com/cloudfoundry/noaa v2.1.0+incompatible // indirect
 	github.com/cloudfoundry/sonde-go v0.0.0-20171206171820-b33733203bb4 // indirect
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/evanphx/json-patch v4.1.0+incompatible // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/ghodss/yaml v1.0.0
@@ -51,9 +54,11 @@ require (
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/moby/moby v1.13.1 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/onsi/gomega v1.4.3
+	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opentracing/opentracing-go v1.0.2 // indirect
 	github.com/poy/eachers v0.0.0-20181020210610-23942921fe77 // indirect
 	github.com/prometheus/client_golang v0.9.0-pre1.0.20180905125505-3525612fea19
@@ -62,6 +67,8 @@ require (
 	github.com/prometheus/procfs v0.0.0-20180725123919-05ee40e3a273 // indirect
 	github.com/prometheus/prometheus v2.4.3+incompatible
 	github.com/prometheus/tsdb v0.0.0-20181016081506-18af5763d8f5 // indirect
+	github.com/sabhiram/go-gitignore v0.0.0-20180611051255-d3107576ba94 // indirect
+	github.com/sajari/fuzzy v1.0.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/spf13/pflag v1.0.3 // indirect

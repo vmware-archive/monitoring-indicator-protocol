@@ -6,13 +6,14 @@ UAA_URI=https://uaa.madlamp.cf-denver.com
 UAA_CLIENT_ID=healthwatch_admin
 
 set -e
-source ~/workspace/denver-bash-it/custom/environment-targeting.bash
-target madlamp
+#source ~/workspace/denver-bash-it/custom/environment-targeting.bash
+#target madlamp
 
 pushd ~/workspace > /dev/null
   # update code in bosh-release src directory to have the latest locally
   mkdir -p monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
-  rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
+  rsync -Rr --exclude ./monitoring-indicator-protocol/bosh-release \
+        ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
 
   BUILD_NUMBER=test-$(date +"%s")
 
@@ -39,6 +40,7 @@ pushd ~/workspace > /dev/null
       -v uaa_client_id=$UAA_CLIENT_ID \
       -v uaa_client_secret="$UAA_CLIENT_SECRET" \
       -v indicator-protocol-version="$BUILD_NUMBER" \
+      -v system_domain="sys.madlamp.cf-denver.com"
 
     # uncomment the following to re-deploy PAS if you have changes to the agent
     # CF_DEPLOYMENT_NAME=$(bosh deployments --json | jq .Tables[0].Rows | jq '.[] | select( .name | contains("cf"))' | jq .name -r)
