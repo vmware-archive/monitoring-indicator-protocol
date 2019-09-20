@@ -41,12 +41,12 @@ func getMetadataSHA(metadata map[string]string) [20]byte {
 	}
 	sort.Strings(metadataKeys)
 
-	metadataKey := ""
+	orderedMetadata := ""
 	for _, k := range metadataKeys {
-		metadataKey = fmt.Sprintf("%s:%s", k, metadata[k])
+		orderedMetadata += fmt.Sprintf("%s:%s", k, metadata[k])
 	}
 
-	return sha1.Sum([]byte(metadataKey))
+	return sha1.Sum([]byte(orderedMetadata))
 }
 
 // IndicatorDocumentSpec is the spec for a IndicatorDocument resource
@@ -154,7 +154,7 @@ type Presentation struct {
 	Units        string    `json:"units,omitempty"`
 }
 
-//TODO replace with standard enum
+// TODO replace with standard enum
 type ChartType string
 
 const (

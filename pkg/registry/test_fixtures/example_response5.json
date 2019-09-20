@@ -1,7 +1,7 @@
 [
   {
     "apiVersion": "indicatorprotocol.io/v1",
-    "uid": "my-product-a-e9dd67070e66e18cfd06a4803b18689b67fa51df",
+    "uid": "my-product-a-82a34f2cefd4899aee804e19e39aab95c0420ec3",
     "kind": "IndicatorDocument",
     "metadata": {
       "labels": {

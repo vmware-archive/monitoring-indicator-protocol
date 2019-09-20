@@ -69,6 +69,7 @@ func TestStore(t *testing.T) {
 		ObjectMeta: metaV1.ObjectMeta{
 			Labels: map[string]string{
 				"deployment": "abc-123",
+				"z": "b",
 			},
 		},
 		Spec: v1.IndicatorDocumentSpec{
@@ -84,6 +85,7 @@ func TestStore(t *testing.T) {
 		ObjectMeta: metaV1.ObjectMeta{
 			Labels: map[string]string{
 				"deployment": "abc-123",
+				"z": "b",
 			},
 		},
 		Spec: v1.IndicatorDocumentSpec{
@@ -99,6 +101,7 @@ func TestStore(t *testing.T) {
 		ObjectMeta: metaV1.ObjectMeta{
 			Labels: map[string]string{
 				"deployment": "def-456",
+				"z": "b",
 			},
 		},
 		Spec: v1.IndicatorDocumentSpec{
@@ -114,6 +117,7 @@ func TestStore(t *testing.T) {
 		ObjectMeta: metaV1.ObjectMeta{
 			Labels: map[string]string{
 				"deployment": "def-456",
+				"z": "b",
 			},
 		},
 		Spec: v1.IndicatorDocumentSpec{
@@ -157,7 +161,7 @@ func TestStore(t *testing.T) {
 		g.Expect(store.AllDocuments()).To(ConsistOf(productAVersion1Document))
 	})
 
-	t.Run("it upserts documents based on product", func(t *testing.T) {
+	t.Run("it upserts documents based on product and metadata", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		store := registry.NewDocumentStore(time.Hour, time.Now)
 

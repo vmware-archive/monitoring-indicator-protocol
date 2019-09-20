@@ -79,7 +79,7 @@ func TestIndicatorRegistry(t *testing.T) {
 			file, err = os.Open("test_fixtures/bulk_status_request.json")
 			g.Expect(err).ToNot(HaveOccurred())
 
-			resp, err = http.Post(serverUrl+"/v1/indicator-documents/my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf/bulk_status", "text/plain", file)
+			resp, err = http.Post(serverUrl+"/v1/indicator-documents/my-other-component-62a5511746dfd09059ced03b2ed73ff0ae942421/bulk_status", "text/plain", file)
 			g.Expect(err).ToNot(HaveOccurred())
 			g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 

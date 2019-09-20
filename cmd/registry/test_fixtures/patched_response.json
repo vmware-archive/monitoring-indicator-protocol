@@ -1,7 +1,7 @@
 [
   {
     "apiVersion": "indicatorprotocol.io/v1",
-    "uid": "my-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
+    "uid": "my-component-62a5511746dfd09059ced03b2ed73ff0ae942421",
     "kind": "IndicatorDocument",
     "metadata": {
       "labels": {
@@ -113,7 +113,7 @@
   },
   {
     "apiVersion": "indicatorprotocol.io/v1",
-    "uid": "my-other-component-c2dd92031ca17478ac8881b258e4bf7474229ecf",
+    "uid": "my-other-component-62a5511746dfd09059ced03b2ed73ff0ae942421",
     "kind": "IndicatorDocument",
     "metadata": {
       "labels": {

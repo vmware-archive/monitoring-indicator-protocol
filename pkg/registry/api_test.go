@@ -334,7 +334,7 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 		statusStore.UpdateStatus(status_store.UpdateRequest{
 			Status:        test_fixtures.StrPtr("critical"),
 			IndicatorName: "indie2",
-			DocumentUID:   "my-product-a-e9dd67070e66e18cfd06a4803b18689b67fa51df",
+			DocumentUID:   "my-product-a-82a34f2cefd4899aee804e19e39aab95c0420ec3",
 		})
 
 		handle := registry.NewIndicatorDocumentsHandler(docStore, statusStore)
