@@ -14,3 +14,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.5] - 2019-08-20
 ### Fixed
 - verification tool did not interpolate a metadata key in a promql query correctly if it was followed by an underscore.
+

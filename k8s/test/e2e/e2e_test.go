@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -73,27 +74,36 @@ func init_test() {
 		if err != nil {
 			log.Panic("Oh no! Grafana URI not provided")
 		}
-		*grafanaURI = string(outputBytes)
+		*grafanaURI = strings.Trim(string(outputBytes), "'")
 	}
 	if *grafanaAdminUser == "" {
 		cmd := exec.Command("kubectl", "get", "secret", "--namespace", "grafana", "grafana", "-o", "jsonpath='{.data.admin-user}'")
 		outputBytes, err := cmd.Output()
-		decodedBytes := make([]byte, 0)
-		_, err = base64.StdEncoding.Decode(outputBytes, decodedBytes)
 		if err != nil {
-			log.Panic("Oh no! Grafana user not provided")
+			log.Panic(err)
 		}
-		*grafanaAdminUser = string(outputBytes)
+
+		outputBytes = bytes.Trim(outputBytes, "'")
+
+		decodedBytes, err := base64.StdEncoding.DecodeString(string(outputBytes))
+		if err != nil {
+			log.Panic("Could not get Grafana user: ", err)
+		}
+		*grafanaAdminUser = string(decodedBytes)
 	}
 	if *grafanaAdminPw == "" {
-		cmd := exec.Command("kubectl", "get", "secret", "--namespace", "grafana", "grafana", "-o ", "jsonpath='{.data.admin-password}'")
+		cmd := exec.Command("kubectl", "get", "secret", "--namespace", "grafana", "grafana", "-o", "jsonpath='{.data.admin-password}'")
 		outputBytes, err := cmd.Output()
-		decodedBytes := make([]byte, 0)
-		_, err = base64.StdEncoding.Decode(outputBytes, decodedBytes)
 		if err != nil {
-			log.Panic("Oh no! Grafana password not provided")
+			log.Panic(err)
 		}
-		*grafanaAdminPw = string(outputBytes)
+		outputBytes = bytes.Trim(outputBytes, "'")
+
+		decodedBytes, err := base64.StdEncoding.DecodeString(string(outputBytes))
+		if err != nil {
+			log.Panic("Could not get Grafana password: ", err)
+		}
+		*grafanaAdminPw = string(decodedBytes)
 	}
 	if *prometheusURI == "" {
 		cmd := exec.Command("kubectl", "get", "svc", "--namespace", "prometheus", "prometheus-server", "-o", "jsonpath='{.status.loadBalancer.ingress[0].ip}")
@@ -101,7 +111,7 @@ func init_test() {
 		if err != nil {
 			log.Panic("Oh no! Prometheus URI not provided")
 		}
-		*prometheusURI = string(outputBytes)
+		*prometheusURI = strings.Trim(string(outputBytes), "'")
 	}
 	config, err := clientcmd.BuildConfigFromFlags("", expandHome("~/.kube/config"))
 	if err != nil {
@@ -126,8 +136,6 @@ func TestControllers(t *testing.T) {
 	const testTimeout = 120 * time.Second
 
 	setup := func(t *testing.T) (func(), *v1.IndicatorDocument) {
-		//t.Parallel()
-
 		ns, cleanup := createNamespace(t)
 		indiDoc := indicatorDocument(ns)
 		v1.PopulateDefaults(indiDoc)
