@@ -151,7 +151,10 @@ variables:
   type: certificate
   options:
     ca: indicator_protocol_ca
-    common_name: cf-auth-proxy.service.internal
+    common_name: cf-auth-proxy
+    alternative_names:
+    - cf-auth-proxy
+    - cf-auth-proxy.service.internal
     extended_key_usage:
     - server_auth
 - name: cf_auth_proxy_client_ssl
