@@ -451,12 +451,7 @@ jobs:
         - |
           set -e
 
-          pushd "env-state/${BBL_STATE_DIR}"
-            eval "$(bbl print-env)"
-          popd
-
           pushd indicator-protocol-acceptance-proxy
-            bosh -d indicator-protocol scp indicator-protocol:/var/vcap/jobs/indicator-registry-proxy/certs/indicator_protocol_ca.crt ca.crt
             cf login -a https://api.madlamp.cf-denver.com -u admin -p $CF_ADMIN_PASSWORD -o test -s test
             cf push
             ./test_acceptance_proxy.sh
