@@ -115,6 +115,9 @@ variables:
   options:
     ca: indicator_protocol_ca
     common_name: indicator-registry
+    alternate_names:
+    - indicator-registry
+    - indicator-registry.service.internal
     extended_key_usage:
     - server_auth
 - name: indicator_registry_client_ssl
