@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Support for metadata interpolation anywhere, for example, in the value of a threshold.
+
+## [0.8.6] - 2019-09-20
+### Added
 - Schemas for Indicator Documents (and kubernetes objects) are provided in `schemas.yml`.
 - Support for `${variableName}` metadata interpolation.
 - Ability to query indicator registry for all documents with specific metadata value.

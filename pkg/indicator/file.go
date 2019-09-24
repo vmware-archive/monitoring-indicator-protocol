@@ -21,7 +21,7 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (IndicatorDocument, error)
 	}
 
 	reader := ioutil.NopCloser(bytes.NewReader(fileBytes))
-	doc, err := DocumentFromYAML(reader)
+	doc, err := DocumentFromYAML(reader, opts...)
 	if err != nil {
 		return IndicatorDocument{}, err
 	}
