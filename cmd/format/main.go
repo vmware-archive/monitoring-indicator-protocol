@@ -19,7 +19,7 @@ import (
 
 func main() {
 	l := log.New(os.Stderr, "", 0)
-	outputFormat := flag.String("format", "bookbinder", "output format [htlm,bookbinder,prometheus-alerts,grafana]")
+	outputFormat := flag.String("format", "bookbinder", "output format [html,bookbinder,prometheus-alerts,grafana]")
 	metadata := flag.String("metadata", "", "metadata to override (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
 	indicatorsFilePath := flag.String("indicators", "", "indicators YAML file path")
 
