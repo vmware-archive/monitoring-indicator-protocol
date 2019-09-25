@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"strings"
 
 	. "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
@@ -15,6 +16,10 @@ import (
 // YAML parsable as a document, or the document can't be validated.
 func ReadFile(indicatorsFile string, opts ...ReadOpt) (IndicatorDocument, error) {
 	fileBytes, err := ioutil.ReadFile(indicatorsFile)
+
+	reg := regexp.MustCompile("<%=.*%>")
+	fileBytes = reg.ReplaceAll(fileBytes, []byte("<%= ERB REMOVED FOR YAML SAFETY %>"))
+
 	if err != nil {
 		return IndicatorDocument{}, err
 	}

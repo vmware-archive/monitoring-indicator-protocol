@@ -1,7 +1,11 @@
 ---
 apiVersion: indicatorprotocol.io/v1
-
 kind: IndicatorDocument
+
+metadata:
+  labels:
+    deployment: spec.deployment
+    source_id: demo_component
 
 spec:
   product:
@@ -16,8 +20,3 @@ spec:
 
   layout: {}
 
-
-metadata:
-  labels:
-    deployment: spec.deployment
-    source_id: demo_component
