@@ -558,7 +558,7 @@ spec:
       indicators:
       - test_performance_indicator
 `))
-			doc, err := indicator.DocumentFromYAML(reader)
+			doc, err := indicator.DocumentFromYAML(reader, indicator.SkipMetadataInterpolation)
 			g.Expect(err).ToNot(HaveOccurred())
 
 			indie := v1.IndicatorSpec{
@@ -1105,9 +1105,7 @@ spec:
 			_, err := indicator.DocumentFromYAML(reader)
 			g.Expect(err).To(HaveOccurred())
 		})
-
 	})
-
 }
 
 func TestPatchFromYAML(t *testing.T) {

@@ -71,7 +71,9 @@ spec:
                           type: string
                           enum: [lt, lte, gt, gte, eq, neq]
                         value:
-                          type: number
+                          oneOf:
+                          - type: number
+                          - type: string
                   alert:
                     type: object
                     properties:

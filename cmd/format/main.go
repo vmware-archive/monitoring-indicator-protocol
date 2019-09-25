@@ -39,31 +39,30 @@ func main() {
 }
 
 func parseDocument(format string, metadata string, filePath string) (string, error) {
+	document := getDocument(filePath, indicator.OverrideMetadata(indicator.ParseMetadata(metadata)))
 	switch format {
 	case "bookbinder":
-		bookbinder, err := docs.DocumentToBookbinder(getDocument(filePath, indicator.SkipMetadataInterpolation))
+		bookbinder, err := docs.DocumentToBookbinder(document)
 		if err != nil {
 			return "", errors.New("could not parse specified document as bookbinder")
 		}
 		return bookbinder, nil
 	case "html":
-		html, err := docs.DocumentToHTML(getDocument(filePath, indicator.SkipMetadataInterpolation))
+		html, err := docs.DocumentToHTML(document)
 		if err != nil {
 			return "", errors.New("could not parse specified document as HTML")
 		}
 		return html, nil
 
 	case "grafana":
-		grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(getDocument(filePath,
-			indicator.OverrideMetadata(indicator.ParseMetadata(metadata))))
+		grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document)
 		if err != nil {
 			return "", errors.New("could not parse specified document as Grafana dashboard")
 		}
 		yamlOutput, err := json.Marshal(grafanaDashboard)
 		return string(yamlOutput), err
 	case "prometheus-alerts":
-		yamlOutput, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(getDocument(filePath,
-			indicator.OverrideMetadata(indicator.ParseMetadata(metadata)))))
+		yamlOutput, err := yaml.Marshal(prometheus_alerts.AlertDocumentFrom(document))
 		if err != nil {
 			return "", errors.New("could not parse specified document as prometheus alert")
 		}

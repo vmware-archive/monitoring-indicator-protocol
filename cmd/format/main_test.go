@@ -32,7 +32,7 @@ func TestFormatBinary(t *testing.T) {
 
 		cmd := exec.Command(binPath,
 			"-format", "html",
-			"-metadata", "deployment=my-other-service-deployment",
+			"-metadata", "deployment=[deployment],source_id=[source_id]",
 			"-indicators", "../../example_indicators.yml")
 
 		buffer := bytes.NewBuffer(nil)
@@ -58,7 +58,7 @@ func TestFormatBinary(t *testing.T) {
 
 			g.Expect(html).To(ContainSubstring(`<h3><a id="doc_performance_indicator"></a>Doc Performance Indicator</h3>`))
 
-			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])`))
+			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="[source_id]",deployment="[deployment]"}[5m])`))
 		})
 
 		t.Run("It does not have multiple % signs", func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestFormatBinary(t *testing.T) {
 
 		cmd := exec.Command(binPath,
 			"-format", "bookbinder",
-			"-metadata", "deployment=my-other-service-deployment",
+			"-metadata", "deployment=[deployment],source_id=[source_id]",
 			"-indicators", "../../example_indicators.yml")
 
 		buffer := bytes.NewBuffer(nil)
@@ -98,7 +98,7 @@ func TestFormatBinary(t *testing.T) {
 
 			g.Expect(html).To(ContainSubstring(`### <a id="doc_performance_indicator"></a>Doc Performance Indicator`))
 
-			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="$source_id",deployment="$deployment"}[5m])`))
+			g.Expect(html).To(ContainSubstring(`avg_over_time(demo_latency{source_id="[source_id]",deployment="[deployment]"}[5m])`))
 		})
 
 		t.Run("It does not have multiple % signs", func(t *testing.T) {

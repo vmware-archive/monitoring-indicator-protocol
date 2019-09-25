@@ -10,6 +10,8 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 	"github.com/prometheus/prometheus/promql"
+
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/asset"
 )
 
 func (doc *IndicatorDocument) Validate(supportedApiVersion ...string) []error {
@@ -74,7 +76,7 @@ func (is *IndicatorSpec) Validate(indicatorIndex int, apiVersion string) []error
 
 // Validates provided YAML is in correct v1 format by OpenAPI Schema
 func ValidateBytesBySchema(docBytes []byte, schemaName string) ([]error, bool) {
-	schemaBytes, err := Asset("schemas.yml")
+	schemaBytes, err := asset.Asset("schemas.yml")
 	if err != nil {
 		return []error{err}, false
 	}

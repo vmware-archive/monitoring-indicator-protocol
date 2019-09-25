@@ -21,15 +21,9 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (IndicatorDocument, error)
 	}
 
 	reader := ioutil.NopCloser(bytes.NewReader(fileBytes))
-	doc, err := DocumentFromYAML(reader)
+	doc, err := DocumentFromYAML(reader, opts...)
 	if err != nil {
 		return IndicatorDocument{}, err
-	}
-
-	readOptions := getReadOpts(opts)
-	doc.OverrideMetadata(readOptions.overrides)
-	if readOptions.interpolate {
-		doc.Interpolate()
 	}
 
 	validationErrors := doc.Validate(api_versions.V0, api_versions.V1)

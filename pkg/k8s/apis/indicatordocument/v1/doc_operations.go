@@ -2,51 +2,7 @@ package v1
 
 import (
 	"fmt"
-	"regexp"
-	"sort"
 )
-
-func (id *IndicatorDocument) OverrideMetadata(overrides map[string]string) {
-	for k, v := range overrides {
-		id.ObjectMeta.Labels[k] = v
-	}
-}
-
-func (id *IndicatorDocument) Interpolate() {
-	labels := id.ObjectMeta.Labels
-	for _, k := range sortLabels(labels) {
-		regString := fmt.Sprintf(`(\$%s)(\b|\_)|(\$\{%s\})`, k, k)
-		reg := regexp.MustCompile(regString)
-
-		for i, indicator := range id.Spec.Indicators {
-			id.Spec.Indicators[i].PromQL = reg.ReplaceAllString(indicator.PromQL, fmt.Sprintf("%s$2", labels[k]))
-
-		}
-	}
-}
-
-type byLargestLength []string
-
-func (s byLargestLength) Len() int {
-	return len(s)
-}
-func (s byLargestLength) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-func (s byLargestLength) Less(i, j int) bool {
-	return len(s[i]) > len(s[j])
-}
-
-func sortLabels(labels map[string]string) []string {
-	sorted := make([]string, 0)
-	for k := range labels {
-		sorted = append(sorted, k)
-	}
-
-	sort.Sort(byLargestLength(sorted))
-
-	return sorted
-}
 
 // If the given document is missing data, fills it in with sane defaults. Populates the layout as
 // the standard SLI/KLI/Metrics three-row setup. Defaults the title of the layout to "<name> - <version>".

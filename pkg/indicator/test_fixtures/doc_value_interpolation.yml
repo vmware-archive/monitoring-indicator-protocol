@@ -5,6 +5,7 @@ kind: IndicatorDocument
 metadata:
   labels:
     deployment: well-performing-deployment
+    some_number: 450
 
 spec:
   product:
@@ -14,3 +15,7 @@ spec:
   indicators:
   - name: test_performance_indicator
     promql: query_metric{source_id="$deployment"}
+    thresholds:
+    - level: critical
+      operator: gte
+      value: $some_number

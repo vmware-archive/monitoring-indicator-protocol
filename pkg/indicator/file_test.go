@@ -14,7 +14,7 @@ import (
 func TestUpdateMetadata(t *testing.T) {
 	t.Run("it replaces promql $EXPR with metadata tags", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		d, err := indicator.ReadFile("test_fixtures/doc.yml")
+		d, err := indicator.ReadFile("test_fixtures/doc_value_interpolation.yml")
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d).To(BeEquivalentTo(v1.IndicatorDocument{
@@ -23,7 +23,10 @@ func TestUpdateMetadata(t *testing.T) {
 				APIVersion: api_versions.V1,
 			},
 			ObjectMeta:metav1.ObjectMeta{
-				Labels: map[string]string{"deployment": "well-performing-deployment"},
+				Labels: map[string]string{
+					"deployment": "well-performing-deployment",
+					"some_number": "450",
+				},
 			},
 			Spec: v1.IndicatorDocumentSpec{
 				Product: v1.Product{Name: "well-performing-component", Version: "0.0.1"},
@@ -40,6 +43,13 @@ func TestUpdateMetadata(t *testing.T) {
 							ChartType:    "step",
 							Frequency:    0,
 							Labels:       []string{},
+						},
+						Thresholds: []v1.Threshold{
+							{
+								Level:    "critical",
+								Operator: v1.GreaterThanOrEqualTo,
+								Value:    450,
+							},
 						},
 					},
 				},
