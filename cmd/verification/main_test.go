@@ -71,7 +71,7 @@ func TestValidateIndicators(t *testing.T) {
 		session, err := gexec.Start(cmd, nil, nil)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(prometheusCompliantServer.ReceivedRequests).Should(HaveLen(2))
+		g.Eventually(prometheusCompliantServer.ReceivedRequests, 2 * time.Second).Should(HaveLen(2))
 		g.Eventually(session, 5).Should(gexec.Exit(0))
 	})
 
@@ -114,7 +114,7 @@ func TestValidateIndicators(t *testing.T) {
 		session, err := gexec.Start(cmd, nil, nil)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(prometheusCompliantServer.ReceivedRequests).Should(HaveLen(2))
+		g.Eventually(prometheusCompliantServer.ReceivedRequests, 2 * time.Second).Should(HaveLen(2))
 		g.Eventually(session, 5).Should(gexec.Exit(1))
 	})
 
@@ -134,8 +134,7 @@ func TestValidateIndicators(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Eventually(session, 5).Should(gexec.Exit(1))
-		println(string(session.Err.Contents()))
-		g.Expect(session.Err).To(gbytes.Say("Unable to validate document, errors were:"))
+		g.Expect(session.Err).To(gbytes.Say("validation for indicator document failed:"))
 		g.Expect(session.Err).To(gbytes.Say("product.version"))
 	})
 }

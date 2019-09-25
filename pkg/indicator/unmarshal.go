@@ -14,6 +14,7 @@ import (
 
 	"github.com/cppforlife/go-patch/patch"
 	"github.com/ghodss/yaml"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 
@@ -22,10 +23,10 @@ import (
 
 type ReadOpt func(options *readOptions)
 
-func DocumentFromYAML(r io.ReadCloser, opts ...ReadOpt) (v1.IndicatorDocument, error) {
+func DocumentFromYAML(r io.ReadCloser, opts ...ReadOpt) (v1.IndicatorDocument, []error) {
 	docBytes, err := ioutil.ReadAll(r)
 	if err != nil {
-		return v1.IndicatorDocument{}, err
+		return v1.IndicatorDocument{}, []error{err}
 	}
 
 	readOptions := getReadOpts(opts)
@@ -35,14 +36,13 @@ func DocumentFromYAML(r io.ReadCloser, opts ...ReadOpt) (v1.IndicatorDocument, e
 	if readOptions.interpolate {
 		docBytes, err = interpolateBytes(docBytes)
 		if err != nil {
-			return v1.IndicatorDocument{}, err
+			return v1.IndicatorDocument{}, []error{err}
 		}
 	}
 
-
 	apiVersion, err := ApiVersionFromYAML(docBytes)
 	if err != nil {
-		return v1.IndicatorDocument{}, err
+		return v1.IndicatorDocument{}, []error{err}
 	}
 
 	var doc v1.IndicatorDocument
@@ -51,27 +51,23 @@ func DocumentFromYAML(r io.ReadCloser, opts ...ReadOpt) (v1.IndicatorDocument, e
 		log.Print("WARNING: apiVersion v0 will be deprecated in future releases")
 		doc, err = v0documentFromBytes(docBytes)
 	case api_versions.V1:
-		// Validate documentBytes according to the OpenAPI Schema
-		errs, ok := v1.ValidateBytesBySchema(docBytes, "IndicatorDocument")
-		if !ok {
-			errorString := "Unable to validate document, errors were:\n"
-			for _, err := range errs {
-				errorString += " - " + err.Error() + "\n"
-			}
-			return v1.IndicatorDocument{}, errors.New(errorString)
-		}
 		err = yaml.Unmarshal(docBytes, &doc)
 	default:
 		err = fmt.Errorf("invalid apiVersion, supported versions are: [v0, indicatorprotocol.io/v1]")
 	}
 
 	if err != nil {
-		return v1.IndicatorDocument{}, err
+		return v1.IndicatorDocument{}, []error{err}
 	}
 
 	v1.PopulateDefaults(&doc)
 
-	return doc, nil
+	validationErrors := doc.Validate()
+	if len(validationErrors) > 0 {
+		return v1.IndicatorDocument{}, validationErrors
+	}
+
+	return doc, []error{}
 }
 
 // Assuming the given bytes are yaml, upserts the given key/value pairs into the `metadata.labels` of the given
@@ -501,18 +497,9 @@ func ProcessDocument(patches []Patch, documentBytes []byte) (v1.IndicatorDocumen
 	}
 
 	reader := ioutil.NopCloser(bytes.NewReader(patchedDocBytes))
-	doc, err := DocumentFromYAML(reader)
-	if err != nil {
-		log.Print("failed to unmarshal document")
-		return v1.IndicatorDocument{}, []error{err}
-	}
-
-	errs := doc.Validate(api_versions.V0, api_versions.V1)
+	doc, errs := DocumentFromYAML(reader)
 	if len(errs) > 0 {
-		log.Print("document validation failed")
-		for _, e := range errs {
-			log.Printf("- %s \n", e.Error())
-		}
+		log.Print("failed to unmarshal document")
 		return v1.IndicatorDocument{}, errs
 	}
 

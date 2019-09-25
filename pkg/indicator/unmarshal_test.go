@@ -21,8 +21,8 @@ func TestDocumentFromYAML(t *testing.T) {
 		g := NewGomegaWithT(t)
 		t.Run("bad document", func(t *testing.T) {
 			reader := ioutil.NopCloser(strings.NewReader(`--`))
-			_, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).To(HaveOccurred())
+			_, errs := indicator.DocumentFromYAML(reader)
+			g.Expect(errs).ToNot(BeEmpty())
 		})
 	})
 
@@ -69,8 +69,8 @@ layout:
     indicators:
     - test_performance_indicator
 `))
-			doc, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).ToNot(HaveOccurred())
+			doc, errs := indicator.DocumentFromYAML(reader)
+			g.Expect(errs).To(BeEmpty())
 
 			indie := v1.IndicatorSpec{
 				Name:   "test_performance_indicator",
@@ -139,8 +139,8 @@ indicators:
 - name: test_indicator
   promql: promql_query
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
 					For:  "1m",
@@ -165,8 +165,8 @@ indicators:
     step: 5m
 `))
 
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(
 					v1.Alert{
@@ -191,8 +191,8 @@ indicators:
   alert:
     for: 5m
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
 					For:  "5m",
@@ -216,8 +216,8 @@ indicators:
 - name: test_performance_indicator_2
   promql: promql_query
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Layout).To(Equal(v1.Layout{
 					Title: "well-performing-component - 0.0.1",
@@ -253,11 +253,11 @@ layout:
   sections:
   - title: Metrics
     indicators:
-    - test_performance_indicator
+    - test_performance_indicator_1
 
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation).To(BeEquivalentTo(v1.Presentation{
 					ChartType:    "step",
@@ -287,8 +287,8 @@ indicators:
   presentation:
   chartType: step
 `)))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 				g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicator))
 			})
 		})
@@ -302,7 +302,7 @@ product:
   name: well-performing-component
   version: 0.0.1
 indicators:
-- name: test-kpi
+- name: test_kpi
   promql: prom
   thresholds:
   - lt: 0
@@ -318,9 +318,9 @@ indicators:
   - gt: 1.222225
     level: warning`))
 
-				d, err := indicator.DocumentFromYAML(reader)
+				d, errs := indicator.DocumentFromYAML(reader)
 
-				g.Expect(err).ToNot(HaveOccurred())
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Thresholds).To(Equal([]v1.Threshold{
 					{
@@ -356,27 +356,6 @@ indicators:
 				}))
 			})
 
-			t.Run("it returns undefined operator if there is no value", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: v0
-product:
-  name: well-performing-component
-  version: 0.0.1
-indicators:
-- name: test-kpi
-  description: desc
-  promql: prom
-  thresholds:
-  - level: warning
-  `))
-
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Operator).To(Equal(v1.UndefinedOperator))
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Value).To(Equal(float64(0)))
-			})
-
 			t.Run("it returns an error if value is not a number", func(t *testing.T) {
 				g := NewGomegaWithT(t)
 				reader := ioutil.NopCloser(strings.NewReader(`---
@@ -385,7 +364,7 @@ product:
   name: well-performing-component
   version: 0.0.1
 indicators:
-- name: test-kpi
+- name: test_kpi
   description: desc
   promql: prom
   thresholds:
@@ -393,8 +372,8 @@ indicators:
     level: warning
   `))
 
-				_, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).To(HaveOccurred())
+				_, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).ToNot(BeEmpty())
 			})
 
 			t.Run("it picks one operator when multiple are provided", func(t *testing.T) {
@@ -405,7 +384,7 @@ product:
   name: well-performing-component
   version: 0.0.1
 indicators:
-- name: test-kpi
+- name: test_kpi
   description: desc
   promql: prom
   thresholds:
@@ -414,8 +393,8 @@ indicators:
     level: warning
   `))
 
-				doc, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				doc, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 				g.Expect(doc.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1.Threshold{
 					Level:    "warning",
 					Operator: v1.LessThan,
@@ -439,8 +418,8 @@ indicators:
   presentation:
     chartType: step
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.StepChart))
 			})
@@ -459,8 +438,8 @@ indicators:
   presentation:
     chartType: bar
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.BarChart))
 			})
@@ -479,8 +458,8 @@ indicators:
   presentation:
     chartType: status
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.StatusChart))
 			})
@@ -500,8 +479,8 @@ indicators:
   presentation:
     chartType: quota
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.QuotaChart))
 			})
@@ -558,8 +537,8 @@ spec:
       indicators:
       - test_performance_indicator
 `))
-			doc, err := indicator.DocumentFromYAML(reader, indicator.SkipMetadataInterpolation)
-			g.Expect(err).ToNot(HaveOccurred())
+			doc, errs := indicator.DocumentFromYAML(reader, indicator.SkipMetadataInterpolation)
+			g.Expect(errs).To(BeEmpty())
 
 			indie := v1.IndicatorSpec{
 				Name:   "test_performance_indicator",
@@ -632,8 +611,8 @@ spec:
   - name: test_indicator
     promql: promql_query
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
 					For:  "1m",
@@ -663,8 +642,8 @@ spec:
       step: 5m
 `))
 
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(
 					v1.Alert{
@@ -693,8 +672,8 @@ spec:
     alert:
       for: 5m
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
 					For:  "5m",
@@ -723,8 +702,8 @@ spec:
   - name: test_performance_indicator_2
     promql: promql_query
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Layout).To(Equal(v1.Layout{
 					Title: "well-performing-component - 0.0.1",
@@ -763,11 +742,11 @@ spec:
     sections:
     - title: Metrics
       indicators:
-      - test_performance_indicator
+      - test_performance_indicator_1
 
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation).To(BeEquivalentTo(v1.Presentation{
 					ChartType:    "step",
@@ -799,8 +778,8 @@ spec:
     presentation:
       chartType: step
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 				g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicator))
 			})
 
@@ -816,8 +795,8 @@ spec:
   layout:
     sections: []
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 				g.Expect(d.Spec.Layout.Title).To(Equal("test_product - 0.0.1"))
 
 			})
@@ -836,7 +815,7 @@ spec:
     name: well-performing-component
     version: 0.0.1
   indicators:
-  - name: test-kpi
+  - name: test_kpi
     promql: prom
     thresholds:
     - operator: lt
@@ -858,9 +837,8 @@ spec:
       value: 1.222225
       level: warning`))
 
-				d, err := indicator.DocumentFromYAML(reader)
-
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Thresholds).To(Equal([]v1.Threshold{
 					{
@@ -908,7 +886,7 @@ spec:
     name: well-performing-component
     version: 0.0.1
   indicators:
-  - name: test-kpi
+  - name: test_kpi
     description: desc
     promql: prom
     thresholds:
@@ -917,8 +895,8 @@ spec:
       operator: foo
   `))
 
-				_, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).To(HaveOccurred())
+				_, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).ToNot(BeEmpty())
 			})
 
 			t.Run("it handles missing operator", func(t *testing.T) {
@@ -933,15 +911,15 @@ spec:
     name: well-performing-component
     version: 0.0.1
   indicators:
-  - name: test-kpi
+  - name: test_kpi
     description: desc
     promql: prom
     thresholds:
     - level: warning
   `))
 
-				_, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).To(HaveOccurred())
+				_, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).ToNot(BeEmpty())
 			})
 
 			t.Run("it returns an error if value is not a number", func(t *testing.T) {
@@ -954,7 +932,7 @@ spec:
     name: well-performing-component
     version: 0.0.1
   indicators:
-  - name: test-kpi
+  - name: test_kpi
     description: desc
     promql: prom
     thresholds:
@@ -963,8 +941,8 @@ spec:
       level: warning
   `))
 
-				_, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).To(HaveOccurred())
+				_, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).ToNot(BeEmpty())
 			})
 		})
 
@@ -986,8 +964,8 @@ spec:
     presentation:
       chartType: step
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.StepChart))
 			})
@@ -1009,8 +987,8 @@ spec:
     presentation:
       chartType: bar
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.BarChart))
 			})
@@ -1032,8 +1010,8 @@ spec:
     presentation:
       chartType: status
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.StatusChart))
 			})
@@ -1055,8 +1033,8 @@ spec:
     presentation:
       chartType: quota
 `))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 
 				g.Expect(d.Spec.Indicators[0].Presentation.ChartType).To(Equal(v1.QuotaChart))
 			})
@@ -1094,16 +1072,16 @@ spec:
 			for _, testCase := range testCases {
 				yamlString := getDoc(testCase.indiTypeString)
 				reader := ioutil.NopCloser(strings.NewReader(yamlString))
-				d, err := indicator.DocumentFromYAML(reader)
-				g.Expect(err).ToNot(HaveOccurred())
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
 				g.Expect(d.Spec.Indicators[0].Type).To(Equal(testCase.indiType),
 					fmt.Sprintf("Failed indiTypeString: `%s`", testCase.indiTypeString))
 			}
 
 			yamlString := getDoc("")
 			reader := ioutil.NopCloser(strings.NewReader(yamlString))
-			_, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).To(HaveOccurred())
+			_, errs := indicator.DocumentFromYAML(reader)
+			g.Expect(errs).ToNot(BeEmpty())
 		})
 	})
 }

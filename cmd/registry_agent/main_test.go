@@ -43,8 +43,8 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 			g.Expect(err).To(Not(HaveOccurred()))
 
 			reader := ioutil.NopCloser(bytes.NewReader(body))
-			document, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).To(Not(HaveOccurred()))
+			document, errs := indicator.DocumentFromYAML(reader)
+			g.Expect(errs).To(HaveLen(0))
 
 			receivedDocuments <- document
 			w.Header().Set("Content-Type", "application/json")

@@ -333,7 +333,7 @@ func indicatorDocumentValidationHandler(responseWriter http.ResponseWriter, requ
 		return
 	}
 
-	errors := k8sIndicatorDoc.Validate(api_versions.V1)
+	errors := k8sIndicatorDoc.Validate()
 
 	auditAnnotationMessage := createReviewAnnotationMap(errors)
 

@@ -236,8 +236,8 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+		d, errs := indicator.DocumentFromYAML(reader)
+		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[0].PromQL).To(BeEquivalentTo("patched_promql"))
 	})
@@ -291,8 +291,8 @@ indicators:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+		d, errs := indicator.DocumentFromYAML(reader)
+		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[1].Thresholds[1]).To(BeEquivalentTo(v1.Threshold{
 			Level:    "warning",
@@ -342,8 +342,8 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		reader := ioutil.NopCloser(bytes.NewReader(unpatchedBytes))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+		d, errs := indicator.DocumentFromYAML(reader)
+		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[0].PromQL).To(BeEquivalentTo("test_expr"))
 	})
@@ -403,8 +403,8 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+		d, errs := indicator.DocumentFromYAML(reader)
+		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[1].Thresholds[1]).To(BeEquivalentTo(v1.Threshold{
 			Level:    "warning",
@@ -465,8 +465,8 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+		d, errs := indicator.DocumentFromYAML(reader)
+		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[0].Thresholds[0]).To(BeEquivalentTo(v1.Threshold{
 			Level:    "warning",
@@ -521,8 +521,8 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+		d, errs := indicator.DocumentFromYAML(reader)
+		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[0].Thresholds).To(HaveLen(1))
 	})
@@ -576,8 +576,8 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+		d, errs := indicator.DocumentFromYAML(reader)
+		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[0].Thresholds).To(HaveLen(0))
 	})
@@ -612,8 +612,8 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+		d, errs := indicator.DocumentFromYAML(reader)
+		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[0].Thresholds).To(HaveLen(1))
 	})
@@ -660,7 +660,7 @@ spec:
 		reader := ioutil.NopCloser(bytes.NewReader(doc))
 		d, err2 := indicator.DocumentFromYAML(reader)
 		g.Expect(patchedBytes).To(Equal(d))
-		g.Expect(err2).ToNot(HaveOccurred())
+		g.Expect(err2).To(BeEmpty())
 	})
 
 	t.Run("does not error when patch fails due to invalid path", func(t *testing.T) {
@@ -707,7 +707,7 @@ spec:
 		reader := ioutil.NopCloser(bytes.NewReader(doc))
 		d, err2 := indicator.DocumentFromYAML(reader)
 		g.Expect(patchedBytes).To(Equal(d))
-		g.Expect(err2).ToNot(HaveOccurred())
+		g.Expect(err2).To(BeEmpty())
 	})
 
 	t.Run("applies partially successful patches", func(t *testing.T) {
@@ -780,8 +780,8 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
-		d, err := indicator.DocumentFromYAML(reader)
-		g.Expect(err).ToNot(HaveOccurred())
+		d, errs := indicator.DocumentFromYAML(reader)
+		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[0].PromQL).To(Equal("test_expr"))
 		g.Expect(d.Spec.Indicators[0].Thresholds).To(BeEquivalentTo([]v1.Threshold{

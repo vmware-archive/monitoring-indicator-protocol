@@ -14,7 +14,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/asset"
 )
 
-func (doc *IndicatorDocument) Validate(supportedApiVersion ...string) []error {
+func (doc *IndicatorDocument) Validate() []error {
 	es := make([]error, 0)
 
 	// Instead of duplicated validation code, we can just marshal the document and then validate its bytes

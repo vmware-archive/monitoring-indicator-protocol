@@ -34,8 +34,8 @@ func TestRegistryAgent(t *testing.T) {
 			g.Expect(err).ToNot(HaveOccurred())
 
 			reader := ioutil.NopCloser(bytes.NewReader(content))
-			document, err := indicator.DocumentFromYAML(reader)
-			g.Expect(err).To(Not(HaveOccurred()))
+			document, errs := indicator.DocumentFromYAML(reader)
+			g.Expect(errs).To(BeEmpty())
 
 			receivedDocument <- document
 

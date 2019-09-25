@@ -71,7 +71,7 @@ func TestValidDocument(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(BeEmpty())
 	})
@@ -90,7 +90,7 @@ func TestProduct(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("IndicatorDocument.spec.product.name in body should be at least 1 chars long"),
@@ -111,7 +111,7 @@ func TestVersion(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("IndicatorDocument.spec.product.version in body should be at least 1 chars long"),
@@ -129,7 +129,7 @@ func TestAPIVersion(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(errors.New("IndicatorDocument.apiVersion in body is required")))
 	})
@@ -146,7 +146,7 @@ func TestAPIVersion(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V0, api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("IndicatorDocument.apiVersion in body should be one of [indicatorprotocol.io/v1]"),
@@ -164,7 +164,7 @@ func TestSpec(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("IndicatorDocument.spec.product.name in body should be at least 1 chars long")))
@@ -182,7 +182,7 @@ func TestKind(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("IndicatorDocument.kind in body should be one of [IndicatorDocument]"),
@@ -211,7 +211,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(And(
 			ContainElement(errors.New("IndicatorDocument.spec.indicators.name in body should match '[a-zA-Z_:][a-zA-Z0-9_:]*'")),
@@ -238,7 +238,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(And(
 			ContainElement(errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)")),
@@ -265,7 +265,7 @@ func TestIndicator(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
@@ -303,7 +303,7 @@ func TestLayout(t *testing.T) {
 				},
 			},
 		}
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("layout sections[0] indicators[1] references a non-existent indicator"),
@@ -327,7 +327,7 @@ func TestMetadata(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
@@ -349,7 +349,7 @@ func TestMetadata(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("metadata cannot contain `step` key (see https://github.com/pivotal/monitoring-indicator-protocol/wiki#metadata)"),
@@ -381,7 +381,7 @@ func TestThreshold(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V0)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("IndicatorDocument.spec.indicators.thresholds.operator in body should be one of [lt lte gt gte eq neq]"),
@@ -410,7 +410,7 @@ func TestThreshold(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("IndicatorDocument.spec.indicators.thresholds.operator in body should be one of [lt lte gt gte eq neq]"),
@@ -438,7 +438,7 @@ func TestChartType(t *testing.T) {
 			},
 		}
 
-		es := document.Validate(api_versions.V1)
+		es := document.Validate()
 
 		g.Expect(es).To(ContainElement(
 			errors.New("IndicatorDocument.spec.indicators.presentation.chartType in body should be one of [step bar status quota]"),

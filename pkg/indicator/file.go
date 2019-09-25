@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	. "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
@@ -21,16 +20,12 @@ func ReadFile(indicatorsFile string, opts ...ReadOpt) (IndicatorDocument, error)
 	}
 
 	reader := ioutil.NopCloser(bytes.NewReader(fileBytes))
-	doc, err := DocumentFromYAML(reader, opts...)
-	if err != nil {
-		return IndicatorDocument{}, err
-	}
+	doc, errs := DocumentFromYAML(reader, opts...)
 
-	validationErrors := doc.Validate(api_versions.V0, api_versions.V1)
-	if len(validationErrors) > 0 {
+	if len(errs) > 0 {
 		var errorString strings.Builder
 		errorString.WriteString("validation for indicator document failed:\n")
-		for _, e := range validationErrors {
+		for _, e := range errs {
 			_, err = fmt.Fprintf(&errorString, "- %v\n", e)
 			if err != nil {
 				errorString.WriteString("failed to parse error\n")
