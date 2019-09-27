@@ -20,7 +20,7 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
-	github.com/google/go-cmp v0.2.0
+	github.com/google/go-cmp v0.3.0
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gorilla/mux v1.7.0
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
@@ -40,8 +40,6 @@ require (
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc // indirect
 	golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a
-	golang.org/x/net v0.0.0-20190415100556-4a65cf94b679 // indirect
-	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421 // indirect
 	golang.org/x/sys v0.0.0-20190422165155-953cdadca894 // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	golang.org/x/tools v0.0.0-20190415154727-2b5498619ef1 // indirect
@@ -49,14 +47,13 @@ require (
 	gopkg.in/russross/blackfriday.v2 v2.0.0
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.8.1
-	gopkg.in/yaml.v2 v2.2.1
-	k8s.io/api v0.0.0-20190415132514-c2f1300cac21
-	k8s.io/apimachinery v0.0.0-20190415132420-07d458fe0356
-	k8s.io/client-go v2.0.0-alpha.0.0.20190211223420-cd12199def58+incompatible
+	gopkg.in/yaml.v2 v2.2.2
+	k8s.io/api v0.0.0-20190819141258-3544db3b9e44
+	k8s.io/apimachinery v0.0.0-20190817020851-f2f3a405f61d
+	k8s.io/client-go v0.0.0-20190819141724-e14f31a72a77
 	k8s.io/code-generator v0.0.0-20190413052309-5c40078c1b12
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
-	k8s.io/klog v0.3.0
-	k8s.io/utils v0.0.0-20190131231213-4ae6e769426e // indirect
+	k8s.io/klog v0.3.1
 )
 
 go 1.13
