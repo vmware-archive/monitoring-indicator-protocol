@@ -14,10 +14,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// +k8s:deepcopy-gen=package
-// +k8s:protobuf-gen=package
-// +k8s:openapi-gen=true
+package v1
 
-// +groupName=node.k8s.io
+import (
+	"k8s.io/apimachinery/pkg/runtime"
+)
 
-package v1beta1 // import "k8s.io/api/node/v1beta1"
+func (in *TableRow) DeepCopy() *TableRow {
+	if in == nil {
+		return nil
+	}
+
+	out := new(TableRow)
+
+	if in.Cells != nil {
+		out.Cells = make([]interface{}, len(in.Cells))
+		for i := range in.Cells {
+			out.Cells[i] = runtime.DeepCopyJSONValue(in.Cells[i])
+		}
+	}
+
+	if in.Conditions != nil {
+		out.Conditions = make([]TableRowCondition, len(in.Conditions))
+		for i := range in.Conditions {
+			in.Conditions[i].DeepCopyInto(&out.Conditions[i])
+		}
+	}
+
+	in.Object.DeepCopyInto(&out.Object)
+	return out
+}

@@ -43,20 +43,18 @@ require (
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421 // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.8.1
 	gopkg.in/yaml.v2 v2.2.2
-	k8s.io/api v0.0.0-20190415132514-c2f1300cac21
-	k8s.io/apimachinery v0.0.0-20190415132420-07d458fe0356
-	k8s.io/client-go v2.0.0-alpha.0.0.20190211223420-cd12199def58+incompatible
+	k8s.io/api v0.0.0-20190819141258-3544db3b9e44
+	k8s.io/apimachinery v0.0.0-20190817020851-f2f3a405f61d
+	k8s.io/client-go v0.0.0-20190819141724-e14f31a72a77
 	k8s.io/code-generator v0.0.0-20190413052309-5c40078c1b12
 	k8s.io/gengo v0.0.0-20190327210449-e17681d19d3a // indirect
-	k8s.io/klog v0.3.0
-	k8s.io/utils v0.0.0-20190131231213-4ae6e769426e // indirect
+	k8s.io/klog v0.3.1
 )
 
 go 1.13
