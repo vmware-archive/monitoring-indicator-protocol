@@ -11,6 +11,7 @@ target madlamp
 
 pushd ~/workspace > /dev/null
   # update code in bosh-release src directory to have the latest locally
+  rm -rf monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
   mkdir -p monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
   rsync -Rr ./monitoring-indicator-protocol/ ./monitoring-indicator-protocol/bosh-release/src/github.com/pivotal/
 

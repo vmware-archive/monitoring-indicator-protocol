@@ -1,4 +1,4 @@
-FROM golang:1.12
+FROM golang:1.13
 
 ENV PATH=$PATH:$PWD/go/bin
 
