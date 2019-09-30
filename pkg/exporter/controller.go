@@ -122,11 +122,17 @@ func writeDocuments(documents []registry.APIDocumentResponse, config ControllerC
 		file, err := config.Converter(registry.ToIndicatorDocument(d))
 		if err != nil {
 			log.Print("error converting document")
+			return
+		}
+		if file == nil {
+			log.Print("document contains no indicators to convert")
+			return
 		}
 
 		f, err := config.Filesystem.Create(fmt.Sprintf("%s/%s", config.OutputDirectory, file.Name))
 		if err != nil {
 			log.Print("error creating file")
+			return
 		}
 
 		_, err = f.Write(file.Contents)

@@ -14,14 +14,17 @@ func DashboardFilename(documentBytes []byte, productName string) string {
 	return fmt.Sprintf("%s_%x.json", productName, sha1.Sum(documentBytes))
 }
 
-func DocumentToDashboard(document v1.IndicatorDocument) (*GrafanaDashboard, error) {
-	return toGrafanaDashboard(document)
+func DocumentToDashboard(document v1.IndicatorDocument, indicatorType v1.IndicatorType) (*GrafanaDashboard, error) {
+	return toGrafanaDashboard(document, indicatorType)
 }
 
-func toGrafanaDashboard(d v1.IndicatorDocument) (*GrafanaDashboard, error) {
-	rows, err := toGrafanaRows(d)
+func toGrafanaDashboard(d v1.IndicatorDocument, indicatorType v1.IndicatorType) (*GrafanaDashboard, error) {
+	rows, err := toGrafanaRows(d, indicatorType)
 	if err != nil {
 		return nil, err
+	}
+	if rows == nil {
+		return nil, nil
 	}
 	return &GrafanaDashboard{
 		Title:       d.Spec.Layout.Title,
@@ -52,13 +55,16 @@ func metadataToLabelSelector(metadata map[string]string) interface{} {
 	return selector
 }
 
-func toGrafanaRows(document v1.IndicatorDocument) ([]GrafanaRow, error) {
+func toGrafanaRows(document v1.IndicatorDocument, indicatorType v1.IndicatorType) ([]GrafanaRow, error) {
 	var rows []GrafanaRow
 
 	for _, i := range document.Spec.Layout.Sections {
-		row, err := sectionToGrafanaRow(i, document)
+		row, err := sectionToGrafanaRow(i, document, indicatorType)
 		if err != nil {
 			return nil, err
+		}
+		if row == nil {
+			return nil, nil
 		}
 		rows = append(rows, *row)
 	}
@@ -91,7 +97,7 @@ func replaceStep(str string) string {
 	return reg.ReplaceAllString(str, `$$__interval`)
 }
 
-func sectionToGrafanaRow(section v1.Section, document v1.IndicatorDocument) (*GrafanaRow, error) {
+func sectionToGrafanaRow(section v1.Section, document v1.IndicatorDocument, indicatorType v1.IndicatorType) (*GrafanaRow, error) {
 	title := section.Title
 
 	var panels []GrafanaPanel
@@ -101,7 +107,13 @@ func sectionToGrafanaRow(section v1.Section, document v1.IndicatorDocument) (*Gr
 		if i == nil {
 			return nil, errors.New("indicator not found")
 		}
-		panels = append(panels, toGrafanaPanel(*i, getIndicatorTitle(*i)))
+		if indicatorType == v1.UndefinedType || i.Type == indicatorType {
+			panels = append(panels, toGrafanaPanel(*i, getIndicatorTitle(*i)))
+		}
+	}
+
+	if panels == nil {
+		return nil, nil
 	}
 
 	return &GrafanaRow{

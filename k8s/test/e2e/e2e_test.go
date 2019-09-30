@@ -408,7 +408,7 @@ type promResult struct {
 }
 
 func grafanaConfigMapMatch(t *testing.T, dashboardFilename string, cm *coreV1.ConfigMap, id *v1.IndicatorDocument) bool {
-	grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(*id)
+	grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(*id, v1.UndefinedType)
 	if err != nil {
 		t.Logf("Unable to convert to grafana dashboard: %s", err)
 		return false
@@ -439,7 +439,7 @@ func prometheusConfigMapMatch(t *testing.T, cm *coreV1.ConfigMap, id *v1.Indicat
 
 	var (
 		cmAlerts map[string][]map[string]interface{}
-		cmAlert  interface{}
+		cmAlert interface{}
 	)
 	err = yaml.Unmarshal([]byte(cm.Data["alerts"]), &cmAlerts)
 	if err != nil {

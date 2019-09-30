@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
-	corev1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -17,14 +18,14 @@ type mapper func(document v1.IndicatorDocument) ([]byte, error)
 
 var trueVal = true
 
-func ConfigMap(doc *v1.IndicatorDocument, m mapper) (*corev1.ConfigMap, error) {
+func ConfigMap(doc *v1.IndicatorDocument, m mapper, indicatorType v1.IndicatorType) (*corev1.ConfigMap, error) {
 	if doc == nil {
 		return nil, errors.New("source indicator document was empty")
 	}
 
 	if m == nil {
 		m = func(document v1.IndicatorDocument) ([]byte, error) {
-			grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document)
+			grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document, indicatorType)
 			if err != nil {
 				return nil, err
 			}

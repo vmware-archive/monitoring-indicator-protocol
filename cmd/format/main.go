@@ -55,7 +55,7 @@ func parseDocument(format string, metadata string, filePath string) (string, err
 		return html, nil
 
 	case "grafana":
-		grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document)
+		grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document, v1.UndefinedType)
 		if err != nil {
 			return "", errors.New("could not parse specified document as Grafana dashboard")
 		}

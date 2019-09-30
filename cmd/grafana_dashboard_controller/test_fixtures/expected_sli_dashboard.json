@@ -1,0 +1,40 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "enable": true,
+        "expr": "ALERTS{product=\"test_product\",deployment=\"test_deployment\"}",
+        "tagKeys": "level",
+        "titleFormat": "{{alertname}} is {{alertstate}} in the {{level}} threshold",
+        "iconColor": "#1f78c1"
+      }
+    ]
+  },
+  "title": "Test Dashboard",
+  "rows": [
+    {
+      "title": "Super Section",
+      "panels": [
+        {
+          "title": "Slinky",
+          "type": "graph",
+          "targets": [
+            {
+              "expr": "sli_sli_sli"
+            }
+          ],
+          "thresholds": [
+            {
+              "value": 5,
+              "colorMode": "critical",
+              "op": "lt",
+              "fill": true,
+              "line": true,
+              "yaxis": "left"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

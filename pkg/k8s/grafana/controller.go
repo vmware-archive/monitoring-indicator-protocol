@@ -17,12 +17,14 @@ type ConfigMapEditor interface {
 }
 
 type Controller struct {
-	cmEditor ConfigMapEditor
+	cmEditor      ConfigMapEditor
+	indicatorType v1.IndicatorType
 }
 
-func NewController(configMap ConfigMapEditor) *Controller {
+func NewController(configMap ConfigMapEditor, indicatorType v1.IndicatorType) *Controller {
 	return &Controller{
-		cmEditor: configMap,
+		cmEditor:      configMap,
+		indicatorType: indicatorType,
 	}
 }
 
@@ -31,7 +33,7 @@ func (c *Controller) OnAdd(obj interface{}) {
 	if !ok {
 		return
 	}
-	configMap, err := ConfigMap(doc, nil)
+	configMap, err := ConfigMap(doc, nil, c.indicatorType)
 	if err != nil {
 		log.Print("Failed to generate ConfigMap")
 		return
@@ -67,7 +69,7 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 			return
 		}
 	}
-	configMap, err := ConfigMap(newDoc, nil)
+	configMap, err := ConfigMap(newDoc, nil, c.indicatorType)
 	if err != nil {
 		log.Print("Failed to generate ConfigMap")
 		return

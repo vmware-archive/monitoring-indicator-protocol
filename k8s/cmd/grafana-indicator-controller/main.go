@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/client/clientset/versioned"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/grafana"
 
@@ -22,7 +23,8 @@ import (
 )
 
 type config struct {
-	Namespace string `env:"NAMESPACE,required,report"`
+	Namespace     string `env:"NAMESPACE,required,report"`
+	IndicatorType string `env:"INDICATOR_TYPE,report"`
 }
 
 func init() {
@@ -58,7 +60,9 @@ func main() {
 		log.Fatal("failed to create a new CoreV1Client for the given config")
 	}
 
-	controller := grafana.NewController(coreV1Client.ConfigMaps(conf.Namespace))
+	indicatorType := v1.IndicatorTypeFromString(conf.IndicatorType)
+
+	controller := grafana.NewController(coreV1Client.ConfigMaps(conf.Namespace), indicatorType)
 
 	informerFactory := informers.NewSharedInformerFactory(client, time.Second*30)
 

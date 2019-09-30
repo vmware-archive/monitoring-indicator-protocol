@@ -23,3 +23,5 @@ spec:
         env:
         - name: NAMESPACE
           value: grafana
+        - name: INDICATOR_TYPE
+          value: all
