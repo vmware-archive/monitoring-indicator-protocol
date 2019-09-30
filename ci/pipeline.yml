@@ -1233,7 +1233,7 @@ jobs:
         source:
           repository: indicatorprotocol/test-base
       inputs:
-      - name: monitoring-indicator-protocol-version
+      - name: monitoring-indicator-protocol-release
       outputs:
       - name: slack-message
       run:
@@ -1244,7 +1244,7 @@ jobs:
           #!/usr/bin/env bash
           set -e
           TAG=$(cat monitoring-indicator-protocol-release/version)
-          echo "Indicator Protocol ${TAG} has been released :indipro:\nhttps://github.com/pivotal/monitoring-indicator-protocol/releases/tag/${TAG}" > slack-message/text.txt
+          echo -e "Indicator Protocol ${TAG} has been released :indipro:\nhttps://github.com/pivotal/monitoring-indicator-protocol/releases/tag/${TAG}" > slack-message/text.txt
   - put: notify
     params:
       text_file: ./slack-message/text.txt
