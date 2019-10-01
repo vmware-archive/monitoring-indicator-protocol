@@ -74,7 +74,7 @@ layout:
 
 			indie := v1.IndicatorSpec{
 				Name:   "test_performance_indicator",
-				PromQL: `prom{deployment="$deployment"}`,
+				PromQL: `prom{deployment="well-performing-deployment"}`,
 				Thresholds: []v1.Threshold{{
 					Level:    "warning",
 					Operator: v1.LessThanOrEqualTo,

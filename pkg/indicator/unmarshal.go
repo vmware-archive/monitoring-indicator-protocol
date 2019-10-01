@@ -32,6 +32,9 @@ func DocumentFromYAML(r io.ReadCloser, opts ...ReadOpt) (v1.IndicatorDocument, [
 	readOptions := getReadOpts(opts)
 	if len(readOptions.overrides) > 0 {
 		docBytes, err = overrideMetadataBytes(docBytes, readOptions.overrides)
+		if err != nil {
+			return v1.IndicatorDocument{}, []error{err}
+		}
 	}
 	if readOptions.interpolate {
 		docBytes, err = interpolateBytes(docBytes)
@@ -73,26 +76,16 @@ func DocumentFromYAML(r io.ReadCloser, opts ...ReadOpt) (v1.IndicatorDocument, [
 // Assuming the given bytes are yaml, upserts the given key/value pairs into the `metadata.labels` of the given
 // yaml.
 func overrideMetadataBytes(docBytes []byte, overrides map[string]string) ([]byte, error) {
-
-	var doc map[string]interface{}
-
-	err := yaml.Unmarshal(docBytes, &doc)
+	metadata, err := MetadataFromYAML(ioutil.NopCloser(bytes.NewReader(docBytes)))
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, fmt.Errorf("failed to parse metadata, %s", err)
 	}
-
-	metadataMapping, ok := doc["metadata"].(map[string]interface{})
-	labels := metadataMapping["labels"].(map[string]interface{})
 
 	for _, label := range sortLabels(overrides) {
-		labels[label] = overrides[label]
+		metadata[label] = overrides[label]
 	}
 
-	if !ok {
-		return nil, errors.New("missing metadata.labels key")
-	}
-
-	return yaml.Marshal(doc)
+	return writeMetadataToYaml(docBytes, metadata)
 }
 
 type byLargestLength []string
@@ -117,24 +110,56 @@ func sortLabels(labels map[string]string) []string {
 	return sorted
 }
 
-// Assuming the given bytes are yaml, reads  the mapping under `metadata.labels` and interpolates that values
-// wherever the keys are written.
-func interpolateBytes(docBytes []byte) ([]byte, error) {
-	var metadataContainer struct {
-		Metadata struct {
-			Labels map[string]string
-		}
-	}
-	err := yaml.Unmarshal(docBytes, &metadataContainer)
+func writeMetadataToYaml(docBytes []byte, metadata map[string]string) ([]byte, error) {
+	apiVersion, err := ApiVersionFromYAML(docBytes)
 	if err != nil {
-		return []byte{}, err
+		return nil, err
+	}
+	switch apiVersion {
+	case api_versions.V0:
+		var docMap map[string]interface{}
+		err := yaml.Unmarshal(docBytes, &docMap)
+		if err != nil {
+			return nil, err
+		}
+		docMap["metadata"] = metadata
+		return yaml.Marshal(docMap)
+
+	case api_versions.V1:
+		var docMap map[string]interface{}
+		err := yaml.Unmarshal(docBytes, &docMap)
+		if err != nil {
+			return nil, err
+		}
+
+		m, ok := docMap["metadata"]
+		if !ok {
+			return nil, errors.New("error writing metadata to document, document has no metadata key")
+		}
+		meta, ok := m.(map[string]interface{})
+		if !ok {
+			return nil, errors.New("error writing metadata to document, document metadata is not a mapping")
+		}
+		meta["labels"] = metadata
+
+		return yaml.Marshal(docMap)
+	default:
+		return nil, errors.New("invalid apiVersion")
+	}
+}
+
+func interpolateBytes(docBytes []byte) ([]byte, error) {
+	metadata, err := MetadataFromYAML(ioutil.NopCloser(bytes.NewReader(docBytes)))
+	if err != nil {
+		return []byte{}, fmt.Errorf("failed to parse metadata, %s", err)
 	}
 
-	for key, value := range metadataContainer.Metadata.Labels {
+	for key, value := range metadata {
 		regString := fmt.Sprintf(`(\$%s)(\b|\_|$)|(\$\{%s\})`, key, key)
 		regex := regexp.MustCompile(regString)
 		docBytes = regex.ReplaceAll(docBytes, []byte(fmt.Sprintf("%s$2", value)))
 	}
+
 	return docBytes, nil
 }
 
@@ -437,6 +462,9 @@ func MetadataFromYAML(reader io.ReadCloser) (map[string]string, error) {
 	}
 
 	apiVersion, err := ApiVersionFromYAML(docBytes)
+	if err != nil {
+		return nil, fmt.Errorf("could not read apiVersion: %s", err)
+	}
 	var metadata map[string]string
 	switch apiVersion {
 	case api_versions.V0:

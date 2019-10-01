@@ -228,7 +228,7 @@ apiVersion: {
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["could not unmarshal apiVersion"] }`))
+		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["failed to parse metadata, could not read apiVersion: could not unmarshal apiVersion"] }`))
 	})
 }
 

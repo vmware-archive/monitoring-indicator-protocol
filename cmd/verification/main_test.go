@@ -24,118 +24,236 @@ func TestValidateIndicators(t *testing.T) {
 	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 
-	t.Run("returns 0 when all indicators return data", func(t *testing.T) {
-		g := NewGomegaWithT(t)
+	t.Run("for v0 documents", func(t *testing.T) {
+		t.Run("exits with 0 when all indicators return data", func(t *testing.T) {
+			g := NewGomegaWithT(t)
 
-		prometheusCompliantServer := ghttp.NewServer()
-		defer prometheusCompliantServer.Close()
+			prometheusCompliantServer := ghttp.NewServer()
+			defer prometheusCompliantServer.Close()
 
-		prometheusCompliantServer.AppendHandlers(
-			func(w http.ResponseWriter, req *http.Request) {
-				req.ParseForm()
+			prometheusCompliantServer.AppendHandlers(
+				func(w http.ResponseWriter, req *http.Request) {
+					req.ParseForm()
 
-				q := req.Form.Get("query")
-				if q != `avg_over_time(demo_latency{source_id="demo_component",deployment="fake-deploy"}[5m])` {
-					w.WriteHeader(422)
-					return
-				}
+					q := req.Form.Get("query")
+					if q != `avg_over_time(demo_latency{source_id="demo_component",deployment="fake-deploy"}[5m])` {
+						w.WriteHeader(422)
+						return
+					}
 
-				body := promQLResponse(3, 4)
-				w.Write(body)
-				w.Header().Set("Content-Type", "application/json")
-			},
-			func(w http.ResponseWriter, req *http.Request) {
-				req.ParseForm()
-				q := req.Form.Get("query")
+					body := promQLResponse(3, 4)
+					w.Write(body)
+					w.Header().Set("Content-Type", "application/json")
+				},
+				func(w http.ResponseWriter, req *http.Request) {
+					req.ParseForm()
+					q := req.Form.Get("query")
 
-				if q != `saturation{source_id="demo_component",deployment="fake-deploy"}` {
-					w.WriteHeader(422)
-					return
-				}
+					if q != `saturation{source_id="demo_component",deployment="fake-deploy"}` {
+						w.WriteHeader(422)
+						return
+					}
 
-				body := promQLResponse(1, 1)
-				w.Write(body)
-				w.Header().Set("Content-Type", "application/json")
-			},
-		)
+					body := promQLResponse(1, 1)
+					w.Write(body)
+					w.Header().Set("Content-Type", "application/json")
+				},
+			)
 
-		cmd := exec.Command(
-			binPath,
-			"--indicators", "./test_fixtures/indicators.yml",
-			"--metadata", "deployment=fake-deploy",
-			"--query-endpoint", "http://"+prometheusCompliantServer.Addr(),
-			"--authorization", "bearer test-token",
-			"-k",
-		)
+			cmd := exec.Command(
+				binPath,
+				"--indicators", "./test_fixtures/v0indicators.yml",
+				"--metadata", "deployment=fake-deploy",
+				"--query-endpoint", "http://"+prometheusCompliantServer.Addr(),
+				"--authorization", "bearer test-token",
+				"-k",
+			)
 
-		session, err := gexec.Start(cmd, nil, nil)
-		g.Expect(err).ToNot(HaveOccurred())
+			session, err := gexec.Start(cmd, nil, nil)
+			g.Expect(err).ToNot(HaveOccurred())
 
-		g.Eventually(prometheusCompliantServer.ReceivedRequests, 2 * time.Second).Should(HaveLen(2))
-		g.Eventually(session, 5).Should(gexec.Exit(0))
+			g.Eventually(prometheusCompliantServer.ReceivedRequests, 2*time.Second).Should(HaveLen(2))
+			g.Eventually(session, 5).Should(gexec.Exit(0))
+		})
+
+		t.Run("exits with 1 when not all indicators return data", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			prometheusCompliantServer := ghttp.NewServer()
+			defer prometheusCompliantServer.Close()
+
+			prometheusCompliantServer.AppendHandlers(
+				func(w http.ResponseWriter, req *http.Request) {
+					req.ParseForm()
+					q := req.Form.Get("query")
+					g.Expect(q).To(Equal(`avg_over_time(demo_latency{source_id="demo_component",deployment="my-demo-deployment"}[5m])`))
+
+					body := promQLResponse(3, 4)
+					w.Write(body)
+					w.Header().Set("Content-Type", "application/json")
+				},
+				func(w http.ResponseWriter, req *http.Request) {
+					req.ParseForm()
+					q := req.Form.Get("query")
+					g.Expect(q).To(Equal(`saturation{source_id="demo_component",deployment="my-demo-deployment"}`))
+
+					body := promQLResponse(0, 0)
+					w.Write(body)
+					w.Header().Set("Content-Type", "application/json")
+				},
+			)
+
+			cmd := exec.Command(
+				binPath,
+				"--indicators", "./test_fixtures/v0indicators.yml",
+				"--metadata", "deployment=my-demo-deployment",
+				"--query-endpoint", "http://"+prometheusCompliantServer.Addr(),
+				"--authorization", "bearer test-token",
+				"-k",
+			)
+
+			session, err := gexec.Start(cmd, nil, nil)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Eventually(prometheusCompliantServer.ReceivedRequests, 2*time.Second).Should(HaveLen(2))
+			g.Eventually(session, 5).Should(gexec.Exit(1))
+		})
+
+		t.Run("returns 1 when indicator document is invalid according to schema", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			cmd := exec.Command(
+				binPath,
+				"--indicators", "./test_fixtures/v0_malformed_indicators.yml",
+				"--metadata", "deployment=my-demo-deployment",
+				"--query-endpoint", "http://bad",
+				"--authorization", "bearer test-token",
+				"-k",
+			)
+
+			session, err := gexec.Start(cmd, nil, nil)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Eventually(session, 5).Should(gexec.Exit(1))
+			g.Expect(session.Err).To(gbytes.Say("validation for indicator document failed:"))
+			g.Expect(session.Err).To(gbytes.Say("product.version"))
+		})
 	})
 
-	t.Run("returns 1 when not all indicators return data", func(t *testing.T) {
-		g := NewGomegaWithT(t)
+	t.Run("for v1 documents", func(t *testing.T) {
+		t.Run("returns 0 when all indicators return data", func(t *testing.T) {
+			g := NewGomegaWithT(t)
 
-		prometheusCompliantServer := ghttp.NewServer()
-		defer prometheusCompliantServer.Close()
+			prometheusCompliantServer := ghttp.NewServer()
+			defer prometheusCompliantServer.Close()
 
-		prometheusCompliantServer.AppendHandlers(
-			func(w http.ResponseWriter, req *http.Request) {
-				req.ParseForm()
-				q := req.Form.Get("query")
-				g.Expect(q).To(Equal(`avg_over_time(demo_latency{source_id="demo_component",deployment="my-demo-deployment"}[5m])`))
+			prometheusCompliantServer.AppendHandlers(
+				func(w http.ResponseWriter, req *http.Request) {
+					req.ParseForm()
 
-				body := promQLResponse(3, 4)
-				w.Write(body)
-				w.Header().Set("Content-Type", "application/json")
-			},
-			func(w http.ResponseWriter, req *http.Request) {
-				req.ParseForm()
-				q := req.Form.Get("query")
-				g.Expect(q).To(Equal(`saturation{source_id="demo_component",deployment="my-demo-deployment"}`))
+					q := req.Form.Get("query")
+					if q != `avg_over_time(demo_latency{source_id="demo_component",deployment="fake-deploy"}[5m])` {
+						w.WriteHeader(422)
+						return
+					}
 
-				body := promQLResponse(0, 0)
-				w.Write(body)
-				w.Header().Set("Content-Type", "application/json")
-			},
-		)
+					body := promQLResponse(3, 4)
+					w.Write(body)
+					w.Header().Set("Content-Type", "application/json")
+				},
+				func(w http.ResponseWriter, req *http.Request) {
+					req.ParseForm()
+					q := req.Form.Get("query")
 
-		cmd := exec.Command(
-			binPath,
-			"--indicators", "./test_fixtures/indicators.yml",
-			"--metadata", "deployment=my-demo-deployment",
-			"--query-endpoint", "http://"+prometheusCompliantServer.Addr(),
-			"--authorization", "bearer test-token",
-			"-k",
-		)
+					if q != `saturation{source_id="demo_component",deployment="fake-deploy"}` {
+						w.WriteHeader(422)
+						return
+					}
 
-		session, err := gexec.Start(cmd, nil, nil)
-		g.Expect(err).ToNot(HaveOccurred())
+					body := promQLResponse(1, 1)
+					w.Write(body)
+					w.Header().Set("Content-Type", "application/json")
+				},
+			)
 
-		g.Eventually(prometheusCompliantServer.ReceivedRequests, 2 * time.Second).Should(HaveLen(2))
-		g.Eventually(session, 5).Should(gexec.Exit(1))
-	})
+			cmd := exec.Command(
+				binPath,
+				"--indicators", "./test_fixtures/indicators.yml",
+				"--metadata", "deployment=fake-deploy",
+				"--query-endpoint", "http://"+prometheusCompliantServer.Addr(),
+				"--authorization", "bearer test-token",
+				"-k",
+			)
 
-	t.Run("returns 1 when indicator document is invalid according to schema", func(t *testing.T) {
-		g := NewGomegaWithT(t)
+			session, err := gexec.Start(cmd, nil, nil)
+			g.Expect(err).ToNot(HaveOccurred())
 
-		cmd := exec.Command(
-			binPath,
-			"--indicators", "./test_fixtures/malformed_indicators.yml",
-			"--metadata", "deployment=my-demo-deployment",
-			"--query-endpoint", "http://bad",
-			"--authorization", "bearer test-token",
-			"-k",
-		)
+			g.Eventually(prometheusCompliantServer.ReceivedRequests, 2*time.Second).Should(HaveLen(2))
+			g.Eventually(session, 5).Should(gexec.Exit(0))
+		})
 
-		session, err := gexec.Start(cmd, nil, nil)
-		g.Expect(err).ToNot(HaveOccurred())
+		t.Run("returns 1 when not all indicators return data", func(t *testing.T) {
+			g := NewGomegaWithT(t)
 
-		g.Eventually(session, 5).Should(gexec.Exit(1))
-		g.Expect(session.Err).To(gbytes.Say("validation for indicator document failed:"))
-		g.Expect(session.Err).To(gbytes.Say("product.version"))
+			prometheusCompliantServer := ghttp.NewServer()
+			defer prometheusCompliantServer.Close()
+
+			prometheusCompliantServer.AppendHandlers(
+				func(w http.ResponseWriter, req *http.Request) {
+					req.ParseForm()
+					q := req.Form.Get("query")
+					g.Expect(q).To(Equal(`avg_over_time(demo_latency{source_id="demo_component",deployment="my-demo-deployment"}[5m])`))
+
+					body := promQLResponse(3, 4)
+					w.Write(body)
+					w.Header().Set("Content-Type", "application/json")
+				},
+				func(w http.ResponseWriter, req *http.Request) {
+					req.ParseForm()
+					q := req.Form.Get("query")
+					g.Expect(q).To(Equal(`saturation{source_id="demo_component",deployment="my-demo-deployment"}`))
+
+					body := promQLResponse(0, 0)
+					w.Write(body)
+					w.Header().Set("Content-Type", "application/json")
+				},
+			)
+
+			cmd := exec.Command(
+				binPath,
+				"--indicators", "./test_fixtures/indicators.yml",
+				"--metadata", "deployment=my-demo-deployment",
+				"--query-endpoint", "http://"+prometheusCompliantServer.Addr(),
+				"--authorization", "bearer test-token",
+				"-k",
+			)
+
+			session, err := gexec.Start(cmd, nil, nil)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Eventually(prometheusCompliantServer.ReceivedRequests, 2*time.Second).Should(HaveLen(2))
+			g.Eventually(session, 5).Should(gexec.Exit(1))
+		})
+
+		t.Run("returns 1 when indicator document is invalid according to schema", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			cmd := exec.Command(
+				binPath,
+				"--indicators", "./test_fixtures/malformed_indicators.yml",
+				"--metadata", "deployment=my-demo-deployment,asdf=foo",
+				"--query-endpoint", "http://bad",
+				"--authorization", "bearer test-token",
+				"-k",
+			)
+
+			session, err := gexec.Start(cmd, nil, nil)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Eventually(session, 5).Should(gexec.Exit(1))
+			g.Expect(session.Err).To(gbytes.Say("validation for indicator document failed:"))
+			g.Expect(session.Err).To(gbytes.Say("product.version"))
+		})
 	})
 }
 
