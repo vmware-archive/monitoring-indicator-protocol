@@ -125,7 +125,7 @@ func writeDocuments(documents []registry.APIDocumentResponse, config ControllerC
 			return
 		}
 		if file == nil {
-			log.Print("document contains no indicators to convert")
+			log.Print("document contains no indicators to convert (perhaps you set an indicator type filter?)")
 			return
 		}
 

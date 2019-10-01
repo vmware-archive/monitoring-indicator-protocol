@@ -71,12 +71,12 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 	}
 	configMap, err := ConfigMap(newDoc, nil, c.indicatorType)
 	if err != nil {
-		log.Print("Failed to generate ConfigMap")
+		log.Printf("Failed to generate ConfigMap: %s", err)
 		return
 	}
 	_, err = c.cmEditor.Update(configMap)
 	if err != nil {
-		log.Print("Failed to update ConfigMap")
+		log.Printf("Failed to update ConfigMap: %s", err)
 		return
 	}
 }

@@ -64,7 +64,7 @@ func toGrafanaRows(document v1.IndicatorDocument, indicatorType v1.IndicatorType
 			return nil, err
 		}
 		if row == nil {
-			return nil, nil
+			continue
 		}
 		rows = append(rows, *row)
 	}

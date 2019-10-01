@@ -647,5 +647,47 @@ func TestDocumentToDashboard(t *testing.T) {
 
 			g.Expect(dashboard).To(BeNil())
 		})
+
+		t.Run("does not return nil some layout sections have matching indicators and some do not", func(t *testing.T) {
+			buffer := bytes.NewBuffer(nil)
+			log.SetOutput(buffer)
+
+			g := NewGomegaWithT(t)
+			document := v1.IndicatorDocument{
+				Spec: v1.IndicatorDocumentSpec{
+					Indicators: []v1.IndicatorSpec{
+						{
+							Name:   "kpi_test",
+							Type:   v1.KeyPerformanceIndicator,
+							PromQL: `key_test`,
+						},
+						{
+							Name:   "other",
+							PromQL: `wow`,
+							Type:   v1.DefaultIndicator,
+						},
+					},
+					Layout: v1.Layout{
+						Title: "Indicator Test Dashboard",
+						Sections: []v1.Section{
+							{
+								Title:      "Test Section Title",
+								Indicators: []string{"other"},
+							},
+							{
+								Title:      "Test Section Title",
+								Indicators: []string{"kpi_test"},
+							},
+						},
+					},
+				},
+			}
+
+			dashboard, err := grafana_dashboard.DocumentToDashboard(document, v1.KeyPerformanceIndicator)
+
+			g.Expect(err).NotTo(HaveOccurred())
+
+			g.Expect(dashboard).ToNot(BeNil())
+		})
 	})
 }

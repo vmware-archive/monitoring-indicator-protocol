@@ -67,7 +67,7 @@ pushd ~/workspace/monitoring-indicator-protocol > /dev/null
     mkdir -p k8s/overlays/dev
     cp -r k8s/config k8s/overlays/dev
 
-    pushd $REPOROOT/k8s/overlays/dev > /dev/null
+    pushd $REPOROOT/k8s/overlays/dev/config > /dev/null
         kustomize edit set image "$grafana_digest"
         kustomize edit set image "$prometheus_digest"
         kustomize edit set image "$indicator_lifecycle_digest"

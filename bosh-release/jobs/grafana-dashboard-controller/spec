@@ -16,6 +16,9 @@ consumes:
     optional: true
 
 properties:
+  indicator_type:
+    description: "Only generate dashboards from specific indicators [sli, kpi, other, all]"
+    default: "all"
   output_directory:
     description: "The output directory for the grafana dashboards"
     default: "/var/vcap/data/grafana-dashboard-controller/dashboards"
