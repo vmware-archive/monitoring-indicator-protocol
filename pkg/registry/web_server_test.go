@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -171,9 +172,13 @@ func TestRoutesAllExist(t *testing.T) {
 	}
 	for _, route := range routes {
 		completedRoute := fmt.Sprintf(route, addr)
-		resp, err := http.Get(completedRoute)
-		g.Eventually(err).ShouldNot(HaveOccurred())
-		g.Expect(resp.StatusCode).ToNot(Equal(http.StatusNotFound),
+		g.Eventually(func() (int, error) {
+			resp, err := http.Get(completedRoute)
+			if err != nil {
+				return -1, err
+			}
+			return resp.StatusCode, err
+		}).ShouldNot(Or(Equal(http.StatusNotFound), Equal(-1)),
 			fmt.Sprintf("Could not reach route %s", completedRoute))
 
 	}
@@ -190,7 +195,7 @@ func newWebServer(port int) (string, func() error) {
 	go func() {
 		err := start()
 		if err != nil {
-			fmt.Println(err)
+			log.Printf("web server failed: %s", err)
 		}
 	}()
 
