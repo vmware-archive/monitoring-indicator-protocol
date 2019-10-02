@@ -172,8 +172,8 @@ func TestRoutesAllExist(t *testing.T) {
 	for _, route := range routes {
 		completedRoute := fmt.Sprintf(route, addr)
 		resp, err := http.Get(completedRoute)
-		g.Expect(err).NotTo(HaveOccurred())
-		g.Expect(resp.StatusCode).To(Not(Equal(http.StatusNotFound)),
+		g.Eventually(err).ShouldNot(HaveOccurred())
+		g.Expect(resp.StatusCode).ToNot(Equal(http.StatusNotFound),
 			fmt.Sprintf("Could not reach route %s", completedRoute))
 
 	}
@@ -181,7 +181,6 @@ func TestRoutesAllExist(t *testing.T) {
 
 func newWebServer(port int) (string, func() error) {
 	conf := registry.WebServerConfig{
-		// Port is between 10000 and 40000
 		Address:       "localhost:" + strconv.Itoa(port),
 		DocumentStore: registry.NewDocumentStore(time.Second, time.Now),
 		StatusStore:   status_store.New(time.Now),
