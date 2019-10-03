@@ -15,6 +15,8 @@ builds:
     version: 0.8.7
   dd47cbca-8526-4242-5258-d6f07096734c:
     version: 0.8.5
+  f944c7a3-5bad-4783-6240-1c49a0c5e451:
+    version: 0.8.9
   fa977f2e-e5ea-4e27-5840-bb9e7ae62d0c:
     version: 0.8.4
 format-version: "2"
