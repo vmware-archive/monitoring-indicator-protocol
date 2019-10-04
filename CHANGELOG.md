@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.9] - 2019-10-03
+### Added
+- Adds support for filtering on indicator type in grafana controller
+
+## [0.8.8] - 2019-10-02
+### Fixed
+- The verification tool no longer errors on v0 documents when overriding metadata.
+
 ## [0.8.7] - 2019-09-30
 ### Added
 - Support for metadata interpolation anywhere, for example, in the value of a threshold.
