@@ -1,0 +1,94 @@
+[
+  {
+    "apiVersion": "indicatorprotocol.io/v1",
+    "uid": "my-component-62a5511746dfd09059ced03b2ed73ff0ae942421",
+    "kind": "IndicatorDocument",
+    "metadata": {
+      "labels": {
+        "deployment": "my-service-deployment",
+        "source_id": "my-metric-source",
+        "source_foundation": ">???"
+      }
+    },
+    "spec": {
+      "product": {
+        "name": "my-component",
+        "version": "1.2.3"
+      },
+      "indicators": [
+        {
+          "name": "only_in_example_yml",
+          "type": "other",
+          "promql": "test_query",
+          "status": null,
+          "thresholds": [],
+          "alert": {
+            "for": "1m",
+            "step": "1m"
+          },
+          "presentation": {
+            "chartType": "step",
+            "frequency": 0,
+            "currentValue": false,
+            "labels": [],
+            "units": ""
+          }
+        },
+        {
+          "name": "doc_performance_indicator",
+          "type": "other",
+          "promql": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-service-deployment\"}[5m])",
+          "status": null,
+          "thresholds": [
+            {
+              "level": "warning",
+              "operator": "gte",
+              "value": 50
+            },
+            {
+              "level": "critical",
+              "operator": "gt",
+              "value": 100
+            }
+          ],
+          "alert": {
+            "for": "5m",
+            "step": "10s"
+          },
+          "documentation": {
+            "description": "This is a valid markdown description.\n\n**Use**: This indicates nothing. It is placeholder text.\n\n**Type**: Gauge\n**Frequency**: 60 s\n",
+            "measurement": "Average latency over last 5 minutes per instance",
+            "recommendedResponse": "Panic! Run around in circles flailing your arms.",
+            "thresholdNote": "These are environment specific",
+            "title": "Doc Performance Indicator"
+          },
+          "presentation": {
+            "chartType": "step",
+            "frequency": 60,
+            "currentValue": false,
+            "labels": [
+              "job",
+              "ip",
+              "index"
+            ],
+            "units": ""
+          }
+        }
+      ],
+      "layout": {
+        "title": "Monitoring Document Product",
+        "description": "Document description",
+        "sections": [
+          {
+            "title": "Indicators",
+            "description": "This section includes indicators",
+            "indicators": [
+              "doc_performance_indicator"
+            ]
+          }
+        ],
+        "owner": "Example Team"
+      }
+    }
+  }
+]
