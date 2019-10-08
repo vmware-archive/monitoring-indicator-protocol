@@ -63,3 +63,5 @@ require (
 	k8s.io/klog v0.3.0
 	k8s.io/utils v0.0.0-20190131231213-4ae6e769426e // indirect
 )
+
+go 1.13
