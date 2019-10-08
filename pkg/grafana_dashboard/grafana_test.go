@@ -237,11 +237,11 @@ func TestDocumentToDashboard(t *testing.T) {
 				Indicators: []v1.IndicatorSpec{{
 					Name:   "test_indicator",
 					PromQL: `test_query{deployment="test_deployment"}`,
-					Alert:  test_fixtures.DefaultAlert(),
 					Thresholds: []v1.Threshold{{
 						Level:    "critical",
 						Operator: v1.LessThan,
 						Value:    5,
+						Alert:    test_fixtures.DefaultAlert(),
 					}},
 					Presentation:  test_fixtures.DefaultPresentation(),
 					Documentation: map[string]string{"title": "Test Indicator Title"},
@@ -282,22 +282,22 @@ func TestDocumentToDashboard(t *testing.T) {
 				Indicators: []v1.IndicatorSpec{{
 					Name:   "test_indicator",
 					PromQL: `test_query{deployment="test_deployment"}`,
-					Alert:  test_fixtures.DefaultAlert(),
 					Thresholds: []v1.Threshold{{
 						Level:    "critical",
 						Operator: v1.LessThan,
 						Value:    5,
+						Alert:    test_fixtures.DefaultAlert(),
 					}},
 					Presentation:  test_fixtures.DefaultPresentation(),
 					Documentation: map[string]string{"title": "Test Indicator Title"},
 				}, {
 					Name:   "second_test_indicator",
 					PromQL: "second_test_query",
-					Alert:  test_fixtures.DefaultAlert(),
 					Thresholds: []v1.Threshold{{
 						Level:    "critical",
 						Operator: v1.GreaterThan,
 						Value:    10,
+						Alert:    test_fixtures.DefaultAlert(),
 					}},
 					Presentation:  test_fixtures.DefaultPresentation(),
 					Documentation: map[string]string{"title": "Second Test Indicator Title"},

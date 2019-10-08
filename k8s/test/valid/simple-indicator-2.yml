@@ -6,9 +6,6 @@ spec:
   name: anotherindicator
   promql: rate(apiserver_request_count{resource="indicatordocuments",verb="WATCH",client="prometheus-indicator-controller/v0.0.0 (linux/amd64) kubernetes/$Format"}[5m])*60
   thresholds: []
-  alert:
-    for: 40m
-    step: 8m
   presentation:
     frequency: 8
   product: our product

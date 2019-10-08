@@ -11,6 +11,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"os"
 	"os/exec"
 	"os/user"
 	"strings"
@@ -46,7 +47,8 @@ var (
 	grafanaURI, grafanaAdminUser, grafanaAdminPw, prometheusURI *string
 )
 
-func init() {
+// https://github.com/golang/go/issues/31859
+func TestMain(m *testing.M) {
 	// Need to be defined before testing.Short() is called
 	httpClient = &http.Client{
 		Timeout: 10 * time.Second,
@@ -64,6 +66,7 @@ func init() {
 	if !testing.Short() {
 		init_test()
 	}
+	os.Exit(m.Run())
 }
 
 func init_test() {
@@ -276,15 +279,15 @@ func TestStatus(t *testing.T) {
 			Spec: v1.IndicatorSpec{
 				Name:   "my_cool_name",
 				PromQL: `prometheus_http_request_duration_seconds_sum{handler="/-/healthy"}`,
-				Alert: v1.Alert{
-					For:  "5m",
-					Step: "2m",
-				},
 				Thresholds: []v1.Threshold{
 					{
 						Level:    "critical",
 						Operator: v1.GreaterThan,
 						Value:    float64(10),
+						Alert: v1.Alert{
+							For:  "5m",
+							Step: "2m",
+						},
 					},
 				},
 			},
@@ -500,15 +503,15 @@ func indicatorDocument(ns string) *v1.IndicatorDocument {
 					Name:   indicatorName,
 					Type:   v1.KeyPerformanceIndicator,
 					PromQL: "rate(some_metric[10m])",
-					Alert: v1.Alert{
-						For:  "5m",
-						Step: "2m",
-					},
 					Thresholds: []v1.Threshold{
 						{
 							Level:    "critical",
 							Operator: v1.GreaterThanOrEqualTo,
 							Value:    float64(500),
+							Alert: v1.Alert{
+								For:  "5m",
+								Step: "2m",
+							},
 						},
 					},
 				},

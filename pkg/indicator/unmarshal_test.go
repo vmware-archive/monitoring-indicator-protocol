@@ -47,10 +47,10 @@ indicators:
   thresholds:
   - level: warning
     lte: 500
+    alert:
+      for: 1m
+      step: 1m
   promql: prom{deployment="$deployment"}
-  alert:
-    for: 1m
-    step: 1m
   presentation:
     currentValue: false
     chartType: step
@@ -79,11 +79,11 @@ layout:
 					Level:    "warning",
 					Operator: v1.LessThanOrEqualTo,
 					Value:    500,
+					Alert: v1.Alert{
+						For:  "1m",
+						Step: "1m",
+					},
 				}},
-				Alert: v1.Alert{
-					For:  "1m",
-					Step: "1m",
-				},
 				Presentation: v1.Presentation{
 					CurrentValue: false,
 					ChartType:    v1.StepChart,
@@ -138,11 +138,14 @@ metadata:
 indicators:
 - name: test_indicator
   promql: promql_query
+  thresholds:
+  - level: warning
+    lt: 500
 `))
 				d, errs := indicator.DocumentFromYAML(reader)
 				g.Expect(errs).To(BeEmpty())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(v1.Alert{
 					For:  "1m",
 					Step: "1m",
 				}))
@@ -163,12 +166,15 @@ indicators:
   promql: promql_query
   alert:
     step: 5m
+  thresholds:
+  - level: warning
+    lt: 100
 `))
 
 				d, errs := indicator.DocumentFromYAML(reader)
 				g.Expect(errs).To(BeEmpty())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(
 					v1.Alert{
 						For:  "1m",
 						Step: "5m",
@@ -190,11 +196,48 @@ indicators:
   promql: promql_query
   alert:
     for: 5m
+  thresholds:
+  - level: warning
+    eq: 0
 `))
 				d, errs := indicator.DocumentFromYAML(reader)
 				g.Expect(errs).To(BeEmpty())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(v1.Alert{
+					For:  "5m",
+					Step: "1m",
+				}))
+			})
+
+			t.Run("populates default alert for multiple thresholds", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: v0
+product:
+  name: well-performing-component
+  version: 0.0.1
+metadata:
+  deployment: valid-deployment
+
+indicators:
+- name: test_indicator
+  promql: promql_query
+  alert:
+    for: 5m
+  thresholds:
+  - level: warning
+    eq: 0
+  - level: critical
+    eq: 10
+`))
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
+
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(v1.Alert{
+					For:  "5m",
+					Step: "1m",
+				}))
+				g.Expect(d.Spec.Indicators[0].Thresholds[1].Alert).To(Equal(v1.Alert{
 					For:  "5m",
 					Step: "1m",
 				}))
@@ -327,31 +370,37 @@ indicators:
 						Level:    "warning",
 						Operator: v1.LessThan,
 						Value:    0,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.LessThanOrEqualTo,
 						Value:    1.2,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.EqualTo,
 						Value:    0.2,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.NotEqualTo,
 						Value:    123,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.GreaterThanOrEqualTo,
 						Value:    642,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.GreaterThan,
 						Value:    1.222225,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 				}))
 			})
@@ -399,6 +448,7 @@ indicators:
 					Level:    "warning",
 					Operator: v1.LessThan,
 					Value:    20,
+					Alert:    test_fixtures.DefaultAlert(),
 				}))
 			})
 		})
@@ -515,10 +565,10 @@ spec:
     - level: warning
       operator: lte
       value: 500
+      alert:
+        for: 1m
+        step: 1m
     promql: prom{deployment="$deployment"}
-    alert:
-      for: 1m
-      step: 1m
     presentation:
       currentValue: false
       chartType: step
@@ -547,11 +597,8 @@ spec:
 					Level:    "warning",
 					Operator: v1.LessThanOrEqualTo,
 					Value:    500,
+					Alert:    test_fixtures.DefaultAlert(),
 				}},
-				Alert: v1.Alert{
-					For:  "1m",
-					Step: "1m",
-				},
 				Presentation: v1.Presentation{
 					CurrentValue: false,
 					ChartType:    v1.StepChart,
@@ -610,11 +657,15 @@ spec:
   indicators:
   - name: test_indicator
     promql: promql_query
+    thresholds:
+    - level: warning
+      operator: lt
+      value: 10
 `))
 				d, errs := indicator.DocumentFromYAML(reader)
 				g.Expect(errs).To(BeEmpty())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(v1.Alert{
 					For:  "1m",
 					Step: "1m",
 				}))
@@ -638,14 +689,18 @@ spec:
   indicators:
   - name: test_indicator
     promql: promql_query
-    alert:
-      step: 5m
+    thresholds:
+    - level: warning
+      operator: lt
+      value: 10
+      alert:
+        step: 5m
 `))
 
 				d, errs := indicator.DocumentFromYAML(reader)
 				g.Expect(errs).To(BeEmpty())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(
 					v1.Alert{
 						For:  "1m",
 						Step: "5m",
@@ -669,15 +724,60 @@ spec:
   indicators:
   - name: test_indicator
     promql: promql_query
-    alert:
-      for: 5m
+    thresholds:
+    - level: warning
+      operator: lt
+      value: 10
+      alert:
+        for: 5m
 `))
 				d, errs := indicator.DocumentFromYAML(reader)
 				g.Expect(errs).To(BeEmpty())
 
-				g.Expect(d.Spec.Indicators[0].Alert).To(Equal(v1.Alert{
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(v1.Alert{
 					For:  "5m",
 					Step: "1m",
+				}))
+			})
+			t.Run("populates default alert for multiple thresholds", func(t *testing.T) {
+				g := NewGomegaWithT(t)
+				reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
+metadata:
+  labels:
+    deployment: valid-deployment
+
+spec:
+  product:
+    name: well-performing-component
+    version: 0.0.1
+  indicators:
+  - name: test_indicator
+    promql: promql_query
+    thresholds:
+    - level: warning
+      operator: lt
+      value: 10
+      alert:
+        for: 5m
+    - level: critical
+      operator: lt
+      value: 100
+      alert:
+        step: 5m
+`))
+				d, errs := indicator.DocumentFromYAML(reader)
+				g.Expect(errs).To(BeEmpty())
+
+				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(v1.Alert{
+					For:  "5m",
+					Step: "1m",
+				}))
+				g.Expect(d.Spec.Indicators[0].Thresholds[1].Alert).To(Equal(v1.Alert{
+					For:  "1m",
+					Step: "5m",
 				}))
 			})
 
@@ -845,31 +945,37 @@ spec:
 						Level:    "warning",
 						Operator: v1.LessThan,
 						Value:    0,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.LessThanOrEqualTo,
 						Value:    1.2,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.EqualTo,
 						Value:    0.2,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.NotEqualTo,
 						Value:    123,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.GreaterThanOrEqualTo,
 						Value:    642,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 					{
 						Level:    "warning",
 						Operator: v1.GreaterThan,
 						Value:    1.222225,
+						Alert:    test_fixtures.DefaultAlert(),
 					},
 				}))
 			})
@@ -1342,6 +1448,7 @@ indicators:
 			Level:    "critical",
 			Operator: v1.NotEqualTo,
 			Value:    100,
+			Alert:    test_fixtures.DefaultAlert(),
 		}))
 	})
 
@@ -1369,6 +1476,7 @@ spec:
 			Level:    "critical",
 			Operator: v1.NotEqualTo,
 			Value:    100,
+			Alert:    test_fixtures.DefaultAlert(),
 		}))
 	})
 

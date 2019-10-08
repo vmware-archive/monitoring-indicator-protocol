@@ -14,7 +14,7 @@ import (
 
 var indicators = []*v1.IndicatorDocument{
 	{
-		ObjectMeta:metav1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my_app_indicators",
 			Namespace: "monitoring",
 			Labels: map[string]string{
@@ -30,15 +30,15 @@ var indicators = []*v1.IndicatorDocument{
 				{
 					Name:   "latency",
 					PromQL: "histogram_quantile(0.9, latency)",
-					Alert: v1.Alert{
-						For:  "5m",
-						Step: "10s",
-					},
 					Thresholds: []v1.Threshold{
 						{
 							Level:    "critical",
 							Operator: v1.GreaterThanOrEqualTo,
 							Value:    float64(100.2),
+							Alert: v1.Alert{
+								For:  "5m",
+								Step: "10s",
+							},
 						},
 					},
 					Documentation: map[string]string{
@@ -50,7 +50,7 @@ var indicators = []*v1.IndicatorDocument{
 		},
 	},
 	{
-		ObjectMeta:metav1.ObjectMeta{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my_production_app_indicators",
 			Namespace: "monitoring",
 			Labels: map[string]string{
@@ -66,15 +66,15 @@ var indicators = []*v1.IndicatorDocument{
 				{
 					Name:   "average_latency",
 					PromQL: "average(latency)",
-					Alert: v1.Alert{
-						For:  "10m",
-						Step: "10s",
-					},
 					Thresholds: []v1.Threshold{
 						{
 							Level:    "warning",
 							Operator: v1.NotEqualTo,
 							Value:    float64(0),
+							Alert: v1.Alert{
+								For:  "10m",
+								Step: "10s",
+							},
 						},
 					},
 					Documentation: map[string]string{

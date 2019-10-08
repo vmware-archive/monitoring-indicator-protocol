@@ -175,7 +175,7 @@ func v0documentFromBytes(yamlBytes []byte) (v1.IndicatorDocument, error) {
 	for indicatorIndex, yamlIndicator := range d.Indicators {
 		var thresholds []v1.Threshold
 		for thresholdIndex, yamlThreshold := range yamlIndicator.Thresholds {
-			threshold, err := v0thresholdFromYAML(yamlThreshold)
+			threshold, err := v0thresholdFromYAML(yamlThreshold, v0alertFromYAML(yamlIndicator.Alert))
 			if err != nil {
 				return v1.IndicatorDocument{}, fmt.Errorf("could not unmarshal threshold %v in indicator %v", thresholdIndex, indicatorIndex)
 			}
@@ -190,7 +190,6 @@ func v0documentFromBytes(yamlBytes []byte) (v1.IndicatorDocument, error) {
 			Type:          v1.DefaultIndicator,
 			PromQL:        yamlIndicator.Promql,
 			Thresholds:    thresholds,
-			Alert:         v0alertFromYAML(yamlIndicator.Alert),
 			Presentation:  p,
 			Documentation: yamlIndicator.Documentation,
 		})
@@ -239,7 +238,7 @@ func getLayout(l *v0yamlLayout) v1.Layout {
 	}
 }
 
-func v0thresholdFromYAML(threshold v0yamlThreshold) (v1.Threshold, error) {
+func v0thresholdFromYAML(threshold v0yamlThreshold, alert v1.Alert) (v1.Threshold, error) {
 	var operator v1.ThresholdOperator
 	var value float64
 	var err error
@@ -275,6 +274,7 @@ func v0thresholdFromYAML(threshold v0yamlThreshold) (v1.Threshold, error) {
 		Level:    threshold.Level,
 		Operator: operator,
 		Value:    value,
+		Alert:    alert,
 	}, nil
 }
 

@@ -449,7 +449,6 @@ func TestDefaultValues(t *testing.T) {
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
-							"alert": { "step" : "30m" },
 							"presentation": { 
 								"chartType" : "step", 
 								"currentValue" : true,
@@ -460,7 +459,8 @@ func TestDefaultValues(t *testing.T) {
 								{
 									"operator": "gt",
 									"value": 12,
-									"level": "critical"
+									"level": "critical",
+							        "alert": { "step" : "30m" }
 								}
 							]
 						  }`)
@@ -474,7 +474,7 @@ func TestDefaultValues(t *testing.T) {
 				t.Errorf("unable to decode resp body: %s", err)
 			}
 
-			patch := []byte(`[{"op":"add","path":"/spec/alert/for","value":"1m"}]`)
+			patch := []byte(`[{"op":"add","path":"/spec/thresholds/0/alert/for","value":"1m"}]`)
 			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
 			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
 		})
@@ -490,7 +490,6 @@ func TestDefaultValues(t *testing.T) {
 			reqBody := newIndicatorRequest("UPDATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
-							"alert": { "for" : "30m" },
 							"presentation": { 
 								"chartType" : "step", 
 								"currentValue" : true,
@@ -501,7 +500,8 @@ func TestDefaultValues(t *testing.T) {
 								{
 									"operator": "gt",
 									"value": 12,
-									"level": "critical"
+									"level": "critical",
+							        "alert": { "for" : "30m" }
 								}
 							]
 						  }`)
@@ -515,7 +515,7 @@ func TestDefaultValues(t *testing.T) {
 				t.Errorf("unable to decode resp body: %s", err)
 			}
 
-			patch := []byte(`[{"op":"add","path":"/spec/alert/step","value":"1m"}]`)
+			patch := []byte(`[{"op":"add","path":"/spec/thresholds/0/alert/step","value":"1m"}]`)
 			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
 			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
 		})
@@ -555,7 +555,55 @@ func TestDefaultValues(t *testing.T) {
 				t.Errorf("unable to decode resp body: %s", err)
 			}
 
-			patch := []byte(`[{"op":"add","path":"/spec/alert","value":{"for":"1m","step":"1m"}}]`)
+			patch := []byte(`[{"op":"add","path":"/spec/thresholds/0/alert","value":{"for":"1m","step":"1m"}}]`)
+			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
+			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
+		})
+
+		t.Run("patches default alert for multiple thresholds", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			server := startServer(g)
+			defer func() {
+				_ = server.Close()
+			}()
+
+			reqBody := newIndicatorRequest("CREATE", `{
+						    "name": "latency",
+						    "promql": "rate(apiserver_request_count[5m]) * 60",
+							"presentation": { 
+								"chartType" : "step", 
+								"currentValue" : true,
+								"frequency": 10,
+								"labels": ["pod"]
+							},
+							"thresholds": [
+								{
+									"operator": "gt",
+									"value": 12,
+									"level": "critical"
+								},
+								{
+									"operator": "lt",
+									"value": 12,
+									"level": "warning"
+								}
+							]
+						  }`)
+			resp, err := http.Post(fmt.Sprintf("http://%s/defaults/indicator", server.Addr()), "application/json", reqBody)
+			g.Expect(err).To(BeNil())
+			g.Expect(resp.StatusCode).To(Equal(200))
+
+			var actualResp v1beta1.AdmissionReview
+			err = json.NewDecoder(resp.Body).Decode(&actualResp)
+			if err != nil {
+				t.Errorf("unable to decode resp body: %s", err)
+			}
+
+			patch := []byte(`[
+{"op":"add","path":"/spec/thresholds/0/alert","value":{"for":"1m","step":"1m"}},
+{"op":"add","path":"/spec/thresholds/1/alert","value":{"for":"1m","step":"1m"}}
+]`)
 			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
 			g.Expect(actualResp.Response.Patch).To(MatchJSON(patch))
 		})
@@ -571,12 +619,12 @@ func TestDefaultValues(t *testing.T) {
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
-							"alert": { "step" : "30m", "for": "5m" },
 							"thresholds": [
 								{
 									"operator": "gt",
 									"value": 12,
-									"level": "critical"
+									"level": "critical",
+							        "alert": { "step" : "30m", "for": "5m" }
 								}
 							]
 						  }`)
@@ -615,7 +663,6 @@ func TestDefaultValues(t *testing.T) {
 			reqBody := newIndicatorRequest("UPDATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
-							"alert": { "step" : "30m", "for": "5m" },
 							"presentation": { 
 								"currentValue" : true,
 								"frequency": 10,
@@ -625,7 +672,8 @@ func TestDefaultValues(t *testing.T) {
 								{
 									"operator": "gt",
 									"value": 12,
-									"level": "critical"
+									"level": "critical",
+							        "alert": { "step" : "30m", "for": "5m" }
 								}
 							]
 						  }`)
@@ -655,7 +703,6 @@ func TestDefaultValues(t *testing.T) {
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
-							"alert": { "step" : "30m", "for": "5m" },
 							"presentation": { 
 								"chartType" : "bar"
 							},
@@ -663,7 +710,8 @@ func TestDefaultValues(t *testing.T) {
 								{
 									"operator": "gt",
 									"value": 12,
-									"level": "critical"
+									"level": "critical",
+							        "alert": { "step" : "30m", "for": "5m" }
 								}
 							]
 						  }`)
@@ -697,7 +745,6 @@ func TestDefaultValues(t *testing.T) {
 			reqBody := newIndicatorRequest("UPDATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
-							"alert": { "step" : "30m" },
 							"presentation": { 
 								"currentValue" : true,
 								"frequency": 10,
@@ -707,7 +754,8 @@ func TestDefaultValues(t *testing.T) {
 								{
 									"operator": "gt",
 									"value": 12,
-									"level": "critical"
+									"level": "critical",
+							        "alert": { "step" : "30m" }
 								}
 							]
 						  }`)
@@ -721,7 +769,7 @@ func TestDefaultValues(t *testing.T) {
 				t.Errorf("unable to decode resp body: %s", err)
 			}
 			patch := []byte(`[
-{"op":"add","path":"/spec/alert/for","value": "1m"},
+{"op":"add","path":"/spec/thresholds/0/alert/for","value": "1m"},
 {"op":"add","path":"/spec/presentation/chartType","value": "step"}
 ]`)
 			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
@@ -740,7 +788,6 @@ func TestDefaultValues(t *testing.T) {
 			reqBody := newIndicatorRequest("CREATE", `{
 						    "name": "latency",
 						    "promql": "rate(apiserver_request_count[5m]) * 60",
-							"alert": { "for" : "1m", "step" : "1m" },
 							"presentation": { 
 								"chartType" : "step",
 								"currentValue" : true,
@@ -751,7 +798,8 @@ func TestDefaultValues(t *testing.T) {
 								{
 									"operator": "gt",
 									"value": 12,
-									"level": "critical"
+									"level": "critical",
+							        "alert": { "for" : "1m", "step" : "1m" }
 								}
 							]
 						  }`)
@@ -801,7 +849,6 @@ func TestDefaultValues(t *testing.T) {
 							"indicators": [{
 						    	"name": "latency",
 						    	"promql": "rate(apiserver_request_count[5m]) * 60",
-								"alert": { "step" : "30m", "for": "5m" },
 								"presentation": { 
 									"chartType" : "step", 
 									"currentValue" : true,
@@ -812,7 +859,8 @@ func TestDefaultValues(t *testing.T) {
 								{
 									"operator": "gt",
 									"value": 12,
-									"level": "critical"
+									"level": "critical",
+								    "alert": { "step" : "30m", "for": "5m" }
 								}
 							]
 							}]
@@ -896,7 +944,6 @@ func TestDefaultValues(t *testing.T) {
 							"indicators": [{
 						    	"name": "latency",
 						    	"promql": "rate(apiserver_request_count[5m]) * 60",
-								"alert": {"step": "1m"},
 								"presentation": { 
 									"chartType" : "step", 
 									"currentValue" : true,
@@ -907,7 +954,8 @@ func TestDefaultValues(t *testing.T) {
 									{
 										"operator": "gt",
 										"value": 12,
-										"level": "critical"
+										"level": "critical",
+								        "alert": {"step": "1m"}
 									}
 								]
 							}]
@@ -941,7 +989,7 @@ func TestDefaultValues(t *testing.T) {
   },
   {
     "op": "add",
-    "path": "/spec/indicators/0/alert/for",
+    "path": "/spec/indicators/0/thresholds/0/alert/for",
     "value": "1m"
   }
 ]`)
@@ -977,10 +1025,6 @@ func TestDefaultValues(t *testing.T) {
     {
       "name": "throughput",
       "promql": "rate(apiserver_request_count[5m]) * 60",
-      "alert": {
-        "step": "10m",
-        "for": "5m"
-      },
       "presentation": {
         "currentValue": true,
         "frequency": 10,
@@ -992,16 +1036,17 @@ func TestDefaultValues(t *testing.T) {
         {
           "operator": "gt",
           "value": 12,
-          "level": "critical"
+          "level": "critical",
+		  "alert": {
+			"step": "10m",
+			"for": "5m"
+		  }
         }
       ]
     },
     {
       "name": "latency",
       "promql": "rate(apiserver_request_count[5m]) * 60",
-      "alert": {
-        "step": "1m"
-      },
       "presentation": {
         "chartType": "step",
         "currentValue": true,
@@ -1014,7 +1059,10 @@ func TestDefaultValues(t *testing.T) {
         {
           "operator": "gt",
           "value": 12,
-          "level": "critical"
+          "level": "critical",
+		  "alert": {
+			"step": "1m"
+		  }
         }
       ]
     }
@@ -1032,7 +1080,7 @@ func TestDefaultValues(t *testing.T) {
 
 			patch := []byte(`[
 {"op":"add","path":"/spec/indicators/0/presentation/chartType","value":"step"},
-{"op":"add","path":"/spec/indicators/1/alert/for","value":"1m"}]`)
+{"op":"add","path":"/spec/indicators/1/thresholds/0/alert/for","value":"1m"}]`)
 			g.Expect(actualResp.Response.Patch).NotTo(BeNil())
 			g.Expect(actualResp.Response.Patch).To(unmarshalledmatchers.ContainUnorderedJSON(patch))
 		})
@@ -1060,7 +1108,6 @@ func TestDefaultValues(t *testing.T) {
 							"indicators": [{
 						    	"name": "throughput",
 						    	"promql": "rate(apiserver_request_count[5m]) * 60",
-								"alert": {"step": "10m", "for": "5m"},
 								"presentation": { 
 									"currentValue" : true,
 									"frequency": 10,
@@ -1098,7 +1145,6 @@ func TestDefaultValues(t *testing.T) {
 							"indicators": [{
 						    	"name": "latency",
 						    	"promql": "rate(apiserver_request_count[5m]) * 60",
-								"alert": { "step" : "30m", "for": "5m" },
 								"presentation": { 
 									"chartType" : "step", 
 									"currentValue" : true,
@@ -1109,7 +1155,8 @@ func TestDefaultValues(t *testing.T) {
 									{
 										"operator": "gt",
 										"value": 12,
-										"level": "critical"
+										"level": "critical",
+								  		"alert": { "step" : "30m", "for": "5m" }
 									}
 								]
 							}],

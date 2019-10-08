@@ -57,11 +57,11 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 						Level:    "critical",
 						Operator: v1.LessThan,
 						Value:    5,
+						Alert: v1.Alert{
+							For:  "10m",
+							Step: "5m",
+						},
 					}},
-					Alert: v1.Alert{
-						For:  "10m",
-						Step: "5m",
-					},
 					Documentation: map[string]string{
 						"test1": "a",
 						"test2": "b",
@@ -163,11 +163,11 @@ func TestPrometheusRulesControllerBinary(t *testing.T) {
 						Level:    "critical",
 						Operator: v1.LessThan,
 						Value:    5,
+						Alert: v1.Alert{
+							For:  "10m",
+							Step: "5m",
+						},
 					}},
-					Alert: v1.Alert{
-						For:  "10m",
-						Step: "5m",
-					},
 					Documentation: map[string]string{
 						"test1": "a",
 						"test2": "b",

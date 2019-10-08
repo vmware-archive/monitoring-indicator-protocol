@@ -21,12 +21,15 @@ spec:
     - level: warning
       operator: gte
       value: 50
+      alert:
+        for: 5m
+        step: 10s
     - level: critical
       operator: gt
       value: 100
-    alert:
-      for: 5m
-      step: 10s
+      alert:
+        for: 1m
+        step: 5s
     presentation:
       chartType: step
       currentValue: false

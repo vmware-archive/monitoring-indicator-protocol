@@ -15,3 +15,6 @@ indicators:
   alert:
     for: 50m
     step: 10s
+  thresholds:
+  - lt: 100
+    level: warning

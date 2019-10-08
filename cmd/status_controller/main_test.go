@@ -105,8 +105,8 @@ func TestStatusControllerBinary(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 		defer session.Kill()
 
-		g.Eventually(prometheusServer.ReceivedRequests).Should(HaveLen(1))
-		g.Eventually(registryServer.ReceivedRequests).Should(HaveLen(2))
+		g.Eventually(prometheusServer.ReceivedRequests, 2*time.Second).Should(HaveLen(1))
+		g.Eventually(registryServer.ReceivedRequests, 2*time.Second).Should(HaveLen(2))
 	})
 }
 

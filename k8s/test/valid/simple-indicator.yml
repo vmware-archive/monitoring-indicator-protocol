@@ -9,9 +9,9 @@ spec:
   - level: warning
     operator: gt
     value: 0
-  alert:
-    for: 40m
-    step: 8m
+    alert:
+      for: 40m
+      step: 8m
   presentation:
     frequency: 8
   product: our product

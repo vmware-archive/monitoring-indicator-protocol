@@ -193,8 +193,10 @@ func indicatorDocumentDefaultHandler(responseWriter http.ResponseWriter, r *http
 
 	patchOperations := getLayoutPatches(doc)
 	for idx, i := range doc.Spec.Indicators {
-		patchOperations = append(patchOperations,
-			getAlertPatches(i.Alert, fmt.Sprintf("/spec/indicators/%d", idx))...)
+		for t, threshold := range i.Thresholds {
+			patchOperations = append(patchOperations,
+				getAlertPatches(threshold.Alert, fmt.Sprintf("/spec/indicators/%d/thresholds/%d", idx, t))...)
+		}
 		patchOperations = append(patchOperations,
 			getPresentationPatches(i.Presentation, fmt.Sprintf("/spec/indicators/%d", idx))...)
 		patchOperations = append(patchOperations, getThresholdPatches(i.Thresholds, fmt.Sprintf("/spec/indicators/%d", idx))...)
@@ -282,7 +284,10 @@ func indicatorDefaultHandler(responseWriter http.ResponseWriter, request *http.R
 	}
 
 	var patchOperations []patch
-	patchOperations = append(patchOperations, getAlertPatches(k8sIndicator.Spec.Alert, "/spec")...)
+	for t, threshold := range k8sIndicator.Spec.Thresholds {
+		patchOperations = append(patchOperations,
+			getAlertPatches(threshold.Alert, fmt.Sprintf("/spec/thresholds/%d", t))...)
+	}
 	patchOperations = append(patchOperations, getPresentationPatches(k8sIndicator.Spec.Presentation, "/spec")...)
 	patchOperations = append(patchOperations, getThresholdPatches(k8sIndicator.Spec.Thresholds, "/spec")...)
 

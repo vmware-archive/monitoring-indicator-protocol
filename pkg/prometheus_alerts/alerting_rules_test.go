@@ -84,7 +84,7 @@ func TestAlertGeneration(t *testing.T) {
 		g = NewGomegaWithT(t)
 
 		doc := v1.IndicatorDocument{
-			ObjectMeta:metav1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{"meta-lol": "data-lol"},
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -127,18 +127,22 @@ func TestAlertGeneration(t *testing.T) {
 		g = NewGomegaWithT(t)
 
 		doc := v1.IndicatorDocument{
-			ObjectMeta:metav1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{"meta-lol": "data-lol"},
 			},
 			Spec: v1.IndicatorDocumentSpec{
 				Product: v1.Product{Name: "product-lol", Version: "beta.9"},
 				Indicators: []v1.IndicatorSpec{{
-					Name:       "indicator_lol",
-					PromQL:     "promql_expression",
-					Thresholds: []v1.Threshold{{}},
-					Alert: v1.Alert{
-						For: "40h",
-					},
+					Name:   "indicator_lol",
+					PromQL: "promql_expression",
+					Thresholds: []v1.Threshold{{
+						Level:    "boo",
+						Operator: v1.NotEqualTo,
+						Value:    0,
+						Alert: v1.Alert{
+							For: "40h",
+						},
+					}},
 				}},
 			},
 		}
@@ -150,8 +154,8 @@ func TestAlertGeneration(t *testing.T) {
 		g = NewGomegaWithT(t)
 
 		doc := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{},
-			ObjectMeta:metav1.ObjectMeta{
+			TypeMeta: metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{"meta-lol": "data-lol"},
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -163,10 +167,10 @@ func TestAlertGeneration(t *testing.T) {
 						Level:    "warning",
 						Operator: v1.LessThan,
 						Value:    0,
+						Alert: v1.Alert{
+							Step: "12m",
+						},
 					}},
-					Alert: v1.Alert{
-						Step: "12m",
-					},
 				}},
 			},
 		}
@@ -177,10 +181,10 @@ func TestAlertGeneration(t *testing.T) {
 	t.Run("creates a filename based on product name and document contents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		document := v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: "v1",
 			},
-			ObjectMeta:metav1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{"deployment": "test_deployment"},
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -191,11 +195,11 @@ func TestAlertGeneration(t *testing.T) {
 				Indicators: []v1.IndicatorSpec{{
 					Name:   "test_indicator",
 					PromQL: `test_query{deployment="test_deployment"}`,
-					Alert:  test_fixtures.DefaultAlert(),
 					Thresholds: []v1.Threshold{{
 						Level:    "critical",
 						Operator: v1.LessThan,
 						Value:    5,
+						Alert:    test_fixtures.DefaultAlert(),
 					}},
 					Presentation:  test_fixtures.DefaultPresentation(),
 					Documentation: map[string]string{"title": "Test Indicator Title"},

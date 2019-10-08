@@ -77,7 +77,6 @@ type IndicatorSpec struct {
 	Name          string            `json:"name"`
 	Type          IndicatorType     `json:"type"`
 	PromQL        string            `json:"promql"`
-	Alert         Alert             `json:"alert,omitempty"`
 	Thresholds    []Threshold       `json:"thresholds,omitempty"`
 	Documentation map[string]string `json:"documentation,omitempty"`
 	Presentation  Presentation      `json:"presentation,omitempty"`
@@ -173,6 +172,7 @@ type Threshold struct {
 	Level    string            `json:"level"`
 	Operator ThresholdOperator `json:"operator"`
 	Value    float64           `json:"value"`
+	Alert    Alert             `json:"alert,omitempty"`
 }
 
 type ThresholdOperator int

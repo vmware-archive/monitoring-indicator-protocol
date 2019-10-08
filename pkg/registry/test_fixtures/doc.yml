@@ -10,9 +10,6 @@ indicators:
 - name: indie1
   promql: promql1
   thresholds: []
-  alert:
-    for: 5m
-    step: 10s
   presentation:
     chartType: step
     currentValue: false
@@ -23,10 +20,6 @@ indicators:
 - name: indie2
   promql: promql2
   thresholds: []
-  alert:
-    for: 5m
-    step: 10s
-    objective: 99.99
   presentation:
     chartType: status
     currentValue: false

@@ -18,11 +18,17 @@
           "name": "indie1",
           "type": "other",
           "promql": "promql1",
-          "thresholds": [],
-          "alert": {
-            "for": "5m",
-            "step": "10s"
-          },
+          "thresholds": [
+            {
+              "level": "uh-oh",
+              "operator": "eq",
+              "value": 1000,
+              "alert": {
+                "for": "100h",
+                "step": "9m"
+              }
+            }
+          ],
           "presentation": {
             "chartType": "step",
             "currentValue": false,
@@ -37,10 +43,6 @@
           "type": "other",
           "promql": "promql2",
           "thresholds": [],
-          "alert": {
-            "for": "5m",
-            "step": "10s"
-          },
           "presentation": {
             "chartType": "status",
             "currentValue": false,

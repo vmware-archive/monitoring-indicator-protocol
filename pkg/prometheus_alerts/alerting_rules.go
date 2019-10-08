@@ -57,12 +57,12 @@ func ruleFrom(document v1.IndicatorDocument, i v1.IndicatorSpec, threshold v1.Th
 		labels[k] = v
 	}
 
-	interpolatedPromQl := strings.Replace(i.PromQL, "$step", i.Alert.Step, -1)
+	interpolatedPromQl := strings.Replace(i.PromQL, "$step", threshold.Alert.Step, -1)
 
 	return Rule{
 		Alert:       i.Name,
 		Expr:        fmt.Sprintf("%s %s %+v", interpolatedPromQl, v1.GetComparatorSymbol(threshold.Operator), threshold.Value),
-		For:         i.Alert.For,
+		For:         threshold.Alert.For,
 		Labels:      labels,
 		Annotations: i.Documentation,
 	}

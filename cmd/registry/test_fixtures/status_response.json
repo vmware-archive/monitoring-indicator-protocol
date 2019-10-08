@@ -18,11 +18,17 @@
         {
           "name": "very_good_indicator",
           "promql": "test_query",
-          "thresholds": [],
-          "alert": {
-            "for": "50m",
-            "step": "10s"
-          },
+          "thresholds": [
+            {
+              "level": "warning",
+              "operator": "lt",
+              "value": 100,
+              "alert": {
+                "for": "50m",
+                "step": "10s"
+              }
+            }
+          ],
           "presentation": {
             "chartType": "step",
             "currentValue": false,

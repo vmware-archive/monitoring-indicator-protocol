@@ -66,11 +66,13 @@ func populateDefaultPresentation(doc *IndicatorDocument) {
 
 func populateDefaultAlert(doc *IndicatorDocument) {
 	for i, indicator := range doc.Spec.Indicators {
-		if indicator.Alert.For == "" {
-			doc.Spec.Indicators[i].Alert.For = "1m"
-		}
-		if indicator.Alert.Step == "" {
-			doc.Spec.Indicators[i].Alert.Step = "1m"
+		for t, threshold := range indicator.Thresholds {
+			if threshold.Alert.For == "" {
+				doc.Spec.Indicators[i].Thresholds[t].Alert.For = "1m"
+			}
+			if threshold.Alert.Step == "" {
+				doc.Spec.Indicators[i].Thresholds[t].Alert.Step = "1m"
+			}
 		}
 	}
 }

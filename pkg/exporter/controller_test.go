@@ -135,12 +135,12 @@ func TestController(t *testing.T) {
 					Indicators: []registry.APIIndicatorResponse{{
 						Name:         "test_indicator",
 						PromQL:       `test_query{deployment="test_deployment"}`,
-						Alert:        test_fixtures.DefaultAPIAlertResponse(),
 						Presentation: test_fixtures.DefaultAPIPresentationResponse(),
 						Thresholds: []registry.APIThresholdResponse{{
 							Level:    "critical",
 							Operator: "lt",
 							Value:    5,
+							Alert:    test_fixtures.DefaultAPIAlertResponse(),
 						}},
 					}},
 					Layout: test_fixtures.DefaultAPILayoutResponse([]string{"test_indicator"}),
@@ -180,12 +180,12 @@ func TestController(t *testing.T) {
 				Indicators: []registry.APIIndicatorResponse{{
 					Name:         "test_indicator",
 					PromQL:       `test_query{deployment="test_deployment"}`,
-					Alert:        test_fixtures.DefaultAPIAlertResponse(),
 					Presentation: test_fixtures.DefaultAPIPresentationResponse(),
 					Thresholds: []registry.APIThresholdResponse{{
 						Level:    "critical",
 						Operator: "lt",
 						Value:    5,
+						Alert:    test_fixtures.DefaultAPIAlertResponse(),
 					}},
 				}},
 				Layout: test_fixtures.DefaultAPILayoutResponse([]string{"test_indicator"}),
@@ -215,12 +215,12 @@ func TestController(t *testing.T) {
 					Indicators: []registry.APIIndicatorResponse{{
 						Name:         "test_indicator",
 						PromQL:       `test_query{deployment="test_deployment"}`,
-						Alert:        test_fixtures.DefaultAPIAlertResponse(),
 						Presentation: test_fixtures.DefaultAPIPresentationResponse(),
 						Thresholds: []registry.APIThresholdResponse{{
 							Level:    "critical",
 							Operator: "lt",
 							Value:    5,
+							Alert:    test_fixtures.DefaultAPIAlertResponse(),
 						}},
 					}},
 					Layout: test_fixtures.DefaultAPILayoutResponse([]string{"test_indicator"}),
@@ -270,7 +270,7 @@ func TestReloading(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1, api_versions.V1,),
+			Documents: createTestDocuments(1, api_versions.V1, ),
 		}
 
 		mockReloader := mockReloader{}
@@ -364,11 +364,11 @@ func createTestDocuments(count int, apiVersion string) []registry.APIDocumentRes
 				Indicators: []registry.APIIndicatorResponse{{
 					Name:   indicatorName,
 					PromQL: `test_query{deployment="test_deployment"}`,
-					Alert:  test_fixtures.DefaultAPIAlertResponse(),
 					Thresholds: []registry.APIThresholdResponse{{
 						Level:    "critical",
 						Operator: testComparators[i],
 						Value:    5,
+						Alert:    test_fixtures.DefaultAPIAlertResponse(),
 					}},
 					Presentation: test_fixtures.DefaultAPIPresentationResponse(),
 					Documentation: map[string]string{

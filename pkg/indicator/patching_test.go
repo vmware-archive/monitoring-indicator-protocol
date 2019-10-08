@@ -298,6 +298,7 @@ indicators:
 			Level:    "warning",
 			Operator: v1.GreaterThan,
 			Value:    1000,
+			Alert:    test_fixtures.DefaultAlert(),
 		}))
 	})
 
@@ -410,6 +411,7 @@ spec:
 			Level:    "warning",
 			Operator: v1.GreaterThan,
 			Value:    1000,
+			Alert:    test_fixtures.DefaultAlert(),
 		}))
 	})
 
@@ -472,6 +474,7 @@ spec:
 			Level:    "warning",
 			Operator: v1.GreaterThan,
 			Value:    800,
+			Alert:    test_fixtures.DefaultAlert(),
 		}))
 	})
 
@@ -789,11 +792,13 @@ spec:
 				Level:    "warning",
 				Operator: v1.GreaterThan,
 				Value:    800,
+				Alert:    test_fixtures.DefaultAlert(),
 			},
 			{
 				Level:    "critical",
 				Operator: v1.GreaterThan,
 				Value:    5000,
+				Alert:    test_fixtures.DefaultAlert(),
 			},
 		}))
 	})

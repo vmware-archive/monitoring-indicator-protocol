@@ -9,33 +9,33 @@ spec:
   indicators:
   - name: file_descriptor_consumption
     promql: rabbitmq_fd_used / rabbitmq_fd_total
-    alert: { for: 10m }
     thresholds:
     - level: critical
       operator: gt
       value: .8
+      alert: { for: 10m }
   - name: memory_consumption
     promql: rabbitmq_node_mem_used / rabbitmq_node_mem_limit
-    alert: { for: 10m }
     thresholds:
     - level: critical
       operator: gt
       value: .8
+      alert: { for: 10m }
   - name: disk_remaining
     promql: rabbitmq_node_disk_free - rabbitmq_node_disk_free_limit
-    alert: { for: 10m }
     thresholds:
     - level: critical
       oeprator: lt
       value: 1000000000
+      alert: { for: 10m }
   - name: messages_rate
     promql: rate(rabbitmq_queue_messages_total[5m])
-    alert:
-      for: 10s
     thresholds:
     - level: warning
       operator: gt
       value: 0.02
+      alert:
+        for: 10s
   layout:
     title: RabbitMQ
     sections:

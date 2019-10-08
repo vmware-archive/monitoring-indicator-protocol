@@ -19,10 +19,6 @@
           "type": "other",
           "promql": "promql1",
           "thresholds": [],
-          "alert": {
-            "for": "1m",
-            "step": "1m"
-          },
           "presentation": {
             "chartType": "step",
             "currentValue": false,

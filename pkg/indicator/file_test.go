@@ -1,6 +1,7 @@
 package indicator_test
 
 import (
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -18,13 +19,13 @@ func TestUpdateMetadata(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d).To(BeEquivalentTo(v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				Kind:       "IndicatorDocument",
 				APIVersion: api_versions.V1,
 			},
-			ObjectMeta:metav1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{
-					"deployment": "well-performing-deployment",
+					"deployment":  "well-performing-deployment",
 					"some_number": "450",
 				},
 			},
@@ -34,10 +35,6 @@ func TestUpdateMetadata(t *testing.T) {
 					{
 						Name:   "test_performance_indicator",
 						PromQL: `query_metric{source_id="well-performing-deployment"}`,
-						Alert: v1.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
 						Presentation: v1.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
@@ -49,6 +46,7 @@ func TestUpdateMetadata(t *testing.T) {
 								Level:    "critical",
 								Operator: v1.GreaterThanOrEqualTo,
 								Value:    450,
+								Alert: test_fixtures.DefaultAlert(),
 							},
 						},
 					},
@@ -67,14 +65,14 @@ func TestUpdateMetadata(t *testing.T) {
 	t.Run("it does not replaces promql $EXPR with metadata tags when passed flag", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		d, err := indicator.ReadFile("test_fixtures/doc.yml", indicator.SkipMetadataInterpolation)
-			g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(d).To(Equal(v1.IndicatorDocument{
-			TypeMeta:metav1.TypeMeta{
+			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
 				Kind:       "IndicatorDocument",
 			},
-			ObjectMeta:metav1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Labels: map[string]string{"deployment": "well-performing-deployment"},
 			},
 			Spec: v1.IndicatorDocumentSpec{
@@ -83,10 +81,6 @@ func TestUpdateMetadata(t *testing.T) {
 					{
 						Name:   "test_performance_indicator",
 						PromQL: `query_metric{source_id="$deployment"}`,
-						Alert: v1.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
 						Presentation: v1.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",

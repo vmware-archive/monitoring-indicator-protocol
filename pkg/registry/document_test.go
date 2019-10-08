@@ -31,17 +31,17 @@ func TestDocumentTranslation(t *testing.T) {
 				},
 				Indicators: []registry.APIIndicatorResponse{{
 					Name:   "performance-indicator",
-					Type: "other",
+					Type:   "other",
 					PromQL: "someQuery",
 					Thresholds: []registry.APIThresholdResponse{{
 						Level:    "warning",
 						Operator: "lte",
 						Value:    100,
+						Alert: registry.APIAlertResponse{
+							For:  "30s",
+							Step: "5s",
+						},
 					}},
-					Alert: registry.APIAlertResponse{
-						For:  "30s",
-						Step: "5s",
-					},
 					Documentation: map[string]string{
 						"anotherKey": "anotherValue",
 					},
@@ -85,14 +85,14 @@ func TestDocumentTranslation(t *testing.T) {
 				Indicators: []v1.IndicatorSpec{{
 					Name:   "performance-indicator",
 					PromQL: "someQuery",
-					Alert: v1.Alert{
-						For:  "30s",
-						Step: "5s",
-					},
 					Thresholds: []v1.Threshold{{
 						Level:    "warning",
 						Operator: v1.LessThanOrEqualTo,
 						Value:    100,
+						Alert: v1.Alert{
+							For:  "30s",
+							Step: "5s",
+						},
 					}},
 					Documentation: map[string]string{
 						"anotherKey": "anotherValue",

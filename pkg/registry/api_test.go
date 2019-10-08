@@ -81,10 +81,6 @@ indicators:
 					Indicators: []v1.IndicatorSpec{{
 						Name:   "test_performance_indicator",
 						PromQL: "prom",
-						Alert: v1.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
 						Presentation: v1.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
@@ -96,6 +92,10 @@ indicators:
 								Level:    "warning",
 								Operator: v1.GreaterThanOrEqualTo,
 								Value:    50,
+								Alert: v1.Alert{
+									For:  "1m",
+									Step: "1m",
+								},
 							},
 						},
 					},
@@ -157,10 +157,6 @@ spec:
 					Indicators: []v1.IndicatorSpec{{
 						Name:   "test_performance_indicator",
 						PromQL: "prom",
-						Alert: v1.Alert{
-							For:  "1m",
-							Step: "1m",
-						},
 						Presentation: v1.Presentation{
 							CurrentValue: false,
 							ChartType:    "step",
@@ -172,6 +168,10 @@ spec:
 								Level:    "warning",
 								Operator: v1.GreaterThanOrEqualTo,
 								Value:    50,
+								Alert: v1.Alert{
+									For:  "1m",
+									Step: "1m",
+								},
 							},
 						},
 					},
@@ -411,7 +411,6 @@ func TestIndicatorDocumentsHandler(t *testing.T) {
 				Indicators: []v1.IndicatorSpec{{
 					Name:          "indie1",
 					PromQL:        "promql1",
-					Alert:         test_fixtures.DefaultAlert(),
 					Documentation: map[string]string{" % ": "{0}", "%n": "%*.*s"},
 					Presentation:  test_fixtures.DefaultPresentation(),
 				}},
@@ -449,18 +448,19 @@ func makeIndicatorDocument(labels map[string]string) v1.IndicatorDocument {
 			Indicators: []v1.IndicatorSpec{{
 				Name:   "indie1",
 				PromQL: "promql1",
-				Alert: v1.Alert{
-					For:  "5m",
-					Step: "10s",
-				},
+				Thresholds: []v1.Threshold{{
+					Level:    "uh-oh",
+					Operator: v1.EqualTo,
+					Value:    1000,
+					Alert:    v1.Alert{
+						For:  "100h",
+						Step: "9m",
+					},
+				}},
 				Presentation: test_fixtures.DefaultPresentation(),
 			}, {
 				Name:   "indie2",
 				PromQL: "promql2",
-				Alert: v1.Alert{
-					For:  "5m",
-					Step: "10s",
-				},
 				Presentation: v1.Presentation{
 					ChartType:    "status",
 					CurrentValue: false,

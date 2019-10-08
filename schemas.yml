@@ -95,13 +95,13 @@ IndicatorSpec:
             enum: [lt, lte, gt, gte, eq, neq]
           value:
             type: number
-    alert:
-      type: object
-      properties:
-        for:
-          type: string # not currently validated as duration
-        step:
-          type: string # not currently validated as duration
+          alert:
+            type: object
+            properties:
+              for:
+                type: string # not currently validated as duration
+              step:
+                type: string # not currently validated as duration
     presentation:
       type: object
       properties:

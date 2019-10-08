@@ -34,9 +34,10 @@ type APIProductResponse struct {
 }
 
 type APIThresholdResponse struct {
-	Level    string  `json:"level"`
-	Operator string  `json:"operator"`
-	Value    float64 `json:"value"`
+	Level    string           `json:"level"`
+	Operator string           `json:"operator"`
+	Value    float64          `json:"value"`
+	Alert    APIAlertResponse `json:"alert"`
 }
 
 type APIPresentationResponse struct {
@@ -52,7 +53,6 @@ type APIIndicatorResponse struct {
 	Type          string                      `json:"type"`
 	PromQL        string                      `json:"promql"`
 	Thresholds    []APIThresholdResponse      `json:"thresholds"`
-	Alert         APIAlertResponse            `json:"alert"`
 	Documentation map[string]string           `json:"documentation,omitempty"`
 	Presentation  APIPresentationResponse     `json:"presentation"`
 	Status        *APIIndicatorStatusResponse `json:"status"`
@@ -113,13 +113,9 @@ func convertIndicator(i APIIndicatorResponse) v1.IndicatorSpec {
 	thresholds := ConvertThresholds(apiThresholds)
 
 	return v1.IndicatorSpec{
-		Name:   i.Name,
-		Type:   v1.IndicatorTypeFromString(i.Type),
-		PromQL: i.PromQL,
-		Alert: v1.Alert{
-			For:  i.Alert.For,
-			Step: i.Alert.Step,
-		},
+		Name:          i.Name,
+		Type:          v1.IndicatorTypeFromString(i.Type),
+		PromQL:        i.PromQL,
 		Thresholds:    thresholds,
 		Documentation: i.Documentation,
 		Presentation: v1.Presentation{
@@ -144,6 +140,10 @@ func convertThreshold(t APIThresholdResponse) v1.Threshold {
 		Level:    t.Level,
 		Operator: v1.GetComparatorFromString(t.Operator),
 		Value:    t.Value,
+		Alert: v1.Alert{
+			For:  t.Alert.For,
+			Step: t.Alert.Step,
+		},
 	}
 }
 
@@ -184,6 +184,10 @@ func ToAPIDocumentResponse(doc v1.IndicatorDocument) APIDocumentResponse {
 				Level:    t.Level,
 				Operator: v1.GetComparatorAbbrev(t.Operator),
 				Value:    t.Value,
+				Alert: APIAlertResponse{
+					For:  t.Alert.For,
+					Step: t.Alert.Step,
+				},
 			})
 		}
 		labels := make([]string, 0)
@@ -198,17 +202,11 @@ func ToAPIDocumentResponse(doc v1.IndicatorDocument) APIDocumentResponse {
 			Units:        i.Presentation.Units,
 		}
 
-		alert := APIAlertResponse{
-			For:  i.Alert.For,
-			Step: i.Alert.Step,
-		}
-
 		indicators = append(indicators, APIIndicatorResponse{
 			Name:          i.Name,
 			Type:          v1.IndicatorTypeToString(i.Type),
 			PromQL:        i.PromQL,
 			Thresholds:    thresholds,
-			Alert:         alert,
 			Documentation: i.Documentation,
 			Presentation:  presentation,
 			Status:        getStatus(doc, i),

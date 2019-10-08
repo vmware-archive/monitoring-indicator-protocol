@@ -9,11 +9,11 @@ spec:
   indicators:
   - name: doc_performance_indicator
     promql: rate(apiserver_request_count{resource="pods"}[5m]) * 60
-    alert: { for: 10m }
     thresholds:
     - level: critical
       operator: gt
       value: 375
+      alert: { for: 10m }
   layout:
     title: API server
     sections:
