@@ -78,6 +78,7 @@ func createHandlers(localRegistryAddr string, registryAddrs []string, tlsConfig 
 	}
 	localRegistryHandler := httputil.NewSingleHostReverseProxy(localRegistryURL)
 
+	// TODO: should we extract this config and use it everywhere?
 	localRegistryHandler.Transport = &http.Transport{
 		TLSClientConfig: tlsConfig,
 		Proxy:           http.ProxyFromEnvironment,

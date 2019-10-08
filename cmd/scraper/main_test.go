@@ -112,7 +112,7 @@ func TestScraper(t *testing.T) {
 			var docs []v1.IndicatorDocument
 			err = yaml.Unmarshal(responseBytes, &docs)
 			return docs, err
-		}).Should(HaveLen(1))
+		}, 5*time.Second).Should(HaveLen(1))
 
 		response1, err := localClient.Get(getDocumentsUrl)
 		g.Expect(err).ToNot(HaveOccurred())
@@ -169,14 +169,15 @@ func startScraper(g *GomegaWithT, localConfig proxyConfig, remoteConfig proxyCon
 	cmd := exec.Command(
 		binPath,
 		"--interval", "1s",
+		"--source-name", "my-fabulous-foundation",
 		"--local-key-path", localConfig.ClientKey,
 		"--remote-key-path", remoteConfig.ClientKey,
 		"--local-pem-path", localConfig.ClientCert,
 		"--remote-pem-path", remoteConfig.ClientCert,
 		"--local-root-ca-pem", localConfig.CaCert,
 		"--remote-root-ca-pem", remoteConfig.CaCert,
-		"--local-registry-addr", fmt.Sprintf("localhost:%d", localConfig.RegistryPort),
-		"--remote-registry-addr", fmt.Sprintf("localhost:%d", remoteConfig.RegistryPort),
+		"--local-registry-addr", fmt.Sprintf("http://localhost:%d", localConfig.RegistryPort),
+		"--remote-registry-addr", fmt.Sprintf("http://localhost:%d", remoteConfig.RegistryPort),
 		"--local-server-cn", "localhost",
 		"--remote-server-cn", "localhost",
 	)

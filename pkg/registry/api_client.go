@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/ghodss/yaml"
+
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 type RegistryApiClient struct {
@@ -24,7 +28,7 @@ func NewAPIClient(serverURL string, client *http.Client) *RegistryApiClient {
 func (c *RegistryApiClient) IndicatorDocuments() ([]APIDocumentResponse, error) {
 	payload, e := c.indicatorResponse()
 	if e != nil {
-		return nil, errors.New("failed to get indicator documents")
+		return nil, errors.New(fmt.Sprintf("failed to get indicator documents: %s", e))
 	}
 
 	var d []APIDocumentResponse
@@ -62,6 +66,20 @@ func (c *RegistryApiClient) BulkStatusUpdate(statusUpdates []APIV0UpdateIndicato
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("error response from status updates: %s", resp.Status)
 	}
+
+	return nil
+}
+
+func (c *RegistryApiClient) Register(document v1.IndicatorDocument) error {
+	docBytes, err := yaml.Marshal(document)
+	if err != nil {
+		return err
+	}
+	resp, err := c.client.Post(c.serverURL+"/v1/register", "application/yml", bytes.NewReader(docBytes))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
 	return nil
 }

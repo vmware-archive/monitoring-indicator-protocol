@@ -1,13 +1,13 @@
 [
   {
     "apiVersion": "indicatorprotocol.io/v1",
-    "uid": "my-component-62a5511746dfd09059ced03b2ed73ff0ae942421",
+    "uid": "my-component-73f0ae272c6aa7b0d0cf276af4c1faefb89a2886",
     "kind": "IndicatorDocument",
     "metadata": {
       "labels": {
         "deployment": "my-service-deployment",
         "source_id": "my-metric-source",
-        "source_foundation": ">???"
+        "source_name": "my-fabulous-foundation"
       }
     },
     "spec": {
@@ -36,7 +36,7 @@
         },
         {
           "name": "doc_performance_indicator",
-          "type": "other",
+          "type": "kpi",
           "promql": "avg_over_time(demo_latency{source_id=\"my-metric-source\",deployment=\"my-service-deployment\"}[5m])",
           "status": null,
           "thresholds": [

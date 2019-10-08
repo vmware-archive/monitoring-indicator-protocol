@@ -92,7 +92,7 @@ func schemasYml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "schemas.yml", size: 2583, mode: os.FileMode(420), modTime: time.Unix(1569349547, 0)}
+	info := bindataFileInfo{name: "schemas.yml", size: 2583, mode: os.FileMode(420), modTime: time.Unix(1570043515, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
