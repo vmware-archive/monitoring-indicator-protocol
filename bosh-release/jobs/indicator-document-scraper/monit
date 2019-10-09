@@ -1,0 +1,5 @@
+check process indicator-document-scraper
+  with pidfile /var/vcap/sys/run/bpm/indicator-document-scraper/indicator-document-scraper.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start indicator-document-scraper"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop indicator-document-scraper" with timeout 60 seconds
+  group vcap

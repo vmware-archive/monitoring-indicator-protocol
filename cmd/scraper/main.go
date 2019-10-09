@@ -10,19 +10,21 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
+// TODO: dockerize?
+
 func main() {
-	interval := flag.Duration("interval", 60*time.Second, "TODO")
-	sourceName := flag.String("source-name", "", "TODO")
-	localKey := flag.String("local-key-path", "", "TODO")
-	remoteKey := flag.String("remote-key-path", "", "TODO")
-	localPem := flag.String("local-pem-path", "", "TODO")
-	remotePem := flag.String("remote-pem-path", "", "TODO")
-	localCaPem := flag.String("local-root-ca-pem", "", "TODO")
-	remoteCaPem := flag.String("remote-root-ca-pem", "", "TODO")
-	localAddr := flag.String("local-registry-addr", "", "TODO")
-	remoteAddr := flag.String("remote-registry-addr", "", "TODO")
-	localCommonName := flag.String("local-server-cn", "", "TODO")
-	remoteCommonName := flag.String("remote-server-cn", "", "TODO")
+	interval := flag.Duration("interval", 60*time.Second, "Scrape interval")
+	sourceName := flag.String("source-name", "", "Additional metadata value that will appear in the scraped documents (e.g. foundation name)")
+	localKey := flag.String("local-key-path", "", "Local registry client key path")
+	remoteKey := flag.String("remote-key-path", "", "Remote registry client key path")
+	localPem := flag.String("local-pem-path", "", "Local registry client cert path")
+	remotePem := flag.String("remote-pem-path", "", "Remote registry client cert path")
+	localCaPem := flag.String("local-root-ca-pem", "", "Local registry ca path")
+	remoteCaPem := flag.String("remote-root-ca-pem", "", "Remote registry ca path")
+	localAddr := flag.String("local-registry-addr", "", "Local registry URL")
+	remoteAddr := flag.String("remote-registry-addr", "", "Remote registry URL")
+	localCommonName := flag.String("local-server-cn", "", "Local registry server name")
+	remoteCommonName := flag.String("remote-server-cn", "", "Remote registry server name")
 	flag.Parse()
 
 	remoteTlsClientConfig, err := mtls.NewClientConfig(*remotePem, *remoteKey, *remoteCaPem, *remoteCommonName)

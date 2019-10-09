@@ -1,0 +1,30 @@
+---
+processes:
+- name: indicator-document-scraper
+  executable: /var/vcap/packages/indicator-protocol/scraper
+  ephemeral_disk: true
+  args:
+  - --source-name
+  - <%= p('source_name') %>
+<% if_link('indicator-registry') do |ir| %>
+  - --local-registry-addr
+  - https://<%= ir.address %>:<%= ir.p('port') %>
+  - --local-server-cn
+  - <%= ir.p('tls.server_common_name') %>
+<% end %>
+  - --local-pem-path
+  - /var/vcap/jobs/indicator-document-scraper/certs/local_client.crt
+  - --local-key-path
+  - /var/vcap/jobs/indicator-document-scraper/certs/local_client.key
+  - --local-root-ca-pem
+  - /var/vcap/jobs/indicator-document-scraper/certs/local_ca.crt
+  - --remote-registry-addr
+  - <%= p('remote_registry_address') %>
+  - --remote-pem-path
+  - /var/vcap/jobs/indicator-document-scraper/certs/remote_client.crt
+  - --remote-key-path
+  - /var/vcap/jobs/indicator-document-scraper/certs/remote_client.key
+  - --remote-server-cn
+  - <%= p('tls.remote_server_name') %>
+  - --remote-root-ca-pem
+  - /var/vcap/jobs/indicator-document-scraper/certs/remote_ca.crt
