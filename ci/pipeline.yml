@@ -159,11 +159,11 @@ resources:
     bucket: monitoring-indicator-protocol-releases
     json_key: ((gcp-service-account))
     regexp: dev/indicator-protocol-bosh-(.*).tgz
-- name: evening
+- name: morning
   type: time
   source:
-    start: 6:00 PM
-    stop: 12:00 AM
+    start: 6:00 AM
+    stop: 7:00 AM
     location: America/Denver
     days: [Monday, Tuesday, Wednesday, Thursday, Friday]
 - name: monitoring-indicator-protocol-release
@@ -872,7 +872,7 @@ jobs:
 - name: create-dev-release
   plan:
   - in_parallel:
-    - get: evening
+    - get: morning
       trigger: true
     - get: monitoring-indicator-protocol
       passed: [indicator-verification,indicator-docs,deploy-indicator-registry-to-madlamp,promote-docker-images]
