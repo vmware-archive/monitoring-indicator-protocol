@@ -2,6 +2,7 @@
 name: indicator-document-scraper
 
 templates:
+  scrape_configs.yml.erb: config/scrape_configs.yml
   bpm.yml.erb: config/bpm.yml
   local_ca.crt.erb: certs/local_ca.crt
   local_client.crt.erb: certs/local_client.crt
@@ -18,6 +19,9 @@ consumes:
   type: indicator-registry
 
 properties:
+  scrape_configs:
+    description: "Scrape configs"
+    default: []
   source_name:
     description: "Additional metadata value that will appear in the scraped documents (e.g. foundation name)"
   remote_registry_address:

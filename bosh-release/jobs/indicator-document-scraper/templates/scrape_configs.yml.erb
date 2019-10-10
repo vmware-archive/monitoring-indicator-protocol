@@ -1,0 +1,2 @@
+scrape_configs:
+<% if p("scrape_configs").present? %><%= YAML.dump(p("scrape_configs")).sub("---\n", "") %><% end %>
