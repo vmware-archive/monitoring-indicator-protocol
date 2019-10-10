@@ -13,7 +13,7 @@ import (
 
 	"net/http"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry_proxy"
 )
 
@@ -44,11 +44,11 @@ func main() {
 
 	address := fmt.Sprintf("%s:%d", *host, *port)
 
-	tlsConfig, err := mtls.NewServerConfig(*rootCACert)
+	tlsConfig, err := tls_config.NewServerConfig(*rootCACert)
 	if err != nil {
 		log.Fatalf("Error with creating mTLS server config: %s", err)
 	}
-	tlsClientConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
+	tlsClientConfig, err := tls_config.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
 		log.Fatalf("Error with creating mTLS client config: %s", err)
 	}

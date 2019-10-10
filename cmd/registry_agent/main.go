@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -27,7 +27,7 @@ func main() {
 
 	startMetricsEndpoint()
 
-	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
+	tlsConfig, err := tls_config.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
 		log.Fatal("Could not create registry agent, failed to create mTLS HTTP client")
 	}

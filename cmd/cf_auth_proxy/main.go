@@ -16,7 +16,7 @@ import (
 	uaa "code.cloudfoundry.org/uaa-go-client"
 	uaaConfig "code.cloudfoundry.org/uaa-go-client/config"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 )
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 
 	address := fmt.Sprintf("%s:%s", *host, *port)
 
-	tlsClientConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
+	tlsClientConfig, err := tls_config.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
 		log.Fatalf("Error with creating mTLS client config: %s", err)
 	}

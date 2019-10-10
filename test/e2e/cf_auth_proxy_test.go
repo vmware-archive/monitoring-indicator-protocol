@@ -17,7 +17,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 )
 
 const (
@@ -41,7 +41,7 @@ const (
 var (
 	getDocumentsUrlString = fmt.Sprintf("https://localhost:%s/v1/indicator-documents", cfAuthProxyPort)
 
-	tlsConfig, _ = mtls.NewSingleAuthClientConfig(rootCaCert, "localhost")
+	tlsConfig, _ = tls_config.NewSingleAuthClientConfig(rootCaCert, "localhost")
 	client       = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: tlsConfig,

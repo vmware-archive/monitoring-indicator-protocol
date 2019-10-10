@@ -10,7 +10,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -25,7 +25,7 @@ func main() {
 
 	flag.Parse()
 
-	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
+	tlsConfig, err := tls_config.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
 		log.Fatal("construction of grafana_dashboard_controller failed, could not create mTLS HTTP client")
 	}

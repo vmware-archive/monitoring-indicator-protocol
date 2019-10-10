@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 )
 
 var (
@@ -26,7 +26,7 @@ var (
 
 func TestIndicatorRegistryProxy(t *testing.T) {
 	g := NewGomegaWithT(t)
-	tlsConfig, err := mtls.NewClientConfig(clientCert, clientKey, rootCACert, "localhost")
+	tlsConfig, err := tls_config.NewClientConfig(clientCert, clientKey, rootCACert, "localhost")
 	g.Expect(err).ToNot(HaveOccurred())
 
 	client := &http.Client{

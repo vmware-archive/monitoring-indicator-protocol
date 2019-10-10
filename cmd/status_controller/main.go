@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator_status"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
@@ -29,7 +29,7 @@ func main() {
 
 	checkRequiredFlagsArePresent(*registryURI, *prometheusURI, *clientPEM, *clientKey, *rootCACert, *oauthHost, *oauthClientID, *oauthClientSecret)
 
-	tlsConfig, err := mtls.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
+	tlsConfig, err := tls_config.NewClientConfig(*clientPEM, *clientKey, *rootCACert, *serverCommonName)
 	if err != nil {
 		log.Fatal("failed to create mTLS HTTP client")
 	}

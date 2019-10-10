@@ -14,7 +14,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 )
 
 var (
@@ -55,7 +55,7 @@ func TestIndicatorRegistryAgent(t *testing.T) {
 		r := mux.NewRouter()
 		r.HandleFunc("/v1/register", handler).Methods("POST")
 
-		tlsConfig, err := mtls.NewServerConfig(rootCACert)
+		tlsConfig, err := tls_config.NewServerConfig(rootCACert)
 		g.Expect(err).NotTo(HaveOccurred())
 
 		server := &http.Server{

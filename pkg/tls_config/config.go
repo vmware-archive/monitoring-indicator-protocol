@@ -1,6 +1,5 @@
-package mtls
+package tls_config
 
-// TODO rename to TLS, SingleAuthClient is not mutual TLS
 import (
 	"crypto/tls"
 	"crypto/x509"

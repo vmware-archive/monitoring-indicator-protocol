@@ -10,7 +10,7 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
@@ -49,7 +49,7 @@ func TestIndicatorRegistry(t *testing.T) {
 	if *registryCommonName == "" {
 		log.Panic("Oh no! tls-server-cn not provided")
 	}
-	tlsConfig, err := mtls.NewClientConfig(*clientCert, *clientKey, *rootCACert, *registryCommonName)
+	tlsConfig, err := tls_config.NewClientConfig(*clientCert, *clientKey, *rootCACert, *registryCommonName)
 	if err != nil {
 		log.Panic(fmt.Sprintf("Oh no! couldn't create a tls config: %s", err))
 	}
