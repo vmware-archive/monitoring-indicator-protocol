@@ -7,6 +7,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 )
 
+// TODO move these to the registry package, with ApiClient and such
 type DocumentGetter interface {
 	IndicatorDocuments() ([]registry.APIDocumentResponse, error)
 }

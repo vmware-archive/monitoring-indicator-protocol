@@ -17,6 +17,7 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
 	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/mtls"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/scraper"
 )
 
 type proxyConfig struct {
@@ -88,7 +89,27 @@ func TestScraper(t *testing.T) {
 		defer remoteProxySession.Kill()
 		defer remoteRegistrySession.Kill()
 
-		scraperSession, err := startScraper(g, localConfig, remoteConfig)
+		caCert, err := ioutil.ReadFile(localRootCACert)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		clientCert, err := ioutil.ReadFile(localClientCert)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		clientKey, err := ioutil.ReadFile(localClientKey)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		remoteScrapeConfig := scraper.RemoteScrapeConfig{
+			SourceName:   "my-fabulous-foundation",
+			ServerName:   "localhost",
+			RegistryAddr: fmt.Sprintf("https://localhost:%d", remoteConfig.ProxyPort),
+			CaCert:       caCert,
+			ClientCreds:  scraper.ClientCreds{
+				ClientKey:  clientKey,
+				ClientCert: clientCert,
+			},
+		}
+
+		scraperSession, err := startScraper(g, localConfig, remoteScrapeConfig)
 		g.Expect(err).ToNot(HaveOccurred())
 		defer scraperSession.Kill()
 
@@ -162,26 +183,34 @@ func startProxy(g *GomegaWithT, config proxyConfig) (*gexec.Session, *gexec.Sess
 	return proxySession, registrySession
 }
 
-func startScraper(g *GomegaWithT, localConfig proxyConfig, remoteConfig proxyConfig) (*gexec.Session, error) {
+func startScraper(g *GomegaWithT, localConfig proxyConfig, remoteConfigs ...scraper.RemoteScrapeConfig) (*gexec.Session, error) {
 	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
+
+	remoteFile := remoteConfigsToYamlFile(g, remoteConfigs...)
 
 	cmd := exec.Command(
 		binPath,
 		"--interval", "1s",
-		"--source-name", "my-fabulous-foundation",
 		"--local-key-path", localConfig.ClientKey,
-		"--remote-key-path", remoteConfig.ClientKey,
 		"--local-pem-path", localConfig.ClientCert,
-		"--remote-pem-path", remoteConfig.ClientCert,
 		"--local-root-ca-pem", localConfig.CaCert,
-		"--remote-root-ca-pem", remoteConfig.CaCert,
-		"--local-registry-addr", fmt.Sprintf("http://localhost:%d", localConfig.RegistryPort),
-		"--remote-registry-addr", fmt.Sprintf("http://localhost:%d", remoteConfig.RegistryPort),
+		"--local-registry-addr", fmt.Sprintf("https://localhost:%d", localConfig.ProxyPort),
 		"--local-server-cn", "localhost",
-		"--remote-server-cn", "localhost",
+		"--remote-scrape-configs-path", remoteFile.Name(),
 	)
 
 	scraperSession, err := gexec.Start(cmd, os.Stdout, os.Stderr)
 	return scraperSession, err
+}
+
+func remoteConfigsToYamlFile(g *GomegaWithT, remoteConfig ...scraper.RemoteScrapeConfig) *os.File {
+	remoteBytes, err := yaml.Marshal(remoteConfig)
+
+	f, err := ioutil.TempFile("/tmp", "test_config.*.yml")
+	g.Expect(err).ToNot(HaveOccurred())
+	_, err = f.Write(remoteBytes)
+	g.Expect(err).ToNot(HaveOccurred())
+
+	return f
 }

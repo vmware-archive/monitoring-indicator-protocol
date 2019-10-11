@@ -38,13 +38,14 @@ func NewServerConfig(caPath string) (*tls.Config, error) {
 	}, nil
 }
 
-func NewClientConfig(clientCert, clientKey, rootCACert, serverCommonName string) (*tls.Config, error) {
-	cert, err := tls.LoadX509KeyPair(clientCert, clientKey)
+
+func NewClientConfig(clientCertFile, clientKeyFile, rootCACertFile, serverCommonName string) (*tls.Config, error) {
+	cert, err := tls.LoadX509KeyPair(clientCertFile, clientKeyFile)
 	if err != nil {
 		return nil, err
 	}
 
-	caCert, err := ioutil.ReadFile(rootCACert)
+	caCert, err := ioutil.ReadFile(rootCACertFile)
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +53,24 @@ func NewClientConfig(clientCert, clientKey, rootCACert, serverCommonName string)
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
+	return &tls.Config{
+		Certificates:             []tls.Certificate{cert},
+		RootCAs:                  caCertPool,
+		MinVersion:               tls.VersionTLS12,
+		PreferServerCipherSuites: true,
+		CipherSuites:             supportedCipherSuites,
+		ServerName:               serverCommonName,
+	}, nil
+}
+
+func NewClientConfigFromValues(clientCert, clientKey, rootCACert []byte, serverCommonName string) (*tls.Config, error) {
+	cert, err := tls.X509KeyPair(clientCert, clientKey)
+	if err != nil {
+		return nil, err
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(rootCACert)
 	return &tls.Config{
 		Certificates:             []tls.Certificate{cert},
 		RootCAs:                  caCertPool,
