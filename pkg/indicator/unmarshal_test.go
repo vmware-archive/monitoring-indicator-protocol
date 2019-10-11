@@ -569,7 +569,7 @@ spec:
 			g.Expect(doc).To(BeEquivalentTo(v1.IndicatorDocument{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: api_versions.V1,
-					Kind: "IndicatorDocument",
+					Kind:       "IndicatorDocument",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{"deployment": "well-performing-deployment"},
@@ -1372,4 +1372,23 @@ spec:
 		}))
 	})
 
+}
+
+func TestApiVersionFromYAML(t *testing.T) {
+	t.Run("returns a useful error when document is not valid YAML", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		doc := []byte(`---
+apiVersion: v0
+
+product:
+  name: indi-pro
+  - lol
+  version: 1.2.3
+`)
+
+		_, err := indicator.ApiVersionFromYAML(doc)
+		g.Expect(err).To(HaveOccurred())
+		g.Expect(err.Error()).To(Equal("could not unmarshal apiVersion, check that document contains valid YAML"))
+	})
 }

@@ -2,6 +2,7 @@ package registry_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -228,7 +229,15 @@ apiVersion: {
 		responseBody, err := ioutil.ReadAll(resp.Body)
 		g.Expect(err).ToNot(HaveOccurred())
 
-		g.Expect(responseBody).To(MatchJSON(`{ "errors": ["failed to parse metadata, could not read apiVersion: could not unmarshal apiVersion"] }`))
+		type errResponse struct {
+			Errors []string `json:"errors"`
+		}
+
+		var errResp errResponse
+		err = json.Unmarshal(responseBody, &errResp)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(errResp.Errors).To(ConsistOf("failed to parse metadata, could not read apiVersion: could not unmarshal apiVersion, check that document contains valid YAML"))
 	})
 }
 

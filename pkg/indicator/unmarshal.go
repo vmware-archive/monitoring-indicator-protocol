@@ -382,7 +382,7 @@ func ApiVersionFromYAML(docBytes []byte) (string, error) {
 	}
 	err := yaml.Unmarshal(docBytes, &d)
 	if err != nil {
-		return "", fmt.Errorf("could not unmarshal apiVersion")
+		return "", fmt.Errorf("could not unmarshal apiVersion, check that document contains valid YAML")
 	}
 	return d.ApiVersion, nil
 }
