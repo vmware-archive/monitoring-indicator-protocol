@@ -3,6 +3,7 @@ package verification
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/prometheus/common/model"
@@ -25,7 +26,10 @@ type promQLClient interface {
 }
 
 func VerifyIndicator(i v1.IndicatorSpec, client promQLClient) (Result, error) {
-	value, err := client.Query(context.Background(), i.PromQL, time.Time{})
+	reg := regexp.MustCompile(`(?i)\$step\b`)
+	promql := reg.ReplaceAllString(i.PromQL, "1m")
+
+	value, err := client.Query(context.Background(), promql, time.Time{})
 
 	if err != nil {
 		return Result{}, fmt.Errorf("query failed [indicator: %s] [promql: %s] [status: %s]", i.Name, i.PromQL, err)
