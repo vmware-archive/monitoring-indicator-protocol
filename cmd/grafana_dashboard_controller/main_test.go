@@ -236,7 +236,10 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 						Value:    5,
 					}},
 					Presentation:  test_fixtures.DefaultPresentation(),
-					Documentation: map[string]string{"title": "Slinky"},
+					Documentation: map[string]string{
+						"title": "Slinky",
+						"description": "100% sli",
+					},
 				}},
 				Layout: v1.Layout{
 					Title: "Test Dashboard",

@@ -18,6 +18,7 @@
         {
           "title": "Slinky",
           "type": "graph",
+          "description": "100% sli",
           "targets": [
             {
               "expr": "sli_sli_sli"

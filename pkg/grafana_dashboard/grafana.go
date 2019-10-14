@@ -7,7 +7,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
+	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
 func DashboardFilename(documentBytes []byte, productName string) string {
@@ -82,9 +82,14 @@ func getIndicatorTitle(i v1.IndicatorSpec) string {
 
 func toGrafanaPanel(i v1.IndicatorSpec, title string) GrafanaPanel {
 	replacementString := replaceStep(i.PromQL)
+	description, ok := i.Documentation["description"]
+	if !ok {
+		description = ""
+	}
 	return GrafanaPanel{
-		Title: title,
-		Type:  "graph",
+		Title:       title,
+		Type:        "graph",
+		Description: description,
 		Targets: []GrafanaTarget{{
 			Expression: replacementString,
 		}},

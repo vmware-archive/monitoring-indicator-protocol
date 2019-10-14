@@ -26,10 +26,11 @@ type GrafanaRow struct {
 }
 
 type GrafanaPanel struct {
-	Title      string             `json:"title"`
-	Type       string             `json:"type"`
-	Targets    []GrafanaTarget    `json:"targets"`
-	Thresholds []GrafanaThreshold `json:"thresholds"`
+	Title       string             `json:"title"`
+	Type        string             `json:"type"`
+	Description string             `json:"description,omitempty"`
+	Targets     []GrafanaTarget    `json:"targets"`
+	Thresholds  []GrafanaThreshold `json:"thresholds"`
 }
 
 type GrafanaTarget struct {
