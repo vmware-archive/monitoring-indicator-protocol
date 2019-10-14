@@ -177,10 +177,6 @@ function main {
     go mod tidy
     go mod vendor
 
-    pushd $PROJECT_DIR > /dev/null
-      go-bindata -o pkg/asset/schema.go -pkg asset schemas.yml
-    popd > /dev/null
-
     parse_argc $1
     shift
     "$command" $@
