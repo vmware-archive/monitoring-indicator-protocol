@@ -7,9 +7,6 @@ templates:
   local_ca.crt.erb: certs/local_ca.crt
   local_client.crt.erb: certs/local_client.crt
   local_client.key.erb: certs/local_client.key
-  remote_ca.crt.erb: certs/remote_ca.crt
-  remote_client.crt.erb: certs/remote_client.crt
-  remote_client.key.erb: certs/remote_client.key
 
 packages:
 - indicator-protocol
@@ -24,19 +21,10 @@ properties:
     default: []
   source_name:
     description: "Additional metadata value that will appear in the scraped documents (e.g. foundation name)"
-  remote_registry_address:
-    description: "The address (URL) at which the remote registry can be found"
   tls.local_ca_cert:
     description: "CA root required for key/cert verification"
   tls.local_client_cert:
     description: "TLS Client public certificate"
   tls.local_client_key:
     description: "TLS Client private key"
-  tls.remote_ca_cert:
-    description: "CA root required for key/cert verification"
-  tls.remote_client_cert:
-    description: "TLS Client public certificate"
-  tls.remote_client_key:
-    description: "TLS Client private key"
-  tls.remote_server_name:
-    description: "TLS Server common name"
+

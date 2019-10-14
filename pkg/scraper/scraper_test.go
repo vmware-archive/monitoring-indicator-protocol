@@ -25,10 +25,10 @@ func TestMakeApiClients(t *testing.T) {
 		SourceName:   "foo",
 		ServerName:   "localhost",
 		RegistryAddr: "https://localhost:1234",
-		CaCert:       caCertBytes,
+		CaCert:       string(caCertBytes),
 		ClientCreds: scraper.ClientCreds{
-			ClientKey:  clientKeyBytes,
-			ClientCert: clientCertBytes,
+			ClientKey:  string(clientKeyBytes),
+			ClientCert: string(clientCertBytes),
 		},
 	}
 
@@ -65,7 +65,7 @@ func TestMakeApiClients(t *testing.T) {
 				SourceName:   "source",
 				ServerName:   "server",
 				RegistryAddr: "localhost:123",
-				CaCert:       nil,
+				CaCert:       "sdaerq23waezrfzr",
 				ClientCreds:  scraper.ClientCreds{},
 			},
 		}

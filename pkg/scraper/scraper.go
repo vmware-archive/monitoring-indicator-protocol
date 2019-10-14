@@ -12,19 +12,17 @@ import (
 )
 
 type RemoteScrapeConfig struct {
-	SourceName   string `json:"scraper_source_name"`
-	ServerName   string `json:"scraper_remote_server_name"`
-	RegistryAddr string `json:"scraper_remote_registry_address"`
-	// The actual bytes of a cert, NOT the file that the cert is in
-	CaCert      []byte      `json:"scraper_remote_ca_cert"`
-	ClientCreds ClientCreds `json:"scraper_remote_client_cred"`
+	SourceName   string      `json:"scraper_source_name"`
+	ServerName   string      `json:"scraper_remote_server_name"`
+	RegistryAddr string      `json:"scraper_remote_registry_address"`
+	CaCert       string      `json:"scraper_remote_ca_cert"`
+	ClientCreds  ClientCreds `json:"scraper_remote_client_cred"`
 }
 
+// The actual bytes of the certs, NOT the file that the cert is in
 type ClientCreds struct {
-	// The actual bytes of a key, NOT the file that the cert is in
-	ClientKey []byte `json:"cert_pem"`
-	// The actual bytes of a cert, NOT the file that the cert is in
-	ClientCert []byte `json:"private_key_pem"`
+	ClientKey  string `json:"cert_pem"`
+	ClientCert string `json:"private_key_pem"`
 }
 
 type RemoteFoundationApiClient interface {
@@ -85,9 +83,9 @@ func MakeApiClients(remoteConfigs []RemoteScrapeConfig) ([]RemoteFoundationApiCl
 
 	for index, config := range remoteConfigs {
 		remoteTlsClientConfig, err := mtls.NewClientConfigFromValues(
-			config.ClientCreds.ClientCert,
-			config.ClientCreds.ClientKey,
-			config.CaCert,
+			[]byte(config.ClientCreds.ClientCert),
+			[]byte(config.ClientCreds.ClientKey),
+			[]byte(config.CaCert),
 			config.ServerName)
 		if err != nil {
 			errors = append(errors, fmt.Errorf("error with creating mTLS remote client config: %s", err))
