@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.8.11]
 ### Updated
 - Alert configuration is now per threshold rather than per indicator
-- Bumped Golang version to 1.13.2
+- Bumped Golang version to 1.13.3
 
 ## [0.8.9] - 2019-10-03
 ### Added
