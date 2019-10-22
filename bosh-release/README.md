@@ -49,3 +49,20 @@ bosh -n -d indicator-protocol deploy \
     -v uaa_client_id=$UAA_CLIENT_ID \
     -v uaa_client_secret=$UAA_CLIENT_SECRET
 ```
+
+#### Updating dependencies
+We have a file called “bosh-release/packages/golang-1.*-linux/spec.lock” that has the fingerprint of the golang version we are using.
+https://github.com/bosh-packages/golang-release has the golang release.
+
+* Find the most recent release in https://github.com/bosh-packages/golang-release/tree/master/releases/golang
+* Use the fingerprint for the linux release of the go minor version you want
+* Once you’ve changed the spec.lock file, you can deploy it to some acceptance environment, and then check the package fingerprint, as well as looking at the release locally and looking at the go patch version there
+* Follow the instruction in the golang-release readme about vendoring the package
+    * `cd ~/workspace/golang-release && git pull`
+    * `cd ~/workspace/monitoring-indicator-protocol/bosh-release`
+    * run `bosh vendor-package golang-1.13-linux ~/workspace/golang-release`
+    * run `../scripts/dev_deploy_bosh.sh` to test that it worked
+
+
+The tile will pull in the latest bosh release, so there is no need to do any additional work
+
