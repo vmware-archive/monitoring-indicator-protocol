@@ -51,6 +51,7 @@ bosh -n -d indicator-protocol deploy \
 ```
 
 #### Updating dependencies
+We use package vendoring for the Golang package (https://bosh.io/docs/package-vendoring/#vendor). 
 We have a file called “bosh-release/packages/golang-1.*-linux/spec.lock” that has the fingerprint of the golang version we are using.
 https://github.com/bosh-packages/golang-release has the golang release.
 
