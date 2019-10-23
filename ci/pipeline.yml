@@ -265,7 +265,7 @@ jobs:
       - name: created-release
       params:
         RELEASE_NAME: indicator-protocol
-        RELEASE_BLOBSTORE_BUCKET: monitoring-indicator-protocol-bosh-blobs
+        RELEASE_BLOBSTORE_BUCKET: monitoring-indicator-protocol-bosh-blobstore
         SERVICE_ACCOUNT: ((gcp-service-account))
       run:
         path: bash
@@ -332,7 +332,7 @@ jobs:
       - name: github-release
       params:
         RELEASE_NAME: indicator-protocol
-        RELEASE_BLOBSTORE_BUCKET: monitoring-indicator-protocol-bosh-blobs
+        RELEASE_BLOBSTORE_BUCKET: monitoring-indicator-protocol-bosh-blobstore
         SERVICE_ACCOUNT: ((gcp-service-account))
       run:
         path: bash
