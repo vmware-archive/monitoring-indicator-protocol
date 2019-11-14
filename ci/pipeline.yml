@@ -746,6 +746,7 @@ jobs:
 
           main
 
+# This is paused, because we deleted the `mip-acceptance` cluster while we're not actively developing for k8s
 - name: deploy-k8s-acceptance
   serial: true
   plan:
