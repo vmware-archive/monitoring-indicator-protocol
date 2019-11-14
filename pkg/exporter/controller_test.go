@@ -88,39 +88,6 @@ func TestController(t *testing.T) {
 		g.Expect(fileNames).To(ConsistOf("test_product_0.yml", "test_product_1.yml", "test_product_2.yml"))
 	})
 
-	t.Run("saves v0 documents", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		registryClient := &mockRegistryClient{
-			Documents: createTestDocuments(1, api_versions.V0),
-		}
-
-		fs := memfs.New()
-		directory := "/test"
-		err := fs.MkdirAll(directory, 0644)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		mockReloader := &mockReloader{}
-
-		c := exporter.ControllerConfig{
-			RegistryAPIClient: registryClient,
-			Filesystem:        fs,
-			OutputDirectory:   directory,
-			UpdateFrequency:   0,
-			DocType:           "",
-			Converter:         stubConverter,
-			Reloader:          mockReloader.Reload,
-		}
-
-		controller := exporter.NewController(c)
-		err = controller.Update()
-		g.Expect(err).ToNot(HaveOccurred())
-
-		fileNames, err := go_test.GetFileNames(fs, directory)
-		g.Expect(err).ToNot(HaveOccurred())
-		g.Expect(fileNames).To(ConsistOf("test_product_0.yml"))
-	})
-
 	t.Run("Update removes outdated files from output directory", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 

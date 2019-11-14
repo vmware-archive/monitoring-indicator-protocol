@@ -50,13 +50,10 @@ func DocumentFromYAML(r io.ReadCloser, opts ...ReadOpt) (v1.IndicatorDocument, [
 
 	var doc v1.IndicatorDocument
 	switch apiVersion {
-	case api_versions.V0:
-		log.Print("WARNING: apiVersion v0 will be deprecated in future releases")
-		doc, err = v0documentFromBytes(docBytes)
 	case api_versions.V1:
 		err = yaml.Unmarshal(docBytes, &doc)
 	default:
-		err = fmt.Errorf("invalid apiVersion, supported versions are: [v0, indicatorprotocol.io/v1]")
+		err = fmt.Errorf("invalid apiVersion, supported versions are: [indicatorprotocol.io/v1]")
 	}
 
 	if err != nil {
@@ -116,15 +113,6 @@ func writeMetadataToYaml(docBytes []byte, metadata map[string]string) ([]byte, e
 		return nil, err
 	}
 	switch apiVersion {
-	case api_versions.V0:
-		var docMap map[string]interface{}
-		err := yaml.Unmarshal(docBytes, &docMap)
-		if err != nil {
-			return nil, err
-		}
-		docMap["metadata"] = metadata
-		return yaml.Marshal(docMap)
-
 	case api_versions.V1:
 		var docMap map[string]interface{}
 		err := yaml.Unmarshal(docBytes, &docMap)
@@ -431,12 +419,6 @@ func ProductFromYAML(reader io.ReadCloser) (v1.Product, error) {
 	apiVersion, err := ApiVersionFromYAML(docBytes)
 	var product v1.Product
 	switch apiVersion {
-	case api_versions.V0:
-		var d struct {
-			Product v1.Product
-		}
-		err = yaml.Unmarshal(docBytes, &d)
-		product = d.Product
 	case api_versions.V1:
 		var d struct {
 			Spec struct {
@@ -467,12 +449,6 @@ func MetadataFromYAML(reader io.ReadCloser) (map[string]string, error) {
 	}
 	var metadata map[string]string
 	switch apiVersion {
-	case api_versions.V0:
-		var d struct {
-			Metadata map[string]string
-		}
-		err = yaml.Unmarshal(docBytes, &d)
-		metadata = d.Metadata
 	case api_versions.V1:
 		var d struct {
 			Metadata struct {

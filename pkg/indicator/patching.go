@@ -8,7 +8,6 @@ import (
 	"reflect"
 
 	"github.com/cppforlife/go-patch/patch"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 	"gopkg.in/yaml.v2"
 )
 
@@ -96,14 +95,6 @@ func MatchDocument(patch Patch, documentBytes []byte) bool {
 	return true
 }
 
-
 func apiVersionMatches(patchVersion, docVersion string) bool {
-	switch patchVersion {
-	case api_versions.V0Patch:
-		return docVersion == api_versions.V0
-	case api_versions.V1:
-		return docVersion == api_versions.V1
-	default:
-		return false
-	}
+	return docVersion == patchVersion
 }

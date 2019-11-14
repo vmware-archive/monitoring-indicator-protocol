@@ -28,80 +28,6 @@ func TestRegisterHandler(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	t.Run("valid requests return 200", func(t *testing.T) {
-		t.Run("for apiVersion v0", func(t *testing.T) {
-			body := bytes.NewBuffer([]byte(`
----
-apiVersion: v0
-
-product: 
-  name: redis-tile
-  version: v0.11
-
-metadata:
-  deployment: redis-abc-123
-
-indicators:
-- name: test_performance_indicator
-  promql: prom
-  thresholds:
-  - level: warning
-    gte: 50
-`))
-
-			req := httptest.NewRequest("POST", "/register", body)
-			resp := httptest.NewRecorder()
-
-			docStore := registry.NewDocumentStore(1*time.Minute, time.Now)
-			handle := registry.NewRegisterHandler(docStore)
-			handle(resp, req)
-
-			g.Expect(resp.Header().Get("Content-Type")).To(Equal("application/json"))
-
-			g.Expect(resp.Code).To(Equal(http.StatusOK))
-			g.Expect(docStore.AllDocuments()).To(ConsistOf(v1.IndicatorDocument{
-				TypeMeta: metaV1.TypeMeta{
-					Kind:       "IndicatorDocument",
-					APIVersion: api_versions.V1,
-				},
-				ObjectMeta: metaV1.ObjectMeta{
-					Labels: map[string]string{
-						"deployment": "redis-abc-123",
-					},
-				},
-
-				Spec: v1.IndicatorDocumentSpec{
-					Product: v1.Product{Name: "redis-tile", Version: "v0.11"},
-					Layout: v1.Layout{
-						Title: "redis-tile - v0.11",
-						Sections: []v1.Section{{
-							Title:      "Metrics",
-							Indicators: []string{"test_performance_indicator"},
-						}},
-					},
-					Indicators: []v1.IndicatorSpec{{
-						Name:   "test_performance_indicator",
-						PromQL: "prom",
-						Presentation: v1.Presentation{
-							CurrentValue: false,
-							ChartType:    "step",
-							Frequency:    0,
-							Labels:       []string{},
-						},
-						Thresholds: []v1.Threshold{
-							{
-								Level:    "warning",
-								Operator: v1.GreaterThanOrEqualTo,
-								Value:    50,
-								Alert: v1.Alert{
-									For:  "1m",
-									Step: "1m",
-								},
-							},
-						},
-					},
-					}},
-			}))
-		})
 		t.Run("for apiVersion v1", func(t *testing.T) {
 			body := bytes.NewBuffer([]byte(`---
 apiVersion: indicatorprotocol.io/v1
@@ -182,10 +108,13 @@ spec:
 
 	t.Run("it returns 400 if there are validation errors", func(t *testing.T) {
 		body := bytes.NewBuffer([]byte(`---
-apiVersion: v0
-indicators:
-- promql: ""
-  name: none
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
+spec:
+  indicators:
+  - promql: ""
+    name: none
 `))
 
 		req := httptest.NewRequest("POST", "/register?deployment=redis-abc", body)

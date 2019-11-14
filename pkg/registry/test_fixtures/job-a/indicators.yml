@@ -1,13 +1,16 @@
 ---
-apiVersion: v0
-
-product:
-  name: job-a-product
-  version: 1.0
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
-  deployment: abc-123
+  labels:
+    deployment: abc-123
 
-indicators: []
+spec:
+  product:
+    name: job-a-product
+    version: 1.0
 
-layout: {}
+  indicators: []
+
+  layout: {}

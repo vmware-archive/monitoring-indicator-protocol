@@ -115,7 +115,7 @@ func TestGrafanaDashboardControllerBinary(t *testing.T) {
 		g.Expect(string(data)).To(MatchJSON(fileBytes))
 	})
 
-	t.Run("reads v0 documents", func(t *testing.T) {
+	t.Run("reads v1 documents", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		store := registry.NewDocumentStore(time.Hour, time.Now)

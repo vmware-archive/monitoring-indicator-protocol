@@ -1,10 +1,12 @@
 ---
-apiVersion: v0
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
-product:
-  name: my-component
-  version: 1.2.3
+spec:
+  product:
+    name: my-component
+    version: 1.2.3
 
-indicators:
-- name: only_in_example_yml
-  promql: test_query
+  indicators:
+  - name: only_in_example_yml
+    promql: test_query

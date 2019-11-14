@@ -1,33 +1,36 @@
 ---
-apiVersion: v0
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 uid: my-product-a-a902332065d69c1787f419e235a1f1843d98c884
-product:
-  name: my-product-a
-  version: '1'
 metadata:
-  deployment: abc-123
-indicators:
-- name: indie1
-  promql: promql1
-  thresholds: []
-  presentation:
-    chartType: step
-    currentValue: false
-    frequency: 0
-    labels: []
-    units: ''
-  status:
-- name: indie2
-  promql: promql2
-  thresholds: []
-  presentation:
-    chartType: status
-    currentValue: false
-    frequency: 0
-    labels: []
-    units: nanoseconds
-layout:
-  title: Layout!
-  description: ''
-  sections: []
-  owner: ''
+  labels:
+    deployment: abc-123
+spec:
+  product:
+    name: my-product-a
+    version: '1'
+  indicators:
+  - name: indie1
+    promql: promql1
+    thresholds: []
+    presentation:
+      chartType: step
+      currentValue: false
+      frequency: 0
+      labels: []
+      units: ''
+    status:
+  - name: indie2
+    promql: promql2
+    thresholds: []
+    presentation:
+      chartType: status
+      currentValue: false
+      frequency: 0
+      labels: []
+      units: nanoseconds
+  layout:
+    title: Layout!
+    description: ''
+    sections: []
+    owner: ''

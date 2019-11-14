@@ -196,7 +196,7 @@ func TestValidators(t *testing.T) {
 
 			reqBody := newIndicatorDocumentRequest("CREATE", `{
 							"product": {"name":"uaa", "version":"v1.2.3"},
-							"apiVersion": "v0",
+							"apiVersion": "indicatorprotocol.io/v1",
 							"metadata": {"step": "12m"},
 							"indicators": [{
 						    	"name": "latency",

@@ -163,10 +163,6 @@ func retrievePatchesAndDocuments(files *object.FileIter, glob string) ([]indicat
 			}
 
 			switch version {
-			case api_versions.V0:
-				documentsBytes = append(documentsBytes, []byte(contents))
-			case api_versions.V0Patch:
-				patchesBytes = append(patchesBytes, unparsedPatch{[]byte(contents), f.Name})
 			case api_versions.V1:
 				kind, err := indicator.KindFromYAML([]byte(contents))
 				if err != nil {

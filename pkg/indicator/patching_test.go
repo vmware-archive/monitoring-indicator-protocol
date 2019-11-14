@@ -19,34 +19,6 @@ import (
 // TODO The test fixtures have many duplicate lines, and sometimes are actually duplicated.
 //      Can we remove the duplicaion?
 var (
-	v0DocumentBytes = []byte(`---
-apiVersion: v0
-metadata:
-  deployment: test-deployment
-
-product:
-  name: testing
-  version: v123
-
-indicators:
-- name: test_indicator
-  promql: test_expr
-`)
-
-	v0Match = indicator.Match{
-		Name:    test_fixtures.StrPtr("testing"),
-		Version: test_fixtures.StrPtr("v123"),
-		Metadata: map[string]string{
-			"deployment": "test-deployment",
-		},
-	}
-
-	v0Patch = indicator.Patch{
-		APIVersion: api_versions.V0Patch,
-		Match:      v0Match,
-		Operations: nil,
-	}
-
 	v1DocumentBytes = []byte(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
@@ -240,66 +212,6 @@ spec:
 		g.Expect(errs).To(HaveLen(0))
 
 		g.Expect(d.Spec.Indicators[0].PromQL).To(BeEquivalentTo("patched_promql"))
-	})
-
-	t.Run("patches v0 thresholds", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		var patchedThreshold interface{} = map[interface{}]interface{}{
-			"level": "warning",
-			"gt":    1000,
-		}
-
-		indicatorPatch := []indicator.Patch{{
-			APIVersion: api_versions.V0Patch,
-			Match: indicator.Match{
-				Metadata: map[string]string{
-					"deployment": "test-deployment",
-				},
-			},
-			Operations: []patch.OpDefinition{
-				{
-					Type:  "replace",
-					Path:  test_fixtures.StrPtr("/indicators/1/thresholds/1"),
-					Value: &patchedThreshold,
-				},
-			},
-		}}
-		doc := []byte(`---
-apiVersion: v0
-
-metadata:
-  deployment: test-deployment
-
-product:
-  name: testing
-  version: v123
-
-indicators:
-- name: test_indicator
-  promql: test_expr
-- name: test_indicator_2
-  promql: test_expr
-  thresholds: 
-  - level: critical
-    gt: 1500
-  - level: warning
-    gt: 500
-`)
-
-		patchedBytes, err := indicator.ApplyPatches(indicatorPatch, doc)
-		g.Expect(err).ToNot(HaveOccurred())
-
-		reader := ioutil.NopCloser(bytes.NewReader(patchedBytes))
-		d, errs := indicator.DocumentFromYAML(reader)
-		g.Expect(errs).To(HaveLen(0))
-
-		g.Expect(d.Spec.Indicators[1].Thresholds[1]).To(BeEquivalentTo(v1.Threshold{
-			Level:    "warning",
-			Operator: v1.GreaterThan,
-			Value:    1000,
-			Alert:    test_fixtures.DefaultAlert(),
-		}))
 	})
 
 	t.Run("does not patch files that do not match", func(t *testing.T) {
@@ -805,25 +717,9 @@ spec:
 }
 
 func TestPatchingApiCompatibility(t *testing.T) {
-
-	t.Run("v0 patches don't match v1 docs", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		g.Expect(indicator.MatchDocument(v0Patch, v1DocumentBytes)).To(BeFalse())
-	})
-
-	t.Run("v0 patches match v0 docs", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		g.Expect(indicator.MatchDocument(v0Patch, v0DocumentBytes)).To(BeTrue())
-	})
-
 	t.Run("v1 patches match v1 docs", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		g.Expect(indicator.MatchDocument(v1Patch, v1DocumentBytes)).To(BeTrue())
 
-	})
-
-	t.Run("v1 patches don't match v0 docs", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		g.Expect(indicator.MatchDocument(v1Patch, v0DocumentBytes)).To(BeFalse())
 	})
 }

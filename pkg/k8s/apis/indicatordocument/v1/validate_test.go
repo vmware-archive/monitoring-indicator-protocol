@@ -358,36 +358,6 @@ func TestMetadata(t *testing.T) {
 }
 
 func TestThreshold(t *testing.T) {
-	t.Run("validation returns errors if threshold value is missing in v0 document", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-
-		document := v1.IndicatorDocument{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: api_versions.V0,
-			},
-			ObjectMeta: metav1.ObjectMeta{},
-			Spec: v1.IndicatorDocumentSpec{
-				Product: v1.Product{Name: "well-performing-component", Version: "0.0.1"},
-				Indicators: []v1.IndicatorSpec{{
-					Name:   "my_fair_indicator",
-					PromQL: "rate(speech)",
-					Thresholds: []v1.Threshold{{
-						Level:    "warning",
-						Operator: v1.UndefinedOperator,
-						Value:    0,
-					}},
-					Presentation: test_fixtures.DefaultPresentation(),
-				}},
-			},
-		}
-
-		es := document.Validate()
-
-		g.Expect(es).To(ContainElement(
-			errors.New("IndicatorDocument.spec.indicators.thresholds.operator in body should be one of [lt lte gt gte eq neq]"),
-		))
-	})
-
 	t.Run("validation returns errors if threshold operator is missing in v1 document", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 

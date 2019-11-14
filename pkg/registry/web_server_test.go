@@ -65,6 +65,7 @@ func TestRegisterAndServeDocuments(t *testing.T) {
 		}
 		return nil
 	}
+
 	g.Eventually(f).ShouldNot(HaveOccurred())
 
 	resp, err := http.Get(fmt.Sprintf("http://%s/v1/indicator-documents", addr))

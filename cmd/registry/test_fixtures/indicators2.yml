@@ -1,11 +1,13 @@
 ---
-apiVersion: v0
-
-product:
-  name: my-other-other-component
-  version: 1.2.3
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
 
 metadata:
-  deployment: my-service-deployment-2
-  source_id: my-metric-source
+  labels:
+    deployment: my-service-deployment-2
+    source_id: my-metric-source
 
+spec:
+  product:
+    name: my-other-other-component
+    version: 1.2.3
