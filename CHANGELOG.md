@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0]
+### Removed
+- v0 documents are no longer supported.
+
 ## [0.8.11]
 ### Updated
 - Alert configuration is now per threshold rather than per indicator
