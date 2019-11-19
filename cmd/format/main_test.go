@@ -18,6 +18,21 @@ func TestFormatBinary(t *testing.T) {
 	binPath, err := go_test.Build("./", "-race")
 	g.Expect(err).ToNot(HaveOccurred())
 
+	t.Run("shows CLI version", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		binPath, err := go_test.Build("./", "-race", "-ldflags", "-X main.Version=1.1 -X main.OS=darwin")
+		g.Expect(err).ToNot(HaveOccurred())
+		cmd := exec.Command(binPath, "-version")
+
+		buffer := bytes.NewBuffer(nil)
+		session, _ := gexec.Start(cmd, buffer, nil)
+		g.Eventually(session, 5).Should(gexec.Exit(0))
+
+		output := buffer.String()
+		g.Expect(output).To(ContainSubstring("cli version 1.1 darwin"))
+	})
+
 	t.Run("complains if no indicators file path specified", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 

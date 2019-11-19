@@ -1109,12 +1109,12 @@ jobs:
 
           pushd monitoring-indicator-protocol
             echo "Building darwin cli-plugin binary"
-            GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-format-macosx64-${BUILD_NUMBER} cmd/format/main.go
-            GOARCH=amd64 GOOS=darwin go build -mod=vendor -o ../github-release-output/indicator-verification-macosx64-${BUILD_NUMBER} cmd/verification/main.go
+            GOARCH=amd64 GOOS=darwin go build -mod=vendor -ldflags "-X main.Version=${BUILD_NUMBER} -X main.OS=darwin" -o ../github-release-output/indicator-format-macosx64-${BUILD_NUMBER} cmd/format/main.go
+            GOARCH=amd64 GOOS=darwin go build -mod=vendor -ldflags "-X main.Version=${BUILD_NUMBER} -X main.OS=darwin" -o ../github-release-output/indicator-verification-macosx64-${BUILD_NUMBER} cmd/verification/main.go
 
             echo "Building amd64 linux cli-plugin binary"
-            GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-format-linux64-${BUILD_NUMBER} cmd/format/main.go
-            GOARCH=amd64 GOOS=linux go build -mod=vendor -o ../github-release-output/indicator-verification-linux64-${BUILD_NUMBER} cmd/verification/main.go
+            GOARCH=amd64 GOOS=linux go build -mod=vendor -ldflags "-X main.Version=${BUILD_NUMBER} -X main.OS=linux" -o ../github-release-output/indicator-format-linux64-${BUILD_NUMBER} cmd/format/main.go
+            GOARCH=amd64 GOOS=linux go build -mod=vendor -ldflags "-X main.Version=${BUILD_NUMBER} -X main.OS=linux" -o ../github-release-output/indicator-verification-linux64-${BUILD_NUMBER} cmd/verification/main.go
 
             echo "$(git rev-parse HEAD)" > ../github-release-output/reposha
           popd

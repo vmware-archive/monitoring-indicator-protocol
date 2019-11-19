@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -10,6 +11,9 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/verification"
 )
+
+var Version = "undefined"
+var OS = "undefined"
 
 func main() {
 	stdOut := log.New(os.Stdout, "", 0)
@@ -21,7 +25,14 @@ func main() {
 	prometheusURI := flag.String("query-endpoint", "", "the query url of a Prometheus compliant store (e.g. https://metric-store.system.cfapp.com")
 	authorization := flag.String("authorization", "", "the authorization header sent to prometheus (e.g. 'bearer abc-123')")
 	insecure := flag.Bool("k", false, "skips ssl verification (insecure)")
+	showVersion := flag.Bool("version", false, "show CLI version")
+
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("cli version %s %s", Version, OS)
+		return
+	}
 
 	checkRequiredFlagsArePresent(*indicatorsFilePath, *prometheusURI, *authorization)
 

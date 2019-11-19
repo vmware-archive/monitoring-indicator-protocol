@@ -17,13 +17,22 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_alerts"
 )
 
+var Version = "undefined"
+var OS = "undefined"
+
 func main() {
 	l := log.New(os.Stderr, "", 0)
 	outputFormat := flag.String("format", "bookbinder", "output format [html,bookbinder,prometheus-alerts,grafana]")
 	metadata := flag.String("metadata", "", "metadata to override (e.g. --metadata deployment=my-test-deployment,source_id=metric-forwarder)")
 	indicatorsFilePath := flag.String("indicators", "", "indicators YAML file path")
+	showVersion := flag.Bool("version", false, "show CLI version")
 
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("cli version %s %s", Version, OS)
+		return
+	}
 
 	if len(*indicatorsFilePath) == 0 {
 		l.Fatalf("-indicators flag is required")
