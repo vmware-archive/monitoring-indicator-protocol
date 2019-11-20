@@ -220,7 +220,7 @@ jobs:
     - get: env-state
     - get: monitoring-indicator-protocol
       trigger: true
-      passed: [build-and-test]
+      passed: [deploy-indicator-registry-to-madlamp]
   - task: test-bosh-e2e
     config:
       params:
