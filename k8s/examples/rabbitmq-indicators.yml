@@ -25,7 +25,7 @@ spec:
     promql: rabbitmq_node_disk_free - rabbitmq_node_disk_free_limit
     thresholds:
     - level: critical
-      oeprator: lt
+      operator: lt
       value: 1000000000
       alert: { for: 10m }
   - name: messages_rate

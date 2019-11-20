@@ -66,6 +66,45 @@ func TestNoLayoutGeneratesDefaultDashboard(t *testing.T) {
 	g.Expect(cm.Labels["grafana_dashboard"]).To(Equal("true"))
 }
 
+func TestEmptyDashboard(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	doc := &v1.IndicatorDocument{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-name",
+			Namespace: "test-namespace",
+			UID:       types.UID("test-uid"),
+		},
+		Spec: v1.IndicatorDocumentSpec{
+			Product: v1.Product{
+				Name:    "my_app",
+				Version: "1.0.1",
+			},
+			Indicators: []v1.IndicatorSpec{
+				{
+					Name:   "latency",
+					PromQL: "histogram_quantile(0.9, latency)",
+					Type:   v1.ServiceLevelIndicator,
+					Thresholds: []v1.Threshold{
+						{
+							Level:    "critical",
+							Operator: v1.GreaterThanOrEqualTo,
+							Value:    float64(100.2),
+						},
+					},
+					Documentation: map[string]string{
+						"title": "90th Percentile Latency",
+					},
+				},
+			},
+		},
+	}
+
+	returned, err := grafana.ConfigMap(doc, nil, v1.KeyPerformanceIndicator)
+	g.Expect(err).ToNot(HaveOccurred())
+	g.Expect(returned).To(BeNil())
+}
+
 func TestSetsUpOwnership(t *testing.T) {
 	g := NewGomegaWithT(t)
 

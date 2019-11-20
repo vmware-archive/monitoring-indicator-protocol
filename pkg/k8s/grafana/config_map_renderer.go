@@ -29,6 +29,11 @@ func ConfigMap(doc *v1.IndicatorDocument, m mapper, indicatorType v1.IndicatorTy
 			if err != nil {
 				return nil, err
 			}
+
+			if grafanaDashboard == nil {
+				return nil, nil
+			}
+
 			dashboard := grafanaDashboard
 			data, err := json.Marshal(dashboard)
 			if err != nil {
@@ -43,7 +48,11 @@ func ConfigMap(doc *v1.IndicatorDocument, m mapper, indicatorType v1.IndicatorTy
 		return nil, err
 	}
 
-	name := fmt.Sprintf("indicator-protocol-grafana-dashboard.%s.%s", doc.ObjectMeta.Namespace, doc.ObjectMeta.Name)
+	if jsonVal == nil {
+		return nil, nil
+	}
+
+	name := GenerateObjectName(doc)
 
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -66,4 +75,8 @@ func ConfigMap(doc *v1.IndicatorDocument, m mapper, indicatorType v1.IndicatorTy
 	}
 
 	return cm, nil
+}
+
+func GenerateObjectName(doc *v1.IndicatorDocument) string {
+	return fmt.Sprintf("indicator-protocol-grafana-dashboard.%s.%s", doc.ObjectMeta.Namespace, doc.ObjectMeta.Name)
 }
