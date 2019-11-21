@@ -135,7 +135,8 @@ spec:
 	"IndicatorDocument.spec.product.name in body should be at least 1 chars long", 
 	"IndicatorDocument.spec.product.version in body should be at least 1 chars long", 
 	"IndicatorDocument.spec.indicators.promql in body should be at least 1 chars long",
-    "indicators[0] is invalid by schema: IndicatorSpec.promql in body should be at least 1 chars long"
+    "indicators[0] is invalid by schema: IndicatorSpec.promql in body should be at least 1 chars long",
+	"indicators[0].promql should be valid promql (see https://prometheus.io/docs/)"
 ]}`))
 	})
 

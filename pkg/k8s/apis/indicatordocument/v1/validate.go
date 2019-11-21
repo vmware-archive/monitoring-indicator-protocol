@@ -66,9 +66,9 @@ func (is *IndicatorSpec) Validate(indicatorIndex int, apiVersion string) []error
 		es = append(es, errs...)
 	}
 
-	labels, err := promql.ParseMetric(is.Name)
-	if err != nil || labels.Len() > 1 {
-		es = append(es, fmt.Errorf("indicators[%d] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)", indicatorIndex))
+	_, err = promql.ParseExpr(is.PromQL)
+	if err != nil {
+		es = append(es, fmt.Errorf("indicators[%d].promql should be valid promql (see https://prometheus.io/docs/)", indicatorIndex))
 	}
 
 	return es

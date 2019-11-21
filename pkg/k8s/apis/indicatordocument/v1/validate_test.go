@@ -30,7 +30,7 @@ func TestValidDocument(t *testing.T) {
 				Product: v1.Product{Name: "valid", Version: "0.1.1"},
 				Indicators: []v1.IndicatorSpec{{
 					Name:   "test_performance_indicator",
-					PromQL: "prom",
+					PromQL: "super_metric{deployment=\"foobar\"}",
 					Thresholds: []v1.Threshold{{
 						Level:    "critical",
 						Operator: v1.GreaterThan,
@@ -219,7 +219,7 @@ func TestIndicator(t *testing.T) {
 		))
 	})
 
-	t.Run("validation returns errors if indicator name is not valid promql", func(t *testing.T) {
+	t.Run("validation returns errors if missing promql", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
@@ -230,8 +230,7 @@ func TestIndicator(t *testing.T) {
 				Product: v1.Product{Name: "well-performing-component", Version: "0.0.1"},
 				Indicators: []v1.IndicatorSpec{
 					{
-						Name:         "not.valid",
-						PromQL:       "",
+						Name:         "valid",
 						Presentation: test_fixtures.DefaultPresentation(),
 					},
 				},
@@ -240,25 +239,25 @@ func TestIndicator(t *testing.T) {
 
 		es := document.Validate()
 
-		g.Expect(es).To(And(
-			ContainElement(errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)")),
+		g.Expect(es).To(
 			ContainElement(errors.New("IndicatorDocument.spec.indicators.promql in body should be at least 1 chars long")),
-		))
+		)
 	})
 
-	t.Run("validation returns errors if indicator name is not valid promql", func(t *testing.T) {
+	t.Run("validation returns errors if promql is invalid", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		document := v1.IndicatorDocument{
 			TypeMeta: metav1.TypeMeta{
 				APIVersion: api_versions.V1,
+				Kind: "IndicatorDocument",
 			},
 			Spec: v1.IndicatorDocumentSpec{
 				Product: v1.Product{Name: "well-performing-component", Version: "0.0.1"},
 				Indicators: []v1.IndicatorSpec{
 					{
-						Name:         `valid{labels="nope"}`,
-						PromQL:       `valid{labels="yep"}`,
+						Name:         `valid`,
+						PromQL:       `?`,
 						Presentation: test_fixtures.DefaultPresentation(),
 					},
 				},
@@ -267,9 +266,9 @@ func TestIndicator(t *testing.T) {
 
 		es := document.Validate()
 
-		g.Expect(es).To(ContainElement(
-			errors.New("indicators[0] name must be valid promql with no labels (see https://prometheus.io/docs/practices/naming)"),
-		))
+		g.Expect(es).To(
+			ContainElement(errors.New("indicators[0].promql should be valid promql (see https://prometheus.io/docs/)")),
+		)
 	})
 }
 
