@@ -9,6 +9,7 @@ spec:
   indicators:
   - name: file_descriptor_consumption
     promql: rabbitmq_fd_used / rabbitmq_fd_total
+    type: kpi
     thresholds:
     - level: critical
       operator: gt
@@ -16,6 +17,7 @@ spec:
       alert: { for: 10m }
   - name: memory_consumption
     promql: rabbitmq_node_mem_used / rabbitmq_node_mem_limit
+    type: kpi
     thresholds:
     - level: critical
       operator: gt
@@ -23,6 +25,7 @@ spec:
       alert: { for: 10m }
   - name: disk_remaining
     promql: rabbitmq_node_disk_free - rabbitmq_node_disk_free_limit
+    type: kpi
     thresholds:
     - level: critical
       operator: lt
@@ -30,12 +33,31 @@ spec:
       alert: { for: 10m }
   - name: messages_rate
     promql: rate(rabbitmq_queue_messages_total[5m])
+    type: kpi
     thresholds:
     - level: warning
       operator: gt
       value: 0.02
       alert:
         for: 10s
+  - name: meow_meow_meow
+    promql: rate(rabbitmq_queue_messages_total[5m]) / rabbitmq_node_mem_limit
+    type: kpi
+    thresholds:
+    - level: critical
+      operator: lt
+      value: 0.02
+      alert:
+        for: 99s
+  - name: woof_woof
+    promql: rate(rabbitmq_queue_messages_total[5m]) / rabbitmq_node_mem_used
+    type: kpi
+    thresholds:
+    - level: warning
+      operator: eq
+      value: 0.03
+      alert:
+        for: 1s
   layout:
     title: RabbitMQ
     sections:
@@ -45,3 +67,5 @@ spec:
       - memory_consumption
       - disk_remaining
       - messages_rate
+      - meow_meow_meow
+      - woof_woof
