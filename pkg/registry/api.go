@@ -6,9 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/docs"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry/status_store"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator"
@@ -56,6 +58,33 @@ func NewIndicatorDocumentsHandler(store *DocumentStore, statusStore *status_stor
 
 		if err != nil {
 			log.Printf("error writing to `/indicator-documents`")
+		}
+	}
+}
+
+func NewDocumentationHandler(store *DocumentStore, statusStore *status_store.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusOK)
+
+		println("Handling documents .... ")
+
+		documents := store.FilteredDocuments(r.URL.Query())
+		returnedDocuments := make([]string, len(documents))
+		for i, doc := range documents {
+			var err error
+			statusStore.FillStatuses(&doc)
+
+			returnedDocuments[i], err = docs.DocumentToHTML(doc)
+
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		_, err := fmt.Fprint(w, strings.Join(returnedDocuments, "\n"))
+		if err != nil {
+			panic(err)
 		}
 	}
 }

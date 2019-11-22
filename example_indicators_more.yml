@@ -1,0 +1,33 @@
+---
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
+metadata:
+  labels:
+    deployment: my-service-deployment
+    source_id: my-metric-source
+
+spec:
+  product:
+    name: my-other-component
+    version: 1.2.3
+
+  indicators:
+  - name: very_good_indicator
+    promql: test_query
+    thresholds:
+    - operator: lt
+      value: 100
+      level: warning
+      alert:
+        for: 50m
+        step: 10s
+
+    documentation:
+      title: Doc Performance Indicator
+      measurement: Number of stuff units per unit space
+      description: |
+        Mark.
+
+        Dowwn.
+      recommendedResponse: Groove

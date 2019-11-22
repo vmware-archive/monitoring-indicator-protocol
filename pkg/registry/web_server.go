@@ -56,6 +56,8 @@ func newRouter(w WebServerConfig) *mux.Router {
 		instrumentEndpoint(httpRequests, NewIndicatorDocumentsHandler(w.DocumentStore, w.StatusStore))).Methods(http.MethodGet)
 	r.HandleFunc("/v1/indicator-documents/{documentID}/bulk_status" + optionalTrailingSlash,
 		instrumentEndpoint(httpRequests, NewIndicatorStatusBulkUpdateHandler(w.StatusStore))).Methods(http.MethodPost)
+	r.HandleFunc("/monitoring-documentation",
+		instrumentEndpoint(httpRequests, NewDocumentationHandler(w.DocumentStore, w.StatusStore))).Methods(http.MethodGet)
 	return r
 }
 
