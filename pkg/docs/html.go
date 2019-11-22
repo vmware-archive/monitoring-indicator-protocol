@@ -32,8 +32,8 @@ const htmlDocumentTemplate = `
 </html>
 `
 
-var htmlDocumatationTmpl = template.Must(template.New("html_document").Parse(htmlDocumentTemplate))
+var htmlDocumentationTmpl = template.Must(template.New("html_document").Parse(htmlDocumentTemplate))
 
 func DocumentToHTML(d v1.IndicatorDocument) (string, error) {
-	return docToTemplate(d, htmlDocumatationTmpl)
+	return docToTemplate(d, htmlDocumentationTmpl)
 }
