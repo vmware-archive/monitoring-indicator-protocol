@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -16,6 +19,7 @@ import (
 	uaa "code.cloudfoundry.org/uaa-go-client"
 	uaaConfig "code.cloudfoundry.org/uaa-go-client/config"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 )
 
@@ -57,6 +61,43 @@ func main() {
 	}
 	if err != nil {
 		log.Fatalf("Error with creating handlers: %s", err)
+	}
+
+	registryProxyHandler.ModifyResponse = func(response *http.Response) error {
+		status := "frog"
+		responseBytes, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			log.Printf("Error reading registry response: %s", err)
+			return err
+		}
+
+		var documents []registry.APIDocumentResponse
+
+		err = json.Unmarshal(responseBytes, &documents)
+		if err != nil {
+			log.Printf("Error unmarshalling json: %s", err)
+			return err
+		}
+
+		for _, doc := range documents {
+			for i, indicator := range doc.Spec.Indicators {
+				indicator.Status = &registry.APIIndicatorStatusResponse{
+					Value:     &status,
+					UpdatedAt: time.Now(),
+				}
+				doc.Spec.Indicators[i] = indicator
+			}
+		}
+
+		fmt.Printf("documents: %+v", documents)
+
+		documentBytes, err := json.Marshal(documents)
+		response.Body = ioutil.NopCloser(bytes.NewReader(documentBytes))
+		response.Header["Content-Length"] = []string{fmt.Sprint(len(documentBytes))}
+
+		fmt.Printf("response: %+v", response)
+
+		return nil
 	}
 
 	var server = &http.Server{
