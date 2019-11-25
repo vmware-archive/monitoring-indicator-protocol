@@ -19,7 +19,7 @@ properties:
     description: "status update interval"
     default: "1m"
   prometheus_uri:
-    description: "URI to hit to reload configuration"
+    description: "Promql-compliant metrics endpoint"
   ssl.skip_cert_verify:
     description: "when connecting over TLS, don't verify certificates and use skip_cert_verify flag for 'cf api' command"
     default: false
