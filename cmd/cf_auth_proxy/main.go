@@ -19,6 +19,8 @@ import (
 	uaa "code.cloudfoundry.org/uaa-go-client"
 	uaaConfig "code.cloudfoundry.org/uaa-go-client/config"
 
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/indicator_status"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/prometheus_oauth_client"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 )
@@ -35,6 +37,8 @@ func main() {
 	uaaAddress := flag.String("uaa-addr", "", "Address of the UAA server against which to verify tokens")
 	serverCommonName := flag.String("tls-server-cn", "localhost", "server (indicator registry) common name")
 	registryUrlString := flag.String("registry-addr", "", "URL of the registry to proxy")
+	prometheusUrlString := flag.String("prometheus-addr", "", "URL of a Prometheus instance")
+
 	flag.Parse()
 
 	address := fmt.Sprintf("%s:%s", *host, *port)
@@ -64,7 +68,6 @@ func main() {
 	}
 
 	registryProxyHandler.ModifyResponse = func(response *http.Response) error {
-		status := "frog"
 		responseBytes, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			log.Printf("Error reading registry response: %s", err)
@@ -72,6 +75,11 @@ func main() {
 		}
 
 		var documents []registry.APIDocumentResponse
+
+		tokenFetch := func() (string, error) {
+			return response.Request.URL.Query().Get("token"), nil
+		}
+		prometheusClient, err := prometheus_oauth_client.Build(*prometheusUrlString, tokenFetch, true)
 
 		err = json.Unmarshal(responseBytes, &documents)
 		if err != nil {
@@ -81,6 +89,14 @@ func main() {
 
 		for _, doc := range documents {
 			for i, indicator := range doc.Spec.Indicators {
+				values, err := prometheusClient.QueryVectorValues(indicator.PromQL)
+				if err != nil {
+					log.Print("Error querying Prometheus")
+					continue
+				}
+				thresholds := registry.ConvertThresholds(indicator.Thresholds)
+				status := indicator_status.Match(thresholds, values)
+
 				indicator.Status = &registry.APIIndicatorStatusResponse{
 					Value:     &status,
 					UpdatedAt: time.Now(),
@@ -89,13 +105,9 @@ func main() {
 			}
 		}
 
-		fmt.Printf("documents: %+v", documents)
-
 		documentBytes, err := json.Marshal(documents)
 		response.Body = ioutil.NopCloser(bytes.NewReader(documentBytes))
 		response.Header["Content-Length"] = []string{fmt.Sprint(len(documentBytes))}
-
-		fmt.Printf("response: %+v", response)
 
 		return nil
 	}

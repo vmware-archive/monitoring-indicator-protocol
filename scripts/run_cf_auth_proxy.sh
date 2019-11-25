@@ -4,6 +4,7 @@ set -efu
 export CERTS=./test_fixtures
 export REGISTRY_PROXY_PORT=8091
 export REGISTRY_URL="https://localhost:${REGISTRY_PROXY_PORT}"
+export PROMETHEUS_URI="https://metric-store.madlamp.cf-denver.com "
 
 echo "Starting auth proxy on PORT 5050"
 go run cmd/cf_auth_proxy/main.go \
@@ -16,6 +17,7 @@ go run cmd/cf_auth_proxy/main.go \
   -tls-root-ca-pem ${CERTS}/ca.pem \
   -uaa-addr "https://uaa.madlamp.cf-denver.com" \
   -registry-addr ${REGISTRY_URL} \
+  -prometheus-addr ${PROMETHEUS_URI} \
     2>&1 | sed 's/^/cf auth PROXY: /' \
   &
 
