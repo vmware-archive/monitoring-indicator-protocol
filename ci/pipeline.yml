@@ -222,6 +222,7 @@ jobs:
       trigger: true
       passed: [deploy-indicator-registry-to-madlamp]
   - task: test-bosh-e2e
+    attempts: 6
     config:
       params:
         BBL_STATE_DIR: acceptance-bosh/indicator-protocol/madlamp
