@@ -58,37 +58,6 @@ function exit_on_dirty_git_directory {
     fi
 }
 
-# TODO remove this, or fix it so that it can be run without breaking our code
-function run_cleaners {
-    print_checkpoint "Running Cleaners"
-
-    go get github.com/kisielk/gotool
-
-    if ! which goimports > /dev/null 2>&1; then
-        echo installing goimports
-        go get golang.org/x/tools/cmd/goimports
-    fi
-    if ! which misspell > /dev/null 2>&1; then
-        echo installing misspell
-        go get github.com/client9/misspell/cmd/misspell
-    fi
-    if ! which unconvert > /dev/null 2>&1; then
-        echo installing unconvert
-        go get github.com/mdempsky/unconvert
-    fi
-
-    local ip_dirs="pkg cmd k8s/cmd k8s/pkg k8s/test"
-    echo running goimports
-    goimports -w $ip_dirs
-    echo running gofmt
-    gofmt -s -w $ip_dirs
-    echo running misspell
-    misspell -w $ip_dirs
-    echo running unconvert
-    unconvert -v -apply "$PKG/..."
-    return 0
-}
-
 function run_build {
     print_checkpoint "Make Sure Packages Compile"
     go test -run xxxxxxxxxxxxxxxxx "$PKG/..." > /dev/null
