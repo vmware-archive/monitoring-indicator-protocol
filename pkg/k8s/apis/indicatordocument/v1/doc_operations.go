@@ -55,8 +55,8 @@ func getLayoutSections(indicators []IndicatorSpec) []Section {
 
 func populateDefaultPresentation(doc *IndicatorDocument) {
 	for i, indicator := range doc.Spec.Indicators {
-		if indicator.Presentation.ChartType == "" {
-			doc.Spec.Indicators[i].Presentation.ChartType = "step"
+		if indicator.Presentation.ChartType == UndefinedChart {
+			doc.Spec.Indicators[i].Presentation.ChartType = StepChart
 		}
 		if indicator.Presentation.Labels == nil {
 			doc.Spec.Indicators[i].Presentation.Labels = []string{}

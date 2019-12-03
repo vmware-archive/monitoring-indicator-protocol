@@ -37,7 +37,7 @@ func TestUpdateMetadata(t *testing.T) {
 						PromQL: `query_metric{source_id="well-performing-deployment"}`,
 						Presentation: v1.Presentation{
 							CurrentValue: false,
-							ChartType:    "step",
+							ChartType:    v1.StepChart,
 							Frequency:    0,
 							Labels:       []string{},
 						},
@@ -83,7 +83,7 @@ func TestUpdateMetadata(t *testing.T) {
 						PromQL: `query_metric{source_id="$deployment"}`,
 						Presentation: v1.Presentation{
 							CurrentValue: false,
-							ChartType:    "step",
+							ChartType:    v1.StepChart,
 							Frequency:    0,
 							Labels:       []string{},
 						},

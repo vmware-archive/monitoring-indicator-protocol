@@ -27,8 +27,6 @@ func TestDocumentFromYAML(t *testing.T) {
 	})
 
 	t.Run("apiVersion v1", func(t *testing.T) {
-		// TODO a lot of these tests don't need to work with YAML so extensively,
-		//      they can be moved into tests for `PopulateDefaults`
 		t.Run("parses all document fields", func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			reader := ioutil.NopCloser(strings.NewReader(`---
@@ -128,10 +126,9 @@ spec:
 			}))
 		})
 
-		t.Run("populates defaults", func(t *testing.T) {
-			t.Run("populates default alert config when no alert given", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
+		t.Run("populates all defaults when not provided", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
@@ -142,253 +139,32 @@ metadata:
 spec:
   product:
     name: well-performing-component
-    version: 0.0.1
-  indicators:
-  - name: test_indicator
-    promql: promql_query
-    thresholds:
-    - level: warning
-      operator: lt
-      value: 10
-`))
-				d, errs := indicator.DocumentFromYAML(reader)
-				g.Expect(errs).To(BeEmpty())
-
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(v1.Alert{
-					For:  "1m",
-					Step: "1m",
-				}))
-			})
-
-			t.Run("populates default alert 'for' k/v when no alert for given", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol.io/v1
-kind: IndicatorDocument
-
-metadata:
-  labels:
-    deployment: valid-deployment
-spec:
-  product:
-    name: well-performing-component
-    version: 0.0.1
-
-  indicators:
-  - name: test_indicator
-    promql: promql_query
-    thresholds:
-    - level: warning
-      operator: lt
-      value: 10
-      alert:
-        step: 5m
-`))
-
-				d, errs := indicator.DocumentFromYAML(reader)
-				g.Expect(errs).To(BeEmpty())
-
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(
-					v1.Alert{
-						For:  "1m",
-						Step: "5m",
-					}))
-			})
-
-			t.Run("populates default alert 'step' k/v when no alert step given", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol.io/v1
-kind: IndicatorDocument
-
-metadata:
-  labels:
-    deployment: valid-deployment
-
-spec:
-  product:
-    name: well-performing-component
-    version: 0.0.1
-  indicators:
-  - name: test_indicator
-    promql: promql_query
-    thresholds:
-    - level: warning
-      operator: lt
-      value: 10
-      alert:
-        for: 5m
-`))
-				d, errs := indicator.DocumentFromYAML(reader)
-				g.Expect(errs).To(BeEmpty())
-
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(v1.Alert{
-					For:  "5m",
-					Step: "1m",
-				}))
-			})
-			t.Run("populates default alert for multiple thresholds", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol.io/v1
-kind: IndicatorDocument
-
-metadata:
-  labels:
-    deployment: valid-deployment
-
-spec:
-  product:
-    name: well-performing-component
-    version: 0.0.1
-  indicators:
-  - name: test_indicator
-    promql: promql_query
-    thresholds:
-    - level: warning
-      operator: lt
-      value: 10
-      alert:
-        for: 5m
-    - level: critical
-      operator: lt
-      value: 100
-      alert:
-        step: 5m
-`))
-				d, errs := indicator.DocumentFromYAML(reader)
-				g.Expect(errs).To(BeEmpty())
-
-				g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(v1.Alert{
-					For:  "5m",
-					Step: "1m",
-				}))
-				g.Expect(d.Spec.Indicators[0].Thresholds[1].Alert).To(Equal(v1.Alert{
-					For:  "1m",
-					Step: "5m",
-				}))
-			})
-
-			t.Run("sets a default layout when not provided", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol.io/v1
-kind: IndicatorDocument
-
-metadata:
-  labels:
-    deployment: valid-deployment
-
-spec:
-  product:
-    name: well-performing-component
-    version: 0.0.1
-
-  indicators:
-  - name: test_performance_indicator_1
-    promql: promql_query
-  - name: test_performance_indicator_2
-    promql: promql_query
-`))
-				d, errs := indicator.DocumentFromYAML(reader)
-				g.Expect(errs).To(BeEmpty())
-
-				g.Expect(d.Spec.Layout).To(Equal(v1.Layout{
-					Title: "well-performing-component - 0.0.1",
-					Sections: []v1.Section{{
-						Title: "Metrics",
-						Indicators: []string{
-							"test_performance_indicator_1",
-							"test_performance_indicator_2",
-						},
-					}},
-				}))
-			})
-
-			t.Run("it uses defaults in the case of empty presentation data", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol.io/v1
-kind: IndicatorDocument
-
-metadata:
-  labels:
-    deployment: test_deployment
-
-spec:
-  product:
-    name: test_product
-    version: 0.0.1
-  indicators:
-  - name: test_performance_indicator_1
-    promql: prom{deployment="$deployment"}
-  - name: test_performance_indicator_2
-    promql: prom{deployment="$deployment"}
-    presentation:
-      currentValue: true
-  layout:
-    sections:
-    - title: Metrics
-      indicators:
-      - test_performance_indicator_1
-
-`))
-				d, errs := indicator.DocumentFromYAML(reader)
-				g.Expect(errs).To(BeEmpty())
-
-				g.Expect(d.Spec.Indicators[0].Presentation).To(BeEquivalentTo(v1.Presentation{
-					ChartType:    "step",
-					CurrentValue: false,
-					Frequency:    0,
-					Labels:       []string{},
-				}))
-				g.Expect(d.Spec.Indicators[1].Presentation).To(BeEquivalentTo(v1.Presentation{
-					ChartType:    "step",
-					CurrentValue: true,
-					Frequency:    0,
-					Labels:       []string{},
-				}))
-			})
-
-			t.Run("handles defaulting indicator types", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol.io/v1
-kind: IndicatorDocument
-spec:
-  product:
-    name: test_product
     version: 0.0.1
 
   indicators:
   - name: test_performance_indicator
-    promql: prom{deployment="test"}
-    presentation:
-      chartType: step
+    promql: promql_query
+    thresholds:
+    - operator: lt
+      value: 0
+      level: warning
 `))
-				d, errs := indicator.DocumentFromYAML(reader)
-				g.Expect(errs).To(BeEmpty())
-				g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicator))
-			})
+			d, errs := indicator.DocumentFromYAML(reader)
+			g.Expect(errs).To(BeEmpty())
 
-			t.Run("handles defaulting titles", func(t *testing.T) {
-				g := NewGomegaWithT(t)
-				reader := ioutil.NopCloser(strings.NewReader(`---
-apiVersion: indicatorprotocol.io/v1
-kind: IndicatorDocument
-spec:
-  product:
-    name: test_product 
-    version: 0.0.1
-  layout:
-    sections: []
-`))
-				d, errs := indicator.DocumentFromYAML(reader)
-				g.Expect(errs).To(BeEmpty())
-				g.Expect(d.Spec.Layout.Title).To(Equal("test_product - 0.0.1"))
+			g.Expect(d.Spec.Layout).To(Equal(v1.Layout{
+				Title: "well-performing-component - 0.0.1",
+				Sections: []v1.Section{{
+					Title: "Metrics",
+					Indicators: []string{
+						"test_performance_indicator",
+					},
+				}},
+			}))
 
-			})
+			g.Expect(d.Spec.Indicators[0].Thresholds[0].Alert).To(Equal(test_fixtures.DefaultAlert()))
+
+			g.Expect(d.Spec.Indicators[0].Presentation).To(Equal(test_fixtures.DefaultPresentation()))
 		})
 
 		t.Run("handles thresholds", func(t *testing.T) {
@@ -677,6 +453,27 @@ spec:
 			reader := ioutil.NopCloser(strings.NewReader(yamlString))
 			_, errs := indicator.DocumentFromYAML(reader)
 			g.Expect(errs).ToNot(BeEmpty())
+		})
+
+		t.Run("handles defaulting indicator types", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			reader := ioutil.NopCloser(strings.NewReader(`---
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+spec:
+  product:
+    name: test_product
+    version: 0.0.1
+
+  indicators:
+  - name: test_performance_indicator
+    promql: prom{deployment="test"}
+    presentation:
+      chartType: step
+`))
+			d, errs := indicator.DocumentFromYAML(reader)
+			g.Expect(errs).To(BeEmpty())
+			g.Expect(d.Spec.Indicators[0].Type).To(Equal(v1.DefaultIndicator))
 		})
 	})
 }

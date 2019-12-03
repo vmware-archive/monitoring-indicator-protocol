@@ -447,7 +447,7 @@ func getPresentationPatches(presentation v1.Presentation, context string) []patc
 				Op:   "add",
 				Path: fmt.Sprintf("%s/presentation", context),
 				Value: v1.Presentation{
-					ChartType:    "step",
+					ChartType:    v1.StepChart,
 					CurrentValue: false,
 					Frequency:    0,
 					Labels:       []string{},
@@ -457,7 +457,7 @@ func getPresentationPatches(presentation v1.Presentation, context string) []patc
 	}
 
 	var patchOperations []patch
-	if presentation.ChartType == "" {
+	if presentation.ChartType == v1.UndefinedChart {
 		patchOperations = append(patchOperations, patch{
 			Op:    "add",
 			Path:  fmt.Sprintf("%s/presentation/chartType", context),

@@ -153,15 +153,67 @@ type Presentation struct {
 	Units        string    `json:"units,omitempty"`
 }
 
-// TODO replace with standard enum
-type ChartType string
+type ChartType int
 
 const (
-	StepChart   ChartType = "step"
-	BarChart    ChartType = "bar"
-	StatusChart ChartType = "status"
-	QuotaChart  ChartType = "quota"
+	UndefinedChart ChartType = iota
+	InvalidChart
+	StepChart
+	BarChart
+	StatusChart
+	QuotaChart
 )
+
+func (ct ChartType) MarshalJSON() ([]byte, error) {
+	chartTypeString := ChartTypeToString(ct)
+	if chartTypeString == "" {
+		return []byte("null"), nil
+	}
+	quoteWrappedString := fmt.Sprintf(`"%s"`, chartTypeString)
+	return []byte(quoteWrappedString), nil
+}
+
+func ChartTypeToString(ct ChartType) string {
+	switch ct {
+	case StepChart:
+		return "step"
+	case BarChart:
+		return "bar"
+	case StatusChart:
+		return "status"
+	case QuotaChart:
+		return "quota"
+	case InvalidChart:
+		return "null"
+	case UndefinedChart:
+		return ""
+	default:
+		return ""
+	}
+}
+
+func (ct *ChartType) UnmarshalJSON(data []byte) error {
+	s := string(data)
+	*ct = ChartTypeFromString(strings.Trim(s, "\""))
+	return nil
+}
+
+func ChartTypeFromString(s string) ChartType {
+	switch s {
+	case `step`:
+		return StepChart
+	case `bar`:
+		return BarChart
+	case `status`:
+		return StatusChart
+	case `quota`:
+		return QuotaChart
+	case ``:
+		return UndefinedChart
+	default:
+		return InvalidChart
+	}
+}
 
 type Alert struct {
 	For  string `json:"for,omitempty"`

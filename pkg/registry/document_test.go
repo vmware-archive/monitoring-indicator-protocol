@@ -98,7 +98,7 @@ func TestDocumentTranslation(t *testing.T) {
 						"anotherKey": "anotherValue",
 					},
 					Presentation: v1.Presentation{
-						ChartType:    "bar",
+						ChartType:    v1.BarChart,
 						CurrentValue: false,
 						Frequency:    50,
 						Labels:       []string{"radical"},

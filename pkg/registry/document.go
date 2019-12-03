@@ -119,7 +119,7 @@ func convertIndicator(i APIIndicatorResponse) v1.IndicatorSpec {
 		Thresholds:    thresholds,
 		Documentation: i.Documentation,
 		Presentation: v1.Presentation{
-			ChartType:    v1.ChartType(i.Presentation.ChartType),
+			ChartType:    v1.ChartTypeFromString(i.Presentation.ChartType),
 			CurrentValue: i.Presentation.CurrentValue,
 			Frequency:    i.Presentation.Frequency,
 			Labels:       i.Presentation.Labels,
@@ -195,7 +195,7 @@ func ToAPIDocumentResponse(doc v1.IndicatorDocument) APIDocumentResponse {
 			labels = append(labels, l)
 		}
 		presentation := APIPresentationResponse{
-			ChartType:    string(i.Presentation.ChartType),
+			ChartType:    v1.ChartTypeToString(i.Presentation.ChartType),
 			CurrentValue: i.Presentation.CurrentValue,
 			Frequency:    i.Presentation.Frequency,
 			Labels:       labels,

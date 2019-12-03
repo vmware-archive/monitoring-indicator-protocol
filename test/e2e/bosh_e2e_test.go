@@ -34,6 +34,7 @@ func TestBoshE2e(t *testing.T) {
 
 		resp, err := http.Get(url)
 		g.Expect(err).ToNot(HaveOccurred())
+		g.Expect(resp.StatusCode).To(Equal(200))
 		var docs []v1.IndicatorDocument
 		err = json.NewDecoder(resp.Body).Decode(&docs)
 		g.Expect(err).ToNot(HaveOccurred())

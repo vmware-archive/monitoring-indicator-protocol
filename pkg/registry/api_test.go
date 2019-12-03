@@ -85,7 +85,7 @@ spec:
 						PromQL: "prom",
 						Presentation: v1.Presentation{
 							CurrentValue: false,
-							ChartType:    "step",
+							ChartType:    v1.StepChart,
 							Frequency:    0,
 							Labels:       []string{},
 						},
@@ -392,7 +392,7 @@ func makeIndicatorDocument(labels map[string]string) v1.IndicatorDocument {
 				Name:   "indie2",
 				PromQL: "promql2",
 				Presentation: v1.Presentation{
-					ChartType:    "status",
+					ChartType:    v1.StatusChart,
 					CurrentValue: false,
 					Frequency:    0,
 					Units:        "nanoseconds",

@@ -9,7 +9,7 @@ import (
 
 func DefaultPresentation() v1.Presentation {
 	return v1.Presentation{
-		ChartType:    "step",
+		ChartType:    v1.StepChart,
 		CurrentValue: false,
 		Frequency:    0,
 		Labels:       make([]string, 0),
@@ -19,7 +19,7 @@ func DefaultPresentation() v1.Presentation {
 
 func DefaultAPIPresentationResponse() registry.APIPresentationResponse {
 	return registry.APIPresentationResponse{
-		ChartType:    "step",
+		ChartType:    v1.ChartTypeToString(v1.StepChart),
 		CurrentValue: false,
 		Frequency:    0,
 		Labels:       make([]string, 0),

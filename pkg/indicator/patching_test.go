@@ -16,8 +16,6 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 )
 
-// TODO The test fixtures have many duplicate lines, and sometimes are actually duplicated.
-//      Can we remove the duplicaion?
 var (
 	v1DocumentBytes = []byte(`---
 apiVersion: indicatorprotocol.io/v1
@@ -551,28 +549,10 @@ spec:
 			},
 		}}
 
-		doc := []byte(`---
-apiVersion: indicatorprotocol.io/v1
-kind: IndicatorDocument
-
-metadata:
-  labels:
-    deployment: test-deployment
-
-spec:
-  product:
-    name: testing
-    version: v123
-  
-  indicators:
-  - name: test_indicator
-    promql: test_expr
-`)
-
-		patchedBytes, err := indicator.ProcessDocument(indicatorPatch, doc)
+		patchedBytes, err := indicator.ProcessDocument(indicatorPatch, v1DocumentBytes)
 		g.Expect(err).To(BeEmpty())
 
-		reader := ioutil.NopCloser(bytes.NewReader(doc))
+		reader := ioutil.NopCloser(bytes.NewReader(v1DocumentBytes))
 		d, err2 := indicator.DocumentFromYAML(reader)
 		g.Expect(patchedBytes).To(Equal(d))
 		g.Expect(err2).To(BeEmpty())
@@ -598,28 +578,10 @@ spec:
 			},
 		}}
 
-		doc := []byte(`---
-apiVersion: indicatorprotocol.io/v1
-kind: IndicatorDocument
-
-metadata:
-  labels:
-    deployment: test-deployment
-
-spec:
-  product:
-    name: testing
-    version: v123
-  
-  indicators:
-  - name: test_indicator
-    promql: test_expr
-`)
-
-		patchedBytes, err := indicator.ProcessDocument(indicatorPatch, doc)
+		patchedBytes, err := indicator.ProcessDocument(indicatorPatch, v1DocumentBytes)
 		g.Expect(err).To(BeEmpty())
 
-		reader := ioutil.NopCloser(bytes.NewReader(doc))
+		reader := ioutil.NopCloser(bytes.NewReader(v1DocumentBytes))
 		d, err2 := indicator.DocumentFromYAML(reader)
 		g.Expect(patchedBytes).To(Equal(d))
 		g.Expect(err2).To(BeEmpty())
@@ -672,7 +634,6 @@ kind: IndicatorDocument
 metadata:
   labels:
     deployment: test-deployment
-
 
 spec:
   product:

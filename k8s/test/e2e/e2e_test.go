@@ -237,7 +237,7 @@ func TestAdmission(t *testing.T) {
 		g.Expect(err).ToNot(HaveOccurred())
 
 		defaultPresentation := &v1.Presentation{
-			ChartType:    "step",
+			ChartType:    v1.StepChart,
 			CurrentValue: false,
 			Frequency:    0,
 			Labels:       []string{},
