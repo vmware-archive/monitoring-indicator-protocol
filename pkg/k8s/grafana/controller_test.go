@@ -410,9 +410,50 @@ func TestController(t *testing.T) {
 				},
 			})
 		})
-	})
 
-	// TODO: test that a namespace provided to the controller is set in the cm objects
+		t.Run("will not update if new object is not there", func(t *testing.T) {
+			g := NewGomegaWithT(t)
+			spyConfigMapEditor := &spyConfigMapEditor{g: g, getExists: true}
+			controller := grafana.NewController(spyConfigMapEditor, v1.ServiceLevelIndicator)
+
+			indicators := []v1.IndicatorSpec{
+				{
+					Name:   "qps",
+					PromQL: "rate(qps)",
+					Type:   v1.KeyPerformanceIndicator,
+				},
+				{
+					Name:   "lol",
+					PromQL: "rate(fun)",
+					Type:   v1.ServiceLevelIndicator,
+				},
+				{
+					Name:   "foo",
+					PromQL: "rate(boo)",
+					Type:   v1.DefaultIndicator,
+				},
+			}
+
+			controller.OnUpdate(&v1.IndicatorDocument{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "rabbit-mq-resource-name",
+					Namespace: "default",
+					UID:       types.UID("some-uid"),
+				},
+				Spec: v1.IndicatorDocumentSpec{
+					Product: v1.Product{
+						Name:    "rabbit-mq-product-name",
+						Version: "v1.0",
+					},
+					Indicators: indicators,
+				},
+			}, nil)
+
+			spyConfigMapEditor.expectThatNothingWasUpdated()
+			spyConfigMapEditor.expectThatNothingWasCreated()
+			spyConfigMapEditor.expectThatNothingWasDeleted()
+		})
+	})
 }
 
 type spyConfigMapEditor struct {
@@ -482,8 +523,13 @@ func (s *spyConfigMapEditor) expectDeleted(names []string) {
 func (s *spyConfigMapEditor) expectThatNothingWasCreated() {
 	s.g.Expect(s.createCalls).To(BeNil())
 }
+
 func (s *spyConfigMapEditor) expectThatNothingWasUpdated() {
 	s.g.Expect(s.updateCalls).To(BeNil())
+}
+
+func (s *spyConfigMapEditor) expectThatNothingWasDeleted() {
+	s.g.Expect(s.deleteCalls).To(BeNil())
 }
 
 func (s *spyConfigMapEditor) getCreated(i int) *corev1.ConfigMap {

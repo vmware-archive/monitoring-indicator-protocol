@@ -49,7 +49,6 @@ func (c *Controller) OnAdd(obj interface{}) {
 	}
 }
 
-// TODO: evaluate edge case where object might not exist
 func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 	newDoc, ok := newObj.(*v1.IndicatorDocument)
 	if !ok {
@@ -81,8 +80,6 @@ func (c *Controller) OnUpdate(oldObj, newObj interface{}) {
 	}
 }
 
-// TODO: evaluate edge case where object might not exist
-// TODO: do we need to handle non-indicatordocuments?
 func (c *Controller) OnDelete(obj interface{}) {
 	_, ok := obj.(*v1.IndicatorDocument)
 	if !ok {
