@@ -1,15 +1,12 @@
 package registry
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -56,42 +53,15 @@ func (a Agent) registerIndicatorDocuments() {
 		return
 	}
 
+	apiClient := NewAPIClient(a.RegistryURI, a.Client)
+
 	for _, d := range documents {
-		a.registerIndicatorDocument(d)
-	}
-}
-
-func (a Agent) registerIndicatorDocument(indicatorsDocument document) {
-	registry := fmt.Sprintf(a.RegistryURI + "/v1/register")
-
-	body := bytes.NewBuffer(indicatorsDocument)
-
-	// TODO: move to the registry API file
-	resp, err := a.Client.Post(registry, "text/plain", body)
-
-	if err != nil {
-		registrationCount.WithLabelValues("err").Inc()
-		log.Print("could not post to the registry")
-	} else {
-		registrationCount.WithLabelValues(strconv.Itoa(resp.StatusCode)).Inc()
-		if resp.StatusCode != http.StatusOK {
-			logErrorResponse(resp)
-			return
+		err := apiClient.AddIndicatorDocument(d)
+		if err != nil {
+			registrationCount.WithLabelValues("err").Inc()
+			log.Print(err)
 		}
-
-		closeBodyAndReuseConnection(resp)
 	}
-}
-
-func logErrorResponse(resp *http.Response) {
-	_, err := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-	if err != nil {
-		log.Printf("could not read response body on status %s", resp.Status)
-		return
-	}
-
-	log.Printf("received error response from registry with status: %s", resp.Status)
 }
 
 func closeBodyAndReuseConnection(resp *http.Response) {

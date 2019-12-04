@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type RegistryApiClient struct {
@@ -59,9 +60,25 @@ func (c *RegistryApiClient) BulkStatusUpdate(statusUpdates []APIV0UpdateIndicato
 		return errors.New("error sending status updates")
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("error response from status updates: %s", resp.Status)
 	}
 
+	return nil
+}
+
+func (c *RegistryApiClient) AddIndicatorDocument(document []byte) error {
+	body := bytes.NewBuffer(document)
+	resp, err := c.client.Post(c.serverURL + "/v1/register", "text/plain", body)
+	if err != nil {
+		return err
+	}
+
+	registrationCount.WithLabelValues(strconv.Itoa(resp.StatusCode)).Inc()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("received non-successful response from registry: %d", resp.StatusCode)
+	}
+
+	closeBodyAndReuseConnection(resp)
 	return nil
 }
