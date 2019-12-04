@@ -20,7 +20,8 @@ func TestAPIClient(t *testing.T) {
 
 		var receivedDoc v1.IndicatorDocument
 
-		http.HandleFunc("/v1/register", func(writer http.ResponseWriter, request *http.Request) {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/v1/register", func(writer http.ResponseWriter, request *http.Request) {
 			if request.Method == http.MethodPost {
 				posted, _ := ioutil.ReadAll(request.Body)
 				_ = json.Unmarshal(posted, &receivedDoc)
@@ -33,6 +34,7 @@ func TestAPIClient(t *testing.T) {
 
 		server := http.Server{
 			Addr: "localhost:8975",
+			Handler: mux,
 		}
 
 		go server.ListenAndServe()
@@ -56,25 +58,29 @@ func TestAPIClient(t *testing.T) {
 
 		g.Expect(err).ToNot(HaveOccurred())
 		g.Expect(receivedDoc).To(Equal(sentDoc))
+
+
 	})
 
 	t.Run("errors when registering document returns bad status code", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		http.HandleFunc("/v1/register", func(writer http.ResponseWriter, request *http.Request) {
+		mux := http.NewServeMux()
+		mux.HandleFunc("/v1/register", func(writer http.ResponseWriter, request *http.Request) {
 			writer.WriteHeader(400)
 		})
 
 		server := http.Server{
-			Addr: "localhost:8975",
+			Addr: "localhost:8976",
+			Handler: mux,
 		}
 
 		go server.ListenAndServe()
 
 		defer server.Close()
-		_ = go_test.WaitForTCPServer("localhost:8975", time.Second)
+		_ = go_test.WaitForTCPServer("localhost:8976", time.Second)
 
-		c := registry.NewAPIClient("http://localhost:8975", http.DefaultClient)
+		c := registry.NewAPIClient("http://localhost:8976", http.DefaultClient)
 
 		sentDoc := v1.IndicatorDocument{
 			Spec: v1.IndicatorDocumentSpec{
