@@ -125,12 +125,12 @@ func setupFakeRegistry(g *GomegaWithT) *ghttp.Server {
 		func(w http.ResponseWriter, r *http.Request) {
 			g.Expect(r.Method).To(Equal("POST"))
 			g.Expect(r.URL.Path).To(Equal("/v1/indicator-documents/my-other-component-c2dd9/bulk_status"))
-			var indicatorStatuses []registry.APIV0UpdateIndicatorStatus
+			var indicatorStatuses []registry.ApiV1UpdateIndicatorStatus
 			err := json.NewDecoder(r.Body).Decode(&indicatorStatuses)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			status := "warning"
-			g.Expect(indicatorStatuses).To(BeEquivalentTo([]registry.APIV0UpdateIndicatorStatus{{
+			g.Expect(indicatorStatuses).To(BeEquivalentTo([]registry.ApiV1UpdateIndicatorStatus{{
 				Name:   "very_good_indicator",
 				Status: &status,
 			}}))

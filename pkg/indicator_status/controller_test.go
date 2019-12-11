@@ -62,11 +62,11 @@ func TestStatusController(t *testing.T) {
 		g.Eventually(fakeRegistryClient.countBulkUpdates).Should(Equal(1))
 
 		g.Expect(fakeRegistryClient.statusesForUID("uaa-abc-123")).To(ConsistOf(
-			registry.APIV0UpdateIndicatorStatus{
+			registry.ApiV1UpdateIndicatorStatus{
 				Name:   "error_rate",
 				Status: test_fixtures.StrPtr("critical"),
 			},
-			registry.APIV0UpdateIndicatorStatus{
+			registry.ApiV1UpdateIndicatorStatus{
 				Name:   "happiness_rate",
 				Status: test_fixtures.StrPtr("warning"),
 			},
@@ -110,7 +110,7 @@ func TestStatusController(t *testing.T) {
 		g.Eventually(fakeRegistryClient.countBulkUpdates).Should(Equal(1))
 
 		g.Expect(fakeRegistryClient.statusesForUID("uaa-abc-123")).To(ConsistOf(
-			registry.APIV0UpdateIndicatorStatus{
+			registry.ApiV1UpdateIndicatorStatus{
 				Name:   "error_rate",
 				Status: test_fixtures.StrPtr("critical"),
 			},
@@ -157,7 +157,7 @@ func setupFakeQueryClientWithVectorResponses(responses map[string][]float64) *fa
 
 func setupFakeRegistryClient(indicators []registry.APIIndicatorResponse) *fakeRegistryClient {
 	var fakeRegistryClient = &fakeRegistryClient{
-		receivedStatuses: map[string][]registry.APIV0UpdateIndicatorStatus{},
+		receivedStatuses: map[string][]registry.ApiV1UpdateIndicatorStatus{},
 		bulkUpdates:      0,
 		indicatorDocuments: []registry.APIDocumentResponse{
 			{
@@ -194,14 +194,14 @@ type fakeRegistryClient struct {
 
 	sync.Mutex
 	bulkUpdates      int
-	receivedStatuses map[string][]registry.APIV0UpdateIndicatorStatus
+	receivedStatuses map[string][]registry.ApiV1UpdateIndicatorStatus
 }
 
 func (f *fakeRegistryClient) IndicatorDocuments() ([]registry.APIDocumentResponse, error) {
 	return f.indicatorDocuments, nil
 }
 
-func (f *fakeRegistryClient) BulkStatusUpdate(statusUpdates []registry.APIV0UpdateIndicatorStatus, documentId string) error {
+func (f *fakeRegistryClient) BulkStatusUpdate(statusUpdates []registry.ApiV1UpdateIndicatorStatus, documentId string) error {
 	f.Lock()
 	defer f.Unlock()
 
@@ -210,7 +210,7 @@ func (f *fakeRegistryClient) BulkStatusUpdate(statusUpdates []registry.APIV0Upda
 	return nil
 }
 
-func (f *fakeRegistryClient) statusesForUID(uid string) []registry.APIV0UpdateIndicatorStatus {
+func (f *fakeRegistryClient) statusesForUID(uid string) []registry.ApiV1UpdateIndicatorStatus {
 	f.Lock()
 	defer f.Unlock()
 

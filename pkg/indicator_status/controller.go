@@ -11,7 +11,7 @@ type DocumentGetter interface {
 	IndicatorDocuments() ([]registry.APIDocumentResponse, error)
 }
 type StatusUpdater interface {
-	BulkStatusUpdate(statusUpdates []registry.APIV0UpdateIndicatorStatus, documentId string) error
+	BulkStatusUpdate(statusUpdates []registry.ApiV1UpdateIndicatorStatus, documentId string) error
 }
 
 type PromQLClient interface {
@@ -55,7 +55,7 @@ func (c StatusController) Start() {
 }
 
 func (c StatusController) updateStatuses() error {
-	var statusUpdates []registry.APIV0UpdateIndicatorStatus
+	var statusUpdates []registry.ApiV1UpdateIndicatorStatus
 
 	apiv0Documents, err := c.documentGetter.IndicatorDocuments()
 	if err != nil {
@@ -74,7 +74,7 @@ func (c StatusController) updateStatuses() error {
 			}
 			thresholds := registry.ConvertThresholds(indicator.Thresholds)
 			status := Match(thresholds, values)
-			statusUpdates = append(statusUpdates, registry.APIV0UpdateIndicatorStatus{
+			statusUpdates = append(statusUpdates, registry.ApiV1UpdateIndicatorStatus{
 				Name:   indicator.Name,
 				Status: &status,
 			})

@@ -70,14 +70,14 @@ func writeErrors(w http.ResponseWriter, statusCode int, errors ...error) {
 	_ = json.NewEncoder(w).Encode(errorResponse{Errors: errorStrings})
 }
 
-type APIV0UpdateIndicatorStatus struct {
+type ApiV1UpdateIndicatorStatus struct {
 	Name   string  `json:"name"`
 	Status *string `json:"status"`
 }
 
 func NewIndicatorStatusBulkUpdateHandler(store *status_store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var indicatorStatuses []APIV0UpdateIndicatorStatus
+		var indicatorStatuses []ApiV1UpdateIndicatorStatus
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)

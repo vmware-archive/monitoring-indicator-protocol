@@ -44,7 +44,7 @@ func (c *RegistryApiClient) indicatorResponse() ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
-func (c *RegistryApiClient) BulkStatusUpdate(statusUpdates []APIV0UpdateIndicatorStatus, documentId string) error {
+func (c *RegistryApiClient) BulkStatusUpdate(statusUpdates []ApiV1UpdateIndicatorStatus, documentId string) error {
 	updateBytes, err := json.Marshal(statusUpdates)
 	body := bytes.NewBuffer(updateBytes)
 	if err != nil {

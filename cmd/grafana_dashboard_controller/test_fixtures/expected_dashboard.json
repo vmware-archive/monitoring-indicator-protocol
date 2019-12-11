@@ -1,40 +1,79 @@
+//{
+//  "annotations": {
+//    "list": [
+//      {
+//        "enable": true,
+//        "expr": "ALERTS{product=\"test_product\",deployment=\"test_deployment\"}",
+//        "tagKeys": "level",
+//        "titleFormat": "{{alertname}} is {{alertstate}} in the {{level}} threshold",
+//        "iconColor": "#1f78c1"
+//      }
+//    ]
+//  },
+//  "title": "Test Dashboard",
+//  "rows": [
+//    {
+//      "title": "Test Section Title",
+//      "panels": [
+//        {
+//          "title": "Test Indicator Title",
+//          "type": "graph",
+//          "targets": [
+//            {
+//              "expr": "test_query{deployment=\"test_deployment\"}"
+//            }
+//          ],
+//          "thresholds": [
+//            {
+//              "value": 5,
+//              "colorMode": "critical",
+//              "op": "lt",
+//              "fill": true,
+//              "line": true,
+//              "yaxis": "left"
+//            }
+//          ]
+//        }
+//      ]
+//    }
+//  ]
+//}
+
 {
   "annotations": {
     "list": [
       {
         "enable": true,
         "expr": "ALERTS{product=\"test_product\",deployment=\"test_deployment\"}",
+        "iconColor": "#1f78c1",
         "tagKeys": "level",
-        "titleFormat": "{{alertname}} is {{alertstate}} in the {{level}} threshold",
-        "iconColor": "#1f78c1"
+        "titleFormat": "{{alertname}} is {{alertstate}} in the {{level}} threshold"
       }
     ]
   },
-  "title": "Test Dashboard",
-  "rows": [
+  "panels": [
     {
-      "title": "Test Section Title",
-      "panels": [
+//      "id": 1,
+      "targets": [
         {
-          "title": "Test Indicator Title",
-          "type": "graph",
-          "targets": [
-            {
-              "expr": "test_query{deployment=\"test_deployment\"}"
-            }
-          ],
-          "thresholds": [
-            {
-              "value": 5,
-              "colorMode": "critical",
-              "op": "lt",
-              "fill": true,
-              "line": true,
-              "yaxis": "left"
-            }
-          ]
+          "expr": "test_query{deployment=\"test_deployment\"}",
         }
-      ]
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 5,
+          "yaxis": "left"
+        }
+      ],
+      "title": "Test Indicator Title",
+      "type": "graph",
     }
-  ]
+  ],
+//  "schemaVersion": 21,
+
+  "title": "Test Dashboard",
 }
