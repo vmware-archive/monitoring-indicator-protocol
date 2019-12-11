@@ -82,36 +82,10 @@ func TestGlobMatching(t *testing.T) {
 		configuration.Read([]configuration.Source{{
 			Type:       "git",
 			Repository: "fake/fake/fake",
-			Glob:       "*patch*.yml",
+			Glob:       "patch*.yml",
 		}}, fakeGetter)
 
 		g.Expect(buffer.String()).To(ContainSubstring("Parsed 0 documents and 2 patches from git source"))
-	})
-
-	t.Run("full path globbing", func(t *testing.T) {
-	    g := NewGomegaWithT(t)
-
-		buffer := bytes.NewBuffer(nil)
-		log.SetOutput(buffer)
-
-		fakeRepository := go_test.CreateMemoryRepo(
-			"test_fixtures/patch1.yml",
-			"test_fixtures/patch2.yml",
-			"test_fixtures/indicators1.yml",
-			"test_fixtures/indicators2.yml",
-			"test_fixtures/bad.yml",)
-
-		fakeGetter := func(s configuration.Source) (*git.Repository, error) {
-			return fakeRepository, nil
-		}
-
-		configuration.Read([]configuration.Source{{
-			Type:       "git",
-			Repository: "fake/fake/fake",
-			Glob:       "test_fixtures/*.yml",
-		}}, fakeGetter)
-
-		g.Expect(buffer.String()).To(ContainSubstring("Parsed 2 documents and 2 patches from git source"))
 	})
 }
 
