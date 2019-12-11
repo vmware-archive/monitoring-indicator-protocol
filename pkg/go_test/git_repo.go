@@ -53,7 +53,12 @@ func createRepo(storage storage.Storer, fs billy.Filesystem, files []string) *gi
 			panic(fmt.Errorf("could not read file '%s': %s", f, err))
 		}
 
-		writeFile := filepath.Base(f)
+		err = fs.MkdirAll(filepath.Dir(f), 0666)
+		if err != nil {
+			panic(fmt.Errorf("could not make dir '%s': %s", filepath.Dir(f), err))
+		}
+
+		writeFile := f
 
 		_ = util.WriteFile(fs, writeFile, fileBytes, 0644)
 
