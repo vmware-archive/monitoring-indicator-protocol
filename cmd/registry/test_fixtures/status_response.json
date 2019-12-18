@@ -34,7 +34,7 @@
             "currentValue": false,
             "frequency": 0,
             "labels": [],
-            "units": ""
+            "units": "short"
           },
           "status": {
             "value": "critical"

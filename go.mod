@@ -25,6 +25,7 @@ require (
 	github.com/google/go-cmp v0.3.0
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gorilla/mux v1.7.0
+	github.com/grafana-tools/sdk v0.0.0-20191214173017-690a0c6bec7b
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/json-iterator/go v1.1.5 // indirect

@@ -123,6 +123,7 @@ func convertIndicator(i APIIndicatorResponse) v1.IndicatorSpec {
 			CurrentValue: i.Presentation.CurrentValue,
 			Frequency:    i.Presentation.Frequency,
 			Labels:       i.Presentation.Labels,
+			Units:        i.Presentation.Units,
 		},
 	}
 }

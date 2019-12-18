@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/api_versions"
 
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,6 +51,7 @@ func TestDocumentTranslation(t *testing.T) {
 						CurrentValue: false,
 						Frequency:    50,
 						Labels:       []string{"radical"},
+						Units:        "mbytes",
 					},
 				}},
 				Layout: registry.APILayoutResponse{
@@ -102,6 +104,7 @@ func TestDocumentTranslation(t *testing.T) {
 						CurrentValue: false,
 						Frequency:    50,
 						Labels:       []string{"radical"},
+						Units:        "mbytes",
 					},
 				}},
 				Layout: v1.Layout{
@@ -118,6 +121,5 @@ func TestDocumentTranslation(t *testing.T) {
 				},
 			},
 		}))
-
 	})
 }

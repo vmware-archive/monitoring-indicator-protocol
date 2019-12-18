@@ -88,6 +88,7 @@ spec:
 							ChartType:    v1.StepChart,
 							Frequency:    0,
 							Labels:       []string{},
+							Units: "short",
 						},
 						Thresholds: []v1.Threshold{
 							{
@@ -382,7 +383,7 @@ func makeIndicatorDocument(labels map[string]string) v1.IndicatorDocument {
 					Level:    "uh-oh",
 					Operator: v1.EqualTo,
 					Value:    1000,
-					Alert:    v1.Alert{
+					Alert: v1.Alert{
 						For:  "100h",
 						Step: "9m",
 					},

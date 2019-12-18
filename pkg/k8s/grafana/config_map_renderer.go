@@ -25,7 +25,7 @@ func ConfigMap(doc *v1.IndicatorDocument, m mapper, indicatorType v1.IndicatorTy
 
 	if m == nil {
 		m = func(document v1.IndicatorDocument) ([]byte, error) {
-			grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document, indicatorType)
+			grafanaDashboard, err := grafana_dashboard.ToGrafanaDashboard(document, indicatorType)
 			if err != nil {
 				return nil, err
 			}

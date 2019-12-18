@@ -60,7 +60,6 @@ func TestIndicatorRegistry(t *testing.T) {
 
 			expectedJSON, err := ioutil.ReadFile("test_fixtures/patched_response.json")
 			g.Expect(err).ToNot(HaveOccurred())
-
 			g.Expect(responseBytes).To(MatchJSON(expectedJSON))
 		})
 	})

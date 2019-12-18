@@ -2,133 +2,176 @@ package grafana_dashboard
 
 import (
 	"crypto/sha1"
-	"errors"
 	"fmt"
 	"log"
 	"regexp"
+	"sort"
+
+	"github.com/grafana-tools/sdk"
 
 	v1 "github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
 )
 
-func DashboardFilename(documentBytes []byte, productName string) string {
-	return fmt.Sprintf("%s_%x.json", productName, sha1.Sum(documentBytes))
+var HEIGHT = 10
+var WIDTH = 24
+
+type pos struct {
+	H *int `json:"h,omitempty"`
+	W *int `json:"w,omitempty"`
+	X *int `json:"x,omitempty"`
+	Y *int `json:"y,omitempty"`
 }
 
-func DocumentToDashboard(document v1.IndicatorDocument, indicatorType v1.IndicatorType) (*GrafanaDashboard, error) {
-	return toGrafanaDashboard(document, indicatorType)
-}
-
-func toGrafanaDashboard(d v1.IndicatorDocument, indicatorType v1.IndicatorType) (*GrafanaDashboard, error) {
-	rows, err := toGrafanaRows(d, indicatorType)
-	if err != nil {
-		return nil, err
+func ToGrafanaDashboard(document v1.IndicatorDocument, indicatorType v1.IndicatorType) (*sdk.Board, error) {
+	board := sdk.NewBoard(document.Spec.Layout.Title)
+	board.ID = 0
+	board.Time = sdk.Time{
+		From: "now-6h",
+		To:   "now",
 	}
-	if rows == nil {
-		return nil, nil
-	}
-	return &GrafanaDashboard{
-		Title:       d.Spec.Layout.Title,
-		Rows:        rows,
-		Annotations: toGrafanaAnnotations(d.Spec.Product, d.ObjectMeta.Labels),
-	}, nil
-}
-
-func toGrafanaAnnotations(product v1.Product, metadata map[string]string) GrafanaAnnotations {
-	return GrafanaAnnotations{
-		List: []GrafanaAnnotation{
-			{
-				Enable:      true,
-				Expr:        fmt.Sprintf("ALERTS{product=\"%s\"%s}", product.Name, metadataToLabelSelector(metadata)),
-				TagKeys:     "level",
-				TitleFormat: "{{alertname}} is {{alertstate}} in the {{level}} threshold",
-				IconColor:   "#1f78c1",
-			},
+	board.Timepicker = sdk.Timepicker{
+		RefreshIntervals: []string{
+			"5s",
+			"10s",
+			"30s",
+			"1m",
+			"5m",
+			"15m",
+			"30m",
+			"1h",
+			"2h",
+			"1d",
 		},
 	}
-}
 
-func metadataToLabelSelector(metadata map[string]string) interface{} {
-	var selector string
-	for k, v := range metadata {
-		selector = fmt.Sprintf("%s,%s=\"%s\"", selector, k, v)
-	}
-	return selector
-}
-
-func toGrafanaRows(document v1.IndicatorDocument, indicatorType v1.IndicatorType) ([]GrafanaRow, error) {
-	var rows []GrafanaRow
-
-	for _, i := range document.Spec.Layout.Sections {
-		row, err := sectionToGrafanaRow(i, document, indicatorType)
-		if err != nil {
-			return nil, err
-		}
-		if row == nil {
-			continue
-		}
-		rows = append(rows, *row)
-	}
-
-	return rows, nil
-}
-
-func getIndicatorTitle(i v1.IndicatorSpec) string {
-	if t, ok := i.Documentation["title"]; ok {
-		return t
-	}
-
-	return i.Name
-}
-
-func toGrafanaPanel(i v1.IndicatorSpec, title string) GrafanaPanel {
-	replacementString := replaceStep(i.PromQL)
-	description, ok := i.Documentation["description"]
-	if !ok {
-		description = ""
-	}
-	return GrafanaPanel{
-		Title:       title,
-		Type:        "graph",
-		Description: description,
-		Targets: []GrafanaTarget{{
-			Expression: replacementString,
-		}},
-		Thresholds: toGrafanaThresholds(i.Thresholds),
-	}
-}
-
-func replaceStep(str string) string {
-	reg := regexp.MustCompile(`(?i)\$step\b`)
-	return reg.ReplaceAllString(str, `$$__interval`)
-}
-
-func sectionToGrafanaRow(section v1.Section, document v1.IndicatorDocument, indicatorType v1.IndicatorType) (*GrafanaRow, error) {
-	title := section.Title
-
-	var panels []GrafanaPanel
-
-	for _, indicatorName := range section.Indicators {
-		i := document.Indicator(indicatorName)
-		if i == nil {
-			return nil, errors.New("indicator not found")
-		}
-		if indicatorType == v1.UndefinedType || i.Type == indicatorType {
-			panels = append(panels, toGrafanaPanel(*i, getIndicatorTitle(*i)))
-		}
-	}
-
-	if panels == nil {
+	documentSectionsToPanelRows(document, board, indicatorType)
+	if board.Panels == nil || len(board.Panels) == 0 {
 		return nil, nil
 	}
 
-	return &GrafanaRow{
-		Title:  title,
-		Panels: panels,
-	}, nil
+	alignPanels(board)
+
+	return board, nil
 }
 
-func toGrafanaThresholds(thresholds []v1.Threshold) []GrafanaThreshold {
-	var grafanaThresholds []GrafanaThreshold
+func alignPanels(board *sdk.Board) {
+	var y int
+	for i := range board.Panels {
+		board.Panels[i].ID = uint(i)
+		if board.Panels[i].Type == "row" {
+			board.Panels[i].GridPos = pos{H: intPointer(1), W: intPointer(24), X: intPointer(0), Y: intPointer(y)}
+			y += 1
+		} else {
+			board.Panels[i].GridPos = pos{H: intPointer(10), W: intPointer(24), X: intPointer(0), Y: intPointer(y)}
+			y += 10
+		}
+	}
+}
+
+func documentSectionsToPanelRows(document v1.IndicatorDocument, board *sdk.Board, indicatorType v1.IndicatorType) {
+	for _, section := range document.Spec.Layout.Sections {
+		if len(section.Indicators) == 0 {
+			continue
+		}
+
+		var toAdd []*sdk.Panel
+		for _, indicatorName := range section.Indicators {
+			for _, indicatorSpec := range document.Spec.Indicators {
+				if indicatorType != v1.UndefinedType && indicatorSpec.Type != indicatorType {
+					continue
+				}
+
+				if indicatorSpec.Name == indicatorName {
+					toAdd = append(toAdd, ToGrafanaPanel(indicatorSpec))
+				}
+			}
+		}
+
+		if len(toAdd) > 0 {
+			appendPanelRowTitle(board, section)
+			board.Panels = append(board.Panels, toAdd...)
+		}
+	}
+}
+
+func appendPanelRowTitle(board *sdk.Board, section v1.Section) {
+	board.Panels = append(board.Panels, &sdk.Panel{
+		CommonPanel: sdk.CommonPanel{
+			Title:  section.Title,
+			Type:   "row",
+			OfType: sdk.RowType,
+		},
+		RowPanel: &sdk.RowPanel{
+			Panels: nil,
+		},
+	})
+}
+
+func ToGrafanaPanel(spec v1.IndicatorSpec) *sdk.Panel {
+	panel := sdk.NewGraph(spec.Name)
+	panel.AddTarget(&sdk.Target{
+		Expr: replaceStep(spec.PromQL),
+	})
+
+	panel.GridPos = struct {
+		H *int `json:"h,omitempty"`
+		W *int `json:"w,omitempty"`
+		X *int `json:"x,omitempty"`
+		Y *int `json:"y,omitempty"`
+	}{
+		H: &HEIGHT,
+		W: &WIDTH,
+	}
+
+	panel.GraphPanel.Description = ToGrafanaDescription(spec.Documentation)
+	panel.GraphPanel.Thresholds = ToGrafanaThresholds(spec.Thresholds)
+
+	panel.GraphPanel.Yaxes = []sdk.Axis{
+		{
+			Format: spec.Presentation.Units,
+			Show:   true,
+		},
+		{
+			Format: spec.Presentation.Units,
+		},
+	}
+
+	panel.GraphPanel.Xaxis = sdk.Axis{
+		Format: "time",
+		Show:   true,
+	}
+
+	panel.GraphPanel.Lines = true
+	panel.GraphPanel.Linewidth = 1
+
+	// the following key has no particular use, but needs to be instantiated
+	panel.GraphPanel.AliasColors = map[string]string{}
+
+	return panel
+}
+
+func ToGrafanaDescription(docs map[string]string) *string {
+	var description string
+
+	if len(docs) == 0 {
+		return nil
+	}
+
+	var keys []string
+
+	for key := range docs {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		description += fmt.Sprintf("## %s\n%s\n\n", key, docs[key])
+	}
+	return &description
+}
+
+func ToGrafanaThresholds(thresholds []v1.Threshold) []sdk.Threshold {
+	var grafanaThresholds []sdk.Threshold
 	for _, t := range thresholds {
 		var comparator string
 		switch {
@@ -141,8 +184,8 @@ func toGrafanaThresholds(thresholds []v1.Threshold) []GrafanaThreshold {
 			continue
 		}
 
-		grafanaThresholds = append(grafanaThresholds, GrafanaThreshold{
-			Value:     t.Value,
+		grafanaThresholds = append(grafanaThresholds, sdk.Threshold{
+			Value:     float32(t.Value),
 			ColorMode: t.Level,
 			Op:        comparator,
 			Fill:      true,
@@ -152,4 +195,17 @@ func toGrafanaThresholds(thresholds []v1.Threshold) []GrafanaThreshold {
 	}
 
 	return grafanaThresholds
+}
+
+func replaceStep(str string) string {
+	reg := regexp.MustCompile(`(?i)\$step\b`)
+	return reg.ReplaceAllString(str, `$$__interval`)
+}
+
+func intPointer(a int) *int {
+	return &a
+}
+
+func DashboardFilename(documentBytes []byte, productName string) string {
+	return fmt.Sprintf("%s_%x.json", productName, sha1.Sum(documentBytes))
 }

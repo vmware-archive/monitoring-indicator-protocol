@@ -26,7 +26,7 @@
             "frequency": 0,
             "currentValue": false,
             "labels": [],
-            "units": ""
+            "units": "short"
           }
         },
         {
@@ -70,7 +70,7 @@
               "ip",
               "index"
             ],
-            "units": ""
+            "units": "short"
           }
         },
         {
@@ -84,7 +84,7 @@
             "frequency": 0,
             "currentValue": false,
             "labels": [],
-            "units": ""
+            "units": "short"
           },
           "documentation": {
             "title": "Success Percentage"
@@ -144,7 +144,7 @@
             "currentValue": false,
             "frequency": 0,
             "labels": [],
-            "units": ""
+            "units": "short"
           }
         }
       ],

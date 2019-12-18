@@ -411,7 +411,7 @@ type promResult struct {
 }
 
 func grafanaConfigMapMatch(t *testing.T, dashboardFilename string, cm *coreV1.ConfigMap, id *v1.IndicatorDocument) bool {
-	grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(*id, v1.UndefinedType)
+	grafanaDashboard, err := grafana_dashboard.ToGrafanaDashboard(*id, v1.UndefinedType)
 	if err != nil {
 		t.Logf("Unable to convert to grafana dashboard: %s", err)
 		return false

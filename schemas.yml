@@ -116,6 +116,8 @@ IndicatorSpec:
           type: array
           items:
             type: string
+        units:
+          type: string
     documentation:
       type: object
 

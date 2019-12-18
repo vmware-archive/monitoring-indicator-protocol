@@ -13,7 +13,7 @@ func DefaultPresentation() v1.Presentation {
 		CurrentValue: false,
 		Frequency:    0,
 		Labels:       make([]string, 0),
-		Units:        "",
+		Units:        "short",
 	}
 }
 
@@ -23,7 +23,7 @@ func DefaultAPIPresentationResponse() registry.APIPresentationResponse {
 		CurrentValue: false,
 		Frequency:    0,
 		Labels:       make([]string, 0),
-		Units:        "",
+		Units:        "short",
 	}
 }
 

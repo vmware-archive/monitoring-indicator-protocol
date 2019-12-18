@@ -199,6 +199,7 @@ func TestController(t *testing.T) {
 					Type:   v1.DefaultIndicator,
 				},
 			}
+
 			controller.OnAdd(&v1.IndicatorDocument{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "rabbit-mq-resource-name",
@@ -216,39 +217,9 @@ func TestController(t *testing.T) {
 			})
 
 			createdConfigMap := spyConfigMapEditor.getCreated(0)
-			g.Expect(createdConfigMap.Data["indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name.json"]).To(MatchJSON(`
-{
-  "title": "",
-  "rows": [
-	{
-	  "title": "",
-	  "panels": [
-		{
-		  "title": "lol",
-		  "type": "graph",
-		  "targets": [
-			{
-			  "expr": "rate(fun)"
-			}
-		  ],
-		  "thresholds": null
-		}
-	  ]
-	}
-  ],
-  "annotations": {
-	"list": [
-	  {
-		"enable": true,
-		"expr": "ALERTS{product=\"rabbit-mq-product-name\"}",
-		"tagKeys": "level",
-		"titleFormat": "{{alertname}} is {{alertstate}} in the {{level}} threshold",
-		"iconColor": "#1f78c1"
-	  }
-	]
-  }
-}
-`))
+			g.Expect(createdConfigMap.Data["indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name.json"]).To(ContainSubstring("lol"))
+			g.Expect(createdConfigMap.Data["indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name.json"]).ToNot(ContainSubstring("qps"))
+			g.Expect(createdConfigMap.Data["indicator-protocol-grafana-dashboard.default.rabbit-mq-resource-name.json"]).ToNot(ContainSubstring("foo"))
 		})
 	})
 

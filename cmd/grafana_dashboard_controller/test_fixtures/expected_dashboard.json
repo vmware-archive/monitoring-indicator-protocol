@@ -1,40 +1,140 @@
 {
-  "annotations": {
-    "list": [
-      {
-        "enable": true,
-        "expr": "ALERTS{product=\"test_product\",deployment=\"test_deployment\"}",
-        "tagKeys": "level",
-        "titleFormat": "{{alertname}} is {{alertstate}} in the {{level}} threshold",
-        "iconColor": "#1f78c1"
-      }
-    ]
-  },
+  "slug": "",
   "title": "Test Dashboard",
-  "rows": [
+  "originalTitle": "",
+  "tags": null,
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "hideControls": false,
+  "sharedCrosshair": false,
+  "panels": [
     {
+      "editable": false,
+      "error": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 0,
+      "isNew": false,
+      "span": 0,
       "title": "Test Section Title",
-      "panels": [
+      "transparent": false,
+      "type": "row",
+      "Panels": null
+    },
+    {
+      "editable": false,
+      "error": false,
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "id": 1,
+      "isNew": true,
+      "renderer": "flot",
+      "span": 12,
+      "title": "test_indicator",
+      "transparent": false,
+      "type": "graph",
+      "aliasColors": {},
+      "bars": false,
+      "description": "## title\nTest Indicator Title\n\n",
+      "fill": 0,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "hideEmpty": false,
+        "hideZero": false,
+        "max": false,
+        "min": false,
+        "rightSide": false,
+        "show": false,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "connected",
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
         {
-          "title": "Test Indicator Title",
-          "type": "graph",
-          "targets": [
-            {
-              "expr": "test_query{deployment=\"test_deployment\"}"
-            }
-          ],
-          "thresholds": [
-            {
-              "value": 5,
-              "colorMode": "critical",
-              "op": "lt",
-              "fill": true,
-              "line": true,
-              "yaxis": "left"
-            }
-          ]
+          "refId": "",
+          "expr": "test_query{deployment=\"test_deployment\"}"
+        }
+      ],
+      "thresholds": [
+        {
+          "value": 5,
+          "colorMode": "critical",
+          "op": "lt",
+          "fill": true,
+          "line": true,
+          "yaxis": "left"
+        }
+      ],
+      "tooltip": {
+        "shared": false,
+        "value_type": ""
+      },
+      "x-axis": true,
+      "y-axis": true,
+      "xaxis": {
+        "format": "time",
+        "logBase": 0,
+        "show": true
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 0,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 0,
+          "show": false
         }
       ]
     }
-  ]
+  ],
+  "rows": [],
+  "templating": {
+    "list": null
+  },
+  "annotations": {
+    "list": null
+  },
+  "schemaVersion": 0,
+  "version": 0,
+  "links": null,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": null
+  }
 }

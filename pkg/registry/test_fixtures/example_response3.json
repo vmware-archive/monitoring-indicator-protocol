@@ -24,7 +24,7 @@
             "currentValue": false,
             "frequency": 0,
             "labels": [],
-            "units": ""
+            "units": "short"
           },
           "documentation": {
             " % ": "{0}",

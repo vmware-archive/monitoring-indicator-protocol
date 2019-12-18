@@ -58,6 +58,9 @@ func populateDefaultPresentation(doc *IndicatorDocument) {
 		if indicator.Presentation.ChartType == UndefinedChart {
 			doc.Spec.Indicators[i].Presentation.ChartType = StepChart
 		}
+		if indicator.Presentation.Units == "" {
+			doc.Spec.Indicators[i].Presentation.Units = "short"
+		}
 		if indicator.Presentation.Labels == nil {
 			doc.Spec.Indicators[i].Presentation.Labels = []string{}
 		}

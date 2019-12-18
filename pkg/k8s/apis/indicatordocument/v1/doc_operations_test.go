@@ -180,12 +180,14 @@ func TestPopulateDefaults(t *testing.T) {
 				CurrentValue: false,
 				Frequency:    0,
 				Labels:       []string{},
+				Units: "short",
 			}))
 			g.Expect(doc.Spec.Indicators[1].Presentation).To(BeEquivalentTo(v1.Presentation{
 				ChartType:    v1.StepChart,
 				CurrentValue: true,
 				Frequency:    0,
 				Labels:       []string{},
+				Units: "short",
 			}))
 		})
 	})

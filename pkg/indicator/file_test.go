@@ -1,8 +1,9 @@
 package indicator_test
 
 import (
-	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 	"testing"
+
+	"github.com/pivotal/monitoring-indicator-protocol/test_fixtures"
 
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,13 +41,14 @@ func TestUpdateMetadata(t *testing.T) {
 							ChartType:    v1.StepChart,
 							Frequency:    0,
 							Labels:       []string{},
+							Units:        "short",
 						},
 						Thresholds: []v1.Threshold{
 							{
 								Level:    "critical",
 								Operator: v1.GreaterThanOrEqualTo,
 								Value:    450,
-								Alert: test_fixtures.DefaultAlert(),
+								Alert:    test_fixtures.DefaultAlert(),
 							},
 						},
 					},
@@ -86,6 +88,7 @@ func TestUpdateMetadata(t *testing.T) {
 							ChartType:    v1.StepChart,
 							Frequency:    0,
 							Labels:       []string{},
+							Units:        "short",
 						},
 					},
 				},

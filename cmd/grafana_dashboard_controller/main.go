@@ -10,8 +10,8 @@ import (
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/exporter"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/grafana_dashboard"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/k8s/apis/indicatordocument/v1"
-	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/registry"
+	"github.com/pivotal/monitoring-indicator-protocol/pkg/tls_config"
 )
 
 func main() {
@@ -52,7 +52,7 @@ func main() {
 		UpdateFrequency:   time.Minute,
 		DocType:           "grafana dashboard",
 		Converter: func(document v1.IndicatorDocument) (file *exporter.File, e error) {
-			grafanaDashboard, err := grafana_dashboard.DocumentToDashboard(document, indicatorType)
+			grafanaDashboard, err := grafana_dashboard.ToGrafanaDashboard(document, indicatorType)
 			if err != nil {
 				return nil, err
 			}
