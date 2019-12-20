@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 
 	"gopkg.in/yaml.v2"
 
@@ -89,5 +90,24 @@ func getDocument(docPath string, opts ...indicator.ReadOpt) v1.IndicatorDocument
 		l.Fatal(err)
 	}
 
+	err = checkDocForErb(document)
+	if err != nil {
+		l.Fatal(err)
+	}
+
 	return document
+}
+
+func checkDocForErb(d v1.IndicatorDocument) error {
+	docBytes, err := yaml.Marshal(d)
+	if err != nil {
+		return err
+	}
+
+	reg := regexp.MustCompile("<%=.*%>")
+	if reg.Match(docBytes) {
+		return errors.New("found raw un-interpolated ERB, please check your input for ERB")
+	}
+
+	return nil
 }

@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os/exec"
+	"regexp"
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 
 	"github.com/pivotal/monitoring-indicator-protocol/pkg/go_test"
@@ -40,6 +42,20 @@ func TestFormatBinary(t *testing.T) {
 
 		session, _ := gexec.Start(cmd, nil, nil)
 		g.Eventually(session, 5).Should(gexec.Exit(1))
+	})
+
+	t.Run("complains when there is erb that did not get filled in", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		cmd := exec.Command(binPath,
+			"-format", "html",
+			"-indicators", "test_fixtures/erb-bad-doc.yml")
+
+		session, err := gexec.Start(cmd, nil, nil)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Eventually(session, 5).Should(gexec.Exit(1))
+		g.Expect(session.Err).To(gbytes.Say(regexp.QuoteMeta("found raw un-interpolated ERB, please check your input for ERB")))
 	})
 
 	t.Run("outputs formatted HTML", func(t *testing.T) {

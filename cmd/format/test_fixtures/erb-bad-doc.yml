@@ -1,0 +1,16 @@
+---
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+
+metadata:
+  labels:
+    deployment: well-performing-deployment
+
+spec:
+  product:
+    name: well-performing-component
+    version: 0.0.1
+
+  indicators:
+  - name: <%= missing.chunk %>
+    promql: query_metric{source_id="<%= other.missing.chunk %>"}
