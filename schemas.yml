@@ -17,6 +17,8 @@ IndicatorDocument:
     metadata:
       type: object
       properties:
+        name:
+          type: string
         labels:
           type: object # cannot contain `step` key
     spec:

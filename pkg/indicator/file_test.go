@@ -25,6 +25,7 @@ func TestUpdateMetadata(t *testing.T) {
 				APIVersion: api_versions.V1,
 			},
 			ObjectMeta: metav1.ObjectMeta{
+				Name: "document name",
 				Labels: map[string]string{
 					"deployment":  "well-performing-deployment",
 					"some_number": "450",
@@ -75,6 +76,7 @@ func TestUpdateMetadata(t *testing.T) {
 				Kind:       "IndicatorDocument",
 			},
 			ObjectMeta: metav1.ObjectMeta{
+				Name: "document name",
 				Labels: map[string]string{"deployment": "well-performing-deployment"},
 			},
 			Spec: v1.IndicatorDocumentSpec{

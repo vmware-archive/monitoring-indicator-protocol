@@ -3,6 +3,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: my-service document 2
   labels:
     deployment: my-service-deployment-2
     source_id: my-metric-source

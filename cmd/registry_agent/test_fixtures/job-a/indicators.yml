@@ -3,6 +3,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: job-a doc
   labels:
     deployment: job-a-deployment
 

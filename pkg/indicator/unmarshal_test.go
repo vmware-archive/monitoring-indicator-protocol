@@ -34,6 +34,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: well-performing-deployment
 
@@ -106,6 +107,7 @@ spec:
 					Kind:       "IndicatorDocument",
 				},
 				ObjectMeta: metav1.ObjectMeta{
+					Name: "document name",
 					Labels: map[string]string{"deployment": "well-performing-deployment"},
 				},
 				Spec: v1.IndicatorDocumentSpec{
@@ -133,6 +135,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: valid-deployment
 
@@ -174,6 +177,9 @@ spec:
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
+
+metadata:
+  name: document name
 
 spec:
   product:
@@ -324,6 +330,9 @@ spec:
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
+metadata:
+  name: document name
+
 spec:
   product:
    name: test_product
@@ -346,6 +355,9 @@ spec:
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
+
+metadata:
+  name: document name
 
 spec:
   product:
@@ -370,6 +382,9 @@ spec:
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
+metadata:
+  name: document name
+
 spec:
   product:
    name: test_product
@@ -392,6 +407,9 @@ spec:
 				reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
+
+metadata:
+  name: document name
 
 spec:
   product:
@@ -416,6 +434,10 @@ spec:
 				return fmt.Sprintf(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
+
+metadata:
+  name: document name
+
 spec:
   product:
    name: test_product
@@ -460,6 +482,10 @@ spec:
 			reader := ioutil.NopCloser(strings.NewReader(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
+
+metadata:
+  name: document name
+
 spec:
   product:
     name: test_product
@@ -584,6 +610,7 @@ spec:
     version: 1.2.3
 
 metadata:
+  name: document name
   labels:
     sound: meow
     size: small
@@ -606,6 +633,9 @@ func TestProcessesDocument(t *testing.T) {
 		doc := []byte(`---
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
+
+metadata:
+  name: document name
 
 spec:
   product:

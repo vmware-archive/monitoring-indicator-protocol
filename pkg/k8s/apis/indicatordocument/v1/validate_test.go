@@ -24,6 +24,7 @@ func TestValidDocument(t *testing.T) {
 				Kind: "IndicatorDocument",
 			},
 			ObjectMeta: metav1.ObjectMeta{
+				Name: "document name",
 				Labels: map[string]string{"new-metadata-value": "blah", "another-new-metadata-value": "blah2"},
 			},
 			Spec: v1.IndicatorDocumentSpec{

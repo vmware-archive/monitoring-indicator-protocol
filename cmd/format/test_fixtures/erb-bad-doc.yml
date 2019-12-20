@@ -3,6 +3,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: very good well perofmring document
   labels:
     deployment: well-performing-deployment
 

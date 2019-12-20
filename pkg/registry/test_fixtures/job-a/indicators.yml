@@ -3,6 +3,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: abc-123
 

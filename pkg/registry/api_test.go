@@ -34,8 +34,8 @@ apiVersion: indicatorprotocol.io/v1
 
 kind: IndicatorDocument
 
-
 metadata:
+  name: document name
   labels:
     deployment: redis-abc-123
 
@@ -67,6 +67,7 @@ spec:
 					APIVersion: api_versions.V1,
 				},
 				ObjectMeta: metaV1.ObjectMeta{
+					Name: "document name",
 					Labels: map[string]string{
 						"deployment": "redis-abc-123",
 					},
@@ -133,6 +134,7 @@ spec:
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(responseBody).To(unmarshalledmatchers.MatchUnorderedJSON(`{ "errors": [
+	"IndicatorDocument.metadata.name in body is required",
 	"IndicatorDocument.spec.product.name in body should be at least 1 chars long", 
 	"IndicatorDocument.spec.product.version in body should be at least 1 chars long", 
 	"IndicatorDocument.spec.indicators.promql in body should be at least 1 chars long",

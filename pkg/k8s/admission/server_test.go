@@ -1275,6 +1275,7 @@ func newIndicatorDocumentRequest(operation string, indicatorDocumentSpec string,
 							  "apiVersion": "indicatorprotocol.io/v1",
 							  "kind": "IndicatorDocument",
 							  "metadata": {
+								"name": "some name",
 								"labels": %s
 							  },
 							  "spec": %s

@@ -21,6 +21,7 @@ var (
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 metadata:
+  name: document name
   labels:
     deployment: test-deployment
 
@@ -91,6 +92,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: non-matching-test-deployment
 
@@ -117,6 +119,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: test-deployment
 
@@ -144,6 +147,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: other-test-deployment
 
@@ -173,6 +177,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: test-deployment
 
@@ -220,6 +225,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   label:
     deployment: not-test-deployment
 spec:
@@ -288,6 +294,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: test-deployment
 
@@ -354,6 +361,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: test-deployment
 spec:
@@ -411,6 +419,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: test-deployment
 
@@ -469,6 +478,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: test-deployment
 
@@ -632,6 +642,7 @@ apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
 metadata:
+  name: document name
   labels:
     deployment: test-deployment
 

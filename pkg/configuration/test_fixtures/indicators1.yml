@@ -2,6 +2,9 @@
 apiVersion: indicatorprotocol.io/v1
 kind: IndicatorDocument
 
+metadata:
+  name: document name
+
 spec:
   product:
     name: my-component
