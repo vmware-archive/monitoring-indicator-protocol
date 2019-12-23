@@ -141,6 +141,37 @@ test title
 		g.Expect(anotherDashboard.Panels[1].GraphPanel.Thresholds).To(HaveLen(2))
 	})
 
+	t.Run("set default unit to short if not provided in presentation", func(t *testing.T) {
+		buffer := bytes.NewBuffer(nil)
+		log.SetOutput(buffer)
+
+		g := NewGomegaWithT(t)
+		document := v1.IndicatorDocument{
+			Spec: v1.IndicatorDocumentSpec{
+				Indicators: []v1.IndicatorSpec{
+					{
+						Name:          "test_indicator",
+						PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
+					},
+				},
+				Layout: v1.Layout{
+					Title: "Indicator Test Dashboard",
+					Sections: []v1.Section{
+						{
+							Title:      "Test Section Title",
+							Indicators: []string{"test_indicator"},
+						},
+					},
+				},
+			},
+		}
+
+		dashboard, err := grafana_dashboard.ToGrafanaDashboard(document, v1.UndefinedType)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(dashboard.Panels[1].Yaxes[0].Format).To(Equal("short"))
+	})
+
 	t.Run("takes indicator documentation and turns it into a graph description", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
