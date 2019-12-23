@@ -126,13 +126,18 @@ func ToGrafanaPanel(spec v1.IndicatorSpec) *sdk.Panel {
 	panel.GraphPanel.Description = ToGrafanaDescription(spec.Documentation)
 	panel.GraphPanel.Thresholds = ToGrafanaThresholds(spec.Thresholds)
 
+	unit := "short"
+	if spec.Presentation.Units != "" {
+		unit = spec.Presentation.Units
+	}
+
 	panel.GraphPanel.Yaxes = []sdk.Axis{
 		{
-			Format: spec.Presentation.Units,
+			Format: unit ,
 			Show:   true,
 		},
 		{
-			Format: spec.Presentation.Units,
+			Format: unit,
 		},
 	}
 
