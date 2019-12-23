@@ -170,6 +170,7 @@ test title
 		g.Expect(err).ToNot(HaveOccurred())
 
 		g.Expect(dashboard.Panels[1].Yaxes[0].Format).To(Equal("short"))
+		g.Expect(dashboard.Panels[1].Yaxes[1].Format).To(Equal("short"))
 	})
 
 	t.Run("takes indicator documentation and turns it into a graph description", func(t *testing.T) {
