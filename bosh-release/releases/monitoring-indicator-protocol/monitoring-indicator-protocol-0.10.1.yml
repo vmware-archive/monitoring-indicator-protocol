@@ -1,0 +1,49 @@
+name: monitoring-indicator-protocol
+version: 0.10.1
+commit_hash: c835749
+uncommitted_changes: false
+jobs:
+- name: grafana-dashboard-controller
+  version: 3fdcade7d52a4093e86cd130e184b95b8a0d97d9c1484714aadb353f17c0c5f8
+  fingerprint: 3fdcade7d52a4093e86cd130e184b95b8a0d97d9c1484714aadb353f17c0c5f8
+  sha1: sha256:48dfb91121817f37acda3cdeb0fdef46e3806aeeaed7b973ceb04d7d6945390d
+- name: indicator-cf-auth-proxy
+  version: 430a7116a29d0db04e58c8bf102cbe3fa06df01c1a94996d28ac0433b1ab7cc1
+  fingerprint: 430a7116a29d0db04e58c8bf102cbe3fa06df01c1a94996d28ac0433b1ab7cc1
+  sha1: sha256:eac2f99cfa0138a48dfd67c79fa7d94973e7e88ced9e0d35ffbc2f2e0762c5be
+- name: indicator-document-registration-agent
+  version: d2df9eba1572f0e225ac25def550b915f3f28149f17fc04a64cc28dc84194d98
+  fingerprint: d2df9eba1572f0e225ac25def550b915f3f28149f17fc04a64cc28dc84194d98
+  sha1: sha256:65d0d3164c9470dff85569aefb4e92c21cad65dd9bd171d367ff0b23a606a1f7
+- name: indicator-registry
+  version: 6bac56a0610d63e5d89a8a213d3b8195ccd0cb39775bb7589cfb936e9f34cefb
+  fingerprint: 6bac56a0610d63e5d89a8a213d3b8195ccd0cb39775bb7589cfb936e9f34cefb
+  sha1: sha256:e6d0d85966a4d2ca6bd88da711859bbecbb86481f2ac5dd54360aebca7d5bfdc
+- name: indicator-registry-proxy
+  version: 8898da8c0df77e6a8eb8ea60074ab68be7b5fb69a1a5245d0573969c8bca59e8
+  fingerprint: 8898da8c0df77e6a8eb8ea60074ab68be7b5fb69a1a5245d0573969c8bca59e8
+  sha1: sha256:bc1cbccf398b1e1ac425a7d33cf7e43f1c4e989f95a8cac74930c98df622e4d5
+- name: indicator-smoke-tests
+  version: 15e59441e48fb5fbcfd6da5de357ca5afb2ff5272e2e5291ac601c38dbd01177
+  fingerprint: 15e59441e48fb5fbcfd6da5de357ca5afb2ff5272e2e5291ac601c38dbd01177
+  sha1: sha256:15e1591d140d92d835936debac7d1e40b43b84962cf2ee28b6567c3ff1725bc0
+- name: prometheus-rules-controller
+  version: aa9ddf7e234caea040fbe59f123e133ef43281edf2fd4722dcb81802c0deeb5a
+  fingerprint: aa9ddf7e234caea040fbe59f123e133ef43281edf2fd4722dcb81802c0deeb5a
+  sha1: sha256:7867c3e11c4e07e3b083268769f0ebd02dee0cac3e05d416642b0bc16c26b356
+- name: status-controller
+  version: 390674f821af0d3eaaa69c9886cd9019b821f200aab16b8c7057c76b5371e0c5
+  fingerprint: 390674f821af0d3eaaa69c9886cd9019b821f200aab16b8c7057c76b5371e0c5
+  sha1: sha256:97490e1de24080cb9507f8f1ae2fe50ec060d9c14c675f6928ec51ab44da4ec2
+packages:
+- name: golang-1.13-linux
+  version: 20234d0cb26adec9565b926f59fa4f7a2ea9e4f230af800fa9a36c8b5f2a8eaa
+  fingerprint: 20234d0cb26adec9565b926f59fa4f7a2ea9e4f230af800fa9a36c8b5f2a8eaa
+  sha1: sha256:660936725d973c27d36bd021cee3905616eb68583ba8199f83b8c0dd4fe259a2
+  dependencies: []
+- name: indicator-protocol
+  version: 25c899a156dedbdcf4a0e87b4d5d90bdeb965f7ebb3f1db4300365ac9845b0d2
+  fingerprint: 25c899a156dedbdcf4a0e87b4d5d90bdeb965f7ebb3f1db4300365ac9845b0d2
+  sha1: sha256:57fd80766c7c1248cae93c92ae7bd5b5cb07f408062c5d94fa31f004578792de
+  dependencies:
+  - golang-1.13-linux
