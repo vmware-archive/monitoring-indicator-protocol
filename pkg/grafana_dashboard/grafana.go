@@ -111,6 +111,8 @@ func ToGrafanaPanel(spec v1.IndicatorSpec) *sdk.Panel {
 	panel := sdk.NewGraph(spec.Name)
 	panel.AddTarget(&sdk.Target{
 		Expr: replaceStep(spec.PromQL),
+		// TODO - this should increment per expression
+		RefID: "A",
 	})
 
 	panel.GridPos = struct {
@@ -125,6 +127,7 @@ func ToGrafanaPanel(spec v1.IndicatorSpec) *sdk.Panel {
 
 	panel.GraphPanel.Description = ToGrafanaDescription(spec.Documentation)
 	panel.GraphPanel.Thresholds = ToGrafanaThresholds(spec.Thresholds)
+	panel.Alert = ToGrafanaAlert(spec.Thresholds)
 
 	unit := "short"
 	if spec.Presentation.Units != "" {
@@ -133,7 +136,7 @@ func ToGrafanaPanel(spec v1.IndicatorSpec) *sdk.Panel {
 
 	panel.GraphPanel.Yaxes = []sdk.Axis{
 		{
-			Format: unit ,
+			Format: unit,
 			Show:   true,
 		},
 		{
@@ -153,6 +156,48 @@ func ToGrafanaPanel(spec v1.IndicatorSpec) *sdk.Panel {
 	panel.GraphPanel.AliasColors = map[string]string{}
 
 	return panel
+}
+
+func ToGrafanaAlert(thresholds []v1.Threshold) *sdk.Alert {
+	var alert sdk.Alert
+
+	if len(thresholds) == 0 {
+		return &alert
+	}
+
+	for _, th := range thresholds {
+		alert.Conditions = append(alert.Conditions, sdk.AlertCondition{
+			Evaluator: struct {
+				Params []float64 `json:"params,omitempty"`
+				Type   string    `json:"type,omitempty"`
+			}{
+				Params: []float64{th.Value},
+				Type:   v1.GetComparatorAbbrev(th.Operator),
+			},
+			Query: struct {
+				Params []string `json:"params,omitempty"`
+			}{Params: []string{
+				"A",
+				th.Alert.For,
+				"now",
+			}},
+			Reducer: struct {
+				Params []string `json:"params,omitempty"`
+				Type   string   `json:"type,omitempty"`
+			}{Type: "avg"},
+			Type: "query",
+		})
+	}
+
+	// TODO - reconsider & understand alert params
+	//   Last threshold used for whole alert frequency
+	//alert.Frequency = thresholds[len(thresholds)-1].Alert.Step
+	//alert.For = thresholds[len(thresholds)-1].Alert.For
+
+	alert.Frequency = "1m"
+	alert.For = "5m"
+
+	return &alert
 }
 
 func ToGrafanaDescription(docs map[string]string) *string {

@@ -51,6 +51,7 @@ func TestToGrafanaDashboard(t *testing.T) {
 		}
 		panel.AddTarget(&sdk.Target{
 			Expr: `8`,
+			RefID: "A",
 		})
 		panel.GraphPanel.Xaxis = sdk.Axis{
 			Format: "time",
@@ -68,6 +69,7 @@ func TestToGrafanaDashboard(t *testing.T) {
 		panel.GraphPanel.Lines = true
 		panel.GraphPanel.Linewidth = 1
 		panel.AliasColors = map[string]string{}
+		panel.Alert = &sdk.Alert{}
 
 		stringPointer := `## title
 test title
@@ -132,6 +134,14 @@ test title
 		g.Expect(*dashboard.Panels[1].Description).To(ContainSubstring("Test Indicator Title"))
 		g.Expect(dashboard.Panels[1].GraphPanel.Thresholds).To(HaveLen(2))
 
+		g.Expect(dashboard.Panels[1].Alert.Conditions).To(HaveLen(2))
+		g.Expect(dashboard.Panels[1].Alert.Conditions[0].Evaluator.Type).To(Equal("gt"))
+		g.Expect(dashboard.Panels[1].Alert.Conditions[0].Evaluator.Params[0]).To(BeNumerically("==", 1000))
+		g.Expect(dashboard.Panels[1].Alert.Conditions[1].Evaluator.Type).To(Equal("lte"))
+		g.Expect(dashboard.Panels[1].Alert.Conditions[1].Evaluator.Params[0]).To(BeNumerically("==", 700))
+
+		// Todo - alerting severity is not yet implemented: https://github.com/grafana/grafana/issues/6553
+
 		g.Expect(anotherDashboard.ID).To(Equal(uint(0)))
 		g.Expect(anotherDashboard.Title).To(Equal("Indicator Test Dashboard"))
 		g.Expect(anotherDashboard.Panels).To(HaveLen(2))
@@ -139,6 +149,50 @@ test title
 		g.Expect(anotherDashboard.Panels[1].GraphPanel.Targets[0].Expr).To(Equal("sum_over_time(gorouter_latency_ms[30m])"))
 		g.Expect(*anotherDashboard.Panels[1].Description).To(ContainSubstring("Test Indicator Title"))
 		g.Expect(anotherDashboard.Panels[1].GraphPanel.Thresholds).To(HaveLen(2))
+	})
+
+	t.Run("sets refId for target", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		document := v1.IndicatorDocument{
+			Spec: v1.IndicatorDocumentSpec{
+				Indicators: []v1.IndicatorSpec{
+					{
+						Name:          "test_indicator",
+						PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
+						Documentation: map[string]string{"title": "Test Indicator Title"},
+						Thresholds: []v1.Threshold{{
+							Level:    "critical",
+							Operator: v1.GreaterThan,
+							Value:    1000,
+						}, {
+							Level:    "warning",
+							Operator: v1.LessThanOrEqualTo,
+							Value:    700,
+						}},
+					},
+					{
+						Name:       "second_test_indicator",
+						PromQL:     `rate(gorouter_requests[1m])`,
+						Thresholds: []v1.Threshold{},
+					},
+				},
+				Layout: v1.Layout{
+					Title: "Indicator Test Dashboard",
+					Sections: []v1.Section{
+						{
+							Title:      "Test Section Title",
+							Indicators: []string{"test_indicator"},
+						},
+					},
+				},
+			},
+		}
+
+		dashboard, err := grafana_dashboard.ToGrafanaDashboard(document, v1.UndefinedType)
+		g.Expect(err).ToNot(HaveOccurred())
+
+		g.Expect(dashboard.Panels[1].GraphPanel.Targets[0].RefID).To(Equal("A"))
 	})
 
 	t.Run("set default unit to short if not provided in presentation", func(t *testing.T) {
@@ -150,8 +204,8 @@ test title
 			Spec: v1.IndicatorDocumentSpec{
 				Indicators: []v1.IndicatorSpec{
 					{
-						Name:          "test_indicator",
-						PromQL:        `sum_over_time(gorouter_latency_ms[30m])`,
+						Name:   "test_indicator",
+						PromQL: `sum_over_time(gorouter_latency_ms[30m])`,
 					},
 				},
 				Layout: v1.Layout{
@@ -211,7 +265,7 @@ Doc Performance Indicator
 		})).To(Equal(&description))
 	})
 
-	t.Run("takes threshold and turns it into grafana threshold", func(t *testing.T) {
+	t.Run("takes threshold and turns it into grafana threshold and alert", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
 		thresholds := []v1.Threshold{
@@ -219,6 +273,10 @@ Doc Performance Indicator
 				Level:    "critical",
 				Operator: v1.LessThan,
 				Value:    7,
+				Alert: v1.Alert{
+					For:  "5m",
+					Step: "1m",
+				},
 			},
 		}
 
@@ -230,6 +288,48 @@ Doc Performance Indicator
 			ColorMode: "critical",
 			Yaxis:     "left",
 		}}))
+
+		expectedAlert := sdk.Alert{
+			Conditions: []sdk.AlertCondition{
+				{
+					Evaluator: struct {
+						Params []float64 `json:"params,omitempty"`
+						Type   string    `json:"type,omitempty"`
+					}{
+						Params: []float64{7},
+						Type:   "lt",
+					},
+					//Operator: struct {
+					//	Type string `json:"type,omitempty"`
+					//}{},
+					Query: struct {
+						Params []string `json:"params,omitempty"`
+					}{
+						Params: []string{
+							"A",
+							"5m",
+							"now",
+						},
+					},
+					Reducer: struct {
+						Params []string `json:"params,omitempty"`
+						Type   string   `json:"type,omitempty"`
+					}{
+						Type: "avg",
+					},
+					Type: "query",
+				},
+			},
+			ExecutionErrorState: "",
+			Frequency:           "1m",
+			Handler:             0,
+			Name:                "",
+			NoDataState:         "",
+			Notifications:       nil,
+			Message:             "",
+			For:                 "5m",
+		}
+		g.Expect(grafana_dashboard.ToGrafanaAlert(thresholds)).To(Equal(&expectedAlert))
 	})
 
 	t.Run("uses the layout information to generate rows", func(t *testing.T) {

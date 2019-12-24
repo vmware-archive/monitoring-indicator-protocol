@@ -42,6 +42,32 @@
       "title": "test_indicator",
       "transparent": false,
       "type": "graph",
+      "alert": {
+        "conditions": [
+          {
+            "evaluator": {
+              "params": [
+                5
+              ],
+              "type": "lt"
+            },
+            "operator": {},
+            "query": {
+              "params": [
+                "A",
+                "1m",
+                "now"
+              ]
+            },
+            "reducer": {
+              "type": "avg"
+            },
+            "type": "query"
+          }
+        ],
+        "frequency": "1m",
+        "for": "5m"
+      },
       "aliasColors": {},
       "bars": false,
       "description": "## title\nTest Indicator Title\n\n",
@@ -69,7 +95,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "refId": "",
+          "refId": "A",
           "expr": "test_query{deployment=\"test_deployment\"}"
         }
       ],
