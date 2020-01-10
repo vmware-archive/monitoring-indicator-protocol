@@ -89,6 +89,8 @@ function run_local {
 }
 
 function run_k8s_e2e {
+
+
     print_checkpoint "Running K8S End-To-End Tests"
     go test -mod=vendor -race "$PKG/k8s/test/e2e" "$@"
     return $?

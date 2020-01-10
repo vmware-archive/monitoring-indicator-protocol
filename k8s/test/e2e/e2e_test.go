@@ -75,7 +75,7 @@ func init_test() {
 		cmd := exec.Command("kubectl", "get", "svc", "--namespace", "grafana", "grafana", "-o", "jsonpath='{.status.loadBalancer.ingress[0].ip}'")
 		outputBytes, err := cmd.Output()
 		if err != nil {
-			log.Panic("Oh no! Grafana URI not provided")
+			log.Panicf("Oh no! An error occured: %s. Perhaps grafana URI not provided?", err)
 		}
 		*grafanaURI = strings.Trim(string(outputBytes), "'")
 	}

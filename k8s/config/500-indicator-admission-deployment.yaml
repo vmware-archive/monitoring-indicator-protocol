@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: indicator-admission
@@ -6,6 +6,9 @@ metadata:
   labels:
     app: indicator-admission
 spec:
+  selector:
+    matchLabels:
+      app: indicator-admission
   replicas: 3
   template:
     metadata:

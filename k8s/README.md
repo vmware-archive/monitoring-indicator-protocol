@@ -58,18 +58,22 @@ gcloud container clusters get-credentials $NAME -z us-central1-a
 kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user $(gcloud config get-value account)
 
 # Initialize Helm
-helm init
-helm repo update
-kubectl create serviceaccount --namespace kube-system tiller
-kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
-helm init --service-account tiller --upgrade
+helm repo add stable https://kubernetes-charts.storage.googleapis.com/      
+# TODO: do we need this?
+# helm init
+# helm repo update
+# kubectl create serviceaccount --namespace kube-system tiller
+# kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+# kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+# helm init --service-account tiller --upgrade
 
 # Install Grafana helmchart
-helm install stable/grafana --values helm_config/dev_grafana_values.yml --name grafana --namespace grafana
+kubectl create namespace grafana
+helm install grafana stable/grafana --values helm_config/dev_grafana_values.yml --namespace grafana
 
 # Install Prometheus helmchart
-helm install stable/prometheus --name prometheus --namespace prometheus
+kubectl create namespace prometheus
+helm install prometheus stable/prometheus --namespace prometheus
 ```
 
 ### Deployment

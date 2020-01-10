@@ -1,6 +1,14 @@
 # Expose Prometheus service externally for e2e tests
 server:
 
+  # In order to run the prometheus server with kind,
+  # we must elevate prometheus to run with higher user permissions
+  securityContext:
+    runAsUser: 1000
+    runAsNonRoot: false
+    runAsGroup: 65534
+    fsGroup: 2000
+
   service:
 #    annotations: {}
 #    labels: {}
