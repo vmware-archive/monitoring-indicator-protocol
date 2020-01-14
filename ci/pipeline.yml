@@ -1,5 +1,9 @@
 ---
 resources:
+- name: every-week
+  type: time
+  source: {interval: 7d}
+
 - name: monitoring-indicator-protocol
   type: git
   icon: package-variant-closed
@@ -191,6 +195,8 @@ jobs:
 - name: build-and-test
   plan:
   - get: monitoring-indicator-protocol
+    trigger: true
+  - get: every-week
     trigger: true
   - task: build-and-test
     config:
