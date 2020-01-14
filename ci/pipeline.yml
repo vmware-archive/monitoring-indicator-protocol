@@ -2,7 +2,7 @@
 resources:
 - name: every-week
   type: time
-  source: {interval: 7d}
+  source: {interval: 168h}
 
 - name: monitoring-indicator-protocol
   type: git
