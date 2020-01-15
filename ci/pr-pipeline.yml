@@ -1,0 +1,48 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource
+
+resources:
+- name: pull-request
+  type: pull-request
+  check_every: 1m
+  source:
+    repository: pivotal/monitoring-indicator-protocol
+    access_token: ((bot-github-access-token))
+
+jobs:
+- name: test-indipro
+  plan:
+  - get: pull-request
+    trigger: true
+    version: every
+  - put: pull-request
+    params:
+      path: pull-request
+      status: pending
+  - task: unit-test
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: golang, tag: "latest"}
+      inputs:
+      - name: pull-request
+      run:
+        path: /bin/sh
+        args:
+        - -xce
+        - |
+          cd pull-request
+          ./scripts/test.sh
+    on_failure:
+      put: pull-request
+      params:
+        path: pull-request
+        status: failure
+  - put: pull-request
+    params:
+      path: pull-request
+      status: success
