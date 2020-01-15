@@ -131,3 +131,4 @@ curl https://localhost:10567/v1/indicator-documents -k \
 --cacert test_fixtures/ca.key
 ```
 Grafana and Prometheus controller jobs generate dashboard and alerting rules files, respectively, based on indicator documents availble in the registry. Both controllers write the generated files internally to the container in `/alerts` and `/dashboards`.
+
