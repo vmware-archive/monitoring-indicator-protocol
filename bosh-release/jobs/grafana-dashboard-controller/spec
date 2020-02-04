@@ -8,7 +8,7 @@ templates:
   indicator_protocol_ca.crt.erb: certs/indicator_protocol_ca.crt
 
 packages:
-  - indicator-protocol
+  - grafana-dashboard-controller
 
 consumes:
   - name: indicator-registry

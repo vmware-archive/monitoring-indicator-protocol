@@ -1,0 +1,8 @@
+---
+name: grafana-dashboard-controller
+
+dependencies:
+- golang-1.13-linux
+
+files:
+- github.com/pivotal/monitoring-indicator-protocol/**/*
