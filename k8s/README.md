@@ -55,7 +55,7 @@ gcloud container clusters get-credentials $NAME -z us-central1-a
 
 # Provide admin privileges to self
 #  - Please note that the role binding name must be unique for the cluster
-kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user $(gcloud config get-value account)
+kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user=$(gcloud config get-value account)
 
 # Create namespaces
 kubectl create namespace prometheus
@@ -66,10 +66,10 @@ kubectl create namespace grafana
 helm repo update
 
 # Install Grafana helmchart
-helm install stable/grafana --values helm_config/dev_grafana_values.yml --name grafana --namespace grafana
+helm upgrade --install grafana stable/grafana --namespace grafana -f helm_config/dev_grafana_values.yml
 
 # Install Prometheus helmchart
-helm install stable/prometheus --name prometheus --namespace prometheus
+helm upgrade --install prometheus stable/prometheus --namespace prometheus
 ```
 
 ### Deployment
