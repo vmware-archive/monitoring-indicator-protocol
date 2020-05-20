@@ -108,7 +108,11 @@ func appendPanelRowTitle(board *sdk.Board, section v1.Section) {
 }
 
 func ToGrafanaPanel(spec v1.IndicatorSpec) *sdk.Panel {
-	panel := sdk.NewGraph(spec.Name)
+	title, ok := spec.Documentation["title"]
+	if !ok {
+		title = spec.Name
+	}
+	panel := sdk.NewGraph(title)
 	panel.AddTarget(&sdk.Target{
 		Expr: replaceStep(spec.PromQL),
 	})

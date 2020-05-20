@@ -17,6 +17,37 @@ import (
 
 func TestToGrafanaDashboard(t *testing.T) {
 
+	t.Run("translate char title at best effort otherwise fall back to indicator name", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+
+		indicatorWithTitle := v1.IndicatorSpec{
+			Name:   "test_indicator",
+			Type:   v1.UndefinedType,
+			PromQL: `8`,
+			Documentation: map[string]string{
+				"title": "test title",
+			},
+			Presentation: v1.Presentation{
+				ChartType: v1.UndefinedChart,
+				Units:     "mbytes",
+			},
+		}
+
+		indicatorWithoutTitle := v1.IndicatorSpec{
+			Name:   "test_indicator",
+			Type:   v1.UndefinedType,
+			PromQL: `8`,
+			Documentation: nil,
+			Presentation: v1.Presentation{
+				ChartType: v1.UndefinedChart,
+				Units:     "mbytes",
+			},
+		}
+
+		g.Expect(grafana_dashboard.ToGrafanaPanel(indicatorWithTitle).CommonPanel.Title).To(Equal("test title"))
+		g.Expect(grafana_dashboard.ToGrafanaPanel(indicatorWithoutTitle).CommonPanel.Title).To(Equal("test_indicator"))
+	})
+
 	t.Run("translate a single chart to the proper grafana json", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
@@ -35,7 +66,7 @@ func TestToGrafanaDashboard(t *testing.T) {
 
 		data := grafana_dashboard.ToGrafanaPanel(indicator)
 
-		panel := sdk.NewGraph("test_indicator")
+		panel := sdk.NewGraph("test title")
 
 		height := 10
 		width := 24
@@ -127,7 +158,7 @@ test title
 		g.Expect(dashboard.ID).To(Equal(uint(0)))
 		g.Expect(dashboard.Title).To(Equal("Indicator Test Dashboard"))
 		g.Expect(dashboard.Panels).To(HaveLen(2))
-		g.Expect(dashboard.Panels[1].Title).To(Equal("test_indicator"))
+		g.Expect(dashboard.Panels[1].Title).To(Equal("Test Indicator Title"))
 		g.Expect(dashboard.Panels[1].GraphPanel.Targets[0].Expr).To(Equal("sum_over_time(gorouter_latency_ms[30m])"))
 		g.Expect(*dashboard.Panels[1].Description).To(ContainSubstring("Test Indicator Title"))
 		g.Expect(dashboard.Panels[1].GraphPanel.Thresholds).To(HaveLen(2))
@@ -135,7 +166,7 @@ test title
 		g.Expect(anotherDashboard.ID).To(Equal(uint(0)))
 		g.Expect(anotherDashboard.Title).To(Equal("Indicator Test Dashboard"))
 		g.Expect(anotherDashboard.Panels).To(HaveLen(2))
-		g.Expect(anotherDashboard.Panels[1].Title).To(Equal("test_indicator"))
+		g.Expect(anotherDashboard.Panels[1].Title).To(Equal("Test Indicator Title"))
 		g.Expect(anotherDashboard.Panels[1].GraphPanel.Targets[0].Expr).To(Equal("sum_over_time(gorouter_latency_ms[30m])"))
 		g.Expect(*anotherDashboard.Panels[1].Description).To(ContainSubstring("Test Indicator Title"))
 		g.Expect(anotherDashboard.Panels[1].GraphPanel.Thresholds).To(HaveLen(2))

@@ -39,7 +39,7 @@
       "isNew": true,
       "renderer": "flot",
       "span": 12,
-      "title": "test_indicator",
+      "title": "Test Indicator Title",
       "transparent": false,
       "type": "graph",
       "aliasColors": {},

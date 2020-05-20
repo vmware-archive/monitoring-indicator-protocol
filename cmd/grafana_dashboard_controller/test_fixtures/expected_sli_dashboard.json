@@ -39,7 +39,7 @@
       "isNew": true,
       "renderer": "flot",
       "span": 12,
-      "title": "sli_indicator",
+      "title": "Slinky",
       "transparent": false,
       "type": "graph",
       "aliasColors": {},
